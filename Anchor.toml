@@ -35,9 +35,9 @@ address = "8ZUcztoAEhpAeC2ixWewJKQJsSUGYSGPVAjkhDJYf5Gd"
 filename = "tests/fixtures/treasury_msol_account.json"
 
 [[test.validator.account]]
-address = "7GgPYjS5Dza89wV6FpZ23kUJRG5vbQ1GM25ezspYFSoE"
-filename = "tests/fixtures/msol_leg_pda.json"
-
-[[test.validator.account]]
 address = "UefNb6z6yvArqe4cJHTXCqStRsKmWhGxnZzuHbikP5Q"
 filename = "tests/fixtures/sol_leg_pda.json"
+
+[[test.validator.account]]
+address = "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
+filename = "tests/fixtures/lp_mint_address.json"

@@ -1,113 +1,67 @@
-import * as anchor from "@project-serum/anchor";
-import {Program, utils} from "@project-serum/anchor";
-import { GreenStake } from "../target/types/green_stake";
+import {utils} from "@project-serum/anchor";
 import BN from "bn.js";
-import {Marinade, MarinadeConfig, MarinadeState} from "@marinade.finance/marinade-ts-sdk";
-import {PublicKey} from "@solana/web3.js";
-import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID} from "@solana/spl-token";
-import {getAssociatedTokenAccountAddress, SYSTEM_PROGRAM_ID} from "@marinade.finance/marinade-ts-sdk/dist/src/util";
+import {Keypair} from "@solana/web3.js";
 import {expect} from "chai";
+import {findMSolTokenAccountAuthority} from "./util";
+import {GreenStakeClient} from "./lib/client";
 
 describe("green-stake", () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
+  let client: GreenStakeClient;
 
-  const program = anchor.workspace.GreenStake as Program<GreenStake>;
+  const depositSOL = new BN(1000000);
 
-  const deriveTokenAccountAddress = (
-      authority: PublicKey,
-  ): [PublicKey, number] => {
-    const seeds = [
-      anchor.utils.bytes.utf8.encode("msol_account"),
-      authority.toBuffer(),
-    ];
-    return PublicKey.findProgramAddressSync(
-        seeds,
-        program.programId
-    );
-  };
+  let msolTokenAmount: number;
 
-  let marinade: Marinade;
+  let stakerMsolTokenAccountAuthority
 
-  const depositAmount = new BN(1000000);
-  const msolTokenAccountAuthority = deriveTokenAccountAddress(provider.publicKey)[0];
-  let state: MarinadeState;
+  const treasury = Keypair.generate();
 
-  before(async () => {
-    const config = new MarinadeConfig({
-      connection: provider.connection,
-      publicKey: provider.publicKey,
-      marinadeFinanceProgramId: new PublicKey("MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD")//program.programId
-    })
-    marinade = new Marinade(config);
+  before('Initialise state', async () => {
+    client = await GreenStakeClient.register(treasury)
 
-    state = await marinade.getMarinadeState();
+    stakerMsolTokenAccountAuthority = findMSolTokenAccountAuthority(client.config, client.staker)[0];
+  });
 
-    state.solLeg().then(l => console.log('sol leg', l.toBase58()));
-
-    console.log({
-        marinadeFinanceProgramId: state.marinadeFinanceProgramId.toBase58(),
-        marinadeStateAddress: state.marinadeStateAddress.toBase58(),
-        msolLeg: state.mSolLeg.toBase58(),
-      liqPoolSolLeg: state.solLeg()
-    })
-  })
+  before('Initialise staker', () => client.createGSolTokenAccount());
+  before('log stuff', () => client.details().then(console.log))
 
   it("can deposit sol", async () => {
-    const associatedTokenAccountAddress = await utils.token.associatedAddress({ mint: state.mSolMintAddress, owner: msolTokenAccountAuthority })
+    await client.deposit(depositSOL);
+    const marinadeState = await client.marinadeState;
+    const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress({ mint: marinadeState.mSolMintAddress, owner: stakerMsolTokenAccountAuthority })
 
-    const accounts = {
-      payer: provider.publicKey,
-      authority: provider.publicKey,
-      msolTokenAccountAuthority,
-      msolMint: state.mSolMintAddress,
-      msolTokenAccount: associatedTokenAccountAddress,
-      systemProgram: SYSTEM_PROGRAM_ID,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    };
-    Object.keys(accounts).map((key) => {
-      console.log(key, accounts[key].toBase58());
-    });
-    const createAccountsTransaction = await program.methods.createTokenAccount().accounts(accounts).transaction();
-    await provider.sendAndConfirm(createAccountsTransaction);
-
-    console.log("Token account created. Depositing...")
-
-    const { transaction } = await marinade.deposit(depositAmount, {
-      mintToOwnerAddress: msolTokenAccountAuthority
-    });
-    await provider.sendAndConfirm(transaction);
-
-    const msolTreasuryBalance = await provider.connection.getTokenAccountBalance(new PublicKey("8ZUcztoAEhpAeC2ixWewJKQJsSUGYSGPVAjkhDJYf5Gd"))
-    console.log("MSOL treasury balance", msolTreasuryBalance.value.uiAmount)
-
-    const msolBalance = await provider.connection.getTokenAccountBalance(associatedTokenAccountAddress)
+    const msolBalance = await client.provider.connection.getTokenAccountBalance(msolAssociatedTokenAccountAddress)
     console.log("MSOL balance", msolBalance.value.uiAmount)
 
-    expect(Number(msolBalance.value.amount)).to.equal(depositAmount.toNumber());
+    const expectedMsol = Math.floor(depositSOL.toNumber() / marinadeState.mSolPrice);
+    msolTokenAmount = Number(msolBalance.value.amount);
+
+    expect(msolTokenAmount).to.equal(expectedMsol);
+
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(client.stakerGSolTokenAccount)
+    const gsolTokenAmount = Number(gsolBalance.value.amount);
+    console.log("GSOL balance", gsolBalance.value.uiAmount)
+    expect(gsolTokenAmount).to.equal(depositSOL);
   });
 
   it("can withdraw sol", async () => {
-    const msolTreasuryBalance = await provider.connection.getTokenAccountBalance(new PublicKey("8ZUcztoAEhpAeC2ixWewJKQJsSUGYSGPVAjkhDJYf5Gd"))
-    console.log("MSOL treasury balance", msolTreasuryBalance.value.uiAmount)
+    const stakerPreSolBalance = await client.provider.connection.getBalance(client.staker);
+    console.log("Staker's sol balance before withdrawing: ", stakerPreSolBalance);
 
-    const associatedTokenAccountAddress = await utils.token.associatedAddress({ mint: state.mSolMintAddress, owner: msolTokenAccountAuthority })
-    const { transaction } = await marinade.liquidUnstake(depositAmount, associatedTokenAccountAddress);
-    transaction.recentBlockhash = (await provider.connection.getLatestBlockhash()).blockhash;
-    transaction.feePayer = provider.publicKey;
+    await client.withdraw();
 
-    transaction.instructions.forEach((instruction, j) => {
-      instruction.keys.forEach((key, i) => {
-        console.log(j, i, key.pubkey.toBase58());
-      })
-    })
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(client.stakerGSolTokenAccount)
+    console.log("GSOL balance", gsolBalance.value.uiAmount)
+    const gsolTokenAmount = Number(gsolBalance.value.amount);
+    expect(gsolTokenAmount).to.equal(0);
 
-    let t = await provider.wallet.signTransaction(transaction);
-    console.log(t.serialize().toString("base64"));
-    // console.log(transaction.serializeMessage().toString("base64"));
-    await provider.sendAndConfirm(transaction);
+    const stakerPostSolBalance = await client.provider.connection.getBalance(client.staker);
+    console.log("Staker's sol balance after withdrawing: ", stakerPostSolBalance);
+
+    // 0.3% fee for immediate withdrawal
+    // Add 5k lamports for network fees
+    const fee = new BN(depositSOL).muln(0.003).addn(5000);
+    console.log("Expected fee for immediate withdrawal: ", fee.toNumber());
+    expect(stakerPostSolBalance - stakerPreSolBalance).to.equal(new BN(depositSOL).sub(fee).toNumber());
   })
 });

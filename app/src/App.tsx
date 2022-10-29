@@ -14,7 +14,7 @@ import {
     WalletModalProvider,
     WalletMultiButton
 } from "@solana/wallet-adapter-react-ui";
-import {Marinade} from "./pages/marinade";
+import {GreenStake} from "./pages/greenStake";
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
@@ -22,7 +22,7 @@ const Content = () => {
     const wallet = useWallet()
     return <header className="App-header">
         <WalletMultiButton/>
-        <Marinade/>
+        <GreenStake/>
     </header>
 }
 

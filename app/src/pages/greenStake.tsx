@@ -1,24 +1,31 @@
 import {FC, FormEvent, useCallback, useEffect, useState} from "react";
-import {useMarinade} from "../hooks/useMarinade";
+import {useGreenStake} from "../hooks/useGreenStake";
 import BN from "bn.js";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
 import {toSol} from "../lib/util";
 import {LAMPORTS_PER_SOL} from "@solana/web3.js";
+import {BalanceInfo} from "../lib/greenStake";
 
-export const Marinade:FC = () => {
+// TODO TEMP lookup
+const SOL_PRICE_USD_CENTS = 3300
+const CARBON_PRICE_USD_CENTS_PER_TONNE = 8021
+
+const solToCarbon = (sol: number) => sol * SOL_PRICE_USD_CENTS / CARBON_PRICE_USD_CENTS_PER_TONNE
+
+export const GreenStake:FC = () => {
     const wallet = useWallet();
     const { connection } = useConnection();
-    const marinade = useMarinade();
+    const client = useGreenStake();
     const [txSig, setTxSig] = useState<string>();
     const [error, setError] = useState<Error>();
     const [solBalance, setSolBalance] = useState<number>();
-    const [msolBalance, setMSolBalance] = useState<number>();
+    const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
 
     const updateBalances = useCallback(async () => {
-        if (!wallet.publicKey || !marinade) return;
+        if (!wallet.publicKey || !client) return;
         setSolBalance(await connection.getBalance(wallet.publicKey));
-        setMSolBalance(await marinade.getBalance().then(bn => bn.toNumber()));
-    }, [wallet.publicKey, marinade, connection]);
+        setStakeBalance(await client.getBalance());
+    }, [wallet.publicKey, client, connection]);
 
     useEffect(() => {
         if (!wallet || !wallet.connected || !wallet.publicKey) return;
@@ -27,31 +34,36 @@ export const Marinade:FC = () => {
 
     const deposit = useCallback((e: FormEvent) => {
         e.preventDefault()
-        if (!marinade) return;
+        if (!client) return;
         const target = e.target as typeof e.target & { amount: { value: number } };
 
-        marinade.deposit(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
+        client.deposit(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
             .then(setTxSig)
             .then(updateBalances)
             .catch(setError);
-    }, [marinade]);
+    }, [client]);
 
     const withdraw = useCallback((e: FormEvent) => {
         e.preventDefault()
-        if (!marinade) return;
-        const target = e.target as typeof e.target & { amount: { value: number } };
-
-        marinade.withdraw(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
+        if (!client) return;
+        client.withdraw()
             .then(setTxSig)
             .then(updateBalances)
             .catch(setError);
-    }, [marinade]);
+    }, [client]);
 
     return <div>
         <h1>Marinade</h1>
-        {!marinade && <div>Loading...</div>}
+        {!client && <div>Loading...</div>}
         {solBalance && <div>Available balance to deposit: {toSol(solBalance)} ◎</div>}
-        {msolBalance && <div>Deposited SOL: {toSol(msolBalance)} ◎</div>}
+        {stakeBalance &&
+            <>
+                <div>Deposited SOL: {stakeBalance.depositedSol.uiAmountString} ◎</div>
+                <div>mSOL: {stakeBalance.msolBalance.uiAmountString}</div>
+                <div>Earned: {toSol(stakeBalance.earnedLamports)} ◎</div>
+                <div>tCO₂E : {solToCarbon(toSol(stakeBalance.earnedLamports))} ◎</div>
+            </>
+        }
         <form onSubmit={deposit}>
             <input name="amount" type="number" placeholder="Amount"/>
             <input type="submit" value="Deposit"/>

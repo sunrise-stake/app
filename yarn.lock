@@ -9,9 +9,9 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@marinade.finance/marinade-ts-sdk@./marinade.finance-marinade-ts-sdk-v4.0.2-gs.9.tgz":
-  version "4.0.2-gs.9"
-  resolved "./marinade.finance-marinade-ts-sdk-v4.0.2-gs.9.tgz#15e586106a4a6f925e8ffce8e79f2c2e4639fc32"
+"@marinade.finance/marinade-ts-sdk@./marinade.finance-marinade-ts-sdk-v4.0.2-gs.21.tgz":
+  version "4.0.2-gs.21"
+  resolved "./marinade.finance-marinade-ts-sdk-v4.0.2-gs.21.tgz#2f60d1f21304e4d96ca4057f8990d43dc3d95a8d"
   dependencies:
     "@project-serum/anchor" "^0.18.2"
     "@solana/spl-token" "^0.1.8"
