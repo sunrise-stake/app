@@ -1,8 +1,11 @@
+[workspace]
+types = "app/src/lib/client/types"
+
 [features]
 seeds = false
 skip-lint = false
 [programs.localnet]
-green_stake = "gskJo33NME4sUk1PzcAt6XDWEwAPfmwsTawJv4iiV4d"
+green_stake = "gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p"
 
 [registry]
 url = "https://api.apr.dev"

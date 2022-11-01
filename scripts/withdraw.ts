@@ -1,7 +1,6 @@
-import {GreenStakeClient} from "../tests/lib/client";
-import {Keypair, PublicKey} from "@solana/web3.js";
+import {GreenStakeClient} from "../app/src/lib/client/";
+import {PublicKey} from "@solana/web3.js";
 import "./util";
-import * as anchor from "@project-serum/anchor";
 import {AnchorProvider} from "@project-serum/anchor";
 
 const [stateAddress] = process.argv.slice(2);

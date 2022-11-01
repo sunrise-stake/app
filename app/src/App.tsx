@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import './App.css';
 import logo from './logo.svg';
-import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react';
-import { clusterApiUrl } from "@solana/web3.js";
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import {
     GlowWalletAdapter,
     PhantomWalletAdapter,
@@ -12,22 +11,18 @@ import {
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
     WalletModalProvider,
-    WalletMultiButton
 } from "@solana/wallet-adapter-react-ui";
-import {GreenStake} from "./pages/greenStake";
+import {clusterApiUrl} from "@solana/web3.js";
+import {GreenStakeWrapper} from "./pages/greenStakeWrapper";
+import rainforest from "./pages/rainforest.mp4";
 
-require('@solana/wallet-adapter-react-ui/styles.css');
+require('./solana-wallet-adapter.css');
 
-const Content = () => {
-    const wallet = useWallet()
-    return <header className="App-header">
-        <WalletMultiButton/>
-        <GreenStake/>
-    </header>
-}
+const Content = () => <GreenStakeWrapper/>
 
 function App() {
     const network = WalletAdapterNetwork.Devnet;
+    // const endpoint = "http://localhost:8899";
     const endpoint = useMemo(() => clusterApiUrl(network), [network]);
     const wallets = useMemo(
         () => [
@@ -41,15 +36,22 @@ function App() {
     );
 
     return (
-        <div className="App">
-            <ConnectionProvider endpoint={endpoint}>
-                <WalletProvider wallets={wallets} autoConnect>
-                    <WalletModalProvider>
-                        <Content />
-                    </WalletModalProvider>
-                </WalletProvider>
-            </ConnectionProvider>
-        </div>
+        <>
+            <video className="fixed right-0 bottom-0 min-w-full min-h-full opacity-50" autoPlay muted loop>
+                <source src={rainforest}/>
+            </video>
+            <div className="fixed right-0 top-0 px-4 py-1 mr-10 mt-4 border border-solid rounded-lg border-current">devnet</div>
+            <div className="App">
+                <ConnectionProvider endpoint={endpoint}>
+                    <WalletProvider wallets={wallets} autoConnect>
+                        <WalletModalProvider>
+                            <Content />
+                        </WalletModalProvider>
+                    </WalletProvider>
+                </ConnectionProvider>
+            </div>
+            {/*<div>Logo created by <a href="https://www.designevo.com/" title="Free Online Logo Maker">DesignEvo logo maker</a></div>*/}
+        </>
     );
 }
 

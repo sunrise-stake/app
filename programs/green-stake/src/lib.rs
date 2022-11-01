@@ -11,7 +11,7 @@ use marinade_cpi::program::MarinadeFinance;
 use crate::utils::token::{create_mint, mint_to};
 use crate::utils::seeds::*;
 
-declare_id!("gskJo33NME4sUk1PzcAt6XDWEwAPfmwsTawJv4iiV4d");
+declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 
 #[program]
 pub mod green_stake {
@@ -20,7 +20,7 @@ pub mod green_stake {
     use crate::utils::token::burn;
     use super::*;
 
-    pub fn register_state(ctx: Context<RegisterState>, state: State) -> Result<()> {
+    pub fn register_state(ctx: Context<RegisterState>, state: StateInput) -> Result<()> {
         let state_account = &mut ctx.accounts.state;
         state_account.marinade_state = state.marinade_state;
         state_account.update_authority = state.update_authority;
@@ -190,6 +190,17 @@ pub struct State {
 }
 impl State {
     const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 8 /* DISCRIMINATOR */ ;
+}
+
+// Matches State above. Used as the input to RegisterState.
+// Redefined so that it shows up in the anchor IDL. TODO - is there a better way?
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct StateInput {
+    pub marinade_state: Pubkey,
+    pub update_authority: Pubkey,
+    pub gsol_mint: Pubkey,
+    pub treasury: Pubkey,
+    pub gsol_mint_authority_bump: u8,
 }
 
 #[derive(Accounts)]

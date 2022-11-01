@@ -1,4 +1,4 @@
-import {GreenStakeClient} from "../tests/lib/client";
+import {GreenStakeClient} from "../app/src/lib/client/";
 import {Keypair} from "@solana/web3.js";
 import {idWallet} from "./util";
 

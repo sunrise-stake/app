@@ -1,11 +1,13 @@
-import {Balance, GreenStakeClient} from "../../../tests/lib/client";
+import {Balance, GreenStakeClient} from "./client";
 import {Connection, PublicKey, TokenAmount} from "@solana/web3.js";
 import {ConnectedWallet} from "./util";
-import {Marinade, MarinadeConfig} from "@marinade.finance/marinade-ts-sdk";
 import {AnchorProvider, Wallet} from "@project-serum/anchor";
 import BN from "bn.js";
 
-const GREEN_STAKE_STATE = new PublicKey("");
+// Valid devnet state
+const GREEN_STAKE_STATE = new PublicKey("GzutKHnLjLuhsYCpG1JHwfVsFcy1fdxQna3wYaUTBXba");
+// Current localnet state
+// const GREEN_STAKE_STATE = new PublicKey("EpUtYPsPhvrKnMFuNtqcuoq3iji6MjawHm14vpsfZxDD");
 
 export type BalanceInfo = Balance & {
     msolValue: number
@@ -18,6 +20,7 @@ export class GreenStake {
     static async init(connection: Connection, wallet: ConnectedWallet) {
         const provider = new AnchorProvider(connection, wallet as unknown as Wallet, {});
         const client = await GreenStakeClient.get(provider, GREEN_STAKE_STATE);
+        client.details().then(console.log);
         return new GreenStake(client);
     }
 
@@ -41,7 +44,8 @@ export class GreenStake {
         return this.client.withdraw();
     }
 
-    treasuryBalance():Promise<TokenAmount> {
-        return this.client.provider.connection.getTokenAccountBalance(this.client.config.treasury).then(balance => balance.value);
+    treasuryBalance():Promise<number> {
+        if (!this.client.config) throw new Error("Client not initialized");
+        return this.client.provider.connection.getBalance(this.client.config.treasury);
     }
 }

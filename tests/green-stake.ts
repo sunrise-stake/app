@@ -2,8 +2,8 @@ import {utils} from "@project-serum/anchor";
 import BN from "bn.js";
 import {Keypair} from "@solana/web3.js";
 import {expect} from "chai";
-import {findMSolTokenAccountAuthority} from "./util";
-import {GreenStakeClient} from "./lib/client";
+import {findMSolTokenAccountAuthority} from "../app/src/lib/client/util";
+import {GreenStakeClient} from "../app/src/lib/client";
 
 describe("green-stake", () => {
   let client: GreenStakeClient;
@@ -41,7 +41,7 @@ describe("green-stake", () => {
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(client.stakerGSolTokenAccount)
     const gsolTokenAmount = Number(gsolBalance.value.amount);
     console.log("GSOL balance", gsolBalance.value.uiAmount)
-    expect(gsolTokenAmount).to.equal(depositSOL);
+    expect(gsolTokenAmount).to.equal(depositSOL.toNumber());
   });
 
   it("can withdraw sol", async () => {

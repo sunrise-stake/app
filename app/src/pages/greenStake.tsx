@@ -3,7 +3,7 @@ import {useGreenStake} from "../hooks/useGreenStake";
 import BN from "bn.js";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
 import {toSol} from "../lib/util";
-import {LAMPORTS_PER_SOL} from "@solana/web3.js";
+import {LAMPORTS_PER_SOL, TokenAmount} from "@solana/web3.js";
 import {BalanceInfo} from "../lib/greenStake";
 
 // TODO TEMP lookup
@@ -20,17 +20,19 @@ export const GreenStake:FC = () => {
     const [error, setError] = useState<Error>();
     const [solBalance, setSolBalance] = useState<number>();
     const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
+    const [treasuryBalanceLamports, setTreasuryBalanceLamports] = useState<number>();
 
     const updateBalances = useCallback(async () => {
         if (!wallet.publicKey || !client) return;
         setSolBalance(await connection.getBalance(wallet.publicKey));
         setStakeBalance(await client.getBalance());
+        setTreasuryBalanceLamports(await client.treasuryBalance());
     }, [wallet.publicKey, client, connection]);
 
     useEffect(() => {
         if (!wallet || !wallet.connected || !wallet.publicKey) return;
         updateBalances();
-    }, [wallet, connection, setSolBalance]);
+    }, [wallet, connection, setSolBalance, client]);
 
     const deposit = useCallback((e: FormEvent) => {
         e.preventDefault()
@@ -53,7 +55,6 @@ export const GreenStake:FC = () => {
     }, [client]);
 
     return <div>
-        <h1>Marinade</h1>
         {!client && <div>Loading...</div>}
         {solBalance && <div>Available balance to deposit: {toSol(solBalance)} ◎</div>}
         {stakeBalance &&
@@ -61,8 +62,11 @@ export const GreenStake:FC = () => {
                 <div>Deposited SOL: {stakeBalance.depositedSol.uiAmountString} ◎</div>
                 <div>mSOL: {stakeBalance.msolBalance.uiAmountString}</div>
                 <div>Earned: {toSol(stakeBalance.earnedLamports)} ◎</div>
-                <div>tCO₂E : {solToCarbon(toSol(stakeBalance.earnedLamports))} ◎</div>
+                <div>Your tCO₂E : {solToCarbon(toSol(stakeBalance.earnedLamports))}</div>
             </>
+        }
+        {treasuryBalanceLamports &&
+            <div>Total tCO₂E: {solToCarbon(toSol(treasuryBalanceLamports))}</div>
         }
         <form onSubmit={deposit}>
             <input name="amount" type="number" placeholder="Amount"/>
