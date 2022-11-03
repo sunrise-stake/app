@@ -1,82 +1,87 @@
-import {FC, FormEvent, useCallback, useEffect, useState} from "react";
-import {useGreenStake} from "../hooks/useGreenStake";
+import { FC, FormEvent, useCallback, useEffect, useState } from "react";
+import { useGreenStake } from "../hooks/useGreenStake";
 import BN from "bn.js";
-import {useConnection, useWallet} from "@solana/wallet-adapter-react";
-import {toSol} from "../lib/util";
-import {LAMPORTS_PER_SOL, TokenAmount} from "@solana/web3.js";
-import {BalanceInfo} from "../lib/greenStake";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { toSol } from "../lib/util";
+import { LAMPORTS_PER_SOL, TokenAmount } from "@solana/web3.js";
+import { BalanceInfo } from "../lib/greenStake";
+import StakeForm from "../components/stakeForm";
+import BalanceInfoTable from "../components/BalanceInfoTable";
 
-// TODO TEMP lookup
-const SOL_PRICE_USD_CENTS = 3300
-const CARBON_PRICE_USD_CENTS_PER_TONNE = 8021
+export const GreenStake: FC = () => {
+  const wallet = useWallet();
+  const { connection } = useConnection();
+  const client = useGreenStake();
+  const [txSig, setTxSig] = useState<string>();
+  const [error, setError] = useState<Error>();
+  const [solBalance, setSolBalance] = useState<number>();
+  const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
+  const [treasuryBalanceLamports, setTreasuryBalanceLamports] =
+    useState<number>();
 
-const solToCarbon = (sol: number) => sol * SOL_PRICE_USD_CENTS / CARBON_PRICE_USD_CENTS_PER_TONNE
+  const updateBalances = useCallback(async () => {
+    if (!wallet.publicKey || !client) return;
+    setSolBalance(await connection.getBalance(wallet.publicKey));
+    setStakeBalance(await client.getBalance());
+    setTreasuryBalanceLamports(await client.treasuryBalance());
+  }, [wallet.publicKey, client, connection]);
 
-export const GreenStake:FC = () => {
-    const wallet = useWallet();
-    const { connection } = useConnection();
-    const client = useGreenStake();
-    const [txSig, setTxSig] = useState<string>();
-    const [error, setError] = useState<Error>();
-    const [solBalance, setSolBalance] = useState<number>();
-    const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
-    const [treasuryBalanceLamports, setTreasuryBalanceLamports] = useState<number>();
+  useEffect(() => {
+    if (!wallet || !wallet.connected || !wallet.publicKey) return;
+    updateBalances();
+  }, [wallet, connection, setSolBalance, client]);
 
-    const updateBalances = useCallback(async () => {
-        if (!wallet.publicKey || !client) return;
-        setSolBalance(await connection.getBalance(wallet.publicKey));
-        setStakeBalance(await client.getBalance());
-        setTreasuryBalanceLamports(await client.treasuryBalance());
-    }, [wallet.publicKey, client, connection]);
+  const deposit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
+      if (!client) return;
+      const target = e.target as typeof e.target & {
+        amount: { value: number };
+      };
 
-    useEffect(() => {
-        if (!wallet || !wallet.connected || !wallet.publicKey) return;
-        updateBalances();
-    }, [wallet, connection, setSolBalance, client]);
+      client
+        .deposit(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
+        .then(setTxSig)
+        .then(updateBalances)
+        .catch(setError);
+    },
+    [client]
+  );
 
-    const deposit = useCallback((e: FormEvent) => {
-        e.preventDefault()
-        if (!client) return;
-        const target = e.target as typeof e.target & { amount: { value: number } };
+  const withdraw = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
+      if (!client) return;
+      client.withdraw().then(setTxSig).then(updateBalances).catch(setError);
+    },
+    [client]
+  );
 
-        client.deposit(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
-            .then(setTxSig)
-            .then(updateBalances)
-            .catch(setError);
-    }, [client]);
-
-    const withdraw = useCallback((e: FormEvent) => {
-        e.preventDefault()
-        if (!client) return;
-        client.withdraw()
-            .then(setTxSig)
-            .then(updateBalances)
-            .catch(setError);
-    }, [client]);
-
-    return <div>
-        {!client && <div>Loading...</div>}
-        {solBalance && <div>Available balance to deposit: {toSol(solBalance)} ◎</div>}
-        {stakeBalance &&
-            <>
-                <div>Deposited SOL: {stakeBalance.depositedSol.uiAmountString} ◎</div>
-                <div>mSOL: {stakeBalance.msolBalance.uiAmountString}</div>
-                <div>Earned: {toSol(stakeBalance.earnedLamports)} ◎</div>
-                <div>Your tCO₂E : {solToCarbon(toSol(stakeBalance.earnedLamports))}</div>
-            </>
-        }
-        {treasuryBalanceLamports &&
-            <div>Total tCO₂E: {solToCarbon(toSol(treasuryBalanceLamports))}</div>
-        }
-        <form onSubmit={deposit}>
-            <input name="amount" type="number" placeholder="Amount"/>
-            <input type="submit" value="Deposit"/>
-        </form>
-        <form onSubmit={withdraw}>
-            <input name="amount" type="number" placeholder="Amount"/>
-            <input type="submit" value="Withdraw"/>
-        </form>
-        {txSig && <div>Done! {txSig}</div>}
-        {error && <div>Error! {error.message}</div>}
+  return (
+    <div>
+      <div className="bg-neutral-800 flex flex-col items-center mt-5 rounded-lg">
+        {!client && (
+          <div className="flex flex-col items-center m-4">
+            <h1 className="text-3xl text-center">Loading...</h1>
+            <div
+              className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full mt-4"
+              role="status"
+            ></div>
+          </div>
+        )}
+        <div className="mt-2">
+          <StakeForm withdraw={withdraw} deposit={deposit} />
+        </div>
+        <div className="bg-neutral-800 rounded-lg m-4">
+          <BalanceInfoTable
+            solBalance={solBalance}
+            stakeBalance={stakeBalance}
+            treasuryBalanceLamports={treasuryBalanceLamports}
+          />
+        </div>
+        {txSig && <div>Done {txSig}</div>}
+        {error && <div>Error {error.message}</div>}
+      </div>
     </div>
-}
+  );
+};
