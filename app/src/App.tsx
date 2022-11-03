@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import "./App.css";
-import logo from "/logo.png";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -38,7 +37,7 @@ function App() {
 
   return (
     <>
-      <div className="App ">
+      <div className="App bg-neutral-900 ">
         <ConnectionProvider endpoint={endpoint}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>

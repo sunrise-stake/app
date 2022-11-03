@@ -5,14 +5,8 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { toSol } from "../lib/util";
 import { LAMPORTS_PER_SOL, TokenAmount } from "@solana/web3.js";
 import { BalanceInfo } from "../lib/greenStake";
-import StakeForm from "./StakeForm";
-
-// TODO TEMP lookup
-const SOL_PRICE_USD_CENTS = 3300;
-const CARBON_PRICE_USD_CENTS_PER_TONNE = 8021;
-
-const solToCarbon = (sol: number) =>
-  (sol * SOL_PRICE_USD_CENTS) / CARBON_PRICE_USD_CENTS_PER_TONNE;
+import StakeForm from "../components/stakeForm";
+import BalanceInfoTable from "../components/BalanceInfoTable";
 
 export const GreenStake: FC = () => {
   const wallet = useWallet();
@@ -65,51 +59,28 @@ export const GreenStake: FC = () => {
 
   return (
     <div>
-      <div className="rounded-xl px-7 py-8 mb-3 bg-neutral-100">
-        {!client && <div>Loading...</div>}
-        {solBalance && (
-          <div className="grid grid-rows-2">
-            <h2 className="text-3xl">{toSol(solBalance)} ◎</h2>
-            <h2>Available balance to deposit</h2>
+      <div className="bg-neutral-800 flex flex-col items-center mt-5 rounded-lg">
+        {!client && (
+          <div className="flex flex-col items-center m-4">
+            <h1 className="text-3xl text-center">Loading...</h1>
+            <div
+              className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full mt-4"
+              role="status"
+            ></div>
           </div>
         )}
-        {stakeBalance && (
-          <div className="grid grid-rows-5 gap-2">
-            <div>
-              <h4 className="text-3xl">
-                {stakeBalance.depositedSol.uiAmountString} ◎
-              </h4>
-              <h4 className="text-md">Deposited SOL</h4>
-            </div>
-            <div>
-              <h4 className="text-3xl">
-                {stakeBalance.msolBalance.uiAmountString}
-              </h4>
-              <h4 className="text-md">mSOL</h4>
-            </div>
-            <div>
-              <h4 className="text-3xl">{toSol(stakeBalance.earnedLamports)}</h4>
-              <h4>Earned</h4>
-            </div>
-            <div>
-              <h4 className="text-3xl">{toSol(stakeBalance.earnedLamports)}</h4>
-              <h4>Your tCO₂E </h4>
-            </div>
-            {treasuryBalanceLamports && (
-              <div>
-                <h4 className="text-3xl bold">
-                  {solToCarbon(toSol(treasuryBalanceLamports))}
-                </h4>
-                <h4>Your Total tCO₂E </h4>
-              </div>
-            )}
-          </div>
-        )}
-        {txSig && <div>Done! {txSig}</div>}
-        {error && <div>Error! {error.message}</div>}
-      </div>
-      <div className="rounded-xl px-7 py-">
-        <StakeForm withdraw={withdraw} deposit={deposit} />
+        <div className="mt-2">
+          <StakeForm withdraw={withdraw} deposit={deposit} />
+        </div>
+        <div className="bg-neutral-800 rounded-lg m-4">
+          <BalanceInfoTable
+            solBalance={solBalance}
+            stakeBalance={stakeBalance}
+            treasuryBalanceLamports={treasuryBalanceLamports}
+          />
+        </div>
+        {txSig && <div>Done {txSig}</div>}
+        {error && <div>Error {error.message}</div>}
       </div>
     </div>
   );
