@@ -1,11 +1,8 @@
 import {GreenStakeClient} from "../app/src/lib/client/";
-import {Keypair} from "@solana/web3.js";
-import {idWallet} from "./util";
+import {PublicKey} from "@solana/web3.js";
+import './util'
 
-const treasuryKeyPath = process.env.TREASURY_KEY || idWallet;
-const treasuryKey = Keypair.fromSecretKey(
-    Buffer.from(require(treasuryKeyPath))
-);
+const treasuryKey = new PublicKey(process.env.TREASURY_KEY);
 
 ( async () => {
     const client = await GreenStakeClient.register(treasuryKey);

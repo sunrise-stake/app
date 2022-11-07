@@ -12,9 +12,6 @@ export const GreenStakeWrapper: FC = () => {
         <div className="flex-grow-0">
           <WalletMultiButton />
         </div>
-        <span className="text-lg px-2 py-2 mb-3 inline-block border border-solid rounded-lg border-current">
-          devnet
-        </span>
       </div>
       <div className="container mx-auto px-4">
         <div>

@@ -181,7 +181,7 @@ export class GreenStakeClient {
         }
     }
 
-    public static async register(treasury: Keypair): Promise<GreenStakeClient> {
+    public static async register(treasury: PublicKey): Promise<GreenStakeClient> {
         const greenStakeState = Keypair.generate();
         const gsolMint = Keypair.generate();
         const client = new GreenStakeClient(setUpAnchor(), greenStakeState.publicKey);
@@ -190,14 +190,14 @@ export class GreenStakeClient {
             gsolMint: gsolMint.publicKey,
             programId: client.program.programId,
             stateAddress: greenStakeState.publicKey,
-            treasury: treasury.publicKey
+            treasury
         });
         await client.program.methods.registerState({
             // TODO replace with marinadeConfig.marinadeStateAddress when this is no longer a static function
             marinadeState: new MarinadeConfig().marinadeStateAddress,
             updateAuthority: client.provider.publicKey,
             gsolMint: gsolMint.publicKey,
-            treasury: treasury.publicKey,
+            treasury,
             gsolMintAuthorityBump
         }).accounts({
             state: greenStakeState.publicKey,

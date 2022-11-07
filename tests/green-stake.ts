@@ -17,7 +17,7 @@ describe("green-stake", () => {
   const treasury = Keypair.generate();
 
   before('Initialise state', async () => {
-    client = await GreenStakeClient.register(treasury)
+    client = await GreenStakeClient.register(treasury.publicKey)
 
     stakerMsolTokenAccountAuthority = findMSolTokenAccountAuthority(client.config, client.staker)[0];
   });

@@ -1,5 +1,4 @@
 import os from "os";
-import {clusterApiUrl} from "@solana/web3.js";
 
 export const idWallet = os.homedir() + "/.config/solana/id.json";
 
