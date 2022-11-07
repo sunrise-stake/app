@@ -4,10 +4,7 @@ import {ConnectedWallet} from "./util";
 import {AnchorProvider, Wallet} from "@project-serum/anchor";
 import BN from "bn.js";
 
-// Valid devnet state
-const GREEN_STAKE_STATE = new PublicKey("GzutKHnLjLuhsYCpG1JHwfVsFcy1fdxQna3wYaUTBXba");
-// Current localnet state
-// const GREEN_STAKE_STATE = new PublicKey("EpUtYPsPhvrKnMFuNtqcuoq3iji6MjawHm14vpsfZxDD");
+const GREEN_STAKE_STATE = new PublicKey(process.env.REACT_APP_TREASURY_PUBLIC_KEY || '');
 
 export type BalanceInfo = Balance & {
     msolValue: number
