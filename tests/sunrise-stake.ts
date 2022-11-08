@@ -3,10 +3,10 @@ import BN from "bn.js";
 import {Keypair} from "@solana/web3.js";
 import {expect} from "chai";
 import {findMSolTokenAccountAuthority} from "../app/src/lib/client/util";
-import {GreenStakeClient} from "../app/src/lib/client";
+import {SunriseStakeClient} from "../app/src/lib/client";
 
-describe("green-stake", () => {
-  let client: GreenStakeClient;
+describe("sunrise-stake", () => {
+  let client: SunriseStakeClient;
 
   const depositSOL = new BN(1000000);
 
@@ -17,7 +17,7 @@ describe("green-stake", () => {
   const treasury = Keypair.generate();
 
   before('Initialise state', async () => {
-    client = await GreenStakeClient.register(treasury.publicKey)
+    client = await SunriseStakeClient.register(treasury.publicKey)
 
     stakerMsolTokenAccountAuthority = findMSolTokenAccountAuthority(client.config, client.staker)[0];
   });

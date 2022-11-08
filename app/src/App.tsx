@@ -9,12 +9,12 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 import {WalletModalProvider} from "@solana/wallet-adapter-react-ui";
-import {GreenStakeWrapper} from "./pages/greenStakeWrapper";
+import {WalletConnectionWrapper} from "./pages/WalletConnectionWrapper";
 import {clusterApiUrl} from "@solana/web3.js";
 
 require("./solana-wallet-adapter.css");
 
-const Content = () => <GreenStakeWrapper />;
+const Content = () => <WalletConnectionWrapper />;
 
 function App() {
   const network = process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork || WalletAdapterNetwork.Devnet;

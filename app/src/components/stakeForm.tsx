@@ -20,7 +20,7 @@ const StakeForm: React.FC<StakeFormProps> = ({ withdraw, deposit }) => {
         />
         <button
           type="submit"
-          className="w-full inline-block py-3 mt-3 bg-[#7BB692] text-slate-800 font-medium text-xl leading-snug uppercase rounded-md shadow-md hover:bg-blue-green hover:shadow-lg focus:bg-[#5A9370] focus:shadow-lg focus:outline-none focus:ring-0 active:bg-[#5A9370] active:shadow-lg transition duration-150 ease-in-out"
+          className="w-full inline-block py-3 mt-3 bg-[#7BB692] text-slate-800 font-medium text-xl leading-snug uppercase rounded-md shadow-md hover:bg-blue-sunrise hover:shadow-lg focus:bg-[#5A9370] focus:shadow-lg focus:outline-none focus:ring-0 active:bg-[#5A9370] active:shadow-lg transition duration-150 ease-in-out"
         >
           deposit
         </button>

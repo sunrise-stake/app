@@ -1,18 +1,14 @@
-import { FC, FormEvent, useCallback, useEffect, useState } from "react";
-import { useGreenStake, useReadOnlyGreenStake } from "../hooks/useGreenStake";
-import BN from "bn.js";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { toSol } from "../lib/util";
-import { LAMPORTS_PER_SOL, TokenAmount } from "@solana/web3.js";
-import { BalanceInfo } from "../lib/greenStake";
+import { FC, useCallback, useEffect, useState } from "react";
+import { useReadOnlySunriseStake } from "../hooks/useSunriseStake";
+import { useConnection } from "@solana/wallet-adapter-react";
 import Spinner from "../components/Spinner";
 import CarbonRecovered from "../components/CarbonRecovered";
 
-// TODO remove duplication with greenStake
+// TODO remove duplication with StakeDashboard
 
-export const GreenStakeWelcomePage: FC = () => {
+export const WelcomePage: FC = () => {
   const { connection } = useConnection();
-  const client = useReadOnlyGreenStake();
+  const client = useReadOnlySunriseStake();
   const [treasuryBalanceLamports, setTreasuryBalanceLamports] =
     useState<number>();
 

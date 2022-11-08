@@ -1,10 +1,10 @@
 import React, { FC } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { GreenStake } from "./greenStake";
+import { StakeDashboard } from "./StakeDashboard";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { GreenStakeWelcomePage } from "./GreenStakeWelcomePage";
+import { WelcomePage } from "./WelcomePage";
 
-export const GreenStakeWrapper: FC = () => {
+export const WalletConnectionWrapper: FC = () => {
   const wallet = useWallet();
   return (
     <div className="min-h-full w-full h-screen flex flex-col items-center">
@@ -22,7 +22,7 @@ export const GreenStakeWrapper: FC = () => {
               alt="Sunrise"
             />
           </div>
-          {wallet.connected ? <GreenStake /> : <GreenStakeWelcomePage />}
+          {wallet.connected ? <StakeDashboard /> : <WelcomePage />}
         </div>
       </div>
     </div>

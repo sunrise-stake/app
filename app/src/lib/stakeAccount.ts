@@ -1,35 +1,35 @@
-import {Balance, GreenStakeClient} from "./client";
-import {Connection, PublicKey, TokenAmount} from "@solana/web3.js";
+import {Balance, SunriseStakeClient} from "./client";
+import {Connection, PublicKey} from "@solana/web3.js";
 import {ConnectedWallet} from "./util";
 import {AnchorProvider, Wallet} from "@project-serum/anchor";
 import BN from "bn.js";
 
-const GREEN_STAKE_STATE = new PublicKey(process.env.REACT_APP_TREASURY_PUBLIC_KEY || '');
+const SUNRISE_STAKE_STATE = new PublicKey(process.env.REACT_APP_TREASURY_PUBLIC_KEY || '');
 
 export type BalanceInfo = Balance & {
     msolValue: number
     earnedLamports: number
 }
 
-export class GreenStake {
-    constructor(private client: GreenStakeClient){}
+export class StakeAccount {
+    constructor(private client: SunriseStakeClient){}
 
     static async init(connection: Connection, wallet: ConnectedWallet) {
         const provider = new AnchorProvider(connection, wallet as unknown as Wallet, {});
-        const client = await GreenStakeClient.get(provider, GREEN_STAKE_STATE);
+        const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE);
         client.details().then(console.log);
-        return new GreenStake(client);
+        return new StakeAccount(client);
     }
 
     async getBalance():Promise<BalanceInfo> {
         const balance = await this.client.getBalance();
         const msolValue = balance.msolPrice * (balance.msolBalance.uiAmount || 0)
-        const earnedLamports = msolValue - (balance.depositedSol.uiAmount || 0);
+        const stake = msolValue - (balance.depositedSol.uiAmount || 0);
 
         return {
             ...balance,
             msolValue,
-            earnedLamports
+            earnedLamports: stake
         }
     }
 

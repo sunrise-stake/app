@@ -1,5 +1,5 @@
 import React from "react";
-import { BalanceInfo } from "../lib/greenStake";
+import { BalanceInfo } from "../lib/stakeAccount";
 import { toSol } from "../lib/util";
 
 interface balanceInfoProps {

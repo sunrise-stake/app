@@ -14,7 +14,7 @@ use crate::utils::seeds::*;
 declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 
 #[program]
-pub mod green_stake {
+pub mod sunrise_stake {
     use anchor_lang::solana_program::program::invoke;
     use anchor_lang::solana_program::system_instruction::transfer;
     use crate::utils::token::burn;
@@ -87,7 +87,7 @@ pub mod green_stake {
         };
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
-        msg!("GreenStake CPI");
+        msg!("SunriseStake CPI");
         marinade_deposit(cpi_ctx, lamports)?;
 
         msg!("Mint {} GSOL", lamports);
@@ -342,7 +342,7 @@ pub struct LiquidUnstake<'info> {
 
     #[account()]
     /// CHECK: Checked in marinade program
-    pub get_msol_from_authority: AccountInfo<'info>, // green-stake PDA
+    pub get_msol_from_authority: AccountInfo<'info>, // sunrise-stake PDA
 
     #[account(
         mut,
@@ -356,7 +356,7 @@ pub struct LiquidUnstake<'info> {
 
     #[account()]
     /// CHECK: Matches state.treasury
-    pub treasury: SystemAccount<'info>, // green-stake treasury
+    pub treasury: SystemAccount<'info>, // sunrise-stake treasury
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

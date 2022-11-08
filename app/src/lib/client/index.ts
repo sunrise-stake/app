@@ -1,8 +1,8 @@
-import {GreenStake, IDL} from "./types/green_stake";
+import {SunriseStake, IDL} from "./types/sunrise_stake";
 import * as anchor from "@project-serum/anchor";
 import {AnchorProvider, Program, utils} from "@project-serum/anchor";
 import {Keypair, PublicKey, SystemProgram, TokenAmount, Transaction} from "@solana/web3.js";
-import {confirm, findGSolMintAuthority, findMSolTokenAccountAuthority, GreenStakeConfig, logKeys} from "./util";
+import {confirm, findGSolMintAuthority, findMSolTokenAccountAuthority, SunriseStakeConfig, logKeys} from "./util";
 import {Marinade, MarinadeConfig, MarinadeState} from "@marinade.finance/marinade-ts-sdk";
 import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import BN from "bn.js";
@@ -23,9 +23,9 @@ export type Balance = {
 
 const PROGRAM_ID = new PublicKey("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p")
 
-export class GreenStakeClient {
-    readonly program: Program<GreenStake>;
-    config: GreenStakeConfig | undefined;
+export class SunriseStakeClient {
+    readonly program: Program<SunriseStake>;
+    config: SunriseStakeConfig | undefined;
 
     // TODO make private once all functions are moved in here
     marinade: Marinade | undefined;
@@ -36,7 +36,7 @@ export class GreenStakeClient {
     stakerGSolTokenAccount: PublicKey | undefined;
 
     private constructor(readonly provider: AnchorProvider, readonly stateAddress: PublicKey) {
-        this.program = new Program<GreenStake>(
+        this.program = new Program<SunriseStake>(
             IDL,
             PROGRAM_ID,
             provider
@@ -45,16 +45,16 @@ export class GreenStakeClient {
     }
 
     private async init() {
-        const greenStakeState = await this.program.account.state.fetch(this.stateAddress);
+        const sunriseStakeState = await this.program.account.state.fetch(this.stateAddress);
 
         this.config = {
-            gsolMint: greenStakeState.gsolMint,
-            treasury: greenStakeState.treasury,
+            gsolMint: sunriseStakeState.gsolMint,
+            treasury: sunriseStakeState.treasury,
             programId: this.program.programId,
             stateAddress: this.stateAddress
         }
 
-        this.stakerGSolTokenAccount = PublicKey.findProgramAddressSync([this.staker.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), greenStakeState.gsolMint.toBuffer()], ASSOCIATED_TOKEN_PROGRAM_ID)[0];
+        this.stakerGSolTokenAccount = PublicKey.findProgramAddressSync([this.staker.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), sunriseStakeState.gsolMint.toBuffer()], ASSOCIATED_TOKEN_PROGRAM_ID)[0];
         const stakerMsolTokenAccountAuthority = findMSolTokenAccountAuthority(this.config, this.staker)[0];
         const [gsolMintAuthority] = findGSolMintAuthority(this.config);
 
@@ -166,7 +166,7 @@ export class GreenStakeClient {
         return {
             staker: this.staker.toBase58(),
             stakerGSolTokenAccount: this.stakerGSolTokenAccount.toBase58(),
-            greenStakeConfig: {
+            sunriseStakeConfig: {
                 gsolMint: this.config.gsolMint.toBase58(),
                 programId: this.config.programId.toBase58(),
                 stateAddress: this.config.stateAddress.toBase58(),
@@ -181,15 +181,15 @@ export class GreenStakeClient {
         }
     }
 
-    public static async register(treasury: PublicKey): Promise<GreenStakeClient> {
-        const greenStakeState = Keypair.generate();
+    public static async register(treasury: PublicKey): Promise<SunriseStakeClient> {
+        const sunriseStakeState = Keypair.generate();
         const gsolMint = Keypair.generate();
-        const client = new GreenStakeClient(setUpAnchor(), greenStakeState.publicKey);
+        const client = new SunriseStakeClient(setUpAnchor(), sunriseStakeState.publicKey);
 
         const [, gsolMintAuthorityBump] = findGSolMintAuthority({
             gsolMint: gsolMint.publicKey,
             programId: client.program.programId,
-            stateAddress: greenStakeState.publicKey,
+            stateAddress: sunriseStakeState.publicKey,
             treasury
         });
         await client.program.methods.registerState({
@@ -200,13 +200,13 @@ export class GreenStakeClient {
             treasury,
             gsolMintAuthorityBump
         }).accounts({
-            state: greenStakeState.publicKey,
+            state: sunriseStakeState.publicKey,
             payer: client.provider.publicKey,
             mint: gsolMint.publicKey,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_PROGRAM_ID,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        }).signers([gsolMint, greenStakeState])
+        }).signers([gsolMint, sunriseStakeState])
             .rpc()
             .then(confirm(client.provider.connection));
 
@@ -232,8 +232,8 @@ export class GreenStakeClient {
         }
     }
 
-    public static async get(provider: AnchorProvider, stateAddress: PublicKey): Promise<GreenStakeClient> {
-        const client = new GreenStakeClient(provider, stateAddress);
+    public static async get(provider: AnchorProvider, stateAddress: PublicKey): Promise<SunriseStakeClient> {
+        const client = new SunriseStakeClient(provider, stateAddress);
         await client.init();
         return client;
     }

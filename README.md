@@ -1,4 +1,4 @@
-# Green Stake
+# Sunrise Stake
 
 ## Quick Start
 
@@ -14,3 +14,5 @@ and in another shell
 $ cd app
 $ yarn start
 ```
+
+## FAQ

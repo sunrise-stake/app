@@ -1,6 +1,6 @@
-export type GreenStake = {
+export type SunriseStake = {
   "version": "0.1.0",
-  "name": "green_stake",
+  "name": "sunrise_stake",
   "instructions": [
     {
       "name": "registerState",
@@ -365,9 +365,9 @@ export type GreenStake = {
   ]
 };
 
-export const IDL: GreenStake = {
+export const IDL: SunriseStake = {
   "version": "0.1.0",
-  "name": "green_stake",
+  "name": "sunrise_stake",
   "instructions": [
     {
       "name": "registerState",

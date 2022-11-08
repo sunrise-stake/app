@@ -1,34 +1,34 @@
 import {useEffect, useMemo, useState} from "react";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
-import {GreenStake} from "../lib/greenStake";
+import {StakeAccount} from "../lib/stakeAccount";
 import {ConnectedWallet, walletIsConnected} from "../lib/util";
 import {Keypair, PublicKey} from "@solana/web3.js";
 
-export const useGreenStake = ():GreenStake | undefined => {
+export const useSunriseStake = ():StakeAccount | undefined => {
     const wallet = useWallet();
     const { connection } = useConnection()
-    const [greenStake, setGreenStake] = useState<GreenStake>()
+    const [sunriseStake, setSunriseStake] = useState<StakeAccount>()
     useEffect(() => {
         if (walletIsConnected(wallet)) {
-            GreenStake.init(connection, wallet).then(setGreenStake);
+            StakeAccount.init(connection, wallet).then(setSunriseStake);
         }
     }, [wallet, connection]);
 
-    return greenStake;
+    return sunriseStake;
 }
 
 const dummyKey = Keypair.generate().publicKey
-export const useReadOnlyGreenStake = (): GreenStake | undefined => {
+export const useReadOnlySunriseStake = (): StakeAccount | undefined => {
     const { connection } = useConnection()
-    const [greenStake, setGreenStake] = useState<GreenStake>()
+    const [sunriseStake, setSunriseStake] = useState<StakeAccount>()
 
     useEffect(() => {
-        GreenStake.init(connection, {
+        StakeAccount.init(connection, {
             publicKey: dummyKey,
             signAllTransactions: async (txes) => txes,
             signTransaction: async (tx) => tx
-        } as ConnectedWallet).then(setGreenStake);
+        } as ConnectedWallet).then(setSunriseStake);
     }, [connection]);
 
-    return greenStake;
+    return sunriseStake;
 }

@@ -1,17 +1,17 @@
 import { FC, FormEvent, useCallback, useEffect, useState } from "react";
-import { useGreenStake } from "../hooks/useGreenStake";
+import { useSunriseStake } from "../hooks/useSunriseStake";
 import BN from "bn.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { toSol } from "../lib/util";
 import { LAMPORTS_PER_SOL, TokenAmount } from "@solana/web3.js";
-import { BalanceInfo } from "../lib/greenStake";
+import { BalanceInfo } from "../lib/stakeAccount";
 import StakeForm from "../components/stakeForm";
 import BalanceInfoTable from "../components/BalanceInfoTable";
 
-export const GreenStake: FC = () => {
+export const StakeDashboard: FC = () => {
   const wallet = useWallet();
   const { connection } = useConnection();
-  const client = useGreenStake();
+  const client = useSunriseStake();
   const [txSig, setTxSig] = useState<string>();
   const [error, setError] = useState<Error>();
   const [solBalance, setSolBalance] = useState<number>();

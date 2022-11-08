@@ -5,7 +5,7 @@ types = "app/src/lib/client/types"
 seeds = false
 skip-lint = false
 [programs.localnet]
-green_stake = "gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p"
+sunrise_stake = "gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p"
 
 [registry]
 url = "https://api.apr.dev"
