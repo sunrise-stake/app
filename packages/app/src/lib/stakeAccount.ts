@@ -1,0 +1,55 @@
+import { Balance, SunriseStakeClient } from './client'
+import { Connection, PublicKey } from '@solana/web3.js'
+import { ConnectedWallet } from './util'
+import { AnchorProvider, Wallet } from '@project-serum/anchor'
+import BN from 'bn.js'
+
+const SUNRISE_STAKE_STATE = new PublicKey(process.env.REACT_APP_TREASURY_PUBLIC_KEY ?? '')
+
+export type BalanceInfo = Balance & {
+  msolValue: BN
+  earnedLamports: BN
+}
+
+export class StakeAccount {
+  constructor (private readonly client: SunriseStakeClient) {}
+
+  static async init (connection: Connection, wallet: ConnectedWallet): Promise<StakeAccount> {
+    const provider = new AnchorProvider(connection, wallet as unknown as Wallet, {})
+    const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE)
+    client.details().then(console.log).catch(console.error)
+    return new StakeAccount(client)
+  }
+
+  async getBalance (): Promise<BalanceInfo> {
+    const balance = await this.client.getBalance()
+    const msolValue = new BN(new BN(balance.msolBalance.amount).toNumber() * balance.msolPrice)
+    const stake = msolValue.sub(new BN(balance.depositedSol.amount ?? 0))
+
+    console.log({ balance, msolValue, stake })
+
+    console.log('msolBalance', balance.msolBalance.amount)
+    console.log('msolPrice', balance.msolPrice)
+    console.log('msolValue', msolValue.toString())
+    console.log('earned lamports', stake.toNumber())
+
+    return {
+      ...balance,
+      msolValue,
+      earnedLamports: stake
+    }
+  }
+
+  async deposit (amount: BN): Promise<string> {
+    return await this.client.deposit(amount)
+  }
+
+  async withdraw (): Promise<string> {
+    return await this.client.withdraw()
+  }
+
+  treasuryBalance (): Promise<number> {
+    if (this.client.config == null) throw new Error('Client not initialized')
+    return this.client.provider.connection.getBalance(this.client.config.treasury)
+  }
+}

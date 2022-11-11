@@ -38,11 +38,11 @@ pub mod sunrise_stake {
         ).unwrap();
 
         create_mint(
-            &ctx.accounts.payer.to_account_info(),
+            &ctx.accounts.payer,
             &ctx.accounts.mint.to_account_info(),
             &mint_authority,
-            &ctx.accounts.system_program.to_account_info(),
-            &ctx.accounts.token_program.to_account_info(),
+            &ctx.accounts.system_program,
+            &ctx.accounts.token_program,
         &ctx.accounts.rent.to_account_info())?;
 
         Ok(())

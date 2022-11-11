@@ -1,5 +1,5 @@
 [workspace]
-types = "app/src/lib/client/types"
+types = "packages/app/src/lib/client/types"
 
 [features]
 seeds = false
@@ -12,35 +12,35 @@ url = "https://api.apr.dev"
 
 [provider]
 cluster = "localnet"
-wallet = "/Users/daniel/.config/solana/id.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts"
 
 [[test.genesis]]
 address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
-program = "tests/fixtures/marinade.so"
+program = "packages/tests/fixtures/marinade.so"
 
 [[test.validator.account]]
 address = "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
-filename = "tests/fixtures/marinade_state.json"
+filename = "packages/tests/fixtures/marinade_state.json"
 
 [[test.validator.account]]
 address = "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So"
-filename = "tests/fixtures/m_sol_mint_address.json"
+filename = "packages/tests/fixtures/m_sol_mint_address.json"
 
 [[test.validator.account]]
 address = "7GgPYjS5Dza89wV6FpZ23kUJRG5vbQ1GM25ezspYFSoE"
-filename = "tests/fixtures/m_sol_leg.json"
+filename = "packages/tests/fixtures/m_sol_leg.json"
 
 [[test.validator.account]]
 address = "8ZUcztoAEhpAeC2ixWewJKQJsSUGYSGPVAjkhDJYf5Gd"
-filename = "tests/fixtures/treasury_msol_account.json"
+filename = "packages/tests/fixtures/treasury_msol_account.json"
 
 [[test.validator.account]]
 address = "UefNb6z6yvArqe4cJHTXCqStRsKmWhGxnZzuHbikP5Q"
-filename = "tests/fixtures/sol_leg_pda.json"
+filename = "packages/tests/fixtures/sol_leg_pda.json"
 
 [[test.validator.account]]
 address = "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
-filename = "tests/fixtures/lp_mint_address.json"
+filename = "packages/tests/fixtures/lp_mint_address.json"

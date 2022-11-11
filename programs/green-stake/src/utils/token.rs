@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke;
 use anchor_lang::solana_program::system_instruction::create_account;
 use anchor_spl::token;
-use anchor_spl::token::Mint;
+use anchor_spl::token::{Mint, Token};
 use crate::State;
 use crate::utils::seeds::GSOL_MINT_AUTHORITY;
 
@@ -10,8 +10,8 @@ pub fn create_mint<'a>(
     payer: &AccountInfo<'a>,
     mint: &AccountInfo<'a>,
     mint_authority: &Pubkey,
-    system_program: &AccountInfo<'a>,
-    token_program: &AccountInfo<'a>,
+    system_program: &Program<'a, System>,
+    token_program: &Program<'a, Token>,
     rent_sysvar: &AccountInfo<'a>
 ) -> Result<()> {
     let rent = Rent::get()?;
@@ -27,16 +27,18 @@ pub fn create_mint<'a>(
         &[
             payer.clone(),
             mint.clone(),
-            system_program.clone(),
+            system_program.to_account_info().clone(),
         ],
     )?;
 
-    let cpi_program = token_program.clone();
     let accounts = token::InitializeMint {
         mint: mint.clone(),
         rent: rent_sysvar.clone(),
     };
-    let cpi_ctx = CpiContext::new(cpi_program, accounts);
+    let cpi_ctx = CpiContext::new(
+        token_program.to_account_info(),
+        accounts
+    );
     token::initialize_mint(
         cpi_ctx,
         9,
