@@ -1,65 +1,74 @@
-import { FC, FormEvent, useCallback, useEffect, useState } from 'react'
-import { useSunriseStake } from '../hooks/useSunriseStake'
-import BN from 'bn.js'
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { BalanceInfo } from '../lib/stakeAccount'
-import StakeForm from '../components/stakeForm'
-import BalanceInfoTable from '../components/BalanceInfoTable'
+import { FC, FormEvent, useCallback, useEffect, useState } from "react";
+import { useSunriseStake } from "../hooks/useSunriseStake";
+import BN from "bn.js";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { BalanceInfo } from "../lib/stakeAccount";
+import StakeForm from "../components/stakeForm";
+import BalanceInfoTable from "../components/BalanceInfoTable";
 
 export const StakeDashboard: FC = () => {
-  const wallet = useWallet()
-  const { connection } = useConnection()
-  const client = useSunriseStake()
-  const [txSig, setTxSig] = useState<string>()
-  const [error, setError] = useState<Error>()
-  const [solBalance, setSolBalance] = useState<number>()
-  const [stakeBalance, setStakeBalance] = useState<BalanceInfo>()
+  const wallet = useWallet();
+  const { connection } = useConnection();
+  const client = useSunriseStake();
+  const [txSig, setTxSig] = useState<string>();
+  const [error, setError] = useState<Error>();
+  const [solBalance, setSolBalance] = useState<number>();
+  const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
   const [treasuryBalanceLamports, setTreasuryBalanceLamports] =
-    useState<number>()
+    useState<number>();
 
   const updateBalances = useCallback(async () => {
-    if (!wallet.publicKey || !client) return
-    setSolBalance(await connection.getBalance(wallet.publicKey))
-    setStakeBalance(await client.getBalance())
-    setTreasuryBalanceLamports(await client.treasuryBalance())
-  }, [wallet.publicKey, client, connection])
+    if (!wallet.publicKey || !client) return;
+    setSolBalance(await connection.getBalance(wallet.publicKey));
+    setStakeBalance(await client.getBalance());
+    setTreasuryBalanceLamports(await client.treasuryBalance());
+  }, [wallet.publicKey, client, connection]);
 
   useEffect(() => {
-    if (!wallet.connected) return
-    updateBalances().catch(console.error)
-  }, [wallet, connection, setSolBalance, client, updateBalances])
+    if (!wallet.connected) return;
+    updateBalances().catch(console.error);
+  }, [wallet, connection, setSolBalance, client, updateBalances]);
 
   const deposit = useCallback(
     (e: FormEvent) => {
-      e.preventDefault()
-      if (!client) return
+      e.preventDefault();
+      if (!client) return;
       const target = e.target as typeof e.target & {
-        amount: { value: number }
-      }
+        amount: { value: number };
+      };
 
       client
         .deposit(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
         .then(setTxSig)
         .then(updateBalances)
-        .catch(setError)
+        .catch(setError);
     },
     [client, updateBalances]
-  )
+  );
 
   const withdraw = useCallback(
     (e: FormEvent) => {
-      e.preventDefault()
-      if (client == null) return
-      client.withdraw().then(setTxSig).then(updateBalances).catch(setError)
+      e.preventDefault();
+      if (!client) return;
+
+      const target = e.target as typeof e.target & {
+        amount: { value: number };
+      };
+
+      client
+        .withdraw(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
+        .then(setTxSig)
+        .then(updateBalances)
+        .catch(setError);
     },
     [client, updateBalances]
-  )
+  );
 
   return (
     <div>
       <div className="bg-neutral-800 flex flex-col items-center mt-5 rounded-lg">
-        {(client == null) && (
+        {!client && (
           <div className="flex flex-col items-center m-4">
             <h1 className="text-3xl text-center">Loading...</h1>
             <div
@@ -79,8 +88,8 @@ export const StakeDashboard: FC = () => {
           />
         </div>
         {txSig !== undefined && <div>Done {txSig}</div>}
-        {(error != null) && <div>Error {error.message}</div>}
+        {error != null && <div>Error {error.message}</div>}
       </div>
     </div>
-  )
-}
+  );
+};

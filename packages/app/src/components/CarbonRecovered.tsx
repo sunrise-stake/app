@@ -1,13 +1,13 @@
-import React from 'react'
-import { toSol } from '../lib/util'
-import { solToCarbon } from './BalanceInfoTable'
+import React from "react";
+import { toSol } from "../lib/util";
+import { solToCarbon } from "./BalanceInfoTable";
 
 interface CarbonRecoveredProps {
-  treasuryBalanceLamports: number
+  treasuryBalanceLamports: number;
 }
 
 const CarbonRecovered: React.FC<CarbonRecoveredProps> = ({
-  treasuryBalanceLamports
+  treasuryBalanceLamports,
 }) => {
   return (
     <div className="grid grid-rows-3 items-center justify-center grid-flow-col">
@@ -23,7 +23,7 @@ const CarbonRecovered: React.FC<CarbonRecoveredProps> = ({
         </h4>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CarbonRecovered
+export default CarbonRecovered;

@@ -34,7 +34,7 @@ address = "7GgPYjS5Dza89wV6FpZ23kUJRG5vbQ1GM25ezspYFSoE"
 filename = "packages/tests/fixtures/m_sol_leg.json"
 
 [[test.validator.account]]
-address = "8ZUcztoAEhpAeC2ixWewJKQJsSUGYSGPVAjkhDJYf5Gd"
+address = "B1aLzaNMeFVAyQ6f3XbbUyKcH2YPHu2fqiEagmiF23VR"
 filename = "packages/tests/fixtures/treasury_msol_account.json"
 
 [[test.validator.account]]

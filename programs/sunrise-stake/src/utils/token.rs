@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke;
 use anchor_lang::solana_program::system_instruction::create_account;
+use anchor_spl::associated_token::{AssociatedToken, Create};
 use anchor_spl::token;
 use anchor_spl::token::{Mint, Token};
 use crate::State;
@@ -45,6 +46,33 @@ pub fn create_mint<'a>(
         mint_authority,
         Some(mint_authority),
     )
+}
+
+pub fn create_msol_token_account<'a>(
+    payer: &Signer<'a>,
+    msol_token_account: &AccountInfo<'a>,
+    mint: &Account<'a, Mint>,
+    authority: &AccountInfo<'a>,
+    system_program: &Program<'a, System>,
+    token_program: &Program<'a, Token>,
+    associated_token_program: &Program<'a, AssociatedToken>,
+    rent: &Sysvar<'a, Rent>,
+) -> Result<()> {
+    let cpi_program = associated_token_program.to_account_info();
+    let cpi_accounts = Create {
+        payer: payer.to_account_info(),
+        authority: authority.to_account_info(),
+        associated_token: msol_token_account.clone(),
+        mint: mint.to_account_info(),
+        system_program: system_program.to_account_info(),
+        token_program: token_program.to_account_info(),
+        rent: rent.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(
+        cpi_program,
+        cpi_accounts,
+    );
+    anchor_spl::associated_token::create(cpi_ctx)
 }
 
 pub fn mint_to<'a>(
