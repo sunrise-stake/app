@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC } from "react";
 
 const Spinner: FC = () => {
   return (
@@ -8,7 +8,7 @@ const Spinner: FC = () => {
         role="status"
       ></div>
     </div>
-  )
-}
+  );
+};
 
-export default Spinner
+export default Spinner;

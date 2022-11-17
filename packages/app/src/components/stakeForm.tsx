@@ -1,8 +1,8 @@
-import React, { FormEvent } from 'react'
+import React, { FormEvent } from "react";
 
 interface StakeFormProps {
-  withdraw: (e: FormEvent) => void
-  deposit: (e: FormEvent) => void
+  withdraw: (e: FormEvent) => void;
+  deposit: (e: FormEvent) => void;
 }
 
 const StakeForm: React.FC<StakeFormProps> = ({ withdraw, deposit }) => {
@@ -35,7 +35,7 @@ const StakeForm: React.FC<StakeFormProps> = ({ withdraw, deposit }) => {
         </button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default StakeForm
+export default StakeForm;

@@ -1,11 +1,11 @@
-import React, { FC } from 'react'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { StakeDashboard } from './StakeDashboard'
-import { useWallet } from '@solana/wallet-adapter-react'
-import { WelcomePage } from './WelcomePage'
+import React, { FC } from "react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { StakeDashboard } from "./StakeDashboard";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WelcomePage } from "./WelcomePage";
 
 export const WalletConnectionWrapper: FC = () => {
-  const wallet = useWallet()
+  const wallet = useWallet();
   return (
     <div className="min-h-full w-full h-screen flex flex-col items-center">
       <div className="w-full flex justify-between px-3  py-1 items-center mt-2 ">
@@ -18,7 +18,7 @@ export const WalletConnectionWrapper: FC = () => {
           <div>
             <img
               className="h-25 w-auto m-auto py-2"
-              src={'./logo.png'}
+              src={"./logo.png"}
               alt="Sunrise"
             />
           </div>
@@ -26,5 +26,5 @@ export const WalletConnectionWrapper: FC = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

@@ -21,57 +21,17 @@ export type SunriseStake = {
           "isSigner": true
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "state",
-          "type": {
-            "defined": "StateInput"
-          }
-        }
-      ]
-    },
-    {
-      "name": "createMsolTokenAccount",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
+          "name": "msolMint",
           "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "msolTokenAccountAuthority",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "msolMint",
-          "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "Must be a PDA, but otherwise owned by the system account ie not initialised with data"
+          ]
         },
         {
           "name": "msolTokenAccount",
@@ -99,7 +59,14 @@ export type SunriseStake = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "StateInput"
+          }
+        }
+      ]
     },
     {
       "name": "deposit",
@@ -286,14 +253,81 @@ export type SunriseStake = {
       ],
       "args": [
         {
-          "name": "msolLamports",
+          "name": "lamports",
           "type": "u64"
-        },
-        {
-          "name": "getMsolFromAuthorityBump",
-          "type": "u8"
         }
       ]
+    },
+    {
+      "name": "withdrawToTreasury",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -320,6 +354,10 @@ export type SunriseStake = {
           },
           {
             "name": "gsolMintAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "msolAuthorityBump",
             "type": "u8"
           }
         ]
@@ -351,6 +389,10 @@ export type SunriseStake = {
           {
             "name": "gsolMintAuthorityBump",
             "type": "u8"
+          },
+          {
+            "name": "msolAuthorityBump",
+            "type": "u8"
           }
         ]
       }
@@ -359,8 +401,8 @@ export type SunriseStake = {
   "errors": [
     {
       "code": 6000,
-      "name": "ProportionalUnstakeNotSupported",
-      "msg": "Must unstake full MSOL"
+      "name": "MSolConversionOverflow",
+      "msg": "An overflow error occurred when calculating an MSol value"
     }
   ]
 };
@@ -388,57 +430,17 @@ export const IDL: SunriseStake = {
           "isSigner": true
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "state",
-          "type": {
-            "defined": "StateInput"
-          }
-        }
-      ]
-    },
-    {
-      "name": "createMsolTokenAccount",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
+          "name": "msolMint",
           "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "msolTokenAccountAuthority",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "msolMint",
-          "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "Must be a PDA, but otherwise owned by the system account ie not initialised with data"
+          ]
         },
         {
           "name": "msolTokenAccount",
@@ -466,7 +468,14 @@ export const IDL: SunriseStake = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "StateInput"
+          }
+        }
+      ]
     },
     {
       "name": "deposit",
@@ -653,14 +662,81 @@ export const IDL: SunriseStake = {
       ],
       "args": [
         {
-          "name": "msolLamports",
+          "name": "lamports",
           "type": "u64"
-        },
-        {
-          "name": "getMsolFromAuthorityBump",
-          "type": "u8"
         }
       ]
+    },
+    {
+      "name": "withdrawToTreasury",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -687,6 +763,10 @@ export const IDL: SunriseStake = {
           },
           {
             "name": "gsolMintAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "msolAuthorityBump",
             "type": "u8"
           }
         ]
@@ -718,6 +798,10 @@ export const IDL: SunriseStake = {
           {
             "name": "gsolMintAuthorityBump",
             "type": "u8"
+          },
+          {
+            "name": "msolAuthorityBump",
+            "type": "u8"
           }
         ]
       }
@@ -726,8 +810,8 @@ export const IDL: SunriseStake = {
   "errors": [
     {
       "code": 6000,
-      "name": "ProportionalUnstakeNotSupported",
-      "msg": "Must unstake full MSOL"
+      "name": "MSolConversionOverflow",
+      "msg": "An overflow error occurred when calculating an MSol value"
     }
   ]
 };
