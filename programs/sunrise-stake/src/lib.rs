@@ -1,23 +1,23 @@
 mod utils;
 
+use crate::utils::seeds::*;
+use crate::utils::token::{create_mint, mint_to};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
-use anchor_spl::token::{Mint, TokenAccount, Token};
-use anchor_spl::associated_token::{AssociatedToken};
-use marinade_cpi::{State as MarinadeState};
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
-use crate::utils::token::{create_mint, mint_to};
-use crate::utils::seeds::*;
+use marinade_cpi::State as MarinadeState;
 
 declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 
 #[program]
 pub mod sunrise_stake {
-    use std::ops::Deref;
+    use super::*;
     use crate::utils::calc::{recoverable_yield, sol_to_msol};
     use crate::utils::marinade;
     use crate::utils::token::{burn, create_msol_token_account};
-    use super::*;
+    use std::ops::Deref;
 
     pub fn register_state(ctx: Context<RegisterState>, state: StateInput) -> Result<()> {
         let state_account = &mut ctx.accounts.state;
@@ -36,14 +36,16 @@ pub mod sunrise_stake {
                 &[state_account.gsol_mint_authority_bump],
             ],
             ctx.program_id,
-        ).unwrap();
+        )
+        .unwrap();
         create_mint(
             &ctx.accounts.payer,
             &ctx.accounts.mint.to_account_info(),
             &gsol_mint_authority,
             &ctx.accounts.system_program,
             &ctx.accounts.token_program,
-            &ctx.accounts.rent.to_account_info())?;
+            &ctx.accounts.rent.to_account_info(),
+        )?;
 
         // create msol token account
         create_msol_token_account(
@@ -54,7 +56,7 @@ pub mod sunrise_stake {
             &ctx.accounts.system_program,
             &ctx.accounts.token_program,
             &ctx.accounts.associated_token_program,
-            &ctx.accounts.rent
+            &ctx.accounts.rent,
         )?;
 
         Ok(())
@@ -91,7 +93,7 @@ pub mod sunrise_stake {
             &ctx.accounts.gsol_mint.to_account_info(),
             &ctx.accounts.gsol_token_account_authority,
             &ctx.accounts.gsol_token_account.to_account_info(),
-            &ctx.accounts.token_program.to_account_info()
+            &ctx.accounts.token_program.to_account_info(),
         )?;
 
         let post_balance = ctx.accounts.gsol_token_account_authority.try_lamports()?;
@@ -105,7 +107,7 @@ pub mod sunrise_stake {
         let recoverable_yield_msol = recoverable_yield(
             &ctx.accounts.marinade_state,
             &ctx.accounts.get_msol_from,
-            &ctx.accounts.gsol_mint
+            &ctx.accounts.gsol_mint,
         )?;
 
         // TODO later change to use "slow unstake" rather than incur liq pool fees

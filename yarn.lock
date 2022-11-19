@@ -1791,6 +1791,11 @@
     schema-utils "^3.0.0"
     source-map "^0.7.3"
 
+"@project-serum/anchor-cli@^0.25.0":
+  version "0.25.0"
+  resolved "https://registry.yarnpkg.com/@project-serum/anchor-cli/-/anchor-cli-0.25.0.tgz#31dcd64386f3f21a44fde28f52fd652cd34c39cc"
+  integrity sha512-Reegeycezs61M1H19susuaQzxkXGuhDH1GJy/R9H0OEECEFcEDJHe0E0Hmy619B8V5gzc97fFirI0F+0vwg1IA==
+
 "@project-serum/anchor@^0.18.2":
   version "0.18.2"
   resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.18.2.tgz#0f13b5c2046446b7c24cf28763eec90febb28485"

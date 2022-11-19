@@ -1,10 +1,10 @@
+use crate::ErrorCode;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
-use marinade_cpi::{State as MarinadeState};
-use rust_decimal::Decimal;
+use marinade_cpi::State as MarinadeState;
 use rust_decimal::prelude::ToPrimitive;
+use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
-use crate::ErrorCode;
 
 // The price registered on the marinade state is divided by this number to get the actual price decimal
 // TODO Document or find util from marinade for this
@@ -16,8 +16,16 @@ pub fn sol_to_msol(marinade_state: &MarinadeState, lamports: u64) -> Result<u64>
     let price_dec = price_dec_marinade / MAGIC_NUMBER;
     let lamports_dec = Decimal::from(lamports);
     let msol_dec = lamports_dec / price_dec;
-    msg!("Sol {} MSol (dec) {} MSol (u64) {} price {}", lamports_dec, msol_dec, msol_dec.to_u64().unwrap(), price_dec);
-    msol_dec.to_u64().ok_or(error!(ErrorCode::MSolConversionOverflow))
+    msg!(
+        "Sol {} MSol (dec) {} MSol (u64) {} price {}",
+        lamports_dec,
+        msol_dec,
+        msol_dec.to_u64().unwrap(),
+        price_dec
+    );
+    msol_dec
+        .to_u64()
+        .ok_or_else(|| error!(ErrorCode::MSolConversionOverflow))
 }
 
 /// Calculate the current recoverable yield (in msol) from marinade.
@@ -25,7 +33,7 @@ pub fn sol_to_msol(marinade_state: &MarinadeState, lamports: u64) -> Result<u64>
 pub fn recoverable_yield<'a>(
     marinade_state: &MarinadeState,
     msol_token_account: &Account<'a, TokenAccount>,
-    gsol_mint: &Account<'a, Mint>
+    gsol_mint: &Account<'a, Mint>,
 ) -> Result<u64> {
     // The amount of msol in the shared account - represents the total proportion
     // of the marinade stake pool owned by this SunshineStake instance

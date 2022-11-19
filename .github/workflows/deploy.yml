@@ -1,0 +1,96 @@
+name: Deploy program (devnet)
+on:
+  workflow_run:
+    workflows:
+      - build
+    branches:
+      - main
+    types:
+      - completed
+
+env:
+  solana_version: stable
+  SUNRISE_STAKE_PROGRAM_ID: gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        name: cache solana cli
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.solana_version }}
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Cache node dependencies
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: install node_modules
+        run: |
+          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          yarn --frozen-lockfile
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Cache rust
+        uses: Swatinem/rust-cache@v1
+
+      - name: install essentials
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/${{ env.solana_version }}/install)"
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+          solana --version
+
+  program-dev-deploy:
+    name: Deploy dev cryptid on-chain program, built on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: [install]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        rust: ['1.63']
+        solana: ['stable']
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Build programs
+        uses: actions-rs/cargo@v1
+        with:
+          command: yarn anchor build -v
+
+      - name: Deploy programs
+        run: |
+          echo "$SOLANA_AUTHORITY" > ~/.config/solana/id.json
+          solana airdrop -u d 2 ~/.config/solana/id.json
+          anchor upgrade target/verifiable/sunrise_stake.so --program-id SUNRISE_STAKE_PROGRAM_ID --provider.cluster devnet --provider.wallet ~/.config/solana/id.json
+          anchor idl upgrade --filepath target/idl/sunrise_stake.json SUNRISE_STAKE_PROGRAM_ID --provider.cluster devnet --provider.wallet ~/.config/solana/id.json

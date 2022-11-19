@@ -1,12 +1,14 @@
-use anchor_lang::context::{CpiContext};
+use crate::utils::seeds::MSOL_ACCOUNT;
+use crate::{Deposit, LiquidUnstake, State, WithdrawToTreasury};
+use anchor_lang::context::CpiContext;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::{State as MarinadeState};
+use marinade_cpi::cpi::accounts::{
+    Deposit as MarinadeDeposit, LiquidUnstake as MarinadeLiquidUnstake,
+};
 use marinade_cpi::cpi::{deposit as marinade_deposit, liquid_unstake as marinade_liquid_unstake};
-use marinade_cpi::cpi::accounts::{ Deposit as MarinadeDeposit, LiquidUnstake as MarinadeLiquidUnstake };
 use marinade_cpi::program::MarinadeFinance;
-use crate::{Deposit, LiquidUnstake, State, WithdrawToTreasury};
-use crate::utils::seeds::MSOL_ACCOUNT;
+use marinade_cpi::State as MarinadeState;
 
 pub struct GenericUnstakeProperties<'info> {
     state: Box<Account<'info, State>>,
@@ -18,7 +20,7 @@ pub struct GenericUnstakeProperties<'info> {
     /// CHECK: Checked in marinade program
     treasury_msol_account: AccountInfo<'info>,
     get_msol_from: Account<'info, TokenAccount>,
-    get_msol_from_authority:  SystemAccount<'info>,
+    get_msol_from_authority: SystemAccount<'info>,
     /// CHECK: Set by the calling function
     recipient: AccountInfo<'info>,
     system_program: Program<'info, System>,
@@ -110,11 +112,7 @@ pub fn unstake(accounts: &GenericUnstakeProperties, msol_lamports: u64) -> Resul
     msg!("Unstake CPI");
     let bump = &[accounts.state.msol_authority_bump][..];
     let state_address = accounts.state.key();
-    let seeds = &[
-        state_address.as_ref(),
-        MSOL_ACCOUNT,
-        &bump
-    ][..];
+    let seeds = &[state_address.as_ref(), MSOL_ACCOUNT, bump][..];
     msg!("recipient: {}", accounts.recipient.key());
     marinade_liquid_unstake(cpi_ctx.with_signer(&[seeds]), msol_lamports)
 }
