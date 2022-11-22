@@ -2,9 +2,16 @@ import { SunriseStakeClient } from "../app/src/lib/client/";
 import { PublicKey } from "@solana/web3.js";
 import "./util";
 
-const treasuryKey = new PublicKey(process.env.TREASURY_KEY ?? "");
+// Used in devnet and for local testing
+const defaultTreasuryKey = "stdeYBs3MUtQN7zqgAQaxvsYemxncJKNDMJhciHct9M";
+
+const treasuryKey = new PublicKey(
+  process.env.TREASURY_KEY ?? defaultTreasuryKey
+);
 
 (async () => {
   const client = await SunriseStakeClient.register(treasuryKey);
-  await client.details().then(console.log);
+  const details = await client.details();
+  console.debug("Registered state", details);
+  console.log("State address", client.stateAddress.toBase58());
 })().catch(console.error);

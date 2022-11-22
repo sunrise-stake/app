@@ -7,7 +7,7 @@ import { WelcomePage } from "./WelcomePage";
 export const WalletConnectionWrapper: FC = () => {
   const wallet = useWallet();
   return (
-    <div className="min-h-full w-full h-screen flex flex-col items-center">
+    <div className="min-h-full w-full flex flex-col items-center">
       <div className="w-full flex justify-between px-3  py-1 items-center mt-2 ">
         <div className="flex-grow-0">
           <WalletMultiButton />

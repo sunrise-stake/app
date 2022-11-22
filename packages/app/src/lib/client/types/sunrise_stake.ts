@@ -401,8 +401,8 @@ export type SunriseStake = {
   "errors": [
     {
       "code": 6000,
-      "name": "MSolConversionOverflow",
-      "msg": "An overflow error occurred when calculating an MSol value"
+      "name": "CalculationFailure",
+      "msg": "An error occurred when calculating an MSol value"
     }
   ]
 };
@@ -810,8 +810,8 @@ export const IDL: SunriseStake = {
   "errors": [
     {
       "code": 6000,
-      "name": "MSolConversionOverflow",
-      "msg": "An overflow error occurred when calculating an MSol value"
+      "name": "CalculationFailure",
+      "msg": "An error occurred when calculating an MSol value"
     }
   ]
 };

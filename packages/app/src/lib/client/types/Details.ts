@@ -11,12 +11,13 @@ export interface Details {
   marinadeStateAddress: string;
   msolLeg: string;
   msolPrice: number;
+  sunriseMsolBalance: number | null;
   stakeDelta: number;
   lpDetails: {
     mintAddress: string;
     supply: number;
     mintAuthority?: string;
     decimals: number;
-    lpBalance?: number;
+    lpBalance: number | null;
   };
 }

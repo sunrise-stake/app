@@ -14,8 +14,8 @@ declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 #[program]
 pub mod sunrise_stake {
     use super::*;
-    use crate::utils::calc::{recoverable_yield, sol_to_msol};
     use crate::utils::marinade;
+    use crate::utils::marinade::{calc_msol_from_lamports, recoverable_yield};
     use crate::utils::token::{burn, create_msol_token_account};
     use std::ops::Deref;
 
@@ -62,6 +62,49 @@ pub mod sunrise_stake {
         Ok(())
     }
 
+    // pub fn update_state(ctx: Context<UpdateState>, state: StateInput) -> Result<()> {
+    //     let state_account = &mut ctx.accounts.state;
+    //     state_account.marinade_state = state.marinade_state;
+    //     state_account.update_authority = state.update_authority;
+    //     state_account.gsol_mint = state.gsol_mint;
+    //     state_account.gsol_mint_authority_bump = state.gsol_mint_authority_bump;
+    //     state_account.msol_authority_bump = state.msol_authority_bump;
+    //     state_account.treasury = state.treasury;
+    //
+    //     // create the gsol mint
+    //     let gsol_mint_authority = Pubkey::create_program_address(
+    //         &[
+    //             &state_account.key().to_bytes(),
+    //             GSOL_MINT_AUTHORITY,
+    //             &[state_account.gsol_mint_authority_bump],
+    //         ],
+    //         ctx.program_id,
+    //     )
+    //         .unwrap();
+    //     create_mint(
+    //         &ctx.accounts.payer,
+    //         &ctx.accounts.mint.to_account_info(),
+    //         &gsol_mint_authority,
+    //         &ctx.accounts.system_program,
+    //         &ctx.accounts.token_program,
+    //         &ctx.accounts.rent.to_account_info(),
+    //     )?;
+    //
+    //     // create msol token account
+    //     create_msol_token_account(
+    //         &ctx.accounts.payer,
+    //         &ctx.accounts.msol_token_account,
+    //         &ctx.accounts.msol_mint,
+    //         &ctx.accounts.msol_token_account_authority,
+    //         &ctx.accounts.system_program,
+    //         &ctx.accounts.token_program,
+    //         &ctx.accounts.associated_token_program,
+    //         &ctx.accounts.rent,
+    //     )?;
+    //
+    //     Ok(())
+    // }
+
     pub fn deposit(ctx: Context<Deposit>, lamports: u64) -> Result<()> {
         msg!("Depositing");
         marinade::deposit(ctx.accounts, lamports)?;
@@ -78,7 +121,8 @@ pub mod sunrise_stake {
     }
 
     pub fn liquid_unstake(ctx: Context<LiquidUnstake>, lamports: u64) -> Result<()> {
-        let msol_lamports = sol_to_msol(ctx.accounts.marinade_state.as_ref(), lamports)?;
+        let msol_lamports =
+            calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), lamports)?;
 
         msg!("Unstaking");
         let accounts = ctx.accounts.deref().into();
@@ -95,9 +139,6 @@ pub mod sunrise_stake {
             &ctx.accounts.gsol_token_account.to_account_info(),
             &ctx.accounts.token_program.to_account_info(),
         )?;
-
-        let post_balance = ctx.accounts.gsol_token_account_authority.try_lamports()?;
-        msg!("Staker post balance: {:?}", post_balance);
 
         Ok(())
     }
@@ -375,6 +416,6 @@ pub struct WithdrawToTreasury<'info> {
 
 #[error_code]
 pub enum ErrorCode {
-    #[msg("An overflow error occurred when calculating an MSol value")]
-    MSolConversionOverflow,
+    #[msg("An error occurred when calculating an MSol value")]
+    CalculationFailure,
 }

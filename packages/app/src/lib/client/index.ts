@@ -214,20 +214,35 @@ export class SunriseStakeClient {
   }
 
   public async details(): Promise<Details> {
-    if (!this.marinadeState || !this.stakerGSolTokenAccount || !this.config)
+    if (
+      !this.marinadeState ||
+      !this.stakerGSolTokenAccount ||
+      !this.msolTokenAccount ||
+      !this.config
+    )
       throw new Error("init not called");
 
-    const lpMintInfo = await this.marinadeState.lpMint.mintInfo();
-    const lpbalance = await this.provider.connection.getTokenAccountBalance(
+    const lpMintInfoPromise = this.marinadeState.lpMint.mintInfo();
+    const lpbalancePromise = this.provider.connection.getTokenAccountBalance(
       this.marinadeState.mSolLeg
     );
+
+    const msolBalancePromise = this.provider.connection.getTokenAccountBalance(
+      this.msolTokenAccount
+    );
+
+    const [lpMintInfo, lpbalance, msolBalance] = await Promise.all([
+      lpMintInfoPromise,
+      lpbalancePromise,
+      msolBalancePromise,
+    ]);
 
     const lpDetails = {
       mintAddress: this.marinadeState.lpMint.address.toBase58(),
       supply: lpMintInfo.supply.toNumber(),
       mintAuthority: lpMintInfo.mintAuthority?.toBase58(),
       decimals: lpMintInfo.decimals,
-      lpbalance: lpbalance.value.uiAmount,
+      lpBalance: lpbalance.value.uiAmount,
     };
 
     return {
@@ -244,6 +259,7 @@ export class SunriseStakeClient {
       marinadeStateAddress: this.marinadeState.marinadeStateAddress.toBase58(),
       msolLeg: this.marinadeState.mSolLeg.toBase58(),
       msolPrice: this.marinadeState.mSolPrice,
+      sunriseMsolBalance: msolBalance.value.uiAmount,
       stakeDelta: this.marinadeState.stakeDelta().toNumber(),
       lpDetails,
     };
@@ -265,7 +281,9 @@ export class SunriseStakeClient {
       stateAddress: sunriseStakeState.publicKey,
       treasury,
     };
-    const marinadeConfig = new MarinadeConfig();
+    const marinadeConfig = new MarinadeConfig({
+      connection: client.provider.connection,
+    });
     const marinadeState = await new Marinade(marinadeConfig).getMarinadeState();
 
     const [, gsolMintAuthorityBump] = findGSolMintAuthority(config);
@@ -317,10 +335,22 @@ export class SunriseStakeClient {
   public async getBalance(): Promise<Balance> {
     if (!this.marinadeState || !this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
-    const depositedLamportsPromise =
-      this.provider.connection.getTokenAccountBalance(
-        this.stakerGSolTokenAccount
-      );
+    const depositedLamportsPromise = this.provider.connection
+      .getTokenAccountBalance(this.stakerGSolTokenAccount)
+      .catch((e) => {
+        // Treat a missing account as zero balance
+        if ((e.message as string).endsWith("could not find account")) {
+          return {
+            value: {
+              amount: "0",
+              decimals: 9,
+              uiAmount: 0,
+              uiAmountString: "0",
+            },
+          };
+        }
+        throw e;
+      });
 
     const stakerMsolTokenAccountAuthority = findMSolTokenAccountAuthority(
       this.config

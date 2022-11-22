@@ -1,3 +1,4 @@
+use crate::utils::calc::proportional;
 use crate::utils::seeds::MSOL_ACCOUNT;
 use crate::{Deposit, LiquidUnstake, State, WithdrawToTreasury};
 use anchor_lang::context::CpiContext;
@@ -115,4 +116,64 @@ pub fn unstake(accounts: &GenericUnstakeProperties, msol_lamports: u64) -> Resul
     let seeds = &[state_address.as_ref(), MSOL_ACCOUNT, bump][..];
     msg!("recipient: {}", accounts.recipient.key());
     marinade_liquid_unstake(cpi_ctx.with_signer(&[seeds]), msol_lamports)
+}
+
+/// All copied from https://github.com/marinade-finance/liquid-staking-program/blob/447f9607a8c755cac7ad63223febf047142c6c8f/programs/marinade-finance/src/state.rs#L227
+fn total_cooling_down(marinade_state: &MarinadeState) -> u64 {
+    marinade_state
+        .stake_system
+        .delayed_unstake_cooling_down
+        .checked_add(marinade_state.emergency_cooling_down)
+        .expect("Total cooling down overflow")
+}
+
+fn total_lamports_under_control(marinade_state: &MarinadeState) -> u64 {
+    marinade_state
+        .validator_system
+        .total_active_balance
+        .checked_add(total_cooling_down(marinade_state))
+        .expect("Stake balance overflow")
+        .checked_add(marinade_state.available_reserve_balance) // reserve_pda.lamports() - self.rent_exempt_for_token_acc
+        .expect("Total SOLs under control overflow")
+}
+
+fn total_virtual_staked_lamports(marinade_state: &MarinadeState) -> u64 {
+    // if we get slashed it may be negative but we must use 0 instead
+    total_lamports_under_control(marinade_state)
+        .saturating_sub(marinade_state.circulating_ticket_balance) //tickets created -> cooling down lamports or lamports already in reserve and not claimed yet
+}
+
+pub fn calc_msol_from_lamports(marinade_state: &MarinadeState, stake_lamports: u64) -> Result<u64> {
+    proportional(
+        stake_lamports,
+        marinade_state.msol_supply,
+        total_virtual_staked_lamports(marinade_state),
+    )
+}
+
+/// Calculate the current recoverable yield (in msol) from marinade.
+/// Recoverable yield is defined as the msol in the account that is not matched by minted gsol
+pub fn recoverable_yield<'a>(
+    marinade_state: &MarinadeState,
+    msol_token_account: &Account<'a, TokenAccount>,
+    gsol_mint: &Account<'a, Mint>,
+) -> Result<u64> {
+    // The amount of msol in the shared account - represents the total proportion
+    // of the marinade stake pool owned by this SunshineStake instance
+    let msol_balance = msol_token_account.amount;
+    // The amount of issued gsol - represents the total SOL staked by users
+    let gsol_supply = gsol_mint.supply;
+    // The msol value of the total SOL staked
+    let gsol_supply_in_msol = calc_msol_from_lamports(marinade_state, gsol_supply)?;
+
+    // The amount of msol in the shared account that is not matched by minted gsol
+    let recoverable_msol = msol_balance - gsol_supply_in_msol;
+
+    // TODO Remove when no longer debugging
+    msg!("msol_balance: {}", msol_balance);
+    msg!("gsol_supply: {}", gsol_supply);
+    msg!("gsol_supply_in_msol: {}", gsol_supply_in_msol);
+    msg!("recoverable_msol: {}", recoverable_msol);
+
+    Ok(recoverable_msol)
 }

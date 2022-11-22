@@ -1,12 +1,10 @@
 import { Balance, SunriseStakeClient } from "./client";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { ConnectedWallet } from "./util";
+import { ConnectedWallet, toBN } from "./util";
 import { AnchorProvider, Wallet } from "@project-serum/anchor";
 import BN from "bn.js";
 
-const SUNRISE_STAKE_STATE = new PublicKey(
-  process.env.REACT_APP_TREASURY_PUBLIC_KEY ?? ""
-);
+const SUNRISE_STAKE_STATE = new PublicKey(process.env.REACT_APP_STATE ?? "");
 
 export type BalanceInfo = Balance & {
   msolValue: BN;
@@ -59,10 +57,10 @@ export class StakeAccount {
     return this.client.unstake(amount);
   }
 
-  async treasuryBalance(): Promise<number> {
+  async treasuryBalance(): Promise<BN> {
     if (!this.client.config) throw new Error("Client not initialized");
-    return this.client.provider.connection.getBalance(
-      this.client.config.treasury
-    );
+    return this.client.provider.connection
+      .getBalance(this.client.config.treasury)
+      .then(toBN);
   }
 }

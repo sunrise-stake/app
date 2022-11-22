@@ -1,5 +1,16 @@
 # Sunrise Stake
 
+SunriseStake provides sustainable funding to climate projects on Solana,
+by routing yield earned through staking SOL.
+
+Stakers receive gSOL, a synthetic derivative token that is 1:1 redeemable for SOL.
+
+Each gSol represents a staked SOL that is earning yield for a climate project.
+
+Protocols, dApps, NFT projects, and other builders on Solana can accept gSOL
+as an alternative to SOL, and by doing so, they can help fund climate projects,
+as well as strengthen the Solana ecosystem through staking.
+
 ## Quick Start
 
 ```shell

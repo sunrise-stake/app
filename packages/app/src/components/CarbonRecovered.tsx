@@ -1,9 +1,10 @@
 import React from "react";
 import { toSol } from "../lib/util";
 import { solToCarbon } from "./BalanceInfoTable";
+import BN from "bn.js";
 
 interface CarbonRecoveredProps {
-  treasuryBalanceLamports: number;
+  treasuryBalanceLamports: BN;
 }
 
 const CarbonRecovered: React.FC<CarbonRecoveredProps> = ({

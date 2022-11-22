@@ -63,20 +63,23 @@ describe("sunrise-stake", () => {
   });
 
   it("can withdraw to the treasury", async () => {
-    // deposit 100 SOL
-    await client.deposit(new BN(100 * LAMPORTS_PER_SOL));
+    // deposit 1000 SOL
+    const depositedLamports = 1000 * LAMPORTS_PER_SOL;
+    const burnedLamports = 500 * LAMPORTS_PER_SOL;
+    const remainingLamports = depositedLamports - burnedLamports;
 
-    // burn 50 gSOL
-    await burnGSol(new BN(50 * LAMPORTS_PER_SOL), client);
+    await client.deposit(new BN(depositedLamports));
+
+    // burn 500 gSOL
+    await burnGSol(new BN(burnedLamports), client);
 
     // trigger a withdrawal
     await client.withdrawToTreasury();
 
-    // expect the treasury to have 50 SOL minus fees
-    const fee = 150_000_008; // 0.03 fee - not sure where the 8 lamports comes from - rounding error? TODO
-    const expectedTreasuryBalance = new BN(50 * LAMPORTS_PER_SOL).sub(
-      new BN(fee)
-    );
+    // expect the treasury to have 500 SOL minus fees
+    // marinade charges a 0.3% fee for liquid unstaking
+    const fee = remainingLamports * 0.003;
+    const expectedTreasuryBalance = new BN(remainingLamports).sub(new BN(fee));
     await expectTreasurySolBalance(client, expectedTreasuryBalance);
   });
 });

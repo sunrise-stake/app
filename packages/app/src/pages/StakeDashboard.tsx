@@ -1,4 +1,4 @@
-import { FC, FormEvent, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { useSunriseStake } from "../hooks/useSunriseStake";
 import BN from "bn.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -6,6 +6,7 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { BalanceInfo } from "../lib/stakeAccount";
 import StakeForm from "../components/stakeForm";
 import BalanceInfoTable from "../components/BalanceInfoTable";
+import { toBN } from "../lib/util";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -13,14 +14,13 @@ export const StakeDashboard: FC = () => {
   const client = useSunriseStake();
   const [txSig, setTxSig] = useState<string>();
   const [error, setError] = useState<Error>();
-  const [solBalance, setSolBalance] = useState<number>();
+  const [solBalance, setSolBalance] = useState<BN>();
   const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
-  const [treasuryBalanceLamports, setTreasuryBalanceLamports] =
-    useState<number>();
+  const [treasuryBalanceLamports, setTreasuryBalanceLamports] = useState<BN>();
 
   const updateBalances = useCallback(async () => {
     if (!wallet.publicKey || !client) return;
-    setSolBalance(await connection.getBalance(wallet.publicKey));
+    setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
     setStakeBalance(await client.getBalance());
     setTreasuryBalanceLamports(await client.treasuryBalance());
   }, [wallet.publicKey, client, connection]);
@@ -31,15 +31,11 @@ export const StakeDashboard: FC = () => {
   }, [wallet, connection, setSolBalance, client, updateBalances]);
 
   const deposit = useCallback(
-    (e: FormEvent) => {
-      e.preventDefault();
+    (amount: string) => {
       if (!client) return;
-      const target = e.target as typeof e.target & {
-        amount: { value: number };
-      };
 
       client
-        .deposit(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
+        .deposit(new BN(amount).mul(new BN(LAMPORTS_PER_SOL)))
         .then(setTxSig)
         .then(updateBalances)
         .catch(setError);
@@ -48,16 +44,11 @@ export const StakeDashboard: FC = () => {
   );
 
   const withdraw = useCallback(
-    (e: FormEvent) => {
-      e.preventDefault();
+    (amount: string) => {
       if (!client) return;
 
-      const target = e.target as typeof e.target & {
-        amount: { value: number };
-      };
-
       client
-        .withdraw(new BN(target.amount.value).mul(new BN(LAMPORTS_PER_SOL)))
+        .withdraw(new BN(amount).mul(new BN(LAMPORTS_PER_SOL)))
         .then(setTxSig)
         .then(updateBalances)
         .catch(setError);

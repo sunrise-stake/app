@@ -1,6 +1,6 @@
 import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
 
@@ -11,7 +11,7 @@ export const burnGSol = async (amount: BN, client: SunriseStakeClient) => {
     client.stakerGSolTokenAccount!,
     client.provider.publicKey,
     [],
-    50 * LAMPORTS_PER_SOL
+    amount.toNumber()
   );
   const transaction = new Transaction().add(burnInstruction);
   return client.provider.sendAndConfirm(transaction, []);
