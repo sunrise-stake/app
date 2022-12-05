@@ -64,7 +64,7 @@ jobs:
           solana --version
 
   program-dev-deploy:
-    name: Deploy dev cryptid on-chain program, built on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+    name: Deploy on-chain program on devnet, built on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     needs: [install]
     runs-on: ${{ matrix.os }}
@@ -75,20 +75,26 @@ jobs:
         os: [ubuntu-latest]
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Use Rust ${{ matrix.rust }}
-        uses: actions-rs/toolchain@v1
+      - name: Cache rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
         with:
-          toolchain: ${{ matrix.rust }}
+          node-version: '16'
 
-      - name: Build programs
-        uses: actions-rs/cargo@v1
+      - name: Cache node dependencies
+        uses: actions/cache@v2
         with:
-          command: yarn anchor build -v
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Deploy programs
+      - name: Build program
+        run: yarn anchor build -v
+
+      - name: Deploy program
         run: |
           echo "$SOLANA_AUTHORITY" > ~/.config/solana/id.json
           solana airdrop -u d 2 ~/.config/solana/id.json

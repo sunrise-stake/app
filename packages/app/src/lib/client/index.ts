@@ -266,10 +266,10 @@ export class SunriseStakeClient {
   }
 
   public static async register(
-    treasury: PublicKey
+    treasury: PublicKey,
+    gsolMint: Keypair
   ): Promise<SunriseStakeClient> {
     const sunriseStakeState = Keypair.generate();
-    const gsolMint = Keypair.generate();
     const client = new SunriseStakeClient(
       setUpAnchor(),
       sunriseStakeState.publicKey
@@ -314,7 +314,7 @@ export class SunriseStakeClient {
 
     await client.program.methods
       .registerState({
-        // TODO replace with marinadeConfig.marinadeStateAddress when this is no longer a static function
+        // TODO replace with this.marinadeConfig.marinadeStateAddress when this is no longer a static function
         marinadeState: marinadeConfig.marinadeStateAddress,
         updateAuthority: client.provider.publicKey,
         gsolMint: gsolMint.publicKey,

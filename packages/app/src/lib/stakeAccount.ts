@@ -1,10 +1,16 @@
 import { Balance, SunriseStakeClient } from "./client";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 import { ConnectedWallet, toBN } from "./util";
 import { AnchorProvider, Wallet } from "@project-serum/anchor";
 import BN from "bn.js";
+import { Environment } from "./constants";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
-const SUNRISE_STAKE_STATE = new PublicKey(process.env.REACT_APP_STATE ?? "");
+const SUNRISE_STAKE_STATE =
+  Environment[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ].state;
 
 export type BalanceInfo = Balance & {
   msolValue: BN;
