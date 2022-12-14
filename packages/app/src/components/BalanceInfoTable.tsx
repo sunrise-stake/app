@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import { BalanceInfo } from "../lib/stakeAccount";
 import { toFixedWithPrecision, toSol } from "../lib/util";
 import BN from "bn.js";
@@ -16,7 +16,7 @@ export const CARBON_PRICE_USD_CENTS_PER_TONNE = 8021;
 export const solToCarbon = (sol: number): number =>
   (sol * SOL_PRICE_USD_CENTS) / CARBON_PRICE_USD_CENTS_PER_TONNE;
 
-const BalanceInfoTable: React.FC<BalanceInfoProps> = ({
+const BalanceInfoTable: FC<BalanceInfoProps> = ({
   solBalance,
   stakeBalance,
   treasuryBalanceLamports,

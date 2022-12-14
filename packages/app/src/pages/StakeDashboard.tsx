@@ -4,7 +4,7 @@ import BN from "bn.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { BalanceInfo } from "../lib/stakeAccount";
-import StakeForm from "../components/stakeForm";
+import StakeForm from "../components/StakeForm";
 import BalanceInfoTable from "../components/BalanceInfoTable";
 import { toBN } from "../lib/util";
 

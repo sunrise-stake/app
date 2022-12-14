@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import { toSol } from "../lib/util";
 import { solToCarbon } from "./BalanceInfoTable";
 import BN from "bn.js";
@@ -7,7 +7,7 @@ interface CarbonRecoveredProps {
   treasuryBalanceLamports: BN;
 }
 
-const CarbonRecovered: React.FC<CarbonRecoveredProps> = ({
+const CarbonRecovered: FC<CarbonRecoveredProps> = ({
   treasuryBalanceLamports,
 }) => {
   return (
