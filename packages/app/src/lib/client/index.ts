@@ -5,6 +5,7 @@ import {
   Keypair,
   PublicKey,
   SystemProgram,
+  SYSVAR_CLOCK_PUBKEY,
   TokenAmount,
   Transaction,
 } from "@solana/web3.js";
@@ -27,6 +28,7 @@ import {
 } from "@solana/spl-token";
 import BN from "bn.js";
 import { Details } from "./types/Details";
+import { TicketAccount } from "./types/TicketAccount";
 
 const setUpAnchor = (): anchor.AnchorProvider => {
   // Configure the client to use the local cluster.
@@ -171,6 +173,102 @@ export class SunriseStakeClient {
     return this.provider.sendAndConfirm(transaction, []);
   }
 
+  public async orderUnstake(lamports: BN): Promise<[string, PublicKey]> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.msolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const { transaction, newTicketAccount, proxyTicketAccount } =
+      await this.marinade.orderUnstake(lamports, this.msolTokenAccount);
+
+    logKeys(transaction);
+
+    const txSig = await this.provider.sendAndConfirm(transaction, [
+      newTicketAccount,
+      proxyTicketAccount,
+    ]);
+    return [txSig, proxyTicketAccount.publicKey];
+  }
+
+  public async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
+    if (!this.marinade) throw new Error("init not called");
+
+    const beneficiary = this.provider.publicKey;
+
+    const ticketAccounts = await this.program.account.sunriseTicketAccount.all([
+      {
+        memcmp: {
+          offset: 8 + 32 + 32,
+          bytes: beneficiary.toBase58(),
+        },
+      },
+    ]);
+
+    const resolvedTicketAccountPromises = ticketAccounts.map(
+      async ({ account, publicKey }) => {
+        const marinadeTicketAccount =
+          await this.marinade?.getDelayedUnstakeTicket(
+            account.marinadeTicketAccount
+          );
+
+        return {
+          address: publicKey,
+          ...account,
+          ...marinadeTicketAccount,
+        };
+      }
+    );
+
+    return Promise.all(resolvedTicketAccountPromises) as Promise<
+      TicketAccount[]
+    >;
+  }
+
+  public async claimUnstakeTicket(
+    ticketAccountAddress: PublicKey
+  ): Promise<string> {
+    if (!this.marinade || !this.marinadeState)
+      throw new Error("init not called");
+
+    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
+
+    const ticketAccount =
+      (await this.program.account.sunriseTicketAccount.fetch(
+        ticketAccountAddress
+      )) as unknown as TicketAccount;
+    const reservePda = await this.marinadeState.reserveAddress();
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.claimUnstakeTicket>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.stateAddress,
+      marinadeState: this.marinadeState.marinadeStateAddress,
+      reservePda,
+      marinadeTicketAccount: ticketAccount.marinadeTicketAccount,
+      sunriseTicketAccount: ticketAccountAddress,
+      msolAuthority: this.msolTokenAccountAuthority,
+      transferSolTo: this.staker,
+      systemProgram: SystemProgram.programId,
+      clock: SYSVAR_CLOCK_PUBKEY,
+      marinadeProgram,
+    };
+
+    const transaction = await this.program.methods
+      .claimUnstakeTicket()
+      .accounts(accounts)
+      .transaction();
+
+    logKeys(transaction);
+
+    return this.provider.sendAndConfirm(transaction, []);
+  }
+
   public async withdrawToTreasury(): Promise<string> {
     if (
       !this.marinadeState ||
@@ -178,8 +276,9 @@ export class SunriseStakeClient {
       !this.config ||
       !this.msolTokenAccount ||
       !this.msolTokenAccountAuthority
-    )
+    ) {
       throw new Error("init not called");
+    }
 
     const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
 
@@ -253,6 +352,8 @@ export class SunriseStakeClient {
         programId: this.config.programId.toBase58(),
         stateAddress: this.config.stateAddress.toBase58(),
         treasury: this.config.treasury.toBase58(),
+        msolTokenAccount: this.msolTokenAccount.toBase58(),
+        msolTokenAccountAuthority: this.msolTokenAccountAuthority?.toBase58(),
       },
       marinadeFinanceProgramId:
         this.marinadeState.marinadeFinanceProgramId.toBase58(),

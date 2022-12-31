@@ -39,17 +39,29 @@ export const expectMSolTokenBalance = async (
   expect(msolBalance.value.amount).to.equal(new BN(amount).toString());
 };
 
+export const getBalance = async (client: SunriseStakeClient) => {
+  const balance = await client.provider.connection.getBalance(client.staker);
+  console.log("Staker SOL balance", balance);
+  // cast to string then convert to BN as BN has trouble with large values of type number in its constructor
+  return new BN(`${balance}`);
+};
+
 // these functions using string equality to allow large numbers.
 // BN(number) throws assertion errors if the number is large
 export const expectStakerSolBalance = async (
   client: SunriseStakeClient,
-  amount: number | BN
+  expectedMinAmount: number | BN
 ) => {
-  const treasuryBalance = await client.provider.connection.getBalance(
-    client.staker
-  );
-  console.log("Staker SOL balance", treasuryBalance);
-  expect(`${treasuryBalance}`).to.equal(new BN(amount).toString());
+  const balance = await getBalance(client);
+  expect(balance.toString()).to.equal(new BN(expectedMinAmount).toString());
+};
+
+export const expectStakerSolBalanceMin = async (
+  client: SunriseStakeClient,
+  expectedMinAmount: number | BN
+) => {
+  const balance = await getBalance(client);
+  expect(balance.gte(new BN(expectedMinAmount))).to.be.true;
 };
 
 export const expectTreasurySolBalance = async (

@@ -6,6 +6,8 @@ export interface Details {
     programId: string;
     stateAddress: string;
     treasury: string;
+    msolTokenAccount?: string;
+    msolTokenAccountAuthority?: string;
   };
   marinadeFinanceProgramId: string;
   marinadeStateAddress: string;

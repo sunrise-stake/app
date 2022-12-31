@@ -1,15 +1,21 @@
-use crate::utils::calc::proportional;
-use crate::utils::seeds::MSOL_ACCOUNT;
-use crate::{Deposit, LiquidUnstake, State, WithdrawToTreasury};
-use anchor_lang::context::CpiContext;
-use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::cpi::accounts::{
-    Deposit as MarinadeDeposit, LiquidUnstake as MarinadeLiquidUnstake,
+use crate::{
+    utils::{calc::proportional, seeds::MSOL_ACCOUNT},
+    ClaimUnstakeTicket, Deposit, LiquidUnstake, OrderUnstake, State, WithdrawToTreasury,
 };
-use marinade_cpi::cpi::{deposit as marinade_deposit, liquid_unstake as marinade_liquid_unstake};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
+use anchor_lang::{context::CpiContext, prelude::*};
+use anchor_spl::token::{Mint, Token, TokenAccount};
+use marinade_cpi::{
+    cpi::{
+        accounts::{
+            Claim as MarinadeClaim, Deposit as MarinadeDeposit,
+            LiquidUnstake as MarinadeLiquidUnstake, OrderUnstake as MarinadeOrderUnstake,
+        },
+        claim as marinade_claim, deposit as marinade_deposit,
+        liquid_unstake as marinade_liquid_unstake, order_unstake as marinade_order_unstake,
+    },
+    program::MarinadeFinance,
+    State as MarinadeState,
+};
 
 pub struct GenericUnstakeProperties<'info> {
     state: Box<Account<'info, State>>,
@@ -75,6 +81,73 @@ impl<'a> From<&WithdrawToTreasury<'a>> for GenericUnstakeProperties<'a> {
     }
 }
 
+pub struct OrderUnstakeProperties<'info> {
+    state: Box<Account<'info, State>>,
+    marinade_state: Box<Account<'info, MarinadeState>>,
+    msol_mint: Account<'info, Mint>,
+    burn_msol_from: Account<'info, TokenAccount>,
+    burn_msol_authority: SystemAccount<'info>,
+    /// CHECK: Checked in the marinade program
+    new_ticket_account: AccountInfo<'info>,
+    token_program: Program<'info, Token>,
+    marinade_program: Program<'info, MarinadeFinance>,
+    rent: Sysvar<'info, Rent>,
+    clock: Sysvar<'info, Clock>,
+}
+impl<'a> From<OrderUnstake<'a>> for OrderUnstakeProperties<'a> {
+    fn from(unstake: OrderUnstake<'a>) -> Self {
+        Self {
+            state: unstake.state,
+            marinade_state: unstake.marinade_state,
+            msol_mint: unstake.msol_mint,
+            burn_msol_from: unstake.get_msol_from,
+            burn_msol_authority: unstake.get_msol_from_authority,
+            new_ticket_account: unstake.new_ticket_account.to_account_info(),
+            token_program: unstake.token_program,
+            marinade_program: unstake.marinade_program,
+            rent: unstake.rent,
+            clock: unstake.clock,
+        }
+    }
+}
+impl<'a> From<&OrderUnstake<'a>> for OrderUnstakeProperties<'a> {
+    fn from(unstake: &OrderUnstake<'a>) -> Self {
+        unstake.to_owned().into()
+    }
+}
+
+pub struct ClaimUnstakeTicketProperties<'info> {
+    marinade_state: Box<Account<'info, MarinadeState>>,
+    /// CHECK: Checked in the marinade program
+    reserve_pda: AccountInfo<'info>,
+    /// CHECK: Checked in the marinade program
+    ticket_account: AccountInfo<'info>,
+    /// CHECK: Checked in the marinade program
+    transfer_sol_to: AccountInfo<'info>,
+    marinade_program: Program<'info, MarinadeFinance>,
+    clock: Sysvar<'info, Clock>,
+    system_program: Program<'info, System>,
+}
+impl<'a> From<ClaimUnstakeTicket<'a>> for ClaimUnstakeTicketProperties<'a> {
+    fn from(claim: ClaimUnstakeTicket<'a>) -> Self {
+        msg!("ClaimUnstakeTicketProperties::from");
+        Self {
+            marinade_state: claim.marinade_state,
+            reserve_pda: claim.reserve_pda.to_account_info(),
+            ticket_account: claim.marinade_ticket_account.to_account_info(),
+            transfer_sol_to: claim.msol_authority.to_account_info(),
+            marinade_program: claim.marinade_program,
+            clock: claim.clock,
+            system_program: claim.system_program,
+        }
+    }
+}
+impl<'a> From<&ClaimUnstakeTicket<'a>> for ClaimUnstakeTicketProperties<'a> {
+    fn from(claim: &ClaimUnstakeTicket<'a>) -> Self {
+        claim.to_owned().into()
+    }
+}
+
 pub fn deposit(accounts: &Deposit, lamports: u64) -> Result<()> {
     let cpi_program = accounts.marinade_program.to_account_info();
     let cpi_accounts = MarinadeDeposit {
@@ -118,6 +191,44 @@ pub fn unstake(accounts: &GenericUnstakeProperties, msol_lamports: u64) -> Resul
     marinade_liquid_unstake(cpi_ctx.with_signer(&[seeds]), msol_lamports)
 }
 
+pub fn order_unstake(accounts: &OrderUnstakeProperties, msol_lamports: u64) -> Result<()> {
+    let cpi_program = accounts.marinade_program.to_account_info();
+    let cpi_accounts = MarinadeOrderUnstake {
+        state: accounts.marinade_state.to_account_info(),
+        msol_mint: accounts.msol_mint.to_account_info(),
+        burn_msol_from: accounts.burn_msol_from.to_account_info(),
+        burn_msol_authority: accounts.burn_msol_authority.to_account_info(),
+        new_ticket_account: accounts.new_ticket_account.to_account_info(),
+        token_program: accounts.token_program.to_account_info(),
+        rent: accounts.rent.to_account_info(),
+        clock: accounts.clock.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+    msg!("OrderUnstake CPI");
+    let bump = &[accounts.state.msol_authority_bump][..];
+    let state_address = accounts.state.key();
+    let seeds = &[state_address.as_ref(), MSOL_ACCOUNT, bump][..];
+    marinade_order_unstake(cpi_ctx.with_signer(&[seeds]), msol_lamports)
+}
+
+pub fn claim_unstake_ticket(accounts: &ClaimUnstakeTicketProperties) -> Result<()> {
+    msg!("ClaimUnstakeTicket CPI");
+    let cpi_program = accounts.marinade_program.to_account_info();
+    let cpi_accounts = MarinadeClaim {
+        state: accounts.marinade_state.to_account_info(),
+        reserve_pda: accounts.reserve_pda.to_account_info(),
+        ticket_account: accounts.ticket_account.to_account_info(),
+        transfer_sol_to: accounts.transfer_sol_to.to_account_info(),
+        clock: accounts.clock.to_account_info(),
+        system_program: accounts.system_program.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+    msg!("Claim CPI");
+    marinade_claim(cpi_ctx)
+}
+
 /// All copied from https://github.com/marinade-finance/liquid-staking-program/blob/447f9607a8c755cac7ad63223febf047142c6c8f/programs/marinade-finance/src/state.rs#L227
 fn total_cooling_down(marinade_state: &MarinadeState) -> u64 {
     marinade_state
@@ -144,10 +255,23 @@ fn total_virtual_staked_lamports(marinade_state: &MarinadeState) -> u64 {
 }
 
 pub fn calc_msol_from_lamports(marinade_state: &MarinadeState, stake_lamports: u64) -> Result<u64> {
+    msg!("calc_msol_from_lamports {}", stake_lamports);
     proportional(
         stake_lamports,
         marinade_state.msol_supply,
         total_virtual_staked_lamports(marinade_state),
+    )
+}
+
+pub fn calc_lamports_from_msol_amount(
+    marinade_state: &MarinadeState,
+    msol_amount: u64,
+) -> Result<u64> {
+    msg!("calc_lamports_from_msol_amount {}", msol_amount);
+    proportional(
+        msol_amount,
+        total_virtual_staked_lamports(marinade_state),
+        marinade_state.msol_supply,
     )
 }
 

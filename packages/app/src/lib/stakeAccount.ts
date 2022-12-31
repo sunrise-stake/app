@@ -63,6 +63,10 @@ export class StakeAccount {
     return this.client.unstake(amount);
   }
 
+  async orderWithdrawal(amount: BN): Promise<string> {
+    return this.client.orderUnstake(amount).then(([txSig]) => txSig);
+  }
+
   async treasuryBalance(): Promise<BN> {
     if (!this.client.config) throw new Error("Client not initialized");
     return this.client.provider.connection

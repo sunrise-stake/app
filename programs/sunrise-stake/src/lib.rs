@@ -16,7 +16,9 @@ declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 pub mod sunrise_stake {
     use super::*;
     use crate::utils::marinade;
-    use crate::utils::marinade::{calc_msol_from_lamports, recoverable_yield};
+    use crate::utils::marinade::{
+        calc_lamports_from_msol_amount, calc_msol_from_lamports, recoverable_yield,
+    };
     use crate::utils::token::{burn, create_msol_token_account};
     use std::ops::Deref;
 
@@ -121,6 +123,49 @@ pub mod sunrise_stake {
         )
     }
 
+    pub fn order_unstake(ctx: Context<OrderUnstake>, lamports: u64) -> Result<()> {
+        let msol_lamports =
+            calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), lamports)?;
+
+        let lamports_converted =
+            calc_lamports_from_msol_amount(ctx.accounts.marinade_state.as_ref(), msol_lamports)?;
+
+        msg!(
+            "Ordering unstake of {} MSOL (in lamports {}, out lamports {})",
+            msol_lamports,
+            lamports,
+            lamports_converted
+        );
+        let accounts = ctx.accounts.deref().into();
+        marinade::order_unstake(&accounts, msol_lamports)?;
+
+        msg!("Ticket beneficiary {}", ctx.accounts.get_msol_from.owner);
+
+        ctx.accounts.sunrise_ticket_account.state_address = ctx.accounts.state.key();
+        ctx.accounts.sunrise_ticket_account.marinade_ticket_account =
+            ctx.accounts.new_ticket_account.key();
+        ctx.accounts.sunrise_ticket_account.beneficiary =
+            ctx.accounts.gsol_token_account_authority.key();
+
+        msg!("Burn GSol");
+        burn(
+            lamports,
+            &ctx.accounts.gsol_mint.to_account_info(),
+            &ctx.accounts.gsol_token_account_authority,
+            &ctx.accounts.gsol_token_account.to_account_info(),
+            &ctx.accounts.token_program.to_account_info(),
+        )?;
+
+        Ok(())
+    }
+
+    pub fn claim_unstake_ticket(ctx: Context<ClaimUnstakeTicket>) -> Result<()> {
+        let accounts = ctx.accounts.deref().into();
+        marinade::claim_unstake_ticket(&accounts)?;
+
+        Ok(())
+    }
+
     pub fn liquid_unstake(ctx: Context<LiquidUnstake>, lamports: u64) -> Result<()> {
         let msol_lamports =
             calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), lamports)?;
@@ -170,6 +215,17 @@ pub struct State {
 }
 impl State {
     const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 8 /* DISCRIMINATOR */ ;
+}
+
+/// Maps a marinade ticket account to a GSOL token holder
+#[account]
+pub struct SunriseTicketAccount {
+    pub state_address: Pubkey, // instance of sunrise state this ticket belongs to
+    pub marinade_ticket_account: Pubkey,
+    pub beneficiary: Pubkey,
+}
+impl SunriseTicketAccount {
+    const SPACE: usize = 32 + 32 + 32 + 8 /* DISCRIMINATOR */ ;
 }
 
 // Matches State above. Used as the input to RegisterState.
@@ -359,6 +415,112 @@ pub struct LiquidUnstake<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub marinade_program: Program<'info, MarinadeFinance>,
+}
+
+#[derive(Accounts, Clone)]
+pub struct OrderUnstake<'info> {
+    #[account(
+    has_one = treasury,
+    has_one = marinade_state,
+    )]
+    pub state: Box<Account<'info, State>>,
+
+    #[account()]
+    pub marinade_state: Box<Account<'info, MarinadeState>>,
+
+    #[account(mut)]
+    pub msol_mint: Account<'info, Mint>,
+
+    #[account(
+        constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
+    )]
+    pub gsol_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+    seeds = [
+    state.key().as_ref(),
+    GSOL_MINT_AUTHORITY,
+    ],
+    bump = state.gsol_mint_authority_bump,
+    )]
+    /// Used to ensure the correct GSOL mint is used
+    pub gsol_mint_authority: SystemAccount<'info>,
+
+    #[account(
+    mut,
+    token::mint = msol_mint,
+    token::authority = get_msol_from_authority,
+    )]
+    pub get_msol_from: Account<'info, TokenAccount>,
+
+    #[account(
+    seeds = [state.key().as_ref(), MSOL_ACCOUNT],
+    bump = state.msol_authority_bump
+    )]
+    pub get_msol_from_authority: SystemAccount<'info>, // sunrise-stake PDA
+
+    #[account(
+    mut,
+    token::authority = gsol_token_account_authority
+    )]
+    pub gsol_token_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    /// Owner of the gSOL
+    pub gsol_token_account_authority: Signer<'info>,
+
+    #[account(zero, rent_exempt = enforce)]
+    /// CHECK: Checked in marinade program
+    pub new_ticket_account: UncheckedAccount<'info>,
+
+    #[account(init, space = SunriseTicketAccount::SPACE, payer = gsol_token_account_authority)]
+    pub sunrise_ticket_account: Account<'info, SunriseTicketAccount>,
+
+    #[account()]
+    /// CHECK: Matches state.treasury
+    pub treasury: SystemAccount<'info>, // sunrise-stake treasury
+
+    pub clock: Sysvar<'info, Clock>,
+    pub rent: Sysvar<'info, Rent>,
+    pub token_program: Program<'info, Token>,
+    pub marinade_program: Program<'info, MarinadeFinance>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts, Clone)]
+pub struct ClaimUnstakeTicket<'info> {
+    #[account(
+    has_one = marinade_state,
+    )]
+    pub state: Box<Account<'info, State>>,
+    #[account(mut)]
+    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    #[account(mut)]
+    /// CHECK: Checked in marinade program
+    pub reserve_pda: UncheckedAccount<'info>,
+
+    #[account(mut)]
+    /// CHECK: Checked in marinade program
+    pub marinade_ticket_account: UncheckedAccount<'info>,
+
+    #[account(mut, close = transfer_sol_to)]
+    pub sunrise_ticket_account: Account<'info, SunriseTicketAccount>,
+
+    #[account(
+    mut,
+    seeds = [state.key().as_ref(), MSOL_ACCOUNT],
+    bump = state.msol_authority_bump
+    )]
+    pub msol_authority: SystemAccount<'info>, // sunrise-stake PDA
+
+    #[account(mut)]
+    pub transfer_sol_to: Signer<'info>,
+
+    pub clock: Sysvar<'info, Clock>,
+
+    pub marinade_program: Program<'info, MarinadeFinance>,
+
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts, Clone)]

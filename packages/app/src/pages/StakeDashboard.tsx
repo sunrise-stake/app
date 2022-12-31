@@ -17,6 +17,7 @@ export const StakeDashboard: FC = () => {
   const [solBalance, setSolBalance] = useState<BN>();
   const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
   const [treasuryBalanceLamports, setTreasuryBalanceLamports] = useState<BN>();
+  const [delayedWithdraw, setDelayedWithdraw] = useState(false);
 
   const updateBalances = useCallback(async () => {
     if (!wallet.publicKey || !client) return;
@@ -24,6 +25,11 @@ export const StakeDashboard: FC = () => {
     setStakeBalance(await client.getBalance());
     setTreasuryBalanceLamports(await client.treasuryBalance());
   }, [wallet.publicKey, client, connection]);
+
+  const handleError = useCallback((error: Error) => {
+    setError(error);
+    console.error(error);
+  }, []);
 
   useEffect(() => {
     if (!wallet.connected) return;
@@ -38,7 +44,7 @@ export const StakeDashboard: FC = () => {
         .deposit(new BN(amount).mul(new BN(LAMPORTS_PER_SOL)))
         .then(setTxSig)
         .then(updateBalances)
-        .catch(setError);
+        .catch(handleError);
     },
     [client, updateBalances]
   );
@@ -47,11 +53,16 @@ export const StakeDashboard: FC = () => {
     (amount: string) => {
       if (!client) return;
 
-      client
-        .withdraw(new BN(amount).mul(new BN(LAMPORTS_PER_SOL)))
+      console.log("Delayed withdraw", delayedWithdraw);
+
+      const withdraw = delayedWithdraw
+        ? client.orderWithdrawal.bind(client)
+        : client.withdraw.bind(client);
+
+      withdraw(new BN(amount).mul(new BN(LAMPORTS_PER_SOL)))
         .then(setTxSig)
         .then(updateBalances)
-        .catch(setError);
+        .catch(handleError);
     },
     [client, updateBalances]
   );
@@ -69,7 +80,11 @@ export const StakeDashboard: FC = () => {
           </div>
         )}
         <div className="mt-2">
-          <StakeForm withdraw={withdraw} deposit={deposit} />
+          <StakeForm
+            withdraw={withdraw}
+            deposit={deposit}
+            setDelayedWithdraw={setDelayedWithdraw}
+          />
         </div>
         <div className="bg-neutral-800 rounded-lg m-4">
           <BalanceInfoTable

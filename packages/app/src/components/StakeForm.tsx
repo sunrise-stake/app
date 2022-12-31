@@ -5,9 +5,14 @@ import useModal from "../hooks/useModal";
 interface StakeFormProps {
   withdraw: (amount: string) => void;
   deposit: (amount: string) => void;
+  setDelayedWithdraw: (delayedWithdraw: boolean) => void;
 }
 
-const StakeForm: React.FC<StakeFormProps> = ({ withdraw, deposit }) => {
+const StakeForm: React.FC<StakeFormProps> = ({
+  withdraw,
+  deposit,
+  setDelayedWithdraw,
+}) => {
   const depositModal = useModal(() => deposit(amount.current?.value ?? ""));
 
   const amount = useRef<HTMLInputElement>(null);
@@ -44,6 +49,15 @@ const StakeForm: React.FC<StakeFormProps> = ({ withdraw, deposit }) => {
       >
         withdraw
       </button>
+      <div className="flex flex-row items-center justify-center mt-3">
+        <input
+          type="checkbox"
+          name="delayedWithdraw"
+          className="form-checkbox h-5 w-5 text-green"
+          onChange={(e) => setDelayedWithdraw(e.target.checked)}
+        />
+        <label className="ml-2 text-green">Delayed Withdraw</label>
+      </div>
     </div>
   );
 };
