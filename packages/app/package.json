@@ -12,7 +12,7 @@
     "@solana/wallet-adapter-react-ui": "^0.9.21",
     "@solana/wallet-adapter-wallets": "^0.19.5",
     "@solana/web3.js": "^1.66.2",
-    "@sunrisestake/marinade-ts-sdk": "./sunrisestake-marinade-ts-sdk-v4.0.4-alpha.16.tgz",
+    "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.16",
     "@tailwindcss/forms": "^0.5.3",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
