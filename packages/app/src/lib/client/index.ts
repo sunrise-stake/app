@@ -21,14 +21,17 @@ import {
   MarinadeConfig,
   MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  Token,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
 import BN from "bn.js";
 import { Details } from "./types/Details";
-import { TicketAccount } from "./types/TicketAccount";
+import {
+  SunriseTicketAccountFields,
+  TicketAccount,
+} from "./types/TicketAccount";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 
 const setUpAnchor = (): anchor.AnchorProvider => {
   // Configure the client to use the local cluster.
@@ -116,14 +119,13 @@ export class SunriseStakeClient {
       throw new Error("init not called");
 
     // give the staker a gSOL account
-    const createATAInstruction = Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      this.config.gsolMint,
-      this.stakerGSolTokenAccount,
-      this.staker,
-      this.provider.publicKey
-    );
+    const createATAInstruction =
+      createAssociatedTokenAccountIdempotentInstruction(
+        this.provider.publicKey,
+        this.stakerGSolTokenAccount,
+        this.staker,
+        this.config.gsolMint
+      );
     const createATAIx = new Transaction().add(createATAInstruction);
     return this.provider.sendAndConfirm(createATAIx, []);
   }
@@ -194,6 +196,26 @@ export class SunriseStakeClient {
     return [txSig, proxyTicketAccount.publicKey];
   }
 
+  private async toTicketAccount(
+    sunriseTicketAccount: SunriseTicketAccountFields,
+    address: PublicKey
+  ): Promise<TicketAccount> {
+    const marinadeTicketAccount = await this.marinade?.getDelayedUnstakeTicket(
+      sunriseTicketAccount.marinadeTicketAccount
+    );
+
+    if (!marinadeTicketAccount)
+      throw new Error(
+        `Marinade ticket with address ${sunriseTicketAccount.marinadeTicketAccount.toString()} not found`
+      );
+
+    return {
+      address,
+      ...sunriseTicketAccount,
+      ...marinadeTicketAccount,
+    };
+  }
+
   public async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
     if (!this.marinade) throw new Error("init not called");
 
@@ -209,18 +231,7 @@ export class SunriseStakeClient {
     ]);
 
     const resolvedTicketAccountPromises = ticketAccounts.map(
-      async ({ account, publicKey }) => {
-        const marinadeTicketAccount =
-          await this.marinade?.getDelayedUnstakeTicket(
-            account.marinadeTicketAccount
-          );
-
-        return {
-          address: publicKey,
-          ...account,
-          ...marinadeTicketAccount,
-        };
-      }
+      async ({ account, publicKey }) => this.toTicketAccount(account, publicKey)
     );
 
     return Promise.all(resolvedTicketAccountPromises) as Promise<
@@ -229,18 +240,13 @@ export class SunriseStakeClient {
   }
 
   public async claimUnstakeTicket(
-    ticketAccountAddress: PublicKey
+    ticketAccount: TicketAccount
   ): Promise<string> {
     if (!this.marinade || !this.marinadeState)
       throw new Error("init not called");
 
-    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
-
-    const ticketAccount =
-      (await this.program.account.sunriseTicketAccount.fetch(
-        ticketAccountAddress
-      )) as unknown as TicketAccount;
     const reservePda = await this.marinadeState.reserveAddress();
+    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.claimUnstakeTicket>["accounts"]
@@ -251,7 +257,7 @@ export class SunriseStakeClient {
       marinadeState: this.marinadeState.marinadeStateAddress,
       reservePda,
       marinadeTicketAccount: ticketAccount.marinadeTicketAccount,
-      sunriseTicketAccount: ticketAccountAddress,
+      sunriseTicketAccount: ticketAccount.address,
       msolAuthority: this.msolTokenAccountAuthority,
       transferSolTo: this.staker,
       systemProgram: SystemProgram.programId,
@@ -267,6 +273,25 @@ export class SunriseStakeClient {
     logKeys(transaction);
 
     return this.provider.sendAndConfirm(transaction, []);
+  }
+
+  public async claimUnstakeTicketFromAddress(
+    ticketAccountAddress: PublicKey
+  ): Promise<string> {
+    if (!this.marinade || !this.marinadeState)
+      throw new Error("init not called");
+
+    const sunriseTicketAccount =
+      await this.program.account.sunriseTicketAccount.fetch(
+        ticketAccountAddress
+      );
+
+    const account = await this.toTicketAccount(
+      sunriseTicketAccount,
+      ticketAccountAddress
+    );
+
+    return this.claimUnstakeTicket(account);
   }
 
   public async withdrawToTreasury(): Promise<string> {
@@ -338,7 +363,7 @@ export class SunriseStakeClient {
 
     const lpDetails = {
       mintAddress: this.marinadeState.lpMint.address.toBase58(),
-      supply: lpMintInfo.supply.toNumber(),
+      supply: lpMintInfo.supply,
       mintAuthority: lpMintInfo.mintAuthority?.toBase58(),
       decimals: lpMintInfo.decimals,
       lpBalance: lpbalance.value.uiAmount,

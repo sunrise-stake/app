@@ -5,6 +5,7 @@ import { AnchorProvider, Wallet } from "@project-serum/anchor";
 import BN from "bn.js";
 import { Environment } from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { TicketAccount } from "./client/types/TicketAccount";
 
 const SUNRISE_STAKE_STATE =
   Environment[
@@ -65,6 +66,14 @@ export class StakeAccount {
 
   async orderWithdrawal(amount: BN): Promise<string> {
     return this.client.orderUnstake(amount).then(([txSig]) => txSig);
+  }
+
+  async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
+    return this.client.getDelayedUnstakeTickets();
+  }
+
+  async claimUnstakeTicket(ticket: TicketAccount): Promise<string> {
+    return this.client.claimUnstakeTicket(ticket);
   }
 
   async treasuryBalance(): Promise<BN> {

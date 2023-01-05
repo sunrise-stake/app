@@ -8,7 +8,7 @@ use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
+use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
 
 declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 
@@ -21,6 +21,8 @@ pub mod sunrise_stake {
     };
     use crate::utils::token::{burn, create_msol_token_account};
     use std::ops::Deref;
+    use anchor_lang::solana_program::program::{invoke_signed};
+    use anchor_lang::solana_program::system_instruction::transfer;
 
     pub fn register_state(ctx: Context<RegisterState>, state: StateInput) -> Result<()> {
         let state_account = &mut ctx.accounts.state;
@@ -40,7 +42,7 @@ pub mod sunrise_stake {
             ],
             ctx.program_id,
         )
-        .unwrap();
+            .unwrap();
         create_mint(
             &ctx.accounts.payer,
             &ctx.accounts.mint.to_account_info(),
@@ -162,6 +164,25 @@ pub mod sunrise_stake {
     pub fn claim_unstake_ticket(ctx: Context<ClaimUnstakeTicket>) -> Result<()> {
         let accounts = ctx.accounts.deref().into();
         marinade::claim_unstake_ticket(&accounts)?;
+
+        // transfer the released SOL to the beneficiary
+        let lamports = ctx.accounts.marinade_ticket_account.lamports_amount;
+        let ix = transfer(
+            &ctx.accounts.msol_authority.key(),
+            &ctx.accounts.transfer_sol_to.key(),
+            lamports,
+        );
+        let bump = &[ctx.accounts.state.msol_authority_bump][..];
+        let state_address = ctx.accounts.state.key();
+        let seeds = &[state_address.as_ref(), MSOL_ACCOUNT, bump][..];
+        invoke_signed(
+            &ix,
+            &[
+                ctx.accounts.msol_authority.to_account_info(),
+                ctx.accounts.transfer_sol_to.to_account_info(),
+            ],
+            &[seeds]
+        )?;
 
         Ok(())
     }
@@ -432,7 +453,7 @@ pub struct OrderUnstake<'info> {
     pub msol_mint: Account<'info, Mint>,
 
     #[account(
-        constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
+    constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
     )]
     pub gsol_mint: Box<Account<'info, Mint>>,
 
@@ -500,10 +521,14 @@ pub struct ClaimUnstakeTicket<'info> {
     pub reserve_pda: UncheckedAccount<'info>,
 
     #[account(mut)]
-    /// CHECK: Checked in marinade program
-    pub marinade_ticket_account: UncheckedAccount<'info>,
+    pub marinade_ticket_account: Account<'info, MarinadeTicketAccount>,
 
-    #[account(mut, close = transfer_sol_to)]
+    #[account(
+        mut,
+        close = transfer_sol_to,
+        has_one = marinade_ticket_account,
+        constraint = sunrise_ticket_account.beneficiary == transfer_sol_to.key(),
+    )]
     pub sunrise_ticket_account: Account<'info, SunriseTicketAccount>,
 
     #[account(

@@ -40,11 +40,8 @@ const DepositWarningModal: FC<ModalProps> = (props) => {
   return (
     <BaseModal {...props} okEnabled={allFlagsSet}>
       <div>
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-          <ExclamationTriangleIcon
-            className="h-6 w-6 text-green-600"
-            aria-hidden="true"
-          />
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+          <ExclamationTriangleIcon className="h-6 w-6" aria-hidden="true" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <Dialog.Title

@@ -5,7 +5,7 @@ import {
   burnGSol,
   expectMSolTokenBalance,
   expectStakerGSolTokenBalance,
-  expectStakerSolBalanceMin,
+  expectStakerSolBalance,
   expectTreasurySolBalance,
   getBalance,
 } from "./util";
@@ -16,13 +16,12 @@ import { TicketAccount } from "@sunrisestake/app/src/lib/client/types/TicketAcco
 chai.use(chaiAsPromised);
 
 const { expect } = chai;
-
 describe("sunrise-stake", () => {
   let client: SunriseStakeClient;
 
-  const depositSOL = new BN(1_000_000);
-  const unstakeSOL = new BN(200_000);
-  const orderUnstakeSOL = new BN(200_000);
+  const depositSOL = new BN(10_000_000_000); // Deposit 10 SOL
+  const unstakeSOL = new BN(2_000_000_000); // Unstake 2 SOL
+  const orderUnstakeSOL = new BN(2_000_000_000); // Order a delayed unstake of 2 SOL
 
   const treasury = Keypair.generate();
 
@@ -47,25 +46,10 @@ describe("sunrise-stake", () => {
       signature: txSig,
       ...(await client.provider.connection.getLatestBlockhash()),
     });
-    const tx = await client.provider.connection.getParsedTransaction(
-      txSig,
-      "confirmed"
-    );
-
-    console.log("fee", tx?.meta?.fee);
-    console.log("prebalances", tx?.meta?.preBalances);
-    console.log("postbalances", tx?.meta?.postBalances);
-
-    console.log(
-      "client.marinadeState!.mSolPrice",
-      client.marinadeState!.mSolPrice
-    );
-
     const expectedMsol = Math.floor(
       depositSOL.toNumber() / client.marinadeState!.mSolPrice
     );
-    await expectMSolTokenBalance(client, expectedMsol);
-
+    await expectMSolTokenBalance(client, expectedMsol, 10);
     await expectStakerGSolTokenBalance(client, depositSOL.toNumber());
 
     const stakerSolBalance = await client.provider.connection.getBalance(
@@ -96,25 +80,18 @@ describe("sunrise-stake", () => {
       signature: txSig,
       ...(await client.provider.connection.getLatestBlockhash()),
     });
-    const tx = await client.provider.connection.getParsedTransaction(
-      txSig,
-      "confirmed"
-    );
-    console.log("fees for tx:", tx?.meta?.fee);
 
-    // 0.3% fee for immediate withdrawal
+    // 0.03% fee for immediate withdrawal
     // Add 5k lamports for network fees
     // TODO Double check this with different values for unstakeSOL
-    const fee = unstakeSOL.muln(0.003).addn(5000);
-    // use string equality to allow large numbers.
-    // throws assertion errors if the number is large
+    const fee = unstakeSOL.muln(3).divn(1000).addn(5000);
     const expectedPostUnstakeBalance = stakerPreSolBalance
       .add(unstakeSOL)
       .sub(fee);
     // use min here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
     // variable
-    await expectStakerSolBalanceMin(client, expectedPostUnstakeBalance);
+    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 50);
   });
 
   it("can order a delayed unstake", async () => {
@@ -139,7 +116,7 @@ describe("sunrise-stake", () => {
 
   // Note - dependent on the previous test
   it("cannot claim an unstake ticket until one epoch has passed", async () => {
-    const shouldFail = client.claimUnstakeTicket(delayedUnstakeTicket.address);
+    const shouldFail = client.claimUnstakeTicket(delayedUnstakeTicket);
 
     // TODO expose the error message from the program
     return expect(shouldFail).to.be.rejectedWith(
@@ -158,10 +135,37 @@ describe("sunrise-stake", () => {
     await new Promise((resolve) => setTimeout(resolve, 20000));
     await client.provider.connection.getEpochInfo().then(console.log);
 
-    await client.claimUnstakeTicket(delayedUnstakeTicket.address);
+    const sunriseLamports = await client.provider.connection
+      .getAccountInfo(delayedUnstakeTicket.address)
+      .then((account) => account?.lamports);
+    const marinadeLamports = await client.provider.connection
+      .getAccountInfo(delayedUnstakeTicket.marinadeTicketAccount)
+      .then((account) => account?.lamports);
 
-    const expectedPostUnstakeBalance = stakerPreSolBalance.add(orderUnstakeSOL);
-    await expectStakerSolBalanceMin(client, expectedPostUnstakeBalance);
+    console.log(
+      "total reclaimed rent: ",
+      sunriseLamports,
+      marinadeLamports,
+      (sunriseLamports ?? 0) + (marinadeLamports ?? 0)
+    );
+    console.log("ticket size: ", orderUnstakeSOL.toString());
+    console.log("existing balance", stakerPreSolBalance.toString());
+    console.log(
+      "existing balance plus reclaimed rent",
+      stakerPreSolBalance
+        .addn(sunriseLamports ?? 0)
+        .addn(marinadeLamports ?? 0)
+        .toString()
+    );
+
+    await client.claimUnstakeTicket(delayedUnstakeTicket);
+
+    // the staker does not get the marinade ticket rent
+    const expectedPostUnstakeBalance = stakerPreSolBalance
+      .add(orderUnstakeSOL)
+      .addn(sunriseLamports ?? 0)
+      .subn(5000);
+    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 50);
   });
 
   it("can withdraw to the treasury", async () => {
@@ -172,7 +176,7 @@ describe("sunrise-stake", () => {
 
     await client.deposit(new BN(depositedLamports));
 
-    // burn 500 gSOL
+    // burn 500 gSOL so that there is some unclaimed yield for the crank operation to harvest
     await burnGSol(new BN(burnedLamports), client);
 
     // trigger a withdrawal
@@ -182,6 +186,6 @@ describe("sunrise-stake", () => {
     // marinade charges a 0.3% fee for liquid unstaking
     const fee = remainingLamports * 0.003;
     const expectedTreasuryBalance = new BN(remainingLamports).sub(new BN(fee));
-    await expectTreasurySolBalance(client, expectedTreasuryBalance);
+    await expectTreasurySolBalance(client, expectedTreasuryBalance, 10);
   });
 });

@@ -17,7 +17,7 @@ export interface Details {
   stakeDelta: number;
   lpDetails: {
     mintAddress: string;
-    supply: number;
+    supply: bigint;
     mintAuthority?: string;
     decimals: number;
     lpBalance: number | null;

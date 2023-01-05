@@ -11,15 +11,14 @@
         "test": "anchor test",
         "test:anchor": "yarn run ts-mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts",
         "program:build": "anchor build",
-        "program:build-verified": "anchor build -v",
         "program:deploy": "anchor deploy",
-        "app:build": "yarn workspace @sunrisestake/app build"
+        "app:build": "sh -ac '. .env.${REACT_APP_ENV}; yarn workspace @sunrisestake/app build'"
     },
     "dependencies": {
-        "@project-serum/anchor": "^0.25.0",
-        "@project-serum/anchor-cli": "^0.25.0"
+        "@project-serum/anchor": "^0.26.0"
     },
     "devDependencies": {
+        "@project-serum/anchor-cli": "^0.26.0",
         "@types/bn.js": "^5.1.0",
         "@types/chai": "^4.3.0",
         "@types/mocha": "^9.0.0",
