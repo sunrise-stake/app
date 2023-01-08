@@ -40,7 +40,7 @@ export class StakeAccount {
     const msolValue = new BN(
       new BN(balance.msolBalance.amount).toNumber() * balance.msolPrice
     );
-    const stake = msolValue.sub(new BN(balance.depositedSol.amount ?? 0));
+    const stake = msolValue.sub(new BN(balance.totalDepositedSol.amount ?? 0));
 
     console.log({ balance, msolValue, stake });
 
@@ -48,6 +48,7 @@ export class StakeAccount {
     console.log("msolPrice", balance.msolPrice);
     console.log("msolValue", msolValue.toString());
     console.log("earned lamports", stake.toNumber());
+    console.log("total deposited sol", balance.totalDepositedSol.amount);
 
     return {
       ...balance,

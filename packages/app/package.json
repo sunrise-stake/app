@@ -14,6 +14,7 @@
     "@solana/web3.js": "^1.66.2",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.16",
     "@tailwindcss/forms": "^0.5.3",
+    "@tailwindcss/typography": "^0.5.7",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
@@ -29,6 +30,7 @@
     "constants-browserify": "^1.0.0",
     "crypto-browserify": "^3.12.0",
     "dayjs": "^1.11.7",
+    "dotenv-cli": "^6.0.0",
     "path-browserify": "^1.0.1",
     "postcss": "^8.4.19",
     "process": "^0.11.10",
@@ -43,7 +45,7 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
+    "build": "dotenv -e .env.${STAGE:-development} react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
@@ -65,7 +67,5 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "@tailwindcss/typography": "^0.5.7"
-  }
+  "devDependencies": {}
 }

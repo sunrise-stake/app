@@ -43,6 +43,7 @@ const setUpAnchor = (): anchor.AnchorProvider => {
 
 export interface Balance {
   depositedSol: TokenAmount;
+  totalDepositedSol: TokenAmount;
   msolBalance: TokenAmount;
   msolPrice: number;
 }
@@ -514,26 +515,33 @@ export class SunriseStakeClient {
         throw e;
       });
 
-    const stakerMsolTokenAccountAuthority = findMSolTokenAccountAuthority(
+    const gsolSupplyPromise = this.provider.connection.getTokenSupply(
+      this.config.gsolMint
+    );
+
+    const msolTokenAccountAuthority = findMSolTokenAccountAuthority(
       this.config
     )[0];
     const msolAssociatedTokenAccountAddress =
       await utils.token.associatedAddress({
         mint: this.marinadeState.mSolMintAddress,
-        owner: stakerMsolTokenAccountAuthority,
+        owner: msolTokenAccountAuthority,
       });
     const msolLamportsBalancePromise =
       this.provider.connection.getTokenAccountBalance(
         msolAssociatedTokenAccountAddress
       );
 
-    const [depositedLamports, msolLamportsBalance] = await Promise.all([
-      depositedLamportsPromise,
-      msolLamportsBalancePromise,
-    ]);
+    const [depositedLamports, gsolSupply, msolLamportsBalance] =
+      await Promise.all([
+        depositedLamportsPromise,
+        gsolSupplyPromise,
+        msolLamportsBalancePromise,
+      ]);
 
     return {
       depositedSol: depositedLamports.value,
+      totalDepositedSol: gsolSupply.value,
       msolBalance: msolLamportsBalance.value,
       msolPrice: this.marinadeState.mSolPrice,
     };

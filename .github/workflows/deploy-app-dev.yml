@@ -1,4 +1,4 @@
-#name: Deploy program (devnet)
+#name: Deploy app (devnet)
 #on:
 #  workflow_run:
 #    workflows:
@@ -65,7 +65,7 @@
 #
 #
 #  app-dev-deploy:
-#    name: Deploy the site on app-dev.sunrisestake.com, built on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
+#    name: Deploy the site on dev.sunrisestake.com, built on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
 #    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 #    needs: [ install ]
 #    runs-on: ${{ matrix.os }}
@@ -93,50 +93,7 @@
 #          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 #
 #      - name: Build a dev build
-#        run: yarn anchor build -v
+#        run: yarn build
 #
-#      - name: Deploy program
-#        run: |
-#          echo "$SOLANA_AUTHORITY" > ~/.config/solana/id.json
-#          solana airdrop -u d 2 ~/.config/solana/id.json
-#          anchor upgrade target/verifiable/sunrise_stake.so --program-id SUNRISE_STAKE_PROGRAM_ID --provider.cluster devnet --provider.wallet ~/.config/solana/id.json
-#          anchor idl upgrade --filepath target/idl/sunrise_stake.json SUNRISE_STAKE_PROGRAM_ID --provider.cluster devnet --provider.wallet ~/.config/solana/id.json
-#
-#
-#  program-dev-deploy:
-#    name: Deploy on-chain program on devnet, built on Solana ${{ matrix.solana }}, Rust ${{ matrix.rust }}, and ${{ matrix.os }}
-#    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-#    needs: [install]
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      matrix:
-#        rust: ['1.63']
-#        solana: ['stable']
-#        os: [ubuntu-latest]
-#
-#    steps:
-#      - uses: actions/checkout@v2
-#
-#      - name: Cache rust
-#        uses: Swatinem/rust-cache@v2
-#
-#      - name: Use Node ${{ matrix.node }}
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: '16'
-#
-#      - name: Cache node dependencies
-#        uses: actions/cache@v2
-#        with:
-#          path: '**/node_modules'
-#          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-#
-#      - name: Build program
-#        run: yarn anchor build -v
-#
-#      - name: Deploy program
-#        run: |
-#          echo "$SOLANA_AUTHORITY" > ~/.config/solana/id.json
-#          solana airdrop -u d 2 ~/.config/solana/id.json
-#          anchor upgrade target/verifiable/sunrise_stake.so --program-id SUNRISE_STAKE_PROGRAM_ID --provider.cluster devnet --provider.wallet ~/.config/solana/id.json
-#          anchor idl upgrade --filepath target/idl/sunrise_stake.json SUNRISE_STAKE_PROGRAM_ID --provider.cluster devnet --provider.wallet ~/.config/solana/id.json
+#      - name: Deploy
+#        run: surge build dev.sunrisestake.com
