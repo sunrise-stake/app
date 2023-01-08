@@ -58,8 +58,6 @@ export const StakeDashboard: FC = () => {
     (amount: string) => {
       if (!client) return;
 
-      console.log("Delayed withdraw", delayedWithdraw);
-
       const withdraw = delayedWithdraw
         ? client.orderWithdrawal.bind(client)
         : client.withdraw.bind(client);

@@ -20,18 +20,18 @@ pub mod sunrise_stake {
         calc_lamports_from_msol_amount, calc_msol_from_lamports, recoverable_yield,
     };
     use crate::utils::token::{burn, create_msol_token_account};
-    use std::ops::Deref;
-    use anchor_lang::solana_program::program::{invoke_signed};
+    use anchor_lang::solana_program::program::invoke_signed;
     use anchor_lang::solana_program::system_instruction::transfer;
+    use std::ops::Deref;
 
-    pub fn register_state(ctx: Context<RegisterState>, state: StateInput) -> Result<()> {
+    pub fn register_state(ctx: Context<RegisterState>, state: RegisterStateInput) -> Result<()> {
         let state_account = &mut ctx.accounts.state;
         state_account.marinade_state = state.marinade_state;
         state_account.update_authority = state.update_authority;
-        state_account.gsol_mint = state.gsol_mint;
         state_account.gsol_mint_authority_bump = state.gsol_mint_authority_bump;
         state_account.msol_authority_bump = state.msol_authority_bump;
         state_account.treasury = state.treasury;
+        state_account.gsol_mint = ctx.accounts.mint.key();
 
         // create the gsol mint
         let gsol_mint_authority = Pubkey::create_program_address(
@@ -42,7 +42,7 @@ pub mod sunrise_stake {
             ],
             ctx.program_id,
         )
-            .unwrap();
+        .unwrap();
         create_mint(
             &ctx.accounts.payer,
             &ctx.accounts.mint.to_account_info(),
@@ -53,6 +53,9 @@ pub mod sunrise_stake {
         )?;
 
         // create msol token account
+        // Note - the relationship between msol_mint and marinade_state is not verified here
+        // Specifically, the marinade_state is not passed into the register function as an account.
+        // This simplifies the registration code, but if it is registered incorrectly, deposits will fail.
         create_msol_token_account(
             &ctx.accounts.payer,
             &ctx.accounts.msol_token_account,
@@ -67,48 +70,13 @@ pub mod sunrise_stake {
         Ok(())
     }
 
-    // pub fn update_state(ctx: Context<UpdateState>, state: StateInput) -> Result<()> {
-    //     let state_account = &mut ctx.accounts.state;
-    //     state_account.marinade_state = state.marinade_state;
-    //     state_account.update_authority = state.update_authority;
-    //     state_account.gsol_mint = state.gsol_mint;
-    //     state_account.gsol_mint_authority_bump = state.gsol_mint_authority_bump;
-    //     state_account.msol_authority_bump = state.msol_authority_bump;
-    //     state_account.treasury = state.treasury;
-    //
-    //     // create the gsol mint
-    //     let gsol_mint_authority = Pubkey::create_program_address(
-    //         &[
-    //             &state_account.key().to_bytes(),
-    //             GSOL_MINT_AUTHORITY,
-    //             &[state_account.gsol_mint_authority_bump],
-    //         ],
-    //         ctx.program_id,
-    //     )
-    //         .unwrap();
-    //     create_mint(
-    //         &ctx.accounts.payer,
-    //         &ctx.accounts.mint.to_account_info(),
-    //         &gsol_mint_authority,
-    //         &ctx.accounts.system_program,
-    //         &ctx.accounts.token_program,
-    //         &ctx.accounts.rent.to_account_info(),
-    //     )?;
-    //
-    //     // create msol token account
-    //     create_msol_token_account(
-    //         &ctx.accounts.payer,
-    //         &ctx.accounts.msol_token_account,
-    //         &ctx.accounts.msol_mint,
-    //         &ctx.accounts.msol_token_account_authority,
-    //         &ctx.accounts.system_program,
-    //         &ctx.accounts.token_program,
-    //         &ctx.accounts.associated_token_program,
-    //         &ctx.accounts.rent,
-    //     )?;
-    //
-    //     Ok(())
-    // }
+    pub fn update_state(ctx: Context<UpdateState>, state: UpdateStateInput) -> Result<()> {
+        let state_account = &mut ctx.accounts.state;
+        state_account.update_authority = state.update_authority;
+        state_account.treasury = state.treasury;
+
+        Ok(())
+    }
 
     pub fn deposit(ctx: Context<Deposit>, lamports: u64) -> Result<()> {
         msg!("Depositing");
@@ -181,7 +149,7 @@ pub mod sunrise_stake {
                 ctx.accounts.msol_authority.to_account_info(),
                 ctx.accounts.transfer_sol_to.to_account_info(),
             ],
-            &[seeds]
+            &[seeds],
         )?;
 
         Ok(())
@@ -249,20 +217,23 @@ impl SunriseTicketAccount {
     const SPACE: usize = 32 + 32 + 32 + 8 /* DISCRIMINATOR */ ;
 }
 
-// Matches State above. Used as the input to RegisterState.
-// Redefined so that it shows up in the anchor IDL. TODO - is there a better way?
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct StateInput {
+pub struct RegisterStateInput {
     pub marinade_state: Pubkey,
     pub update_authority: Pubkey,
-    pub gsol_mint: Pubkey,
     pub treasury: Pubkey,
     pub gsol_mint_authority_bump: u8,
     pub msol_authority_bump: u8,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct UpdateStateInput {
+    pub update_authority: Pubkey,
+    pub treasury: Pubkey,
+}
+
 #[derive(Accounts)]
-#[instruction(state_in: StateInput)]
+#[instruction(state_in: RegisterStateInput)]
 pub struct RegisterState<'info> {
     #[account(init, space = State::SPACE, payer = payer)]
     pub state: Account<'info, State>,
@@ -291,6 +262,21 @@ pub struct RegisterState<'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+#[instruction(state_in: UpdateStateInput)]
+pub struct UpdateState<'info> {
+    #[account(
+        mut,
+        has_one = update_authority
+    )]
+    pub state: Account<'info, State>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    pub update_authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -334,9 +320,9 @@ pub struct Deposit<'info> {
     /// CHECK: Checked in marinade program
     pub reserve_pda: AccountInfo<'info>,
 
-    #[account(mut, signer)]
+    #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub transfer_from: AccountInfo<'info>,
+    pub transfer_from: Signer<'info>,
 
     #[account(
     mut,
@@ -427,7 +413,7 @@ pub struct LiquidUnstake<'info> {
 
     #[account(mut)]
     /// CHECK: Owner of the gsol token account
-    pub gsol_token_account_authority: UncheckedAccount<'info>,
+    pub gsol_token_account_authority: Signer<'info>,
 
     #[account()]
     /// CHECK: Matches state.treasury

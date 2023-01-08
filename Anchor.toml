@@ -25,10 +25,6 @@ address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
 program = "packages/tests/fixtures/marinade_finance.so"
 
 [test.validator]
-# Start the test validator on an epoch > 0, so that delayed unstake accounts in the test fixtures
-# are already claimable.
-#warp_slot = "500000"
-#url = "https://api.mainnet-beta.solana.com"
 slots_per_epoch = "32"
 
 [[test.validator.account]]

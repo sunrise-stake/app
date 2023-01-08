@@ -23,7 +23,8 @@ describe("sunrise-stake", () => {
   const unstakeSOL = new BN(2_000_000_000); // Unstake 2 SOL
   const orderUnstakeSOL = new BN(2_000_000_000); // Order a delayed unstake of 2 SOL
 
-  const treasury = Keypair.generate();
+  let treasury = Keypair.generate();
+  let updateAuthority;
 
   let delayedUnstakeTicket: TicketAccount;
 
@@ -31,6 +32,24 @@ describe("sunrise-stake", () => {
     client = await SunriseStakeClient.register(
       treasury.publicKey,
       Keypair.generate()
+    );
+  });
+
+  it("can update the state treasury and update authority", async () => {
+    treasury = Keypair.generate();
+    updateAuthority = Keypair.generate();
+
+    client = await SunriseStakeClient.update(
+      client.stateAddress,
+      treasury.publicKey,
+      updateAuthority.publicKey
+    );
+
+    expect(client.config?.treasury.toBase58()).to.equal(
+      treasury.publicKey.toBase58()
+    );
+    expect(client.config?.updateAuthority.toBase58()).to.equal(
+      updateAuthority.publicKey.toBase58()
     );
   });
 

@@ -5,8 +5,8 @@ import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import useFlags from "../../hooks/useFlags";
 import WarningConfirm from "./WarningConfirm";
 
-const DepositWarningModal: FC<ModalProps> = (props) => {
-  const { setFlag, allFlagsSet } = useFlags(["audit-confirm"]);
+const LiquidWithdrawWarningModal: FC<ModalProps> = (props) => {
+  const { setFlag, allFlagsSet } = useFlags(["fee-confirm"]);
 
   return (
     <BaseModal {...props} okEnabled={allFlagsSet}>
@@ -19,22 +19,18 @@ const DepositWarningModal: FC<ModalProps> = (props) => {
             as="h3"
             className="text-lg font-medium leading-6 text-gray-900 text-center"
           >
-            Warning
+            Note
           </Dialog.Title>
           <div className="mt-2">
             <WarningConfirm
               onConfirm={(confirmed: boolean) =>
-                setFlag("audit-confirm", confirmed)
+                setFlag("fee-confirm", confirmed)
               }
-              idx={0}
+              idx={1}
             >
               <p className="text-sm text-gray-900">
-                You are about to transact on{" "}
-                <em className="text-gray-900">Mainnet</em>.
-              </p>
-              <p className="text-sm text-gray-900">
-                Sunrise is currently in alpha and has not been audited. Please
-                proceed with caution.
+                You have chosen to withdraw using liquid staking, which incurs a
+                0.3-3% fee, depending on the stake size.
               </p>
             </WarningConfirm>
           </div>
@@ -44,4 +40,4 @@ const DepositWarningModal: FC<ModalProps> = (props) => {
   );
 };
 
-export default DepositWarningModal;
+export default LiquidWithdrawWarningModal;

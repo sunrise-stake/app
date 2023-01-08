@@ -5,14 +5,14 @@
     ],
     "private": true,
     "scripts": {
-        "program:lint": "cargo fmt --all -- --check && cargo clippy",
+        "program:lint": "cargo fmt --all -- --check && cargo clippy -- --deny warnings",
         "program:dylint": "cargo dylint --all --workspace",
         "lint": "eslint .",
         "test": "anchor test",
         "test:anchor": "yarn run ts-mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts",
         "program:build": "anchor build",
         "program:deploy": "anchor deploy",
-        "app:build": "sh -ac '. .env.${REACT_APP_ENV}; yarn workspace @sunrisestake/app build'"
+        "app:build": "yarn workspace @sunrisestake/app build"
     },
     "dependencies": {
         "@project-serum/anchor": "^0.26.0"

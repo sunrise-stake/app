@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import DepositWarningModal from "./modals/DepositWarningModal";
 import useModal from "../hooks/useModal";
+import LiquidWithdrawWarningModal from "./modals/LiquidWithdrawWarningModal";
 
 interface StakeFormProps {
   withdraw: (amount: string) => void;
@@ -14,6 +15,7 @@ const StakeForm: React.FC<StakeFormProps> = ({
   setDelayedWithdraw,
 }) => {
   const depositModal = useModal(() => deposit(amount.current?.value ?? ""));
+  const withdrawModal = useModal(() => withdraw(amount.current?.value ?? ""));
 
   const amount = useRef<HTMLInputElement>(null);
   return (
@@ -22,6 +24,12 @@ const StakeForm: React.FC<StakeFormProps> = ({
         <DepositWarningModal
           ok={depositModal.onModalOK}
           cancel={depositModal.onModalClose}
+        />
+      )}
+      {withdrawModal.modalShown && (
+        <LiquidWithdrawWarningModal
+          ok={withdrawModal.onModalOK}
+          cancel={withdrawModal.onModalClose}
         />
       )}
       <h2 className="text-2xl text-center text-primary-500">

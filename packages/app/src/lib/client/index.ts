@@ -49,6 +49,15 @@ export interface Balance {
 
 const PROGRAM_ID = new PublicKey("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 
+const ZERO_BALANCE = {
+  value: {
+    amount: "0",
+    decimals: 9,
+    uiAmount: 0,
+    uiAmountString: "0",
+  },
+};
+
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
   config: SunriseStakeConfig | undefined;
@@ -82,7 +91,10 @@ export class SunriseStakeClient {
       treasury: sunriseStakeState.treasury,
       programId: this.program.programId,
       stateAddress: this.stateAddress,
+      updateAuthority: sunriseStakeState.updateAuthority,
     };
+
+    console.log("Config", this.config);
 
     this.stakerGSolTokenAccount = PublicKey.findProgramAddressSync(
       [
@@ -405,6 +417,7 @@ export class SunriseStakeClient {
       gsolMint: gsolMint.publicKey,
       programId: client.program.programId,
       stateAddress: sunriseStakeState.publicKey,
+      updateAuthority: client.provider.publicKey,
       treasury,
     };
     const marinadeConfig = new MarinadeConfig({
@@ -443,13 +456,43 @@ export class SunriseStakeClient {
         // TODO replace with this.marinadeConfig.marinadeStateAddress when this is no longer a static function
         marinadeState: marinadeConfig.marinadeStateAddress,
         updateAuthority: client.provider.publicKey,
-        gsolMint: gsolMint.publicKey,
         treasury,
         gsolMintAuthorityBump,
         msolAuthorityBump,
       })
       .accounts(accounts)
       .signers([gsolMint, sunriseStakeState])
+      .rpc()
+      .then(confirm(client.provider.connection));
+
+    await client.init();
+
+    return client;
+  }
+
+  public static async update(
+    state: PublicKey,
+    newTreasury: PublicKey,
+    newUpdateAuthority: PublicKey
+  ): Promise<SunriseStakeClient> {
+    const client = new SunriseStakeClient(setUpAnchor(), state);
+
+    const accounts: Record<string, PublicKey> = {
+      state,
+      payer: client.provider.publicKey,
+      updateAuthority: client.provider.publicKey,
+    };
+
+    console.log(
+      Object.keys(accounts).map((k) => `${k}: ${accounts[k].toBase58()}`)
+    );
+
+    await client.program.methods
+      .updateState({
+        updateAuthority: newUpdateAuthority,
+        treasury: newTreasury,
+      })
+      .accounts(accounts)
       .rpc()
       .then(confirm(client.provider.connection));
 
@@ -466,14 +509,7 @@ export class SunriseStakeClient {
       .catch((e) => {
         // Treat a missing account as zero balance
         if ((e.message as string).endsWith("could not find account")) {
-          return {
-            value: {
-              amount: "0",
-              decimals: 9,
-              uiAmount: 0,
-              uiAmountString: "0",
-            },
-          };
+          return ZERO_BALANCE;
         }
         throw e;
       });

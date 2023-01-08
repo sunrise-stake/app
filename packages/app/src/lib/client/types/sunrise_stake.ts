@@ -63,7 +63,35 @@ export type SunriseStake = {
         {
           "name": "state",
           "type": {
-            "defined": "StateInput"
+            "defined": "RegisterStateInput"
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "UpdateStateInput"
           }
         }
       ]
@@ -386,7 +414,7 @@ export type SunriseStake = {
         {
           "name": "gsolTokenAccountAuthority",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "treasury",
@@ -547,7 +575,7 @@ export type SunriseStake = {
   ],
   "types": [
     {
-      "name": "StateInput",
+      "name": "RegisterStateInput",
       "type": {
         "kind": "struct",
         "fields": [
@@ -557,10 +585,6 @@ export type SunriseStake = {
           },
           {
             "name": "updateAuthority",
-            "type": "publicKey"
-          },
-          {
-            "name": "gsolMint",
             "type": "publicKey"
           },
           {
@@ -574,6 +598,22 @@ export type SunriseStake = {
           {
             "name": "msolAuthorityBump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateStateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "updateAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "treasury",
+            "type": "publicKey"
           }
         ]
       }
@@ -653,7 +693,35 @@ export const IDL: SunriseStake = {
         {
           "name": "state",
           "type": {
-            "defined": "StateInput"
+            "defined": "RegisterStateInput"
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "UpdateStateInput"
           }
         }
       ]
@@ -976,7 +1044,7 @@ export const IDL: SunriseStake = {
         {
           "name": "gsolTokenAccountAuthority",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "treasury",
@@ -1137,7 +1205,7 @@ export const IDL: SunriseStake = {
   ],
   "types": [
     {
-      "name": "StateInput",
+      "name": "RegisterStateInput",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1147,10 +1215,6 @@ export const IDL: SunriseStake = {
           },
           {
             "name": "updateAuthority",
-            "type": "publicKey"
-          },
-          {
-            "name": "gsolMint",
             "type": "publicKey"
           },
           {
@@ -1164,6 +1228,22 @@ export const IDL: SunriseStake = {
           {
             "name": "msolAuthorityBump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateStateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "updateAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "treasury",
+            "type": "publicKey"
           }
         ]
       }
