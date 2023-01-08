@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 * {
-  @apply text-green;
+  @apply text-lightgreen;
 }
 
 body {

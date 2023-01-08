@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.1",
-    "@project-serum/anchor": "^0.25.0",
-    "@solana/spl-token": "^0.3.6",
     "@solana/web3.js": "^1.66.2",
-    "bn.js": "^5.2.1"
+    "@solana/spl-token": "^0.3.6",
+    "@types/chai-as-promised": "^7.1.5",
+    "bn.js": "^5.2.1",
+    "chai-as-promised": "^7.1.1"
   }
 }

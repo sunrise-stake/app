@@ -6,6 +6,8 @@ export interface Details {
     programId: string;
     stateAddress: string;
     treasury: string;
+    msolTokenAccount?: string;
+    msolTokenAccountAuthority?: string;
   };
   marinadeFinanceProgramId: string;
   marinadeStateAddress: string;
@@ -15,7 +17,7 @@ export interface Details {
   stakeDelta: number;
   lpDetails: {
     mintAddress: string;
-    supply: number;
+    supply: bigint;
     mintAuthority?: string;
     decimals: number;
     lpBalance: number | null;

@@ -12,14 +12,20 @@ url = "https://api.apr.dev"
 
 [provider]
 cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+wallet = "packages/tests/fixtures/id.json"
+
+#[test]
+#startup_wait = 30000
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts"
+test = "yarn test:anchor"
 
 [[test.genesis]]
 address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
-program = "packages/tests/fixtures/marinade.so"
+program = "packages/tests/fixtures/marinade_finance.so"
+
+[test.validator]
+slots_per_epoch = "32"
 
 [[test.validator.account]]
 address = "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
@@ -44,3 +50,7 @@ filename = "packages/tests/fixtures/sol_leg_pda.json"
 [[test.validator.account]]
 address = "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
 filename = "packages/tests/fixtures/lp_mint_address.json"
+
+[[test.validator.account]]
+address = "Du3Ysj1wKbxPKkuPPnvzQLQh8oMSVifs3jGZjJWXFmHN"
+filename = "packages/tests/fixtures/reserve_pda.json"

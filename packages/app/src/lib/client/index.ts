@@ -5,6 +5,7 @@ import {
   Keypair,
   PublicKey,
   SystemProgram,
+  SYSVAR_CLOCK_PUBKEY,
   TokenAmount,
   Transaction,
 } from "@solana/web3.js";
@@ -20,13 +21,17 @@ import {
   MarinadeConfig,
   MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  Token,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
 import BN from "bn.js";
 import { Details } from "./types/Details";
+import {
+  SunriseTicketAccountFields,
+  TicketAccount,
+} from "./types/TicketAccount";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 
 const setUpAnchor = (): anchor.AnchorProvider => {
   // Configure the client to use the local cluster.
@@ -38,11 +43,21 @@ const setUpAnchor = (): anchor.AnchorProvider => {
 
 export interface Balance {
   depositedSol: TokenAmount;
+  totalDepositedSol: TokenAmount;
   msolBalance: TokenAmount;
   msolPrice: number;
 }
 
 const PROGRAM_ID = new PublicKey("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
+
+const ZERO_BALANCE = {
+  value: {
+    amount: "0",
+    decimals: 9,
+    uiAmount: 0,
+    uiAmountString: "0",
+  },
+};
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -77,7 +92,10 @@ export class SunriseStakeClient {
       treasury: sunriseStakeState.treasury,
       programId: this.program.programId,
       stateAddress: this.stateAddress,
+      updateAuthority: sunriseStakeState.updateAuthority,
     };
+
+    console.log("Config", this.config);
 
     this.stakerGSolTokenAccount = PublicKey.findProgramAddressSync(
       [
@@ -114,14 +132,13 @@ export class SunriseStakeClient {
       throw new Error("init not called");
 
     // give the staker a gSOL account
-    const createATAInstruction = Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      this.config.gsolMint,
-      this.stakerGSolTokenAccount,
-      this.staker,
-      this.provider.publicKey
-    );
+    const createATAInstruction =
+      createAssociatedTokenAccountIdempotentInstruction(
+        this.provider.publicKey,
+        this.stakerGSolTokenAccount,
+        this.staker,
+        this.config.gsolMint
+      );
     const createATAIx = new Transaction().add(createATAInstruction);
     return this.provider.sendAndConfirm(createATAIx, []);
   }
@@ -171,6 +188,125 @@ export class SunriseStakeClient {
     return this.provider.sendAndConfirm(transaction, []);
   }
 
+  public async orderUnstake(lamports: BN): Promise<[string, PublicKey]> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.msolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const { transaction, newTicketAccount, proxyTicketAccount } =
+      await this.marinade.orderUnstake(lamports, this.msolTokenAccount);
+
+    logKeys(transaction);
+
+    const txSig = await this.provider.sendAndConfirm(transaction, [
+      newTicketAccount,
+      proxyTicketAccount,
+    ]);
+    return [txSig, proxyTicketAccount.publicKey];
+  }
+
+  private async toTicketAccount(
+    sunriseTicketAccount: SunriseTicketAccountFields,
+    address: PublicKey
+  ): Promise<TicketAccount> {
+    const marinadeTicketAccount = await this.marinade?.getDelayedUnstakeTicket(
+      sunriseTicketAccount.marinadeTicketAccount
+    );
+
+    if (!marinadeTicketAccount)
+      throw new Error(
+        `Marinade ticket with address ${sunriseTicketAccount.marinadeTicketAccount.toString()} not found`
+      );
+
+    return {
+      address,
+      ...sunriseTicketAccount,
+      ...marinadeTicketAccount,
+    };
+  }
+
+  public async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
+    if (!this.marinade) throw new Error("init not called");
+
+    const beneficiary = this.provider.publicKey;
+
+    const ticketAccounts = await this.program.account.sunriseTicketAccount.all([
+      {
+        memcmp: {
+          offset: 8 + 32 + 32,
+          bytes: beneficiary.toBase58(),
+        },
+      },
+    ]);
+
+    const resolvedTicketAccountPromises = ticketAccounts.map(
+      async ({ account, publicKey }) => this.toTicketAccount(account, publicKey)
+    );
+
+    return Promise.all(resolvedTicketAccountPromises) as Promise<
+      TicketAccount[]
+    >;
+  }
+
+  public async claimUnstakeTicket(
+    ticketAccount: TicketAccount
+  ): Promise<string> {
+    if (!this.marinade || !this.marinadeState)
+      throw new Error("init not called");
+
+    const reservePda = await this.marinadeState.reserveAddress();
+    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.claimUnstakeTicket>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.stateAddress,
+      marinadeState: this.marinadeState.marinadeStateAddress,
+      reservePda,
+      marinadeTicketAccount: ticketAccount.marinadeTicketAccount,
+      sunriseTicketAccount: ticketAccount.address,
+      msolAuthority: this.msolTokenAccountAuthority,
+      transferSolTo: this.staker,
+      systemProgram: SystemProgram.programId,
+      clock: SYSVAR_CLOCK_PUBKEY,
+      marinadeProgram,
+    };
+
+    const transaction = await this.program.methods
+      .claimUnstakeTicket()
+      .accounts(accounts)
+      .transaction();
+
+    logKeys(transaction);
+
+    return this.provider.sendAndConfirm(transaction, []);
+  }
+
+  public async claimUnstakeTicketFromAddress(
+    ticketAccountAddress: PublicKey
+  ): Promise<string> {
+    if (!this.marinade || !this.marinadeState)
+      throw new Error("init not called");
+
+    const sunriseTicketAccount =
+      await this.program.account.sunriseTicketAccount.fetch(
+        ticketAccountAddress
+      );
+
+    const account = await this.toTicketAccount(
+      sunriseTicketAccount,
+      ticketAccountAddress
+    );
+
+    return this.claimUnstakeTicket(account);
+  }
+
   public async withdrawToTreasury(): Promise<string> {
     if (
       !this.marinadeState ||
@@ -178,8 +314,9 @@ export class SunriseStakeClient {
       !this.config ||
       !this.msolTokenAccount ||
       !this.msolTokenAccountAuthority
-    )
+    ) {
       throw new Error("init not called");
+    }
 
     const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
 
@@ -239,7 +376,7 @@ export class SunriseStakeClient {
 
     const lpDetails = {
       mintAddress: this.marinadeState.lpMint.address.toBase58(),
-      supply: lpMintInfo.supply.toNumber(),
+      supply: lpMintInfo.supply,
       mintAuthority: lpMintInfo.mintAuthority?.toBase58(),
       decimals: lpMintInfo.decimals,
       lpBalance: lpbalance.value.uiAmount,
@@ -253,6 +390,8 @@ export class SunriseStakeClient {
         programId: this.config.programId.toBase58(),
         stateAddress: this.config.stateAddress.toBase58(),
         treasury: this.config.treasury.toBase58(),
+        msolTokenAccount: this.msolTokenAccount.toBase58(),
+        msolTokenAccountAuthority: this.msolTokenAccountAuthority?.toBase58(),
       },
       marinadeFinanceProgramId:
         this.marinadeState.marinadeFinanceProgramId.toBase58(),
@@ -279,6 +418,7 @@ export class SunriseStakeClient {
       gsolMint: gsolMint.publicKey,
       programId: client.program.programId,
       stateAddress: sunriseStakeState.publicKey,
+      updateAuthority: client.provider.publicKey,
       treasury,
     };
     const marinadeConfig = new MarinadeConfig({
@@ -317,13 +457,43 @@ export class SunriseStakeClient {
         // TODO replace with this.marinadeConfig.marinadeStateAddress when this is no longer a static function
         marinadeState: marinadeConfig.marinadeStateAddress,
         updateAuthority: client.provider.publicKey,
-        gsolMint: gsolMint.publicKey,
         treasury,
         gsolMintAuthorityBump,
         msolAuthorityBump,
       })
       .accounts(accounts)
       .signers([gsolMint, sunriseStakeState])
+      .rpc()
+      .then(confirm(client.provider.connection));
+
+    await client.init();
+
+    return client;
+  }
+
+  public static async update(
+    state: PublicKey,
+    newTreasury: PublicKey,
+    newUpdateAuthority: PublicKey
+  ): Promise<SunriseStakeClient> {
+    const client = new SunriseStakeClient(setUpAnchor(), state);
+
+    const accounts: Record<string, PublicKey> = {
+      state,
+      payer: client.provider.publicKey,
+      updateAuthority: client.provider.publicKey,
+    };
+
+    console.log(
+      Object.keys(accounts).map((k) => `${k}: ${accounts[k].toBase58()}`)
+    );
+
+    await client.program.methods
+      .updateState({
+        updateAuthority: newUpdateAuthority,
+        treasury: newTreasury,
+      })
+      .accounts(accounts)
       .rpc()
       .then(confirm(client.provider.connection));
 
@@ -340,38 +510,38 @@ export class SunriseStakeClient {
       .catch((e) => {
         // Treat a missing account as zero balance
         if ((e.message as string).endsWith("could not find account")) {
-          return {
-            value: {
-              amount: "0",
-              decimals: 9,
-              uiAmount: 0,
-              uiAmountString: "0",
-            },
-          };
+          return ZERO_BALANCE;
         }
         throw e;
       });
 
-    const stakerMsolTokenAccountAuthority = findMSolTokenAccountAuthority(
+    const gsolSupplyPromise = this.provider.connection.getTokenSupply(
+      this.config.gsolMint
+    );
+
+    const msolTokenAccountAuthority = findMSolTokenAccountAuthority(
       this.config
     )[0];
     const msolAssociatedTokenAccountAddress =
       await utils.token.associatedAddress({
         mint: this.marinadeState.mSolMintAddress,
-        owner: stakerMsolTokenAccountAuthority,
+        owner: msolTokenAccountAuthority,
       });
     const msolLamportsBalancePromise =
       this.provider.connection.getTokenAccountBalance(
         msolAssociatedTokenAccountAddress
       );
 
-    const [depositedLamports, msolLamportsBalance] = await Promise.all([
-      depositedLamportsPromise,
-      msolLamportsBalancePromise,
-    ]);
+    const [depositedLamports, gsolSupply, msolLamportsBalance] =
+      await Promise.all([
+        depositedLamportsPromise,
+        gsolSupplyPromise,
+        msolLamportsBalancePromise,
+      ]);
 
     return {
       depositedSol: depositedLamports.value,
+      totalDepositedSol: gsolSupply.value,
       msolBalance: msolLamportsBalance.value,
       msolPrice: this.marinadeState.mSolPrice,
     };

@@ -9,6 +9,7 @@ export interface SunriseStakeConfig {
   stateAddress: PublicKey;
   gsolMint: PublicKey;
   treasury: PublicKey;
+  updateAuthority: PublicKey;
   programId: PublicKey;
 }
 

@@ -63,7 +63,35 @@ export type SunriseStake = {
         {
           "name": "state",
           "type": {
-            "defined": "StateInput"
+            "defined": "RegisterStateInput"
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "UpdateStateInput"
           }
         }
       ]
@@ -165,6 +193,164 @@ export type SunriseStake = {
       ]
     },
     {
+      "name": "orderUnstake",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Used to ensure the correct GSOL mint is used"
+          ]
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolTokenAccountAuthority",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Owner of the gSOL"
+          ]
+        },
+        {
+          "name": "newTicketAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sunriseTicketAccount",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "treasury",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "claimUnstakeTicket",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reservePda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeTicketAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sunriseTicketAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "transferSolTo",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "liquidUnstake",
       "accounts": [
         {
@@ -228,7 +414,7 @@ export type SunriseStake = {
         {
           "name": "gsolTokenAccountAuthority",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "treasury",
@@ -362,11 +548,34 @@ export type SunriseStake = {
           }
         ]
       }
+    },
+    {
+      "name": "sunriseTicketAccount",
+      "docs": [
+        "Maps a marinade ticket account to a GSOL token holder"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stateAddress",
+            "type": "publicKey"
+          },
+          {
+            "name": "marinadeTicketAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "beneficiary",
+            "type": "publicKey"
+          }
+        ]
+      }
     }
   ],
   "types": [
     {
-      "name": "StateInput",
+      "name": "RegisterStateInput",
       "type": {
         "kind": "struct",
         "fields": [
@@ -376,10 +585,6 @@ export type SunriseStake = {
           },
           {
             "name": "updateAuthority",
-            "type": "publicKey"
-          },
-          {
-            "name": "gsolMint",
             "type": "publicKey"
           },
           {
@@ -393,6 +598,22 @@ export type SunriseStake = {
           {
             "name": "msolAuthorityBump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateStateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "updateAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "treasury",
+            "type": "publicKey"
           }
         ]
       }
@@ -472,7 +693,35 @@ export const IDL: SunriseStake = {
         {
           "name": "state",
           "type": {
-            "defined": "StateInput"
+            "defined": "RegisterStateInput"
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "UpdateStateInput"
           }
         }
       ]
@@ -574,6 +823,164 @@ export const IDL: SunriseStake = {
       ]
     },
     {
+      "name": "orderUnstake",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Used to ensure the correct GSOL mint is used"
+          ]
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolTokenAccountAuthority",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Owner of the gSOL"
+          ]
+        },
+        {
+          "name": "newTicketAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sunriseTicketAccount",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "treasury",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "claimUnstakeTicket",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reservePda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeTicketAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sunriseTicketAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "transferSolTo",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "liquidUnstake",
       "accounts": [
         {
@@ -637,7 +1044,7 @@ export const IDL: SunriseStake = {
         {
           "name": "gsolTokenAccountAuthority",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "treasury",
@@ -771,11 +1178,34 @@ export const IDL: SunriseStake = {
           }
         ]
       }
+    },
+    {
+      "name": "sunriseTicketAccount",
+      "docs": [
+        "Maps a marinade ticket account to a GSOL token holder"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stateAddress",
+            "type": "publicKey"
+          },
+          {
+            "name": "marinadeTicketAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "beneficiary",
+            "type": "publicKey"
+          }
+        ]
+      }
     }
   ],
   "types": [
     {
-      "name": "StateInput",
+      "name": "RegisterStateInput",
       "type": {
         "kind": "struct",
         "fields": [
@@ -785,10 +1215,6 @@ export const IDL: SunriseStake = {
           },
           {
             "name": "updateAuthority",
-            "type": "publicKey"
-          },
-          {
-            "name": "gsolMint",
             "type": "publicKey"
           },
           {
@@ -802,6 +1228,22 @@ export const IDL: SunriseStake = {
           {
             "name": "msolAuthorityBump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateStateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "updateAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "treasury",
+            "type": "publicKey"
           }
         ]
       }
