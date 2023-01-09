@@ -7,7 +7,7 @@ import { Environment } from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
 
-const SUNRISE_STAKE_STATE =
+export const SUNRISE_STAKE_STATE =
   Environment[
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
       WalletAdapterNetwork.Devnet

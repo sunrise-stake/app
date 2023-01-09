@@ -7,11 +7,13 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::{
     cpi::{
         accounts::{
-            Claim as MarinadeClaim, Deposit as MarinadeDeposit,
-            LiquidUnstake as MarinadeLiquidUnstake, OrderUnstake as MarinadeOrderUnstake,
+            AddLiquidity as MarinadeAddLiquidity, Claim as MarinadeClaim,
+            Deposit as MarinadeDeposit, LiquidUnstake as MarinadeLiquidUnstake,
+            OrderUnstake as MarinadeOrderUnstake, RemoveLiquidity as MarinadeRemoveLiquidity,
         },
-        claim as marinade_claim, deposit as marinade_deposit,
-        liquid_unstake as marinade_liquid_unstake, order_unstake as marinade_order_unstake,
+        add_liquidity as marinade_add_liquidity, claim as marinade_claim,
+        deposit as marinade_deposit, liquid_unstake as marinade_liquid_unstake,
+        order_unstake as marinade_order_unstake, remove_liquidity as marinade_remove_liquidity,
     },
     program::MarinadeFinance,
     State as MarinadeState,
@@ -229,6 +231,23 @@ pub fn claim_unstake_ticket(accounts: &ClaimUnstakeTicketProperties) -> Result<(
     marinade_claim(cpi_ctx)
 }
 
+pub fn add_liquidity(accounts: &Deposit, lamports: u64) -> Result<()> {
+    let cpi_program = accounts.marinade_program.to_account_info();
+    let cpi_accounts = MarinadeAddLiquidity {
+        state: accounts.marinade_state.to_account_info(),
+        lp_mint: accounts.liq_pool_mint.to_account_info(),
+        liq_pool_sol_leg_pda: accounts.liq_pool_sol_leg_pda.to_account_info(),
+        liq_pool_msol_leg: accounts.liq_pool_msol_leg.to_account_info(),
+        transfer_from: accounts.transfer_from.to_account_info(),
+        mint_to: accounts.mint_liq_pool_to.to_account_info(),
+        lp_mint_authority: accounts.liq_pool_mint_authority.to_account_info(),
+        system_program: accounts.system_program.to_account_info(),
+        token_program: accounts.token_program.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    marinade_add_liquidity(cpi_ctx, lamports)
+}
+
 /// All copied from https://github.com/marinade-finance/liquid-staking-program/blob/447f9607a8c755cac7ad63223febf047142c6c8f/programs/marinade-finance/src/state.rs#L227
 fn total_cooling_down(marinade_state: &MarinadeState) -> u64 {
     marinade_state
@@ -300,4 +319,86 @@ pub fn recoverable_yield<'a>(
     msg!("recoverable_msol: {}", recoverable_msol);
 
     Ok(recoverable_msol)
+}
+
+pub fn current_liq_pool_balance<'a>(
+    marinade_state: &MarinadeState,
+    liq_pool_mint: &Account<'a, Mint>,
+    liq_pool_token_account: &Account<'a, TokenAccount>,
+    liq_pool_sol_leg_pda: &AccountInfo,
+    liq_pool_msol_leg: &Account<'a, TokenAccount>,
+) -> Result<u64> {
+    //compute current liq-pool total value
+    let sol_leg_lamports = liq_pool_sol_leg_pda
+        .lamports()
+        .checked_sub(marinade_state.rent_exempt_for_token_acc)
+        .expect("sol_leg_lamports");
+    let msol_leg_value = calc_lamports_from_msol_amount(marinade_state, liq_pool_msol_leg.amount)
+        .expect("msol_leg_value");
+    let total_liq_pool_value = sol_leg_lamports + msol_leg_value;
+    msg!(
+            "sunrise_token_account: {}, sol_leg_pda: {}, rent_exempt_for_token_acc: {}, liq_pool SOL:{}, liq_pool_msol value in mSol:{}, liq_pool mSOL value:{} liq_pool_value:{}",
+            liq_pool_token_account.amount,
+            liq_pool_sol_leg_pda.lamports(),
+            marinade_state.rent_exempt_for_token_acc,
+            sol_leg_lamports,
+            liq_pool_msol_leg.amount,
+            msol_leg_value,
+            total_liq_pool_value
+        );
+
+    // The SOL amount held by sunrise in the liquidity pool is the total value of the pool in SOL
+    // multiplied by the proportion of the pool owned by this SunshineStake instance
+    proportional(
+        total_liq_pool_value, // total
+        liq_pool_token_account.amount,
+        liq_pool_mint.supply,
+    )
+}
+
+/// The preferred liquidity pool balance is a proportion of the total issued gsol
+/// (after accounting for the deposit)
+pub fn preferred_liq_pool_balance<'a>(
+    state: &State,
+    gsol_mint: &Account<'a, Mint>,
+    lamports_being_staked: u64,
+) -> Result<u64> {
+    msg!(
+        "gsol supply {}, lamports_being_staked {}",
+        gsol_mint.supply,
+        lamports_being_staked
+    );
+    let gsol_supply_after_deposit = gsol_mint
+        .supply
+        .checked_add(lamports_being_staked)
+        .expect("gsol_supply_after_deposit");
+    proportional(
+        gsol_supply_after_deposit,        // total
+        state.liq_pool_proportion as u64, // preferred
+        100,
+    )
+}
+
+pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> Result<u64> {
+    let liq_pool_balance = current_liq_pool_balance(
+        &accounts.marinade_state,
+        &accounts.liq_pool_mint,
+        &accounts.mint_liq_pool_to,
+        &accounts.liq_pool_sol_leg_pda,
+        &accounts.liq_pool_msol_leg,
+    )?;
+    let preferred_liq_pool_balance =
+        preferred_liq_pool_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
+    let missing_balance = preferred_liq_pool_balance
+        .checked_sub(liq_pool_balance)
+        .expect("missing_balance");
+    let amount_to_be_deposited = lamports.min(missing_balance);
+    msg!(
+        "liq_pool_balance:{}, preferred_liq_pool_balance:{}, missing_balance:{}, amount_to_be_deposited:{}",
+        liq_pool_balance,
+        preferred_liq_pool_balance,
+        missing_balance,
+        amount_to_be_deposited
+    );
+    Ok(amount_to_be_deposited)
 }

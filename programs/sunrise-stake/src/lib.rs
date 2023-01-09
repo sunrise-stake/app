@@ -15,72 +15,32 @@ declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 #[program]
 pub mod sunrise_stake {
     use super::*;
-    use crate::utils::marinade;
-    use crate::utils::marinade::{
-        calc_lamports_from_msol_amount, calc_msol_from_lamports, recoverable_yield,
+    use crate::utils::{
+        marinade,
+        marinade::{
+            amount_to_be_deposited_in_liq_pool, calc_lamports_from_msol_amount,
+            calc_msol_from_lamports, recoverable_yield,
+        },
+        token::{burn, create_token_account},
     };
-    use crate::utils::token::{burn, create_msol_token_account};
     use anchor_lang::solana_program::program::invoke_signed;
     use anchor_lang::solana_program::system_instruction::transfer;
     use std::ops::Deref;
 
-    pub fn register_state(ctx: Context<RegisterState>, state: RegisterStateInput) -> Result<()> {
-        let state_account = &mut ctx.accounts.state;
-        state_account.marinade_state = state.marinade_state;
-        state_account.update_authority = state.update_authority;
-        state_account.gsol_mint_authority_bump = state.gsol_mint_authority_bump;
-        state_account.msol_authority_bump = state.msol_authority_bump;
-        state_account.treasury = state.treasury;
-        state_account.gsol_mint = ctx.accounts.mint.key();
-
-        // create the gsol mint
-        let gsol_mint_authority = Pubkey::create_program_address(
-            &[
-                &state_account.key().to_bytes(),
-                GSOL_MINT_AUTHORITY,
-                &[state_account.gsol_mint_authority_bump],
-            ],
-            ctx.program_id,
-        )
-        .unwrap();
-        create_mint(
-            &ctx.accounts.payer,
-            &ctx.accounts.mint.to_account_info(),
-            &gsol_mint_authority,
-            &ctx.accounts.system_program,
-            &ctx.accounts.token_program,
-            &ctx.accounts.rent.to_account_info(),
-        )?;
-
-        // create msol token account
-        // Note - the relationship between msol_mint and marinade_state is not verified here
-        // Specifically, the marinade_state is not passed into the register function as an account.
-        // This simplifies the registration code, but if it is registered incorrectly, deposits will fail.
-        create_msol_token_account(
-            &ctx.accounts.payer,
-            &ctx.accounts.msol_token_account,
-            &ctx.accounts.msol_mint,
-            &ctx.accounts.msol_token_account_authority,
-            &ctx.accounts.system_program,
-            &ctx.accounts.token_program,
-            &ctx.accounts.associated_token_program,
-            &ctx.accounts.rent,
-        )?;
-
-        Ok(())
-    }
-
-    pub fn update_state(ctx: Context<UpdateState>, state: UpdateStateInput) -> Result<()> {
-        let state_account = &mut ctx.accounts.state;
-        state_account.update_authority = state.update_authority;
-        state_account.treasury = state.treasury;
-
-        Ok(())
-    }
-
     pub fn deposit(ctx: Context<Deposit>, lamports: u64) -> Result<()> {
-        msg!("Depositing");
-        marinade::deposit(ctx.accounts, lamports)?;
+        msg!("Checking liq_pool pool balance");
+        let to_deposit_in_liq_pool = amount_to_be_deposited_in_liq_pool(ctx.accounts, lamports)?;
+        let to_stake = lamports - to_deposit_in_liq_pool;
+
+        if to_deposit_in_liq_pool > 0 {
+            msg!("Depositing {} in liq_pool pool", to_deposit_in_liq_pool);
+            marinade::add_liquidity(ctx.accounts, to_deposit_in_liq_pool)?;
+        }
+
+        if to_stake > 0 {
+            msg!("Staking {}", to_stake);
+            marinade::deposit(ctx.accounts, to_stake)?;
+        }
 
         msg!("Mint {} GSOL", lamports);
         mint_to(
@@ -191,6 +151,89 @@ pub mod sunrise_stake {
 
         Ok(())
     }
+
+    ////////////////////////////
+    // ADMIN FUNCTIONS
+    ////////////////////////////
+    pub fn register_state(ctx: Context<RegisterState>, state: RegisterStateInput) -> Result<()> {
+        let state_account = &mut ctx.accounts.state;
+        state_account.marinade_state = state.marinade_state;
+        state_account.update_authority = state.update_authority;
+        state_account.gsol_mint_authority_bump = state.gsol_mint_authority_bump;
+        state_account.msol_authority_bump = state.msol_authority_bump;
+        state_account.treasury = state.treasury;
+        state_account.gsol_mint = ctx.accounts.mint.key();
+        state_account.liq_pool_proportion = state.liq_pool_proportion;
+
+        // create the gsol mint
+        let gsol_mint_authority = Pubkey::create_program_address(
+            &[
+                &state_account.key().to_bytes(),
+                GSOL_MINT_AUTHORITY,
+                &[state_account.gsol_mint_authority_bump],
+            ],
+            ctx.program_id,
+        )
+        .unwrap();
+        create_mint(
+            &ctx.accounts.payer,
+            &ctx.accounts.mint.to_account_info(),
+            &gsol_mint_authority,
+            &ctx.accounts.system_program,
+            &ctx.accounts.token_program,
+            &ctx.accounts.rent.to_account_info(),
+        )?;
+
+        // create msol token account
+        // Note - the relationship between msol_mint and marinade_state is not verified here
+        // Specifically, the marinade_state is not passed into the register function as an account.
+        // This simplifies the registration code, but if it is registered incorrectly, deposits will fail.
+        create_token_account(
+            &ctx.accounts.payer,
+            &ctx.accounts.msol_token_account,
+            &ctx.accounts.msol_mint,
+            &ctx.accounts.msol_token_account_authority,
+            &ctx.accounts.system_program,
+            &ctx.accounts.token_program,
+            &ctx.accounts.associated_token_program,
+            &ctx.accounts.rent,
+        )?;
+
+        // create marinade msol/sol liquditiy pool token account
+        // the same token account authority PDA is used for the
+        // msol token account and the liquidity pool token account
+        create_token_account(
+            &ctx.accounts.payer,
+            &ctx.accounts.liq_pool_token_account,
+            &ctx.accounts.liq_pool_mint,
+            &ctx.accounts.msol_token_account_authority,
+            &ctx.accounts.system_program,
+            &ctx.accounts.token_program,
+            &ctx.accounts.associated_token_program,
+            &ctx.accounts.rent,
+        )?;
+
+        Ok(())
+    }
+
+    pub fn update_state(ctx: Context<UpdateState>, state: UpdateStateInput) -> Result<()> {
+        // Check the liq_pool_proportion does not exceed 100%
+        require_gte!(100, state.liq_pool_proportion);
+
+        let state_account = &mut ctx.accounts.state;
+        state_account.update_authority = state.update_authority;
+        state_account.treasury = state.treasury;
+        state_account.liq_pool_proportion = state.liq_pool_proportion;
+
+        Ok(())
+    }
+
+    // TODO this is only used during development, to add features to the state account
+    // without having to create a new one.
+    // Once it is stable, we should remove this function.
+    pub fn resize_state(_ctx: Context<ResizeState>, _size: u64) -> Result<()> {
+        Ok(())
+    }
 }
 
 #[account]
@@ -201,9 +244,16 @@ pub struct State {
     pub treasury: Pubkey,
     pub gsol_mint_authority_bump: u8,
     pub msol_authority_bump: u8,
+    /// 0-100 - The proportion of the total staked SOL that should be in the
+    /// liquidity pool.
+    pub liq_pool_proportion: u8,
+    /// 0-100 - If unstaking would result in the proportion of SOL in the
+    /// liquidity pool dropping below this value, trigger an delayed unstake
+    /// for the difference
+    pub liq_pool_min_proportion: u8,
 }
 impl State {
-    const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 8 /* DISCRIMINATOR */ ;
+    const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 1 + 8 /* DISCRIMINATOR */ ;
 }
 
 /// Maps a marinade ticket account to a GSOL token holder
@@ -224,12 +274,14 @@ pub struct RegisterStateInput {
     pub treasury: Pubkey,
     pub gsol_mint_authority_bump: u8,
     pub msol_authority_bump: u8,
+    pub liq_pool_proportion: u8,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct UpdateStateInput {
     pub update_authority: Pubkey,
     pub treasury: Pubkey,
+    pub liq_pool_proportion: u8,
 }
 
 #[derive(Accounts)]
@@ -244,7 +296,7 @@ pub struct RegisterState<'info> {
     #[account(mut)]
     pub mint: Signer<'info>,
 
-    #[account(mut)]
+    #[account()]
     pub msol_mint: Box<Account<'info, Mint>>,
 
     /// Must be a PDA, but otherwise owned by the system account ie not initialised with data
@@ -254,9 +306,14 @@ pub struct RegisterState<'info> {
     )]
     pub msol_token_account_authority: SystemAccount<'info>,
 
-    /// CHECK: Checked by the AssociatedTokenAccount program
     #[account(mut)]
-    pub msol_token_account: UncheckedAccount<'info>,
+    pub msol_token_account: SystemAccount<'info>,
+
+    #[account()]
+    pub liq_pool_mint: Box<Account<'info, Mint>>,
+
+    #[account(mut)]
+    pub liq_pool_token_account: SystemAccount<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -277,6 +334,26 @@ pub struct UpdateState<'info> {
     pub payer: Signer<'info>,
 
     pub update_authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+#[instruction(size: usize)]
+pub struct ResizeState<'info> {
+    #[account(
+    mut,
+    has_one = update_authority,
+    realloc = size,
+    realloc::payer = payer,
+    realloc::zero = false,
+    )]
+    pub state: Account<'info, State>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    pub update_authority: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -308,6 +385,9 @@ pub struct Deposit<'info> {
     pub msol_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
+    pub liq_pool_mint: Box<Account<'info, Mint>>,
+
+    #[account(mut)]
     /// CHECK: Checked in marinade program
     pub liq_pool_sol_leg_pda: AccountInfo<'info>,
 
@@ -315,6 +395,9 @@ pub struct Deposit<'info> {
     pub liq_pool_msol_leg: Account<'info, TokenAccount>,
     /// CHECK: Checked in marinade program
     pub liq_pool_msol_leg_authority: AccountInfo<'info>,
+
+    /// CHECK: Checked in marinade program
+    pub liq_pool_mint_authority: AccountInfo<'info>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
@@ -330,6 +413,13 @@ pub struct Deposit<'info> {
     token::authority = msol_token_account_authority,
     )]
     pub mint_msol_to: Account<'info, TokenAccount>,
+
+    #[account(
+    mut,
+    token::mint = liq_pool_mint,
+    token::authority = msol_token_account_authority,
+    )]
+    pub mint_liq_pool_to: Box<Account<'info, TokenAccount>>,
 
     #[account(
     mut,

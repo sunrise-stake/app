@@ -3,100 +3,6 @@ export type SunriseStake = {
   "name": "sunrise_stake",
   "instructions": [
     {
-      "name": "registerState",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "msolMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "msolTokenAccountAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Must be a PDA, but otherwise owned by the system account ie not initialised with data"
-          ]
-        },
-        {
-          "name": "msolTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "state",
-          "type": {
-            "defined": "RegisterStateInput"
-          }
-        }
-      ]
-    },
-    {
-      "name": "updateState",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "updateAuthority",
-          "isMut": false,
-          "isSigner": true
-        }
-      ],
-      "args": [
-        {
-          "name": "state",
-          "type": {
-            "defined": "UpdateStateInput"
-          }
-        }
-      ]
-    },
-    {
       "name": "deposit",
       "accounts": [
         {
@@ -125,6 +31,11 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "liqPoolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "liqPoolSolLegPda",
           "isMut": true,
           "isSigner": false
@@ -140,6 +51,11 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "liqPoolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "reservePda",
           "isMut": true,
           "isSigner": false
@@ -151,6 +67,11 @@ export type SunriseStake = {
         },
         {
           "name": "mintMsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintLiqPoolTo",
           "isMut": true,
           "isSigner": false
         },
@@ -514,6 +435,141 @@ export type SunriseStake = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "registerState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "msolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Must be a PDA, but otherwise owned by the system account ie not initialised with data"
+          ]
+        },
+        {
+          "name": "msolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "RegisterStateInput"
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "UpdateStateInput"
+          }
+        }
+      ]
+    },
+    {
+      "name": "resizeState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "size",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -544,6 +600,14 @@ export type SunriseStake = {
           },
           {
             "name": "msolAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "liqPoolProportion",
+            "docs": [
+              "0-100 - The proportion of the total staked SOL that should be in the",
+              "liquidity pool."
+            ],
             "type": "u8"
           }
         ]
@@ -598,6 +662,10 @@ export type SunriseStake = {
           {
             "name": "msolAuthorityBump",
             "type": "u8"
+          },
+          {
+            "name": "liqPoolProportion",
+            "type": "u8"
           }
         ]
       }
@@ -614,6 +682,10 @@ export type SunriseStake = {
           {
             "name": "treasury",
             "type": "publicKey"
+          },
+          {
+            "name": "liqPoolProportion",
+            "type": "u8"
           }
         ]
       }
@@ -633,100 +705,6 @@ export const IDL: SunriseStake = {
   "name": "sunrise_stake",
   "instructions": [
     {
-      "name": "registerState",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "msolMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "msolTokenAccountAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Must be a PDA, but otherwise owned by the system account ie not initialised with data"
-          ]
-        },
-        {
-          "name": "msolTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "state",
-          "type": {
-            "defined": "RegisterStateInput"
-          }
-        }
-      ]
-    },
-    {
-      "name": "updateState",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "updateAuthority",
-          "isMut": false,
-          "isSigner": true
-        }
-      ],
-      "args": [
-        {
-          "name": "state",
-          "type": {
-            "defined": "UpdateStateInput"
-          }
-        }
-      ]
-    },
-    {
       "name": "deposit",
       "accounts": [
         {
@@ -755,6 +733,11 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "liqPoolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "liqPoolSolLegPda",
           "isMut": true,
           "isSigner": false
@@ -770,6 +753,11 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "liqPoolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "reservePda",
           "isMut": true,
           "isSigner": false
@@ -781,6 +769,11 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "mintMsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintLiqPoolTo",
           "isMut": true,
           "isSigner": false
         },
@@ -1144,6 +1137,141 @@ export const IDL: SunriseStake = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "registerState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "msolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Must be a PDA, but otherwise owned by the system account ie not initialised with data"
+          ]
+        },
+        {
+          "name": "msolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "RegisterStateInput"
+          }
+        }
+      ]
+    },
+    {
+      "name": "updateState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "UpdateStateInput"
+          }
+        }
+      ]
+    },
+    {
+      "name": "resizeState",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "size",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1174,6 +1302,14 @@ export const IDL: SunriseStake = {
           },
           {
             "name": "msolAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "liqPoolProportion",
+            "docs": [
+              "0-100 - The proportion of the total staked SOL that should be in the",
+              "liquidity pool."
+            ],
             "type": "u8"
           }
         ]
@@ -1228,6 +1364,10 @@ export const IDL: SunriseStake = {
           {
             "name": "msolAuthorityBump",
             "type": "u8"
+          },
+          {
+            "name": "liqPoolProportion",
+            "type": "u8"
           }
         ]
       }
@@ -1244,6 +1384,10 @@ export const IDL: SunriseStake = {
           {
             "name": "treasury",
             "type": "publicKey"
+          },
+          {
+            "name": "liqPoolProportion",
+            "type": "u8"
           }
         ]
       }

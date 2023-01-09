@@ -1,17 +1,18 @@
 import BN from "bn.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import { SunriseStakeClient } from "../app/src/lib/client";
 import {
-  burnGSol,
+  burnGSol, expectLiqPoolTokenBalance,
   expectMSolTokenBalance,
   expectStakerGSolTokenBalance,
   expectStakerSolBalance,
   expectTreasurySolBalance,
-  getBalance,
+  getBalance, getLPPrice,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { TicketAccount } from "@sunrisestake/app/src/lib/client/types/TicketAccount";
+import { DEFAULT_LP_PROPORTION } from "@sunrisestake/app/src/lib/constants";
 
 chai.use(chaiAsPromised);
 
@@ -24,57 +25,79 @@ describe("sunrise-stake", () => {
   const orderUnstakeSOL = new BN(2_000_000_000); // Order a delayed unstake of 2 SOL
 
   let treasury = Keypair.generate();
-  let updateAuthority;
+  let updateAuthority: Keypair;
 
   let delayedUnstakeTicket: TicketAccount;
 
-  it("can register a new Sunrise state", async () => {
+  it.only("can register a new Sunrise state", async () => {
     client = await SunriseStakeClient.register(
-      treasury.publicKey,
-      Keypair.generate()
+        treasury.publicKey,
+        Keypair.generate()
     );
+
+    console.log(await client.details())
   });
 
-  it("can update the state treasury and update authority", async () => {
+  it.only("can update the state", async () => {
     treasury = Keypair.generate();
     updateAuthority = Keypair.generate();
 
-    client = await SunriseStakeClient.update(
-      client.stateAddress,
-      treasury.publicKey,
-      updateAuthority.publicKey
-    );
+    await client.update({
+      newTreasury: treasury.publicKey,
+      newUpdateAuthority: updateAuthority.publicKey,
+    });
 
     expect(client.config?.treasury.toBase58()).to.equal(
-      treasury.publicKey.toBase58()
+        treasury.publicKey.toBase58()
     );
     expect(client.config?.updateAuthority.toBase58()).to.equal(
-      updateAuthority.publicKey.toBase58()
+        updateAuthority.publicKey.toBase58()
     );
+    // unchanged properties
+    expect(client.config?.liqPoolProportion).to.equal(DEFAULT_LP_PROPORTION);
   });
 
-  it("can deposit sol", async () => {
+  it.only("can resize the state", async () => {
+    await client.program.methods
+        .resizeState(
+            new BN(
+                32 +
+                32 +
+                32 +
+                32 +
+                1 +
+                1 +
+                1 +
+                8 + // Base size
+                10 // extra space
+            )
+        )
+        .accounts({
+          state: client.stateAddress,
+          payer: client.provider.publicKey,
+          updateAuthority: updateAuthority.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([updateAuthority])
+        .rpc();
+  });
+
+  it.only("can deposit sol", async () => {
     await getBalance(client); // print balance before deposit
 
-    // log stuff
-    await client.details().then(console.log);
+    // figure out what balances we expect before we make the deposit
+    // since this is the first deposit, 10% will go into the liquidity pool
+    // so the sunrise liquidity pool token balance should go up,
+    // and the sunrise msol balance should be at 90% of the value of the deposit
+    const lpPrice = await getLPPrice(client); // TODO should this be inverse price?
+    const expectedMsol = Math.floor(depositSOL.toNumber() * 0.9 / client.marinadeState!.mSolPrice);
+    const expectedLiqPool = Math.floor(depositSOL.toNumber() * 0.1 / lpPrice);
 
-    const txSig = await client.deposit(depositSOL);
-    // TODO Either remove this line or abstract it out into a function. object destructuring an inline awaited function call is not nice.
-    await client.provider.connection.confirmTransaction({
-      signature: txSig,
-      ...(await client.provider.connection.getLatestBlockhash()),
-    });
-    const expectedMsol = Math.floor(
-      depositSOL.toNumber() / client.marinadeState!.mSolPrice
-    );
+    await client.deposit(depositSOL);
+
     await expectMSolTokenBalance(client, expectedMsol, 10);
+    await expectLiqPoolTokenBalance(client, expectedLiqPool, 10);
     await expectStakerGSolTokenBalance(client, depositSOL.toNumber());
-
-    const stakerSolBalance = await client.provider.connection.getBalance(
-      client.staker
-    );
-    console.log("Staker SOL balance", stakerSolBalance);
   });
 
   it("can unstake sol", async () => {
@@ -84,13 +107,13 @@ describe("sunrise-stake", () => {
     await client.details().then(console.log);
 
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(
-      client.stakerGSolTokenAccount!
+        client.stakerGSolTokenAccount!
     );
     const txSig = await client.unstake(unstakeSOL);
 
     await expectStakerGSolTokenBalance(
-      client,
-      new BN(gsolBalance.value.amount).sub(unstakeSOL)
+        client,
+        new BN(gsolBalance.value.amount).sub(unstakeSOL)
     );
 
     // wait for the tx to confirm
@@ -105,8 +128,8 @@ describe("sunrise-stake", () => {
     // TODO Double check this with different values for unstakeSOL
     const fee = unstakeSOL.muln(3).divn(1000).addn(5000);
     const expectedPostUnstakeBalance = stakerPreSolBalance
-      .add(unstakeSOL)
-      .sub(fee);
+        .add(unstakeSOL)
+        .sub(fee);
     // use min here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
     // variable
@@ -129,7 +152,7 @@ describe("sunrise-stake", () => {
 
     // -1 due to rounding error in the program. TODO fix this
     expect(delayedUnstakeTicket.lamportsAmount.toString()).to.equal(
-      orderUnstakeSOL.subn(1).toString()
+        orderUnstakeSOL.subn(1).toString()
     );
   });
 
@@ -139,7 +162,7 @@ describe("sunrise-stake", () => {
 
     // TODO expose the error message from the program
     return expect(shouldFail).to.be.rejectedWith(
-      "custom program error: 0x1103"
+        "custom program error: 0x1103"
     );
   });
 
@@ -155,36 +178,36 @@ describe("sunrise-stake", () => {
     await client.provider.connection.getEpochInfo().then(console.log);
 
     const sunriseLamports = await client.provider.connection
-      .getAccountInfo(delayedUnstakeTicket.address)
-      .then((account) => account?.lamports);
+        .getAccountInfo(delayedUnstakeTicket.address)
+        .then((account) => account?.lamports);
     const marinadeLamports = await client.provider.connection
-      .getAccountInfo(delayedUnstakeTicket.marinadeTicketAccount)
-      .then((account) => account?.lamports);
+        .getAccountInfo(delayedUnstakeTicket.marinadeTicketAccount)
+        .then((account) => account?.lamports);
 
     console.log(
-      "total reclaimed rent: ",
-      sunriseLamports,
-      marinadeLamports,
-      (sunriseLamports ?? 0) + (marinadeLamports ?? 0)
+        "total reclaimed rent: ",
+        sunriseLamports,
+        marinadeLamports,
+        (sunriseLamports ?? 0) + (marinadeLamports ?? 0)
     );
     console.log("ticket size: ", orderUnstakeSOL.toString());
     console.log("existing balance", stakerPreSolBalance.toString());
     console.log(
-      "existing balance plus reclaimed rent",
-      stakerPreSolBalance
-        .addn(sunriseLamports ?? 0)
-        .addn(marinadeLamports ?? 0)
-        .toString()
+        "existing balance plus reclaimed rent",
+        stakerPreSolBalance
+            .addn(sunriseLamports ?? 0)
+            .addn(marinadeLamports ?? 0)
+            .toString()
     );
 
     await client.claimUnstakeTicket(delayedUnstakeTicket);
 
     // the staker does not get the marinade ticket rent
     const expectedPostUnstakeBalance = stakerPreSolBalance
-      .add(orderUnstakeSOL)
-      .addn(sunriseLamports ?? 0)
-      .subn(5000);
-    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 50);
+        .add(orderUnstakeSOL)
+        .addn(sunriseLamports ?? 0)
+        .subn(5000);
+    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
   });
 
   it("can withdraw to the treasury", async () => {
