@@ -32,6 +32,7 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+import { DEFAULT_LP_PROPORTION } from "../constants";
 
 const setUpAnchor = (): anchor.AnchorProvider => {
   // Configure the client to use the local cluster.
@@ -48,7 +49,9 @@ export interface Balance {
   msolPrice: number;
 }
 
-const PROGRAM_ID = new PublicKey("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
+export const PROGRAM_ID = new PublicKey(
+  "gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p"
+);
 
 const ZERO_BALANCE = {
   value: {
@@ -74,6 +77,8 @@ export class SunriseStakeClient {
   msolTokenAccountAuthority: PublicKey | undefined;
   msolTokenAccount: PublicKey | undefined;
 
+  liqPoolTokenAccount: PublicKey | undefined;
+
   private constructor(
     readonly provider: AnchorProvider,
     readonly stateAddress: PublicKey
@@ -93,6 +98,7 @@ export class SunriseStakeClient {
       programId: this.program.programId,
       stateAddress: this.stateAddress,
       updateAuthority: sunriseStakeState.updateAuthority,
+      liqPoolProportion: sunriseStakeState.liqPoolProportion,
     };
 
     console.log("Config", this.config);
@@ -123,6 +129,10 @@ export class SunriseStakeClient {
     this.marinadeState = await this.marinade.getMarinadeState();
     this.msolTokenAccount = await utils.token.associatedAddress({
       mint: this.marinadeState.mSolMintAddress,
+      owner: this.msolTokenAccountAuthority,
+    });
+    this.liqPoolTokenAccount = await utils.token.associatedAddress({
+      mint: this.marinadeState.lpMint.address,
       owner: this.msolTokenAccountAuthority,
     });
   }
@@ -420,6 +430,7 @@ export class SunriseStakeClient {
       stateAddress: sunriseStakeState.publicKey,
       updateAuthority: client.provider.publicKey,
       treasury,
+      liqPoolProportion: DEFAULT_LP_PROPORTION,
     };
     const marinadeConfig = new MarinadeConfig({
       connection: client.provider.connection,
@@ -435,31 +446,40 @@ export class SunriseStakeClient {
         mint: marinadeState.mSolMintAddress,
         owner: msolAuthority,
       });
+    // use the same token authority PDA for the msol token account
+    // and the liquidity pool token account for convenience
+    const liqPoolAssociatedTokenAccountAddress =
+        await utils.token.associatedAddress({
+          mint: marinadeState.lpMint.address,
+          owner: msolAuthority,
+        });
 
-    const accounts: Record<string, PublicKey> = {
+    type Accounts = Parameters<
+        ReturnType<typeof client.program.methods.registerState>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
       state: sunriseStakeState.publicKey,
       payer: client.provider.publicKey,
       mint: gsolMint.publicKey,
       msolMint: marinadeState.mSolMintAddress,
       msolTokenAccountAuthority: msolAuthority,
       msolTokenAccount: msolAssociatedTokenAccountAddress,
+      liqPoolMint: marinadeState.lpMint.address,
+      liqPoolTokenAccount: liqPoolAssociatedTokenAccountAddress,
       systemProgram: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     };
 
-    console.log(
-      Object.keys(accounts).map((k) => `${k}: ${accounts[k].toBase58()}`)
-    );
-
     await client.program.methods
       .registerState({
-        // TODO replace with this.marinadeConfig.marinadeStateAddress when this is no longer a static function
         marinadeState: marinadeConfig.marinadeStateAddress,
         updateAuthority: client.provider.publicKey,
         treasury,
         gsolMintAuthorityBump,
         msolAuthorityBump,
+        liqPoolProportion: DEFAULT_LP_PROPORTION,
       })
       .accounts(accounts)
       .signers([gsolMint, sunriseStakeState])
@@ -471,35 +491,38 @@ export class SunriseStakeClient {
     return client;
   }
 
-  public static async update(
-    state: PublicKey,
-    newTreasury: PublicKey,
-    newUpdateAuthority: PublicKey
-  ): Promise<SunriseStakeClient> {
-    const client = new SunriseStakeClient(setUpAnchor(), state);
+  public async update({
+    newTreasury,
+    newUpdateAuthority,
+    newliqPoolProportion,
+  }: {
+    newTreasury?: PublicKey;
+    newUpdateAuthority?: PublicKey;
+    newliqPoolProportion?: number;
+  }): Promise<void> {
+    if (!this.config) throw new Error("init not called");
 
     const accounts: Record<string, PublicKey> = {
-      state,
-      payer: client.provider.publicKey,
-      updateAuthority: client.provider.publicKey,
+      state: this.stateAddress,
+      payer: this.provider.publicKey,
+      updateAuthority: this.provider.publicKey,
     };
 
     console.log(
       Object.keys(accounts).map((k) => `${k}: ${accounts[k].toBase58()}`)
     );
 
-    await client.program.methods
+    await this.program.methods
       .updateState({
-        updateAuthority: newUpdateAuthority,
-        treasury: newTreasury,
+        updateAuthority: newUpdateAuthority ?? this.config.updateAuthority,
+        treasury: newTreasury ?? this.config.treasury,
+        liqPoolProportion: newliqPoolProportion ?? this.config.liqPoolProportion,
       })
       .accounts(accounts)
       .rpc()
-      .then(confirm(client.provider.connection));
+      .then(confirm(this.provider.connection));
 
-    await client.init();
-
-    return client;
+    await this.init();
   }
 
   public async getBalance(): Promise<Balance> {

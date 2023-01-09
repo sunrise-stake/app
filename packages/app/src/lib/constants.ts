@@ -15,3 +15,5 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     state: new PublicKey("5n9pFrHb1RLuDuX4eb6Jh89kLpzcFs4R5BFuTJkFcd4q"),
   },
 };
+
+export const DEFAULT_LP_PROPORTION = 10;
