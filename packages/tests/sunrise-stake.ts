@@ -12,7 +12,7 @@ import {
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { TicketAccount } from "@sunrisestake/app/src/lib/client/types/TicketAccount";
-import { DEFAULT_LP_PROPORTION } from "@sunrisestake/app/src/lib/constants";
+import {DEFAULT_LP_MIN_PROPORTION, DEFAULT_LP_PROPORTION} from "@sunrisestake/app/src/lib/constants";
 
 chai.use(chaiAsPromised);
 
@@ -55,6 +55,7 @@ describe("sunrise-stake", () => {
     );
     // unchanged properties
     expect(client.config?.liqPoolProportion).to.equal(DEFAULT_LP_PROPORTION);
+    expect(client.config?.liqPoolMinProportion).to.equal(DEFAULT_LP_MIN_PROPORTION);
   });
 
   it.only("can resize the state", async () => {
@@ -65,6 +66,7 @@ describe("sunrise-stake", () => {
                 32 +
                 32 +
                 32 +
+                1 +
                 1 +
                 1 +
                 1 +
@@ -100,11 +102,8 @@ describe("sunrise-stake", () => {
     await expectStakerGSolTokenBalance(client, depositSOL.toNumber());
   });
 
-  it("can unstake sol", async () => {
+  it("can unstake sol for free when doing so does not exceed the minimum threshold", async () => {
     const stakerPreSolBalance = await getBalance(client);
-
-    // log stuff
-    await client.details().then(console.log);
 
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(
         client.stakerGSolTokenAccount!
@@ -126,7 +125,7 @@ describe("sunrise-stake", () => {
     // 0.03% fee for immediate withdrawal
     // Add 5k lamports for network fees
     // TODO Double check this with different values for unstakeSOL
-    const fee = unstakeSOL.muln(3).divn(1000).addn(5000);
+    const fee = new BN(0);//unstakeSOL.muln(3).divn(1000).addn(5000);
     const expectedPostUnstakeBalance = stakerPreSolBalance
         .add(unstakeSOL)
         .sub(fee);
