@@ -165,8 +165,10 @@ export class SunriseStakeClient {
 
     const { transaction } = await this.marinade.deposit(lamports);
 
-    logKeys(transaction);
-    return this.provider.sendAndConfirm(transaction, []);
+    return this.provider.sendAndConfirm(transaction, []).catch((e) => {
+      console.log(e.logs);
+      throw e;
+    });
   }
 
   public async unstake(lamports: BN): Promise<string> {
