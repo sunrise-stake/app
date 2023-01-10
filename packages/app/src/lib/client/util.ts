@@ -12,6 +12,8 @@ export interface SunriseStakeConfig {
   updateAuthority: PublicKey;
   programId: PublicKey;
   liqPoolProportion: number;
+
+  liqPoolMinProportion: number;
 }
 
 const findProgramDerivedAddress = (

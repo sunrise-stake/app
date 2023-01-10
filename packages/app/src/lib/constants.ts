@@ -17,3 +17,4 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
 };
 
 export const DEFAULT_LP_PROPORTION = 10;
+export const DEFAULT_LP_MIN_PROPORTION = 5;

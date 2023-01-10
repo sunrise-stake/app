@@ -116,6 +116,10 @@ pub mod sunrise_stake {
     }
 
     pub fn liquid_unstake(ctx: Context<LiquidUnstake>, lamports: u64) -> Result<()> {
+        msg!("Checking liq_pool pool balance");
+        let to_deposit_in_liq_pool = amount_to_be_deposited_in_liq_pool(ctx.accounts, lamports)?;
+        let to_stake = lamports - to_deposit_in_liq_pool;
+
         let msol_lamports =
             calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), lamports)?;
 
@@ -164,6 +168,7 @@ pub mod sunrise_stake {
         state_account.treasury = state.treasury;
         state_account.gsol_mint = ctx.accounts.mint.key();
         state_account.liq_pool_proportion = state.liq_pool_proportion;
+        state_account.liq_pool_min_proportion = state.liq_pool_min_proportion;
 
         // create the gsol mint
         let gsol_mint_authority = Pubkey::create_program_address(
@@ -224,6 +229,7 @@ pub mod sunrise_stake {
         state_account.update_authority = state.update_authority;
         state_account.treasury = state.treasury;
         state_account.liq_pool_proportion = state.liq_pool_proportion;
+        state_account.liq_pool_min_proportion = state.liq_pool_min_proportion;
 
         Ok(())
     }
@@ -253,7 +259,7 @@ pub struct State {
     pub liq_pool_min_proportion: u8,
 }
 impl State {
-    const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 1 + 8 /* DISCRIMINATOR */ ;
+    const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 1 + 1 + 8 /* DISCRIMINATOR */ ;
 }
 
 /// Maps a marinade ticket account to a GSOL token holder
@@ -275,6 +281,7 @@ pub struct RegisterStateInput {
     pub gsol_mint_authority_bump: u8,
     pub msol_authority_bump: u8,
     pub liq_pool_proportion: u8,
+    pub liq_pool_min_proportion: u8,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -282,6 +289,7 @@ pub struct UpdateStateInput {
     pub update_authority: Pubkey,
     pub treasury: Pubkey,
     pub liq_pool_proportion: u8,
+    pub liq_pool_min_proportion: u8,
 }
 
 #[derive(Accounts)]

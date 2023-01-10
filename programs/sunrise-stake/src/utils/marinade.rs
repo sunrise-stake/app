@@ -363,11 +363,6 @@ pub fn preferred_liq_pool_balance<'a>(
     gsol_mint: &Account<'a, Mint>,
     lamports_being_staked: u64,
 ) -> Result<u64> {
-    msg!(
-        "gsol supply {}, lamports_being_staked {}",
-        gsol_mint.supply,
-        lamports_being_staked
-    );
     let gsol_supply_after_deposit = gsol_mint
         .supply
         .checked_add(lamports_being_staked)
@@ -375,6 +370,22 @@ pub fn preferred_liq_pool_balance<'a>(
     proportional(
         gsol_supply_after_deposit,        // total
         state.liq_pool_proportion as u64, // preferred
+        100,
+    )
+}
+
+pub fn preferred_liq_pool_min_balance<'a>(
+    state: &State,
+    gsol_mint: &Account<'a, Mint>,
+    lamports_being_unstaked: u64,
+) -> Result<u64> {
+    let gsol_supply_after_unstake = gsol_mint
+        .supply
+        .checked_sub(lamports_being_unstaked)
+        .expect("gsol_supply_after_unstake");
+    proportional(
+        gsol_supply_after_unstake,        // total
+        state.liq_pool_min_proportion as u64, // preferred
         100,
     )
 }
@@ -389,6 +400,35 @@ pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> 
     )?;
     let preferred_liq_pool_balance =
         preferred_liq_pool_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
+    let missing_balance = preferred_liq_pool_balance
+        .checked_sub(liq_pool_balance)
+        .expect("missing_balance");
+    let amount_to_be_deposited = lamports.min(missing_balance);
+    msg!(
+        "liq_pool_balance:{}, preferred_liq_pool_balance:{}, missing_balance:{}, amount_to_be_deposited:{}",
+        liq_pool_balance,
+        preferred_liq_pool_balance,
+        missing_balance,
+        amount_to_be_deposited
+    );
+    Ok(amount_to_be_deposited)
+}
+
+pub struct LiquidUnstakeAmounts {
+    pub amount_to_withdraw_from_liq_pool: u64,
+    pub amount_to_liquid_unstake: u64,
+    pub amount_to_order_delayed_unstake: u64,
+}
+pub fn calculate_liquid_unstake_amounts(accounts: &LiquidUnstake, lamports: u64) -> Result<u64> {
+    let liq_pool_balance = current_liq_pool_balance(
+        &accounts.marinade_state,
+        &accounts.liq_pool_mint,
+        &accounts.mint_liq_pool_to,
+        &accounts.liq_pool_sol_leg_pda,
+        &accounts.liq_pool_msol_leg,
+    )?;
+    let preferred_min_liq_pool_balance =
+        preferred_liq_pool_min_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
     let missing_balance = preferred_liq_pool_balance
         .checked_sub(liq_pool_balance)
         .expect("missing_balance");

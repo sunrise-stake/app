@@ -609,6 +609,15 @@ export type SunriseStake = {
               "liquidity pool."
             ],
             "type": "u8"
+          },
+          {
+            "name": "liqPoolMinProportion",
+            "docs": [
+              "0-100 - If unstaking would result in the proportion of SOL in the",
+              "liquidity pool dropping below this value, trigger an delayed unstake",
+              "for the difference"
+            ],
+            "type": "u8"
           }
         ]
       }
@@ -666,6 +675,10 @@ export type SunriseStake = {
           {
             "name": "liqPoolProportion",
             "type": "u8"
+          },
+          {
+            "name": "liqPoolMinProportion",
+            "type": "u8"
           }
         ]
       }
@@ -685,6 +698,10 @@ export type SunriseStake = {
           },
           {
             "name": "liqPoolProportion",
+            "type": "u8"
+          },
+          {
+            "name": "liqPoolMinProportion",
             "type": "u8"
           }
         ]
@@ -1311,6 +1328,15 @@ export const IDL: SunriseStake = {
               "liquidity pool."
             ],
             "type": "u8"
+          },
+          {
+            "name": "liqPoolMinProportion",
+            "docs": [
+              "0-100 - If unstaking would result in the proportion of SOL in the",
+              "liquidity pool dropping below this value, trigger an delayed unstake",
+              "for the difference"
+            ],
+            "type": "u8"
           }
         ]
       }
@@ -1368,6 +1394,10 @@ export const IDL: SunriseStake = {
           {
             "name": "liqPoolProportion",
             "type": "u8"
+          },
+          {
+            "name": "liqPoolMinProportion",
+            "type": "u8"
           }
         ]
       }
@@ -1387,6 +1417,10 @@ export const IDL: SunriseStake = {
           },
           {
             "name": "liqPoolProportion",
+            "type": "u8"
+          },
+          {
+            "name": "liqPoolMinProportion",
             "type": "u8"
           }
         ]
