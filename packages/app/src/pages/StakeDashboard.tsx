@@ -46,7 +46,7 @@ export const StakeDashboard: FC = () => {
       if (!client) return;
 
       client
-        .deposit(new BN(amount).mul(new BN(LAMPORTS_PER_SOL)))
+        .deposit(new BN(Number(amount) * LAMPORTS_PER_SOL))
         .then(setTxSig)
         .then(updateBalances)
         .catch(handleError);
@@ -62,7 +62,7 @@ export const StakeDashboard: FC = () => {
         ? client.orderWithdrawal.bind(client)
         : client.withdraw.bind(client);
 
-      withdraw(new BN(amount).mul(new BN(LAMPORTS_PER_SOL)))
+      withdraw(new BN(Number(amount) * LAMPORTS_PER_SOL))
         .then(setTxSig)
         .then(updateBalances)
         .catch(handleError);
