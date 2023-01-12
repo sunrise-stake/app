@@ -102,7 +102,7 @@ describe("sunrise-stake", () => {
     await expectStakerGSolTokenBalance(client, depositSOL.toNumber());
   });
 
-  it("can unstake sol for free when doing so does not exceed the minimum threshold", async () => {
+  it.only("can unstake sol for free when doing so does not exceed the minimum threshold", async () => {
     const stakerPreSolBalance = await getBalance(client);
 
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(

@@ -33,6 +33,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {DEFAULT_LP_MIN_PROPORTION, DEFAULT_LP_PROPORTION} from "../constants";
+import {liquidUnstake} from "./marinade";
 
 const setUpAnchor = (): anchor.AnchorProvider => {
   // Configure the client to use the local cluster.
@@ -187,14 +188,26 @@ export class SunriseStakeClient {
         !this.marinadeState ||
         !this.marinade ||
         !this.config ||
-        !this.msolTokenAccount
+        !this.msolTokenAccount ||
+        !this.stakerGSolTokenAccount
     )
       throw new Error("init not called");
 
-    const { transaction } = await this.marinade.liquidUnstake(
-        lamports,
-        this.msolTokenAccount
+    const { transaction } = await liquidUnstake(
+        this.config,
+        this.marinade,
+        this.marinadeState,
+        this.program,
+        this.stateAddress,
+        this.staker,
+        this.stakerGSolTokenAccount,
+        lamports
     );
+// when using the marinade sdk
+//         await this.marinade.liquidUnstake(
+//         lamports,
+//         this.msolTokenAccount
+//     );
 
     logKeys(transaction);
 
