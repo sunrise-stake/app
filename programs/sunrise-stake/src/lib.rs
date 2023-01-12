@@ -26,6 +26,7 @@ pub mod sunrise_stake {
     use anchor_lang::solana_program::program::invoke_signed;
     use anchor_lang::solana_program::system_instruction::transfer;
     use std::ops::Deref;
+    use crate::utils::marinade::calculate_liquid_unstake_amounts;
 
     pub fn deposit(ctx: Context<Deposit>, lamports: u64) -> Result<()> {
         msg!("Checking liq_pool pool balance");
@@ -115,17 +116,37 @@ pub mod sunrise_stake {
         Ok(())
     }
 
-    pub fn liquid_unstake(ctx: Context<LiquidUnstake>, lamports: u64) -> Result<()> {
+    // TODO move the parameters relating to the order unstake ticket into a struct
+    pub fn liquid_unstake(ctx: Context<LiquidUnstake>, lamports: u64, epoch: u64, index: u64, _order_unstake_ticket_account_bump: u8) -> Result<()> {
+        // check the ticket info is correct
+        require_eq!(ctx.accounts.clock.epoch, epoch);
+        require_eq!(ctx.accounts.order_unstake_ticket_management_account.tickets + 1, index);
+
         msg!("Checking liq_pool pool balance");
-        let to_deposit_in_liq_pool = amount_to_be_deposited_in_liq_pool(ctx.accounts, lamports)?;
-        let to_stake = lamports - to_deposit_in_liq_pool;
+        let amounts = calculate_liquid_unstake_amounts(ctx.accounts, lamports)?;
 
-        let msol_lamports =
-            calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), lamports)?;
+        if amounts.amount_to_withdraw_from_liq_pool > 0 {
+            msg!("Removing {} lamports from the liquidity pool", amounts.amount_to_withdraw_from_liq_pool);
+            marinade::remove_liquidity(ctx.accounts, amounts.amount_to_withdraw_from_liq_pool)?;
+        }
 
-        msg!("Unstaking");
-        let accounts = ctx.accounts.deref().into();
-        marinade::unstake(&accounts, msol_lamports)?;
+        if amounts.amount_to_liquid_unstake > 0 {
+            let msol_lamports =
+                calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), amounts.amount_to_liquid_unstake)?;
+
+            msg!("Unstaking {} msol lamports", msol_lamports);
+            let accounts = ctx.accounts.deref().into();
+            marinade::unstake(&accounts, msol_lamports)?;
+        }
+
+        if amounts.amount_to_order_delayed_unstake > 0 {
+            let msol_lamports =
+                calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), amounts.amount_to_order_delayed_unstake)?;
+            let accounts = ctx.accounts.deref().into();
+
+            msg!("Ordering a delayed unstake of {} msol lamports", msol_lamports);
+            marinade::order_unstake(&accounts, msol_lamports)?;
+        }
 
         msg!("Burn GSol");
         burn(
@@ -271,6 +292,16 @@ pub struct SunriseTicketAccount {
 }
 impl SunriseTicketAccount {
     const SPACE: usize = 32 + 32 + 32 + 8 /* DISCRIMINATOR */ ;
+}
+
+#[account]
+pub struct OrderUnstakeTicketManagementAccount {
+    pub state_address: Pubkey,
+    pub epoch: u64,
+    pub tickets: u64,
+}
+impl OrderUnstakeTicketManagementAccount {
+    const SPACE: usize = 32 + 8 + 8 + 8 /* DISCRIMINATOR */ ;
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -451,18 +482,26 @@ pub struct Deposit<'info> {
 }
 
 #[derive(Accounts, Clone)]
+#[instruction(
+    lamports: u64,
+    epoch: u64,
+    order_unstake_ticket_index: u64,
+    order_unstake_ticket_account_bump: u8
+)]
 pub struct LiquidUnstake<'info> {
     #[account(
-    has_one = treasury,
     has_one = marinade_state,
     )]
     pub state: Box<Account<'info, State>>,
 
-    #[account()]
+    #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     #[account(mut)]
-    pub msol_mint: Account<'info, Mint>,
+    pub msol_mint: Box<Account<'info, Mint>>,
+
+    #[account(mut)]
+    pub liq_pool_mint: Box<Account<'info, Mint>>,
 
     #[account(
     constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
@@ -485,7 +524,12 @@ pub struct LiquidUnstake<'info> {
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub liq_pool_msol_leg: Account<'info, TokenAccount>,
+    pub liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut)]
+    /// CHECK: Checked in marinade program
+    pub liq_pool_msol_leg_authority: SystemAccount<'info>,
+
     #[account(mut)]
     /// CHECK: Checked in marinade program
     pub treasury_msol_account: AccountInfo<'info>,
@@ -495,7 +539,7 @@ pub struct LiquidUnstake<'info> {
     token::mint = msol_mint,
     token::authority = get_msol_from_authority,
     )]
-    pub get_msol_from: Account<'info, TokenAccount>,
+    pub get_msol_from: Box<Account<'info, TokenAccount>>,
 
     #[account(
     seeds = [state.key().as_ref(), MSOL_ACCOUNT],
@@ -505,18 +549,39 @@ pub struct LiquidUnstake<'info> {
 
     #[account(
     mut,
+    token::mint = liq_pool_mint,
+    // use the same authority PDA for this and the msol token account
+    token::authority = get_msol_from_authority
+    )]
+    pub get_liq_pool_token_from: Box<Account<'info, TokenAccount>>,
+
+    #[account(
+    mut,
     token::authority = gsol_token_account_authority
     )]
-    pub gsol_token_account: Account<'info, TokenAccount>,
+    pub gsol_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     /// CHECK: Owner of the gsol token account
     pub gsol_token_account_authority: Signer<'info>,
 
-    #[account()]
-    /// CHECK: Matches state.treasury
-    pub treasury: SystemAccount<'info>, // sunrise-stake treasury
+    #[account(
+        seeds = [state.key().as_ref(), ORDER_UNSTAKE_TICKET_ACCOUNT, &epoch.to_be_bytes(), &order_unstake_ticket_index.to_be_bytes()],
+        bump = order_unstake_ticket_account_bump
+    )]
+    pub order_unstake_ticket_account: SystemAccount<'info>,
 
+    #[account(
+        init_if_needed,
+        space = OrderUnstakeTicketManagementAccount::SPACE,
+        payer = gsol_token_account_authority,
+        seeds = [state.key().as_ref(), ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT, &epoch.to_be_bytes()],
+        bump
+    )]
+    pub order_unstake_ticket_management_account: Box<Account<'info, OrderUnstakeTicketManagementAccount>>,
+
+    pub clock: Sysvar<'info, Clock>,
+    pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub marinade_program: Program<'info, MarinadeFinance>,

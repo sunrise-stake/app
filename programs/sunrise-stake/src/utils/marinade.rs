@@ -41,11 +41,11 @@ impl<'a> From<LiquidUnstake<'a>> for GenericUnstakeProperties<'a> {
         Self {
             state: unstake.state,
             marinade_state: unstake.marinade_state,
-            msol_mint: unstake.msol_mint,
+            msol_mint: *unstake.msol_mint,
             liq_pool_sol_leg_pda: unstake.liq_pool_sol_leg_pda,
-            liq_pool_msol_leg: unstake.liq_pool_msol_leg,
+            liq_pool_msol_leg: *unstake.liq_pool_msol_leg,
             treasury_msol_account: unstake.treasury_msol_account,
-            get_msol_from: unstake.get_msol_from,
+            get_msol_from: *unstake.get_msol_from,
             get_msol_from_authority: unstake.get_msol_from_authority,
             recipient: unstake.gsol_token_account_authority.to_account_info(),
             system_program: unstake.system_program,
@@ -114,6 +114,27 @@ impl<'a> From<OrderUnstake<'a>> for OrderUnstakeProperties<'a> {
 }
 impl<'a> From<&OrderUnstake<'a>> for OrderUnstakeProperties<'a> {
     fn from(unstake: &OrderUnstake<'a>) -> Self {
+        unstake.to_owned().into()
+    }
+}
+impl<'a> From<LiquidUnstake<'a>> for OrderUnstakeProperties<'a> {
+    fn from(unstake: LiquidUnstake<'a>) -> Self {
+        Self {
+            state: unstake.state,
+            marinade_state: unstake.marinade_state,
+            msol_mint: *unstake.msol_mint,
+            burn_msol_from: *unstake.get_msol_from,
+            burn_msol_authority: unstake.get_msol_from_authority,
+            new_ticket_account: unstake.order_unstake_ticket_account.to_account_info(),
+            token_program: unstake.token_program,
+            marinade_program: unstake.marinade_program,
+            rent: unstake.rent,
+            clock: unstake.clock,
+        }
+    }
+}
+impl<'a> From<&LiquidUnstake<'a>> for OrderUnstakeProperties<'a> {
+    fn from(unstake: &LiquidUnstake<'a>) -> Self {
         unstake.to_owned().into()
     }
 }
@@ -248,6 +269,27 @@ pub fn add_liquidity(accounts: &Deposit, lamports: u64) -> Result<()> {
     marinade_add_liquidity(cpi_ctx, lamports)
 }
 
+pub fn remove_liquidity(accounts: &LiquidUnstake, lamports: u64) -> Result<()> {
+    let cpi_program = accounts.marinade_program.to_account_info();
+    let cpi_accounts = MarinadeRemoveLiquidity {
+        state: accounts.marinade_state.to_account_info(),
+        lp_mint: accounts.liq_pool_mint.to_account_info(),
+        burn_from: accounts.get_liq_pool_token_from.to_account_info(),
+        // We use the same authority PDA for the liquidity pool token and msol token account
+        burn_from_authority: accounts.get_msol_from_authority.to_account_info(),
+        transfer_sol_to: accounts.gsol_token_account_authority.to_account_info(),
+        // The msol goes into the msol PDA pot owned by sunrise
+        transfer_msol_to: accounts.get_msol_from.to_account_info(),
+        liq_pool_sol_leg_pda: accounts.liq_pool_sol_leg_pda.to_account_info(),
+        liq_pool_msol_leg: accounts.liq_pool_msol_leg.to_account_info(),
+        liq_pool_msol_leg_authority: accounts.liq_pool_msol_leg_authority.to_account_info(),
+        system_program: accounts.system_program.to_account_info(),
+        token_program: accounts.token_program.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    marinade_remove_liquidity(cpi_ctx, lamports)
+}
+
 /// All copied from https://github.com/marinade-finance/liquid-staking-program/blob/447f9607a8c755cac7ad63223febf047142c6c8f/programs/marinade-finance/src/state.rs#L227
 fn total_cooling_down(marinade_state: &MarinadeState) -> u64 {
     marinade_state
@@ -374,6 +416,10 @@ pub fn preferred_liq_pool_balance<'a>(
     )
 }
 
+// the minimum allowable balance of SOL staked in liquidity pool, after an unstake
+// is:
+//      the total gsol supply (after removing the stake that is being removed)
+//      * the minimum liquidity pool proportion
 pub fn preferred_liq_pool_min_balance<'a>(
     state: &State,
     gsol_mint: &Account<'a, Mint>,
@@ -398,16 +444,16 @@ pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> 
         &accounts.liq_pool_sol_leg_pda,
         &accounts.liq_pool_msol_leg,
     )?;
-    let preferred_liq_pool_balance =
+    let preferred_balance =
         preferred_liq_pool_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
-    let missing_balance = preferred_liq_pool_balance
+    let missing_balance = preferred_balance
         .checked_sub(liq_pool_balance)
         .expect("missing_balance");
     let amount_to_be_deposited = lamports.min(missing_balance);
     msg!(
         "liq_pool_balance:{}, preferred_liq_pool_balance:{}, missing_balance:{}, amount_to_be_deposited:{}",
         liq_pool_balance,
-        preferred_liq_pool_balance,
+        preferred_balance,
         missing_balance,
         amount_to_be_deposited
     );
@@ -419,26 +465,50 @@ pub struct LiquidUnstakeAmounts {
     pub amount_to_liquid_unstake: u64,
     pub amount_to_order_delayed_unstake: u64,
 }
-pub fn calculate_liquid_unstake_amounts(accounts: &LiquidUnstake, lamports: u64) -> Result<u64> {
+pub fn calculate_liquid_unstake_amounts(accounts: &LiquidUnstake, lamports: u64) -> Result<LiquidUnstakeAmounts> {
+    // The current balance of the liquidity pool
     let liq_pool_balance = current_liq_pool_balance(
         &accounts.marinade_state,
         &accounts.liq_pool_mint,
-        &accounts.mint_liq_pool_to,
+        &accounts.get_liq_pool_token_from,
         &accounts.liq_pool_sol_leg_pda,
         &accounts.liq_pool_msol_leg,
     )?;
-    let preferred_min_liq_pool_balance =
+
+    // The allowable minimum balance of the liquidity pool, after the gsol being unstaked is burned
+    let preferred_min_liq_pool_after_unstake =
         preferred_liq_pool_min_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
-    let missing_balance = preferred_liq_pool_balance
-        .checked_sub(liq_pool_balance)
-        .expect("missing_balance");
-    let amount_to_be_deposited = lamports.min(missing_balance);
+
+    // TODO need to convert all values here to SOL from LP token balances
+
+    // The amount the user is allowed to withdraw from the liquidity pool. This is the entire current liquidity pool
+    let amount_to_withdraw_from_liq_pool = liq_pool_balance.min(lamports);
+
+    // Any remaining yield is liquid-unstaked from marinade and incurs a fee
+    let amount_to_liquid_unstake = lamports.checked_sub(amount_to_withdraw_from_liq_pool).unwrap_or(0);
+
+    // The amount that remains in the liquidity pool after the unstake
+    let actual_pool_balance_after_unstake = liq_pool_balance
+        .checked_sub(amount_to_withdraw_from_liq_pool)
+        .expect("actual_pool_balance_after_unstake");
+
+    // This amount should be ordered for delayed unstake to rebalance the liquidity pool to its preferred minimum
+    let amount_to_order_delayed_unstake = preferred_min_liq_pool_after_unstake
+        .checked_sub(actual_pool_balance_after_unstake).unwrap_or(0);
+    // TODO factor in existing in-flight orders here
+
     msg!(
-        "liq_pool_balance:{}, preferred_liq_pool_balance:{}, missing_balance:{}, amount_to_be_deposited:{}",
+        "liq_pool_balance:{}, preferred_min_liq_pool_after_unstake:{}, amount_to_withdraw_from_liq_pool:{}, amount_to_liquid_unstake:{}, actual_pool_balance_after_unstake:{}, amount_to_order_delayed_unstake:{}",
         liq_pool_balance,
-        preferred_liq_pool_balance,
-        missing_balance,
-        amount_to_be_deposited
+        preferred_min_liq_pool_after_unstake,
+        amount_to_withdraw_from_liq_pool,
+        amount_to_liquid_unstake,
+        actual_pool_balance_after_unstake,
+        amount_to_order_delayed_unstake
     );
-    Ok(amount_to_be_deposited)
+    Ok(LiquidUnstakeAmounts {
+        amount_to_withdraw_from_liq_pool,
+        amount_to_liquid_unstake,
+        amount_to_order_delayed_unstake,
+    })
 }

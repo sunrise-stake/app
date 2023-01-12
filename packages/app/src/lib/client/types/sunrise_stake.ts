@@ -281,11 +281,16 @@ export type SunriseStake = {
         },
         {
           "name": "marinadeState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
           "isMut": true,
           "isSigner": false
         },
@@ -313,6 +318,11 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "liqPoolMsolLegAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "treasuryMsolAccount",
           "isMut": true,
           "isSigner": false
@@ -328,6 +338,11 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "getLiqPoolTokenFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "gsolTokenAccount",
           "isMut": true,
           "isSigner": false
@@ -338,7 +353,22 @@ export type SunriseStake = {
           "isSigner": true
         },
         {
-          "name": "treasury",
+          "name": "orderUnstakeTicketAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "orderUnstakeTicketManagementAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         },
@@ -362,6 +392,18 @@ export type SunriseStake = {
         {
           "name": "lamports",
           "type": "u64"
+        },
+        {
+          "name": "epoch",
+          "type": "u64"
+        },
+        {
+          "name": "index",
+          "type": "u64"
+        },
+        {
+          "name": "orderUnstakeTicketAccountBump",
+          "type": "u8"
         }
       ]
     },
@@ -641,6 +683,26 @@ export type SunriseStake = {
           {
             "name": "beneficiary",
             "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "orderUnstakeTicketManagementAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stateAddress",
+            "type": "publicKey"
+          },
+          {
+            "name": "epoch",
+            "type": "u64"
+          },
+          {
+            "name": "tickets",
+            "type": "u64"
           }
         ]
       }
@@ -1000,11 +1062,16 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "marinadeState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
           "isMut": true,
           "isSigner": false
         },
@@ -1032,6 +1099,11 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "liqPoolMsolLegAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "treasuryMsolAccount",
           "isMut": true,
           "isSigner": false
@@ -1047,6 +1119,11 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "getLiqPoolTokenFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "gsolTokenAccount",
           "isMut": true,
           "isSigner": false
@@ -1057,7 +1134,22 @@ export const IDL: SunriseStake = {
           "isSigner": true
         },
         {
-          "name": "treasury",
+          "name": "orderUnstakeTicketAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "orderUnstakeTicketManagementAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         },
@@ -1081,6 +1173,18 @@ export const IDL: SunriseStake = {
         {
           "name": "lamports",
           "type": "u64"
+        },
+        {
+          "name": "epoch",
+          "type": "u64"
+        },
+        {
+          "name": "index",
+          "type": "u64"
+        },
+        {
+          "name": "orderUnstakeTicketAccountBump",
+          "type": "u8"
         }
       ]
     },
@@ -1360,6 +1464,26 @@ export const IDL: SunriseStake = {
           {
             "name": "beneficiary",
             "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "orderUnstakeTicketManagementAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stateAddress",
+            "type": "publicKey"
+          },
+          {
+            "name": "epoch",
+            "type": "u64"
+          },
+          {
+            "name": "tickets",
+            "type": "u64"
           }
         ]
       }
