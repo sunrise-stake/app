@@ -22,7 +22,7 @@ $ anchor localnet
 and in another shell
 
 ```shell
-$ cd app
+$ cd packages/app
 $ yarn start
 ```
 
