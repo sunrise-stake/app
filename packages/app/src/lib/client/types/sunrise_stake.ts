@@ -193,6 +193,122 @@ export type SunriseStake = {
       ]
     },
     {
+      "name": "depositStakeAccount",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "validatorList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "duplicationFlag",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAuthority",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Marinade makes a distinction between the `stake_authority`(proof of ownership of stake account)",
+            "and the `rent_payer`(pays to init the validator_record account). Both are required to be signers",
+            "for the instruction. These two accounts can be treated as one and the same, and here, they are."
+          ]
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintMsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintGsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "validatorIndex",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "orderUnstake",
       "accounts": [
         {
@@ -624,6 +740,11 @@ export type SunriseStake = {
       "code": 6000,
       "name": "CalculationFailure",
       "msg": "An error occurred when calculating an MSol value"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidStakeAccountDelegation",
+      "msg": "Stake account deposit must be delegated"
     }
   ]
 };
@@ -823,6 +944,122 @@ export const IDL: SunriseStake = {
       ]
     },
     {
+      "name": "depositStakeAccount",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "validatorList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "duplicationFlag",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAuthority",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Marinade makes a distinction between the `stake_authority`(proof of ownership of stake account)",
+            "and the `rent_payer`(pays to init the validator_record account). Both are required to be signers",
+            "for the instruction. These two accounts can be treated as one and the same, and here, they are."
+          ]
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintMsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintGsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "validatorIndex",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "orderUnstake",
       "accounts": [
         {
@@ -1254,6 +1491,11 @@ export const IDL: SunriseStake = {
       "code": 6000,
       "name": "CalculationFailure",
       "msg": "An error occurred when calculating an MSol value"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidStakeAccountDelegation",
+      "msg": "Stake account deposit must be delegated"
     }
   ]
 };

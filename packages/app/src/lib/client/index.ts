@@ -8,6 +8,7 @@ import {
   SYSVAR_CLOCK_PUBKEY,
   TokenAmount,
   Transaction,
+  TransactionInstruction,
 } from "@solana/web3.js";
 import {
   confirm,
@@ -143,6 +144,21 @@ export class SunriseStakeClient {
     return this.provider.sendAndConfirm(createATAIx, []);
   }
 
+  createGSolTokenAccountInstruction(): TransactionInstruction {
+    if (!this.stakerGSolTokenAccount || !this.config)
+      throw new Error("init not called");
+
+    const createATAInstruction = 
+      createAssociatedTokenAccountIdempotentInstruction(
+        this.provider.publicKey,
+        this.stakerGSolTokenAccount,
+        this.staker,
+        this.config.gsolMint
+      );
+    
+    return createATAInstruction;
+  }
+
   public async deposit(lamports: BN): Promise<string> {
     if (
       !this.marinadeState ||
@@ -165,6 +181,35 @@ export class SunriseStakeClient {
 
     const { transaction } = await this.marinade.deposit(lamports);
 
+    return this.provider.sendAndConfirm(transaction, []).catch((e) => {
+      console.log(e.logs);
+      throw e;
+    });
+  }
+
+  public async depositStakeAccount(stakeAccountAddress: PublicKey): Promise<string> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.stakerGSolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const gSolTokenAccount = await this.provider.connection.getAccountInfo(
+      this.stakerGSolTokenAccount
+    );
+
+    const { transaction } = await this.marinade.depositStakeAccount(stakeAccountAddress);
+
+    // Chain user's gsol token account creation with depositStakeAccount's instruction 
+    // so they can sign at once
+    if (!gSolTokenAccount) {
+      let createATAIx = this.createGSolTokenAccountInstruction();
+      transaction.add(createATAIx);
+    }
+
+    console.log("Token account created. Depositing Stake Account...");
     return this.provider.sendAndConfirm(transaction, []).catch((e) => {
       console.log(e.logs);
       throw e;

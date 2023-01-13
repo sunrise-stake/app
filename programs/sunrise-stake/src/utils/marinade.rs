@@ -1,16 +1,22 @@
 use crate::{
     utils::{calc::proportional, seeds::MSOL_ACCOUNT},
-    ClaimUnstakeTicket, Deposit, LiquidUnstake, OrderUnstake, State, WithdrawToTreasury,
+    ClaimUnstakeTicket, Deposit, DepositStakeAccount,
+    LiquidUnstake, OrderUnstake, State, WithdrawToTreasury,
 };
-use anchor_lang::{context::CpiContext, prelude::*};
+use anchor_lang::{
+    context::CpiContext, prelude::*,
+    solana_program::stake::state::StakeState,
+};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::{
     cpi::{
         accounts::{
             Claim as MarinadeClaim, Deposit as MarinadeDeposit,
+            DepositStakeAccount as MarinadeDepositStakeAccount,
             LiquidUnstake as MarinadeLiquidUnstake, OrderUnstake as MarinadeOrderUnstake,
         },
         claim as marinade_claim, deposit as marinade_deposit,
+        deposit_stake_account as marinade_deposit_stake_account,
         liquid_unstake as marinade_liquid_unstake, order_unstake as marinade_order_unstake,
     },
     program::MarinadeFinance,
@@ -167,6 +173,29 @@ pub fn deposit(accounts: &Deposit, lamports: u64) -> Result<()> {
     marinade_deposit(cpi_ctx, lamports)
 }
 
+pub fn deposit_stake_account(accounts: &DepositStakeAccount, validator_index: u32) -> Result<()> {
+    let cpi_program = accounts.marinade_program.to_account_info();
+    let cpi_accounts = MarinadeDepositStakeAccount {
+        state: accounts.marinade_state.to_account_info(),
+        validator_list: accounts.validator_list.to_account_info(),
+        stake_list: accounts.stake_list.to_account_info(),
+        stake_account: accounts.stake_account.to_account_info(),
+        stake_authority: accounts.stake_authority.to_account_info(),
+        duplication_flag: accounts.duplication_flag.to_account_info(),
+        rent_payer: accounts.stake_authority.to_account_info(),
+        msol_mint: accounts.msol_mint.to_account_info(),
+        mint_to: accounts.mint_msol_to.to_account_info(),
+        msol_mint_authority: accounts.msol_mint_authority.to_account_info(),
+        clock: accounts.clock.to_account_info(),
+        rent: accounts.rent.to_account_info(),
+        system_program: accounts.system_program.to_account_info(),
+        token_program: accounts.token_program.to_account_info(),
+        stake_program: accounts.stake_program.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    marinade_deposit_stake_account(cpi_ctx, validator_index)
+}
+
 pub fn unstake(accounts: &GenericUnstakeProperties, msol_lamports: u64) -> Result<()> {
     let cpi_program = accounts.marinade_program.to_account_info();
     let cpi_accounts = MarinadeLiquidUnstake {
@@ -300,4 +329,16 @@ pub fn recoverable_yield<'a>(
     msg!("recoverable_msol: {}", recoverable_msol);
 
     Ok(recoverable_msol)
+}
+
+pub fn get_delegated_stake_amount<'a>(stake_account: &AccountInfo<'a>) -> Result<u64> {
+    // Gets the active stake amount of the stake account. We need this to determine how much gSol to mint.
+    let stake_account_state = StakeState::try_from_slice(
+        &stake_account.to_account_info().data.borrow())?;
+
+    let delegation = stake_account_state.delegation().ok_or_else(|| {
+        crate::ErrorCode::InvalidStakeAccountDelegation
+    })?;
+    
+    Ok(delegation.stake)
 }
