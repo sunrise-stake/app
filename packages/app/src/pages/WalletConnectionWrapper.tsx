@@ -18,7 +18,9 @@ export const WalletConnectionWrapper: FC = () => {
           Sunrise Stake
         </div>
         <div>
-          <WalletMultiButton />
+          <WalletMultiButton>
+            {!wallet.connected ? "Connect Wallet" : null}
+          </WalletMultiButton>
         </div>
       </div>
       <div className="container mx-auto px-4">
