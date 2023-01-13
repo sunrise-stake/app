@@ -18,12 +18,15 @@ $ yarn
 $ anchor build
 $ anchor localnet
 ```
-
-and in another shell
-
+and in another shell.
 ```shell
-$ cd app
+$ cd packages/app
 $ yarn start
+```
+
+To run the tests, __close__ the validator in the first shell and run
+```shell
+anchor test
 ```
 
 ## FAQ
