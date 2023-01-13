@@ -8,22 +8,21 @@ export const WalletConnectionWrapper: FC = () => {
   const wallet = useWallet();
   return (
     <div className="min-h-full w-full flex flex-col items-center">
-      <div className="w-full flex justify-between px-3  py-1 items-center mt-2 ">
-        <div className="flex-grow-0">
+      <div className="container flex mt-12 mb-4">
+        <div className="grow text-3xl">
+          <img
+            className="w-auto h-16 mr-7 inline"
+            src={"./logo.png"}
+            alt="Sunrise"
+          />
+          Sunrise Stake
+        </div>
+        <div>
           <WalletMultiButton />
         </div>
       </div>
       <div className="container mx-auto px-4">
-        <div>
-          <div>
-            <img
-              className="h-25 w-auto m-auto py-2"
-              src={"./logo.png"}
-              alt="Sunrise"
-            />
-          </div>
-          {wallet.connected ? <StakeDashboard /> : <WelcomePage />}
-        </div>
+        <div>{wallet.connected ? <StakeDashboard /> : <WelcomePage />}</div>
       </div>
     </div>
   );

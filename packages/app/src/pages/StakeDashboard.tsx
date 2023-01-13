@@ -8,6 +8,7 @@ import StakeForm from "../components/StakeForm";
 import BalanceInfoTable from "../components/BalanceInfoTable";
 import { toBN } from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
+import { Panel } from "../components/Panel";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -85,7 +86,13 @@ export const StakeDashboard: FC = () => {
 
   return (
     <div>
-      <div className="bg-neutral-800 flex flex-col items-center mt-5 rounded-lg">
+      <div className="text-center">
+        <h2 className="text-green-bright font-bold text-6xl">Stake SOL</h2>
+        <h3 className="mb-16 text-white font-normal text-3xl">
+          Offset emissions while you sleep.
+        </h3>
+      </div>
+      <Panel className="p-10 rounded-lg">
         {!client && (
           <div className="flex flex-col items-center m-4">
             <h1 className="text-3xl text-center">Loading...</h1>
@@ -95,13 +102,12 @@ export const StakeDashboard: FC = () => {
             ></div>
           </div>
         )}
-        <div className="mt-2">
-          <StakeForm
-            withdraw={withdraw}
-            deposit={deposit}
-            setDelayedWithdraw={setDelayedWithdraw}
-          />
-        </div>
+        <StakeForm
+          solBalance={solBalance}
+          withdraw={withdraw}
+          deposit={deposit}
+          setDelayedWithdraw={setDelayedWithdraw}
+        />
         <div className="bg-neutral-800 rounded-lg m-4">
           <BalanceInfoTable
             solBalance={solBalance}
@@ -112,8 +118,8 @@ export const StakeDashboard: FC = () => {
           />
         </div>
         {txSig !== undefined && <div>Done {txSig}</div>}
-        {error != null && <div>Error {error.message}</div>}
-      </div>
+        {error != null && <div>Error: {error.message}</div>}
+      </Panel>
     </div>
   );
 };

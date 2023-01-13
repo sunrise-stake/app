@@ -24,6 +24,11 @@ export const WelcomePage: FC = () => {
   return (
     <div className="w-full">
       {!client && <Spinner />}
+      <img
+        className="h-25 w-auto m-auto py-2"
+        src={"./logo.png"}
+        alt="Sunrise"
+      />
       <CarbonRecovered
         treasuryBalanceLamports={treasuryBalanceLamports ?? ZERO}
       />

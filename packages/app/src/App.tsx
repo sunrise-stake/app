@@ -1,5 +1,4 @@
 import React, { FC, useMemo } from "react";
-import "./App.css";
 import {
   ConnectionProvider,
   WalletProvider,
@@ -36,7 +35,7 @@ const App: FC = () => {
 
   return (
     <>
-      <div className="App bg-neutral-900 ">
+      <div className="App min-h-screen bg-background text-white">
         <ConnectionProvider endpoint={endpoint}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
