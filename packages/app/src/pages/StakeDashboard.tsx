@@ -1,14 +1,17 @@
-import { FC, useCallback, useEffect, useState } from "react";
-import { useSunriseStake } from "../hooks/useSunriseStake";
-import BN from "bn.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import BN from "bn.js";
+import { FC, useCallback, useEffect, useState } from "react";
+import { FaLeaf } from "react-icons/fa";
+
+import { useSunriseStake } from "../hooks/useSunriseStake";
 import { BalanceInfo } from "../lib/stakeAccount";
 import StakeForm from "../components/StakeForm";
 import BalanceInfoTable from "../components/BalanceInfoTable";
 import { toBN } from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
+import { Button } from "../components/Button";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -85,12 +88,20 @@ export const StakeDashboard: FC = () => {
   );
 
   return (
-    <div>
+    <div style={{ maxWidth: "864px" }} className="mx-auto">
       <div className="text-center">
-        <h2 className="text-green-bright font-bold text-6xl">Stake SOL</h2>
+        <h2 className="text-green-bright font-bold text-6xl">Sunrise Stake</h2>
         <h3 className="mb-16 text-white font-normal text-3xl">
           Offset emissions while you sleep.
         </h3>
+      </div>
+      <div className="flex">
+        <Panel className="inline-block mx-auto mb-9 p-4 rounded-lg">
+          <Button className="mr-5">
+            Deposit SOL <FaLeaf className="inline" size={24} />
+          </Button>
+          <Button variant="secondary">Withdraw gSOL</Button>
+        </Panel>
       </div>
       <Panel className="p-10 rounded-lg">
         {!client && (
@@ -108,7 +119,10 @@ export const StakeDashboard: FC = () => {
           deposit={deposit}
           setDelayedWithdraw={setDelayedWithdraw}
         />
-        <div className="bg-neutral-800 rounded-lg m-4">
+        <div
+          style={{ display: "none" }}
+          className="bg-neutral-800 rounded-lg m-4"
+        >
           <BalanceInfoTable
             solBalance={solBalance}
             stakeBalance={stakeBalance}

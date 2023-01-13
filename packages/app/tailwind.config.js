@@ -16,6 +16,7 @@ module.exports = {
         'green': '#2e8555',
         'green-light': '#4aa172',
         'green-bright': '#52dc90',
+        'blue': '#7bcefa',
         textColor: '#ffffff'
       },
       fontFamily: {

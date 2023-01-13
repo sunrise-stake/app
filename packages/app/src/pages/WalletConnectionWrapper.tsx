@@ -1,7 +1,9 @@
-import React, { FC } from "react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { StakeDashboard } from "./StakeDashboard";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import React, { FC } from "react";
+import { FaWallet } from "react-icons/fa";
+
+import { StakeDashboard } from "./StakeDashboard";
 import { WelcomePage } from "./WelcomePage";
 
 export const WalletConnectionWrapper: FC = () => {
@@ -15,10 +17,9 @@ export const WalletConnectionWrapper: FC = () => {
             src={"./logo.png"}
             alt="Sunrise"
           />
-          Sunrise Stake
         </div>
         <div>
-          <WalletMultiButton>
+          <WalletMultiButton startIcon={<FaWallet size={"28px"} />}>
             {!wallet.connected ? "Connect Wallet" : null}
           </WalletMultiButton>
         </div>
