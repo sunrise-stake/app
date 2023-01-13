@@ -1,9 +1,11 @@
+import BN from "bn.js";
 import React, { useState } from "react";
+import { FiArrowDownLeft, FiArrowUpRight } from "react-icons/fi";
+
 import DepositWarningModal from "./modals/DepositWarningModal";
 import useModal from "../hooks/useModal";
 import LiquidWithdrawWarningModal from "./modals/LiquidWithdrawWarningModal";
 import { Button } from "./Button";
-import BN from "bn.js";
 import { toFixedWithPrecision, toSol } from "../lib/util";
 
 interface AmountInputProps {
@@ -18,16 +20,19 @@ const AmountInput: React.FC<AmountInputProps> = ({
   setAmount,
 }) => (
   <div className={className}>
-    <div className="bg-background">
+    <div className="p-8 pt-3 bg-background">
+      <div className="text-right">
+        Balance:{" "}
+        <span className="text-blue">
+          {balance ? toFixedWithPrecision(toSol(balance)) : "-"} SOL
+        </span>
+      </div>
       <input
-        className="bg-transparent text-3xl text-right"
+        className="w-full border-none bg-transparent text-3xl text-right"
         type="number"
         placeholder="0.00"
         onChange={(ev) => setAmount(ev.currentTarget.value)}
       />
-    </div>
-    <div className="px-7 py-3 border-2 border-transparent border-b-green-bright rounded-b bg-outset">
-      <>Balance: {balance ? toFixedWithPrecision(toSol(balance)) : "-"} SOL</>
     </div>
   </div>
 );
@@ -69,26 +74,13 @@ const StakeForm: React.FC<StakeFormProps> = ({
         balance={solBalance}
         setAmount={setAmount}
       />
-      <div className="flex items-center">
-        <div className="grow">
-          <Button className="mr-5" onClick={depositModal.trigger}>
-            Deposit
-          </Button>
-          <Button
-            variant="secondary"
-            className="mr-5"
-            onClick={() => withdraw(amount)}
-          >
-            Withdraw
-          </Button>
-        </div>
-        <label>
-          <input
-            type="checkbox"
-            onChange={(e) => setDelayedWithdraw(e.target.checked)}
-          />
-          Delayed
-        </label>
+      <div className="flex items-center justify-end">
+        <Button className="mr-5" onClick={depositModal.trigger}>
+          Deposit <FiArrowUpRight className="inline" size={24} />
+        </Button>
+        <Button variant="secondary" onClick={() => withdraw(amount)}>
+          Withdraw <FiArrowDownLeft className="inline" size={24} />
+        </Button>
       </div>
     </div>
   );
