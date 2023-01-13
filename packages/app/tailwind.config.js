@@ -19,7 +19,7 @@ module.exports = {
         textColor: '#ffffff'
       },
       fontFamily: {
-        'sans': ['Segoe UI', defaultTheme.fontFamily.sans],
+        'sans': ['"Open Sans"', defaultTheme.fontFamily.sans],
       }
     },
   },
