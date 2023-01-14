@@ -21,5 +21,6 @@ export interface Details {
     mintAuthority?: string;
     decimals: number;
     lpBalance: number | null;
+    lpSolValue: number;
   };
 }

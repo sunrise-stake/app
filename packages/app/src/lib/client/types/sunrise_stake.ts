@@ -359,7 +359,7 @@ export type SunriseStake = {
         },
         {
           "name": "orderUnstakeTicketManagementAccount",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -403,6 +403,161 @@ export type SunriseStake = {
         },
         {
           "name": "orderUnstakeTicketAccountBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "triggerPoolRebalance",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Used to ensure the correct GSOL mint is used"
+          ]
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLegAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reservePda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "prePoolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orderUnstakeTicketAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orderUnstakeTicketManagementAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "previousOrderUnstakeTicketManagementAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "epoch",
+          "type": "u64"
+        },
+        {
+          "name": "index",
+          "type": "u64"
+        },
+        {
+          "name": "orderUnstakeTicketAccountBump",
+          "type": "u8"
+        },
+        {
+          "name": "previousOrderUnstakeTicketManagementAccountBump",
+          "type": "u8"
+        },
+        {
+          "name": "prePoolAccountBump",
           "type": "u8"
         }
       ]
@@ -1149,7 +1304,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "orderUnstakeTicketManagementAccount",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1193,6 +1348,161 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "orderUnstakeTicketAccountBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "triggerPoolRebalance",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Used to ensure the correct GSOL mint is used"
+          ]
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLegAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reservePda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "prePoolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orderUnstakeTicketAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "orderUnstakeTicketManagementAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "previousOrderUnstakeTicketManagementAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "epoch",
+          "type": "u64"
+        },
+        {
+          "name": "index",
+          "type": "u64"
+        },
+        {
+          "name": "orderUnstakeTicketAccountBump",
+          "type": "u8"
+        },
+        {
+          "name": "previousOrderUnstakeTicketManagementAccountBump",
+          "type": "u8"
+        },
+        {
+          "name": "prePoolAccountBump",
           "type": "u8"
         }
       ]

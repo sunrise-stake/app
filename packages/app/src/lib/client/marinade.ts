@@ -108,13 +108,12 @@ export const liquidUnstake = async (
             orderUnstakeTicketAccountBump,
         )
         .accounts(accounts)
-        // .signers([orderUnstakeTicketAccountKeypair])
         .preInstructions([modifyComputeUnits])
         .transaction()
 
     return {
         transaction,
         orderUnstakeTicketAccount,
-        // orderUnstakeTicketAccountKeypair // TODO TEMP
+        managementAccount
     }
 }

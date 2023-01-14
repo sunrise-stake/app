@@ -50,6 +50,12 @@ export interface Balance {
   msolPrice: number;
 }
 
+export interface LiquidUnstakeResult {
+  txSig: string;
+  orderUnstakeTicket: PublicKey;
+    orderUnstakeTicketManagementAccount: PublicKey;
+}
+
 export const PROGRAM_ID = new PublicKey(
     "gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p"
 );
@@ -183,7 +189,7 @@ export class SunriseStakeClient {
     });
   }
 
-  public async unstake(lamports: BN): Promise<string> {
+  public async unstake(lamports: BN): Promise<LiquidUnstakeResult> {
     if (
         !this.marinadeState ||
         !this.marinade ||
@@ -193,7 +199,7 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const { transaction } = await liquidUnstake(
+    const { transaction, orderUnstakeTicketAccount, managementAccount } = await liquidUnstake(
         this.config,
         this.marinade,
         this.marinadeState,
@@ -211,7 +217,13 @@ export class SunriseStakeClient {
 
     logKeys(transaction);
 
-    return this.provider.sendAndConfirm(transaction, []);
+    const txSig = await this.provider.sendAndConfirm(transaction, []);
+
+    return {
+      txSig,
+      orderUnstakeTicket: orderUnstakeTicketAccount,
+      orderUnstakeTicketManagementAccount: managementAccount.address
+    }
   }
 
   public async orderUnstake(lamports: BN): Promise<[string, PublicKey]> {
@@ -385,27 +397,48 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
+    const msolTokenAccountAuthority = findMSolTokenAccountAuthority(
+        this.config
+    )[0];
+
+    // use the same token authority PDA for the msol token account
+    // and the liquidity pool token account for convenience
+    const liqPoolAssociatedTokenAccountAddress =
+        await utils.token.associatedAddress({
+          mint: this.marinadeState.lpMint.address,
+          owner: msolTokenAccountAuthority,
+        });
+
     const lpMintInfoPromise = this.marinadeState.lpMint.mintInfo();
-    const lpbalancePromise = this.provider.connection.getTokenAccountBalance(
-        this.marinadeState.mSolLeg
+    const lpBalancePromise = this.provider.connection.getTokenAccountBalance(
+        liqPoolAssociatedTokenAccountAddress
     );
 
     const msolBalancePromise = this.provider.connection.getTokenAccountBalance(
         this.msolTokenAccount
     );
 
-    const [lpMintInfo, lpbalance, msolBalance] = await Promise.all([
+    const solLeg = await this.marinadeState.solLeg();
+    const solLegBalancePromise = this.provider.connection.getBalance(solLeg);
+
+    const [lpMintInfo, lpBalance, lpSolLegBalance, msolBalance] = await Promise.all([
       lpMintInfoPromise,
-      lpbalancePromise,
+      lpBalancePromise,
+      solLegBalancePromise,
       msolBalancePromise,
     ]);
+
+    // TODO handle bigint precision
+    const lpProportion = Number(lpBalance.value.amount) / Number(lpMintInfo.supply)
+    const lpSolValue = Math.floor(lpProportion * (lpSolLegBalance - this.marinadeState.state.rentExemptForTokenAcc.toNumber()));
 
     const lpDetails = {
       mintAddress: this.marinadeState.lpMint.address.toBase58(),
       supply: lpMintInfo.supply,
       mintAuthority: lpMintInfo.mintAuthority?.toBase58(),
       decimals: lpMintInfo.decimals,
-      lpBalance: lpbalance.value.uiAmount,
+      lpBalance: lpBalance.value.uiAmount,
+      lpSolValue,
     };
 
     return {

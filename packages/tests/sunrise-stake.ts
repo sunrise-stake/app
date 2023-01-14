@@ -6,8 +6,8 @@ import {
   expectMSolTokenBalance,
   expectStakerGSolTokenBalance,
   expectStakerSolBalance,
-  expectTreasurySolBalance,
-  getBalance, getLPPrice,
+  expectTreasurySolBalance, networkFeeForConfirmedTransaction,
+  getBalance, getLPPrice, calculateFee,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -20,8 +20,9 @@ const { expect } = chai;
 describe("sunrise-stake", () => {
   let client: SunriseStakeClient;
 
-  const depositSOL = new BN(10_000_000_000); // Deposit 10 SOL
-  const unstakeSOL = new BN(2_000_000_000); // Unstake 2 SOL
+  const depositSOL = new BN(100_000_000_000); // Deposit 100 SOL
+  const unstakeSOLUnderLPBalance = new BN(1_000_000_000); // 1 SOL
+  const unstakeSOLExceedLPBalance = new BN(2_000_000_000); // 20 SOL
   const orderUnstakeSOL = new BN(2_000_000_000); // Order a delayed unstake of 2 SOL
 
   let treasury = Keypair.generate();
@@ -97,39 +98,47 @@ describe("sunrise-stake", () => {
 
     await client.deposit(depositSOL);
 
-    await expectMSolTokenBalance(client, expectedMsol, 10);
-    await expectLiqPoolTokenBalance(client, expectedLiqPool, 10);
+    await expectMSolTokenBalance(client, expectedMsol, 50);
+    await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
     await expectStakerGSolTokenBalance(client, depositSOL.toNumber());
   });
 
-  it.only("can unstake sol for free when doing so does not exceed the minimum threshold", async () => {
+  it.only("can feelessly unstake sol when under the level of the LP", async () => {
+    const stakerPreSolBalance = await getBalance(client);
+
+    await client.unstake(unstakeSOLUnderLPBalance);
+
+    const expectedPostUnstakeBalance = stakerPreSolBalance
+        .add(unstakeSOLUnderLPBalance);
+
+    // use a tolerance here as the exact value depends on network fees
+    // which, for the first few slots on the test validator, are
+    // variable
+    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 50);
+  });
+
+  it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
+    const lpSolValue = (await client.details()).lpDetails.lpSolValue;
+
     const stakerPreSolBalance = await getBalance(client);
 
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(
         client.stakerGSolTokenAccount!
     );
-    const txSig = await client.unstake(unstakeSOL);
+    const unstakeResult = await client.unstake(unstakeSOLExceedLPBalance);
 
     await expectStakerGSolTokenBalance(
         client,
-        new BN(gsolBalance.value.amount).sub(unstakeSOL)
+        new BN(gsolBalance.value.amount).sub(unstakeSOLExceedLPBalance)
     );
 
-    // wait for the tx to confirm
-    // TODO Either remove this line or abstract it out into a function. object destructuring an inline awaited function call is not nice.
-    await client.provider.connection.confirmTransaction({
-      signature: txSig,
-      ...(await client.provider.connection.getLatestBlockhash()),
-    });
+    const liquidUnstakeFee = await calculateFee(client, unstakeResult, lpSolValue, unstakeSOLExceedLPBalance)
 
-    // 0.03% fee for immediate withdrawal
-    // Add 5k lamports for network fees
-    // TODO Double check this with different values for unstakeSOL
-    const fee = new BN(0);//unstakeSOL.muln(3).divn(1000).addn(5000);
     const expectedPostUnstakeBalance = stakerPreSolBalance
-        .add(unstakeSOL)
-        .sub(fee);
-    // use min here as the exact value depends on network fees
+        .add(unstakeSOLExceedLPBalance)
+        .sub(liquidUnstakeFee);
+
+    // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
     // variable
     await expectStakerSolBalance(client, expectedPostUnstakeBalance, 50);
