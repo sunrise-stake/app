@@ -1,4 +1,4 @@
-import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
+import {LiquidUnstakeResult, SunriseStakeClient} from "@sunrisestake/app/src/lib/client";
 import { Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
@@ -134,3 +134,33 @@ export const expectTreasurySolBalance = async (
   console.log("Treasury SOL balance", treasuryBalance);
   expectAmount(treasuryBalance, expectedAmount, tolerance);
 };
+
+export const networkFeeForConfirmedTransaction = async (client: SunriseStakeClient, txSig: string) => {
+  await client.provider.connection.confirmTransaction(txSig, 'confirmed');
+  const tx = await client.provider.connection.getParsedTransaction(txSig, 'confirmed');
+  return tx!.meta!.fee
+}
+
+export const calculateFee = async (client: SunriseStakeClient, unstakeResult: LiquidUnstakeResult, lpSolValue: number, unstaleAmount: BN) => {
+  const networkFee = await networkFeeForConfirmedTransaction(client, unstakeResult.txSig);
+  const rentForOrderUnstakeTicket = await client.provider.connection.getBalance(unstakeResult.orderUnstakeTicket);
+  const rentForOrderUnstakeManagementTicket = await client.provider.connection.getBalance(unstakeResult.orderUnstakeTicketManagementAccount);
+  const amountBeingLiquidUnstaked = unstaleAmount.sub(new BN("" + lpSolValue));
+  const fee = amountBeingLiquidUnstaked
+      .muln(3).divn(1000)
+      .addn(rentForOrderUnstakeTicket)
+      .addn(rentForOrderUnstakeManagementTicket)
+      .addn(networkFee);
+
+  console.log({
+    fee: fee.toString(),
+    amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
+    unstakeSOL: unstaleAmount.toString(),
+    lpSolValue: lpSolValue,
+    rentForOrderUnstakeTicket,
+    rentForOrderUnstakeManagementTicket,
+    networkFee,
+  })
+
+  return fee;
+}

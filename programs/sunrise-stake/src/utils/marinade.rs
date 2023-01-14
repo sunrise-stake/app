@@ -1,7 +1,4 @@
-use crate::{
-    utils::{calc::proportional, seeds::MSOL_ACCOUNT},
-    ClaimUnstakeTicket, Deposit, LiquidUnstake, OrderUnstake, State, WithdrawToTreasury,
-};
+use crate::{utils::{calc::proportional, seeds::MSOL_ACCOUNT}, ClaimUnstakeTicket, Deposit, LiquidUnstake, OrderUnstake, State, WithdrawToTreasury, TriggerPoolRebalance, OrderUnstakeTicketManagementAccount};
 use anchor_lang::{context::CpiContext, prelude::*};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::{
@@ -138,18 +135,39 @@ impl<'a> From<&LiquidUnstake<'a>> for OrderUnstakeProperties<'a> {
         unstake.to_owned().into()
     }
 }
+impl<'a> From<TriggerPoolRebalance<'a>> for OrderUnstakeProperties<'a> {
+    fn from(trigger_pool_rebalance: TriggerPoolRebalance<'a>) -> Self {
+        Self {
+            state: trigger_pool_rebalance.state,
+            marinade_state: trigger_pool_rebalance.marinade_state,
+            msol_mint: *trigger_pool_rebalance.msol_mint,
+            burn_msol_from: *trigger_pool_rebalance.get_msol_from,
+            burn_msol_authority: trigger_pool_rebalance.get_msol_from_authority,
+            new_ticket_account: trigger_pool_rebalance.order_unstake_ticket_account.to_account_info(),
+            token_program: trigger_pool_rebalance.token_program,
+            marinade_program: trigger_pool_rebalance.marinade_program,
+            rent: trigger_pool_rebalance.rent,
+            clock: trigger_pool_rebalance.clock,
+        }
+    }
+}
+impl<'a> From<&TriggerPoolRebalance<'a>> for OrderUnstakeProperties<'a> {
+    fn from(unstake: &TriggerPoolRebalance<'a>) -> Self {
+        unstake.to_owned().into()
+    }
+}
 
 pub struct ClaimUnstakeTicketProperties<'info> {
-    marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: Box<Account<'info, MarinadeState>>,
     /// CHECK: Checked in the marinade program
-    reserve_pda: AccountInfo<'info>,
+    pub reserve_pda: AccountInfo<'info>,
     /// CHECK: Checked in the marinade program
-    ticket_account: AccountInfo<'info>,
+    pub ticket_account: AccountInfo<'info>,
     /// CHECK: Checked in the marinade program
-    transfer_sol_to: AccountInfo<'info>,
-    marinade_program: Program<'info, MarinadeFinance>,
-    clock: Sysvar<'info, Clock>,
-    system_program: Program<'info, System>,
+    pub transfer_sol_to: AccountInfo<'info>,
+    pub marinade_program: Program<'info, MarinadeFinance>,
+    pub clock: Sysvar<'info, Clock>,
+    pub system_program: Program<'info, System>,
 }
 impl<'a> From<ClaimUnstakeTicket<'a>> for ClaimUnstakeTicketProperties<'a> {
     fn from(claim: ClaimUnstakeTicket<'a>) -> Self {
@@ -167,6 +185,24 @@ impl<'a> From<ClaimUnstakeTicket<'a>> for ClaimUnstakeTicketProperties<'a> {
 impl<'a> From<&ClaimUnstakeTicket<'a>> for ClaimUnstakeTicketProperties<'a> {
     fn from(claim: &ClaimUnstakeTicket<'a>) -> Self {
         claim.to_owned().into()
+    }
+}
+impl<'a> From<TriggerPoolRebalance<'a>> for ClaimUnstakeTicketProperties<'a> {
+    fn from(trigger_pool_rebalance: TriggerPoolRebalance<'a>) -> Self {
+        Self {
+            marinade_state: trigger_pool_rebalance.marinade_state,
+            reserve_pda: trigger_pool_rebalance.reserve_pda.to_account_info(),
+            ticket_account: trigger_pool_rebalance.order_unstake_ticket_account.to_account_info(),
+            transfer_sol_to: trigger_pool_rebalance.pre_pool_account.to_account_info(),
+            marinade_program: trigger_pool_rebalance.marinade_program,
+            clock: trigger_pool_rebalance.clock,
+            system_program: trigger_pool_rebalance.system_program,
+        }
+    }
+}
+impl<'a> From<&TriggerPoolRebalance<'a>> for ClaimUnstakeTicketProperties<'a> {
+    fn from(trigger_pool_rebalance: &TriggerPoolRebalance<'a>) -> Self {
+        trigger_pool_rebalance.to_owned().into()
     }
 }
 
@@ -249,7 +285,74 @@ pub fn claim_unstake_ticket(accounts: &ClaimUnstakeTicketProperties) -> Result<(
     marinade_claim(cpi_ctx)
 }
 
-pub fn add_liquidity(accounts: &Deposit, lamports: u64) -> Result<()> {
+pub struct AddLiquidityProperties<'info> {
+    state: Box<Account<'info, State>>,
+    marinade_state: Box<Account<'info, MarinadeState>>,
+    msol_mint: Account<'info, Mint>,
+    gsol_mint: Account<'info, Mint>,
+    liq_pool_mint: Account<'info, Mint>,
+    /// CHECK: Checked in marinade program
+    liq_pool_mint_authority: AccountInfo<'info>,
+    /// CHECK: Checked in marinade program
+    liq_pool_sol_leg_pda: AccountInfo<'info>,
+    liq_pool_msol_leg: Account<'info, TokenAccount>,
+    /// CHECK: Checked in marinade program
+    transfer_from: AccountInfo<'info>,
+    mint_liq_pool_to: Account<'info, TokenAccount>,
+    system_program: Program<'info, System>,
+    token_program: Program<'info, Token>,
+    marinade_program: Program<'info, MarinadeFinance>,
+}
+impl<'a> From<Deposit<'a>> for AddLiquidityProperties<'a> {
+    fn from(deposit: Deposit<'a>) -> Self {
+        Self {
+            state: deposit.state,
+            marinade_state: deposit.marinade_state,
+            msol_mint: *deposit.msol_mint,
+            gsol_mint: *deposit.gsol_mint,
+            liq_pool_mint: *deposit.liq_pool_mint,
+            liq_pool_mint_authority: deposit.liq_pool_mint_authority,
+            liq_pool_sol_leg_pda: deposit.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: deposit.liq_pool_msol_leg,
+            transfer_from: deposit.transfer_from.to_account_info(),
+            mint_liq_pool_to: *deposit.mint_liq_pool_to,
+            system_program: deposit.system_program,
+            token_program: deposit.token_program,
+            marinade_program: deposit.marinade_program,
+        }
+    }
+}
+impl<'a> From<&Deposit<'a>> for AddLiquidityProperties<'a> {
+    fn from(deposit: &Deposit<'a>) -> Self {
+        msg!("From &Deposit");
+        deposit.to_owned().into()
+    }
+}
+impl<'a> From<TriggerPoolRebalance<'a>> for AddLiquidityProperties<'a> {
+    fn from(trigger_pool_rebalance: TriggerPoolRebalance<'a>) -> Self {
+        Self {
+            state: trigger_pool_rebalance.state,
+            marinade_state: trigger_pool_rebalance.marinade_state,
+            msol_mint: *trigger_pool_rebalance.msol_mint,
+            gsol_mint: *trigger_pool_rebalance.gsol_mint,
+            liq_pool_mint: *trigger_pool_rebalance.liq_pool_mint,
+            liq_pool_mint_authority: trigger_pool_rebalance.liq_pool_mint_authority,
+            liq_pool_sol_leg_pda: trigger_pool_rebalance.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: *trigger_pool_rebalance.liq_pool_msol_leg,
+            transfer_from: trigger_pool_rebalance.pre_pool_account.to_account_info(),
+            mint_liq_pool_to: *trigger_pool_rebalance.liq_pool_token_account,
+            system_program: trigger_pool_rebalance.system_program,
+            token_program: trigger_pool_rebalance.token_program,
+            marinade_program: trigger_pool_rebalance.marinade_program,
+        }
+    }
+}
+impl<'a> From<&TriggerPoolRebalance<'a>> for AddLiquidityProperties<'a> {
+    fn from(trigger_pool_rebalance: &TriggerPoolRebalance<'a>) -> Self {
+        trigger_pool_rebalance.to_owned().into()
+    }
+}
+pub fn add_liquidity(accounts: &AddLiquidityProperties, lamports: u64) -> Result<()> {
     let cpi_program = accounts.marinade_program.to_account_info();
     let cpi_accounts = MarinadeAddLiquidity {
         state: accounts.marinade_state.to_account_info(),
@@ -316,6 +419,10 @@ fn total_virtual_staked_lamports(marinade_state: &MarinadeState) -> u64 {
 }
 
 pub fn calc_msol_from_lamports(marinade_state: &MarinadeState, stake_lamports: u64) -> Result<u64> {
+    msg!("calc_msol_from_lamports");
+    msg!("stake_lamports: {}", stake_lamports);
+    msg!("marinade_state.msol_supply: {}", marinade_state.msol_supply);
+    msg!("total_virtual_staked_lamports: {}", total_virtual_staked_lamports(marinade_state));
     proportional(
         stake_lamports,
         marinade_state.msol_supply,
@@ -550,12 +657,64 @@ pub struct LiquidUnstakeAmounts {
     pub amount_to_liquid_unstake: u64,
     pub amount_to_order_delayed_unstake: u64,
 }
-pub fn calculate_liquid_unstake_amounts(accounts: &LiquidUnstake, requested_withdrawal_lamports: u64) -> Result<LiquidUnstakeAmounts> {
+pub struct PoolBalanceProperties<'info> {
+    state: Box<Account<'info, State>>,
+    marinade_state: Box<Account<'info, MarinadeState>>,
+    msol_mint: Account<'info, Mint>,
+    gsol_mint: Account<'info, Mint>,
+    liq_pool_mint: Account<'info, Mint>,
+    /// CHECK: Checked in marinade program
+    liq_pool_sol_leg_pda: AccountInfo<'info>,
+    liq_pool_msol_leg: Account<'info, TokenAccount>,
+    liq_pool_token_account: Account<'info, TokenAccount>,
+    order_unstake_ticket_management_account: Account<'info, OrderUnstakeTicketManagementAccount>,
+}
+impl<'a> From<LiquidUnstake<'a>> for PoolBalanceProperties<'a> {
+    fn from(unstake: LiquidUnstake<'a>) -> Self {
+        Self {
+            state: unstake.state,
+            marinade_state: unstake.marinade_state,
+            msol_mint: *unstake.msol_mint,
+            gsol_mint: *unstake.gsol_mint,
+            liq_pool_mint: *unstake.liq_pool_mint,
+            liq_pool_sol_leg_pda: unstake.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: *unstake.liq_pool_msol_leg,
+            liq_pool_token_account: *unstake.get_liq_pool_token_from,
+            order_unstake_ticket_management_account: *unstake.order_unstake_ticket_management_account,
+        }
+    }
+}
+impl<'a> From<&LiquidUnstake<'a>> for PoolBalanceProperties<'a> {
+    fn from(unstake: &LiquidUnstake<'a>) -> Self {
+        unstake.to_owned().into()
+    }
+}
+impl<'a> From<TriggerPoolRebalance<'a>> for PoolBalanceProperties<'a> {
+    fn from(trigger_pool_rebalance: TriggerPoolRebalance<'a>) -> Self {
+        Self {
+            state: trigger_pool_rebalance.state,
+            marinade_state: trigger_pool_rebalance.marinade_state,
+            msol_mint: *trigger_pool_rebalance.msol_mint,
+            gsol_mint: *trigger_pool_rebalance.gsol_mint,
+            liq_pool_mint: *trigger_pool_rebalance.liq_pool_mint,
+            liq_pool_sol_leg_pda: trigger_pool_rebalance.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: *trigger_pool_rebalance.liq_pool_msol_leg,
+            liq_pool_token_account: *trigger_pool_rebalance.liq_pool_token_account,
+            order_unstake_ticket_management_account: *trigger_pool_rebalance.order_unstake_ticket_management_account,
+        }
+    }
+}
+impl<'a> From<&TriggerPoolRebalance<'a>> for PoolBalanceProperties<'a> {
+    fn from(trigger_pool_rebalance: &TriggerPoolRebalance<'a>) -> Self {
+        trigger_pool_rebalance.to_owned().into()
+    }
+}
+pub fn calculate_pool_balance_amounts(accounts: &PoolBalanceProperties, requested_withdrawal_lamports: u64) -> Result<LiquidUnstakeAmounts> {
     // The current balance of the liquidity pool
     let liq_pool_balance = current_liq_pool_balance(
         &accounts.marinade_state,
         &accounts.liq_pool_mint,
-        &accounts.get_liq_pool_token_from,
+        &accounts.liq_pool_token_account,
         &accounts.liq_pool_sol_leg_pda,
         &accounts.liq_pool_msol_leg,
     )?;
@@ -594,7 +753,6 @@ pub fn calculate_liquid_unstake_amounts(accounts: &LiquidUnstake, requested_with
             total_pool_balance_shortfall_after_unstake.checked_sub(delayed_unstake_in_flight_this_epoch)
         })
         .unwrap_or(0);
-    // TODO factor in existing in-flight orders here
 
     msg!(
         "liq_pool_balance:{:?}\n\
