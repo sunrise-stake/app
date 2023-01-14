@@ -296,7 +296,7 @@ export type SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -354,7 +354,7 @@ export type SunriseStake = {
         },
         {
           "name": "orderUnstakeTicketAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -703,6 +703,10 @@ export type SunriseStake = {
           {
             "name": "tickets",
             "type": "u64"
+          },
+          {
+            "name": "totalOrderedLamports",
+            "type": "u64"
           }
         ]
       }
@@ -775,6 +779,11 @@ export type SunriseStake = {
       "code": 6000,
       "name": "CalculationFailure",
       "msg": "An error occurred when calculating an MSol value"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidOrderUnstakeManagementAccount",
+      "msg": "The order unstake management account is invalid for this epoch"
     }
   ]
 };
@@ -1077,7 +1086,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1135,7 +1144,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "orderUnstakeTicketAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1484,6 +1493,10 @@ export const IDL: SunriseStake = {
           {
             "name": "tickets",
             "type": "u64"
+          },
+          {
+            "name": "totalOrderedLamports",
+            "type": "u64"
           }
         ]
       }
@@ -1556,6 +1569,11 @@ export const IDL: SunriseStake = {
       "code": 6000,
       "name": "CalculationFailure",
       "msg": "An error occurred when calculating an MSol value"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidOrderUnstakeManagementAccount",
+      "msg": "The order unstake management account is invalid for this epoch"
     }
   ]
 };

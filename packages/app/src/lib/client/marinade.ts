@@ -1,4 +1,4 @@
-import {PublicKey, SystemProgram, SYSVAR_CLOCK_PUBKEY, SYSVAR_RENT_PUBKEY} from "@solana/web3.js";
+import {ComputeBudgetProgram, Keypair, PublicKey, SystemProgram, SYSVAR_CLOCK_PUBKEY, SYSVAR_RENT_PUBKEY} from "@solana/web3.js";
 import {
     findGSolMintAuthority,
     findMSolTokenAccountAuthority, findOrderUnstakeTicketAccount,
@@ -64,6 +64,9 @@ export const liquidUnstake = async (
     const index = (managementAccount?.account?.tickets.toNumber() || 0) + 1;
     const [orderUnstakeTicketAccount, orderUnstakeTicketAccountBump] = findOrderUnstakeTicketAccount(config, BigInt(epochInfo.epoch), BigInt(index));
 
+    // TODO temp
+    // const orderUnstakeTicketAccountKeypair = Keypair.generate();
+
     type Accounts = Parameters<
         ReturnType<typeof program.methods.liquidUnstake>["accounts"]
     >[0];
@@ -93,6 +96,10 @@ export const liquidUnstake = async (
         marinadeProgram,
     };
 
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 300000
+    });
+
     const transaction = await program.methods
         .liquidUnstake(
             lamports,
@@ -101,10 +108,13 @@ export const liquidUnstake = async (
             orderUnstakeTicketAccountBump,
         )
         .accounts(accounts)
-        .transaction();
+        // .signers([orderUnstakeTicketAccountKeypair])
+        .preInstructions([modifyComputeUnits])
+        .transaction()
 
     return {
         transaction,
         orderUnstakeTicketAccount,
+        // orderUnstakeTicketAccountKeypair // TODO TEMP
     }
 }

@@ -153,7 +153,6 @@ pub struct ClaimUnstakeTicketProperties<'info> {
 }
 impl<'a> From<ClaimUnstakeTicket<'a>> for ClaimUnstakeTicketProperties<'a> {
     fn from(claim: ClaimUnstakeTicket<'a>) -> Self {
-        msg!("ClaimUnstakeTicketProperties::from");
         Self {
             marinade_state: claim.marinade_state,
             reserve_pda: claim.reserve_pda.to_account_info(),
@@ -210,7 +209,6 @@ pub fn unstake(accounts: &GenericUnstakeProperties, msol_lamports: u64) -> Resul
     let bump = &[accounts.state.msol_authority_bump][..];
     let state_address = accounts.state.key();
     let seeds = &[state_address.as_ref(), MSOL_ACCOUNT, bump][..];
-    msg!("recipient: {}", accounts.recipient.key());
     marinade_liquid_unstake(cpi_ctx.with_signer(&[seeds]), msol_lamports)
 }
 
@@ -236,7 +234,6 @@ pub fn order_unstake(accounts: &OrderUnstakeProperties, msol_lamports: u64) -> R
 }
 
 pub fn claim_unstake_ticket(accounts: &ClaimUnstakeTicketProperties) -> Result<()> {
-    msg!("ClaimUnstakeTicket CPI");
     let cpi_program = accounts.marinade_program.to_account_info();
     let cpi_accounts = MarinadeClaim {
         state: accounts.marinade_state.to_account_info(),
@@ -269,7 +266,7 @@ pub fn add_liquidity(accounts: &Deposit, lamports: u64) -> Result<()> {
     marinade_add_liquidity(cpi_ctx, lamports)
 }
 
-pub fn remove_liquidity(accounts: &LiquidUnstake, lamports: u64) -> Result<()> {
+pub fn remove_liquidity(accounts: &LiquidUnstake, liq_pool_tokens: u64) -> Result<()> {
     let cpi_program = accounts.marinade_program.to_account_info();
     let cpi_accounts = MarinadeRemoveLiquidity {
         state: accounts.marinade_state.to_account_info(),
@@ -287,7 +284,10 @@ pub fn remove_liquidity(accounts: &LiquidUnstake, lamports: u64) -> Result<()> {
         token_program: accounts.token_program.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-    marinade_remove_liquidity(cpi_ctx, lamports)
+    let bump = &[accounts.state.msol_authority_bump][..];
+    let state_address = accounts.state.key();
+    let seeds = &[state_address.as_ref(), MSOL_ACCOUNT, bump][..];
+    marinade_remove_liquidity(cpi_ctx.with_signer(&[seeds]), liq_pool_tokens)
 }
 
 /// All copied from https://github.com/marinade-finance/liquid-staking-program/blob/447f9607a8c755cac7ad63223febf047142c6c8f/programs/marinade-finance/src/state.rs#L227
@@ -316,7 +316,6 @@ fn total_virtual_staked_lamports(marinade_state: &MarinadeState) -> u64 {
 }
 
 pub fn calc_msol_from_lamports(marinade_state: &MarinadeState, stake_lamports: u64) -> Result<u64> {
-    msg!("calc_msol_from_lamports {}", stake_lamports);
     proportional(
         stake_lamports,
         marinade_state.msol_supply,
@@ -328,7 +327,6 @@ pub fn calc_lamports_from_msol_amount(
     marinade_state: &MarinadeState,
     msol_amount: u64,
 ) -> Result<u64> {
-    msg!("calc_lamports_from_msol_amount {}", msol_amount);
     proportional(
         msol_amount,
         total_virtual_staked_lamports(marinade_state),
@@ -363,39 +361,126 @@ pub fn recoverable_yield<'a>(
     Ok(recoverable_msol)
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub struct LiquidityPoolBalance {
+    pub lamports: u64,
+    pub msol: u64,
+    pub liq_pool_token: u64,
+}
+impl LiquidityPoolBalance {
+    fn new(
+        sol_leg: u64,
+        msol_leg: u64,
+        total_liq_pool_tokens: u64,
+    ) -> Self {
+        LiquidityPoolBalance {
+            lamports: sol_leg,
+            msol: msol_leg,
+            liq_pool_token: total_liq_pool_tokens,
+        }
+    }
+
+    fn value_of(&self, liq_pool_token: u64) -> Result<Self> {
+        let lamports = proportional(self.lamports, liq_pool_token, self.liq_pool_token)?;
+        let msol = proportional(self.msol, liq_pool_token, self.liq_pool_token)?;
+        Ok(LiquidityPoolBalance {
+            lamports,
+            msol,
+            liq_pool_token,
+        })
+    }
+
+    // if this balance in lamports is smaller than other_lamports, return this,
+    // otherwise return a liquidity pool balance with lamports = other_lamports
+    // and liq_pool_token = the amount of liq_pool_token that would be needed to withdraw
+    // other_lamports from the liquidity pool
+    fn min_lamports(&self, other_lamports: u64) -> Result<Self> {
+        if self.lamports < other_lamports { return Ok(*self) }
+        let other_liq_pool_token = proportional(
+            self.liq_pool_token,
+            other_lamports,
+            self.lamports,
+        )?;
+        let other_msol = proportional(
+            self.msol,
+            other_lamports,
+            self.lamports,
+        )?;
+        Ok(Self {
+            lamports: other_lamports,
+            msol: other_msol,
+            liq_pool_token: other_liq_pool_token
+        })
+    }
+
+    // returns a new balance that is the result of subtracting other_lamports from this balance
+    fn checked_sub_lamports(&self, other_lamports: u64) -> Result<Self> {
+        let new_lamports = self.lamports.checked_sub(other_lamports).expect("checked_sub_lamports");
+        let new_liq_pool_token = proportional(
+            self.liq_pool_token,
+            new_lamports,
+            self.lamports,
+        )?;
+
+        let new_msol = proportional(
+            self.msol,
+            new_lamports,
+            self.lamports,
+        )?;
+        Ok(Self {
+            lamports: new_lamports,
+            msol: new_msol,
+            liq_pool_token: new_liq_pool_token
+        })
+    }
+}
+
 pub fn current_liq_pool_balance<'a>(
     marinade_state: &MarinadeState,
     liq_pool_mint: &Account<'a, Mint>,
     liq_pool_token_account: &Account<'a, TokenAccount>,
     liq_pool_sol_leg_pda: &AccountInfo,
     liq_pool_msol_leg: &Account<'a, TokenAccount>,
-) -> Result<u64> {
+) -> Result<LiquidityPoolBalance> {
     //compute current liq-pool total value
     let sol_leg_lamports = liq_pool_sol_leg_pda
         .lamports()
         .checked_sub(marinade_state.rent_exempt_for_token_acc)
         .expect("sol_leg_lamports");
-    let msol_leg_value = calc_lamports_from_msol_amount(marinade_state, liq_pool_msol_leg.amount)
-        .expect("msol_leg_value");
-    let total_liq_pool_value = sol_leg_lamports + msol_leg_value;
-    msg!(
-            "sunrise_token_account: {}, sol_leg_pda: {}, rent_exempt_for_token_acc: {}, liq_pool SOL:{}, liq_pool_msol value in mSol:{}, liq_pool mSOL value:{} liq_pool_value:{}",
-            liq_pool_token_account.amount,
-            liq_pool_sol_leg_pda.lamports(),
-            marinade_state.rent_exempt_for_token_acc,
-            sol_leg_lamports,
-            liq_pool_msol_leg.amount,
-            msol_leg_value,
-            total_liq_pool_value
-        );
+    // let msol_leg_value = calc_lamports_from_msol_amount(marinade_state, liq_pool_msol_leg.amount)
+    //     .expect("msol_leg_value");
+    // let total_liq_pool_value = sol_leg_lamports + msol_leg_value;
+    // msg!(
+    //         "sunrise_token_account: {}\n\
+    //         sol_leg_pda: {}\n\
+    //         rent_exempt_for_token_acc: {}\n\
+    //         liq_pool SOL:{}\n\
+    //         liq_pool mSOL:{}\n\
+    //         liq_pool_msol value in sol:{}\n\
+    //         liq_pool_value:{}",
+    //         liq_pool_token_account.amount,
+    //         liq_pool_sol_leg_pda.lamports(),
+    //         marinade_state.rent_exempt_for_token_acc,
+    //         sol_leg_lamports,
+    //         liq_pool_msol_leg.amount,
+    //         msol_leg_value,
+    //         total_liq_pool_value
+    //     );
+
+    let total_balance = LiquidityPoolBalance::new(
+        sol_leg_lamports,
+        liq_pool_msol_leg.amount,
+        liq_pool_mint.supply,
+    );
 
     // The SOL amount held by sunrise in the liquidity pool is the total value of the pool in SOL
     // multiplied by the proportion of the pool owned by this SunshineStake instance
-    proportional(
-        total_liq_pool_value, // total
-        liq_pool_token_account.amount,
-        liq_pool_mint.supply,
-    )
+    let sunrise_liq_pool_balance = total_balance.value_of(liq_pool_token_account.amount)?;
+
+    msg!("Total LP: {:?}", total_balance);
+    msg!("Sunrise LP: {:?}", sunrise_liq_pool_balance);
+
+    Ok(sunrise_liq_pool_balance)
 }
 
 /// The preferred liquidity pool balance is a proportion of the total issued gsol
@@ -447,11 +532,11 @@ pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> 
     let preferred_balance =
         preferred_liq_pool_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
     let missing_balance = preferred_balance
-        .checked_sub(liq_pool_balance)
+        .checked_sub(liq_pool_balance.lamports)
         .expect("missing_balance");
     let amount_to_be_deposited = lamports.min(missing_balance);
     msg!(
-        "liq_pool_balance:{}, preferred_liq_pool_balance:{}, missing_balance:{}, amount_to_be_deposited:{}",
+        "liq_pool_balance:{:?}, preferred_liq_pool_balance:{}, missing_balance:{}, amount_to_be_deposited:{}",
         liq_pool_balance,
         preferred_balance,
         missing_balance,
@@ -461,11 +546,11 @@ pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> 
 }
 
 pub struct LiquidUnstakeAmounts {
-    pub amount_to_withdraw_from_liq_pool: u64,
+    pub amount_to_withdraw_from_liq_pool: LiquidityPoolBalance,
     pub amount_to_liquid_unstake: u64,
     pub amount_to_order_delayed_unstake: u64,
 }
-pub fn calculate_liquid_unstake_amounts(accounts: &LiquidUnstake, lamports: u64) -> Result<LiquidUnstakeAmounts> {
+pub fn calculate_liquid_unstake_amounts(accounts: &LiquidUnstake, requested_withdrawal_lamports: u64) -> Result<LiquidUnstakeAmounts> {
     // The current balance of the liquidity pool
     let liq_pool_balance = current_liq_pool_balance(
         &accounts.marinade_state,
@@ -477,33 +562,54 @@ pub fn calculate_liquid_unstake_amounts(accounts: &LiquidUnstake, lamports: u64)
 
     // The allowable minimum balance of the liquidity pool, after the gsol being unstaked is burned
     let preferred_min_liq_pool_after_unstake =
-        preferred_liq_pool_min_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
+        preferred_liq_pool_min_balance(&accounts.state, &accounts.gsol_mint, requested_withdrawal_lamports)?;
 
     // TODO need to convert all values here to SOL from LP token balances
 
     // The amount the user is allowed to withdraw from the liquidity pool. This is the entire current liquidity pool
-    let amount_to_withdraw_from_liq_pool = liq_pool_balance.min(lamports);
+    let amount_to_withdraw_from_liq_pool = liq_pool_balance.min_lamports(requested_withdrawal_lamports)?;
 
     // Any remaining yield is liquid-unstaked from marinade and incurs a fee
-    let amount_to_liquid_unstake = lamports.checked_sub(amount_to_withdraw_from_liq_pool).unwrap_or(0);
+    let amount_to_liquid_unstake = requested_withdrawal_lamports
+        .checked_sub(
+            amount_to_withdraw_from_liq_pool.lamports
+        ).unwrap_or(0);
 
     // The amount that remains in the liquidity pool after the unstake
     let actual_pool_balance_after_unstake = liq_pool_balance
-        .checked_sub(amount_to_withdraw_from_liq_pool)
+        .checked_sub_lamports(amount_to_withdraw_from_liq_pool.lamports)
         .expect("actual_pool_balance_after_unstake");
+
+    let delayed_unstake_in_flight_this_epoch = accounts.order_unstake_ticket_management_account.total_ordered_lamports;
 
     // This amount should be ordered for delayed unstake to rebalance the liquidity pool to its preferred minimum
     let amount_to_order_delayed_unstake = preferred_min_liq_pool_after_unstake
-        .checked_sub(actual_pool_balance_after_unstake).unwrap_or(0);
+        .checked_sub(actual_pool_balance_after_unstake.lamports)
+        // the msol withdrawn from the liquidity pool will be sent into the msol pot, so should be discounted here
+        .and_then(|pool_balance_shortfall_after_unstake| {
+            pool_balance_shortfall_after_unstake.checked_sub(amount_to_withdraw_from_liq_pool.msol)
+        })
+        // subtract the amount that is already in flight for delayed unstake from previous liquid unstakes
+        .and_then(|total_pool_balance_shortfall_after_unstake| {
+            total_pool_balance_shortfall_after_unstake.checked_sub(delayed_unstake_in_flight_this_epoch)
+        })
+        .unwrap_or(0);
     // TODO factor in existing in-flight orders here
 
     msg!(
-        "liq_pool_balance:{}, preferred_min_liq_pool_after_unstake:{}, amount_to_withdraw_from_liq_pool:{}, amount_to_liquid_unstake:{}, actual_pool_balance_after_unstake:{}, amount_to_order_delayed_unstake:{}",
+        "liq_pool_balance:{:?}\n\
+        preferred_min_liq_pool_after_unstake:{}\n\
+        amount_to_withdraw_from_liq_pool:{:?}\n\
+        amount_to_liquid_unstake:{}\n\
+        actual_pool_balance_after_unstake:{:?}\n\
+        delayed_unstake_in_flight_this_epoch:{}\n\
+        amount_to_order_delayed_unstake:{}",
         liq_pool_balance,
         preferred_min_liq_pool_after_unstake,
         amount_to_withdraw_from_liq_pool,
         amount_to_liquid_unstake,
         actual_pool_balance_after_unstake,
+        delayed_unstake_in_flight_this_epoch,
         amount_to_order_delayed_unstake
     );
     Ok(LiquidUnstakeAmounts {
