@@ -126,6 +126,7 @@ export const StakeDashboard: FC = () => {
           </div>
         )}
         <StakeForm
+          isStakeSelected={isStakeSelected}
           solBalance={solBalance}
           withdraw={withdraw}
           deposit={deposit}

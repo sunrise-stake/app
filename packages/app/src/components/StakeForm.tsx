@@ -42,6 +42,7 @@ interface StakeFormProps {
   deposit: (amount: string) => void;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
   solBalance: BN | undefined;
+  isStakeSelected: boolean;
 }
 
 const StakeForm: React.FC<StakeFormProps> = ({
@@ -49,6 +50,7 @@ const StakeForm: React.FC<StakeFormProps> = ({
   deposit,
   setDelayedWithdraw,
   solBalance,
+  isStakeSelected,
 }) => {
   const [amount, setAmount] = useState("");
 
@@ -75,12 +77,15 @@ const StakeForm: React.FC<StakeFormProps> = ({
         setAmount={setAmount}
       />
       <div className="flex items-center justify-end">
-        <Button className="mr-5" onClick={depositModal.trigger}>
-          Deposit <FiArrowUpRight className="inline" size={24} />
-        </Button>
-        <Button onClick={() => withdraw(amount)}>
-          Withdraw <FiArrowDownLeft className="inline" size={24} />
-        </Button>
+        {isStakeSelected ? (
+          <Button className="mr-5" onClick={depositModal.trigger}>
+            Deposit <FiArrowUpRight className="inline" size={24} />
+          </Button>
+        ) : (
+          <Button onClick={() => withdraw(amount)}>
+            Withdraw <FiArrowDownLeft className="inline" size={24} />
+          </Button>
+        )}
       </div>
     </div>
   );
