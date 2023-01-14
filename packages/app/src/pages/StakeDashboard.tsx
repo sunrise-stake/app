@@ -98,9 +98,9 @@ export const StakeDashboard: FC = () => {
       <div className="flex">
         <Panel className="inline-block mx-auto mb-9 p-4 rounded-lg">
           <Button className="mr-5">
-            Deposit SOL <FaLeaf className="inline" size={24} />
+            Stake <FaLeaf className="inline" size={24} />
           </Button>
-          <Button variant="secondary">Withdraw gSOL</Button>
+          <Button variant="secondary">Unstake</Button>
         </Panel>
       </div>
       <Panel className="p-10 rounded-lg">
