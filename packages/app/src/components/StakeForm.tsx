@@ -20,19 +20,22 @@ const AmountInput: React.FC<AmountInputProps> = ({
   setAmount,
 }) => (
   <div className={className}>
-    <div className="p-8 pt-3 bg-background">
-      <div className="text-right">
-        Balance:{" "}
-        <span className="text-blue">
-          {balance ? toFixedWithPrecision(toSol(balance)) : "-"} SOL
-        </span>
+    <div className="flex flex-row justify-between p-8 my-auto bg-background">
+      <img src="solana-logo.png" className="h-24 my-auto" />
+      <div className="my-auto">
+        <div className="text-right">
+          Balance:{" "}
+          <span className="text-blue">
+            {balance ? toFixedWithPrecision(toSol(balance)) : "-"} SOL
+          </span>
+        </div>
+        <input
+          className="w-full border-none bg-transparent text-3xl text-right"
+          type="number"
+          placeholder="0.00"
+          onChange={(ev) => setAmount(ev.currentTarget.value)}
+        />
       </div>
-      <input
-        className="w-full border-none bg-transparent text-3xl text-right"
-        type="number"
-        placeholder="0.00"
-        onChange={(ev) => setAmount(ev.currentTarget.value)}
-      />
     </div>
   </div>
 );
