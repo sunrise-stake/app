@@ -78,7 +78,7 @@ const StakeForm: React.FC<StakeFormProps> = ({
         <Button className="mr-5" onClick={depositModal.trigger}>
           Deposit <FiArrowUpRight className="inline" size={24} />
         </Button>
-        <Button variant="secondary" onClick={() => withdraw(amount)}>
+        <Button onClick={() => withdraw(amount)}>
           Withdraw <FiArrowDownLeft className="inline" size={24} />
         </Button>
       </div>
