@@ -2,7 +2,7 @@ import clx from "classnames";
 import React, { ReactNode } from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary";
+  variant?: "green" | "red" | "unactive";
   children?: ReactNode;
   className?: string;
 }
@@ -10,7 +10,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const Button: React.FC<ButtonProps> = ({
   children,
   className,
-  variant = "primary",
+  variant = "green",
   ...rest
 }) => {
   return (
@@ -18,8 +18,9 @@ const Button: React.FC<ButtonProps> = ({
       className={clx(
         "px-8 py-4 rounded-lg text-white text-xl",
         {
-          "bg-green": variant === "primary",
-          "bg-outset": variant === "secondary",
+          "bg-green": variant === "green",
+          "bg-red-400": variant === "red",
+          "bg-outset": variant === "unactive",
         },
         className
       )}

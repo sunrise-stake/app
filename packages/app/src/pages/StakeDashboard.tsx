@@ -3,6 +3,7 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import BN from "bn.js";
 import { FC, useCallback, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
+import { TbLeafOff } from "react-icons/tb";
 
 import { useSunriseStake } from "../hooks/useSunriseStake";
 import { BalanceInfo } from "../lib/stakeAccount";
@@ -26,6 +27,7 @@ export const StakeDashboard: FC = () => {
   const [delayedUnstakeTickets, setDelayedUnstakeTickets] = useState<
     TicketAccount[]
   >([]);
+  const [isStakeSelected, setIsStakeSelected] = useState(true);
 
   const updateBalances = useCallback(async () => {
     if (!wallet.publicKey || !client) return;
@@ -97,10 +99,20 @@ export const StakeDashboard: FC = () => {
       </div>
       <div className="flex">
         <Panel className="inline-block mx-auto mb-9 p-4 rounded-lg">
-          <Button className="mr-5">
-            Stake <FaLeaf className="inline" size={24} />
+          <Button
+            variant={isStakeSelected ? "green" : "unactive"}
+            className="mr-5"
+            onClick={() => setIsStakeSelected(true)}
+          >
+            Stake {isStakeSelected && <FaLeaf className="inline" size={24} />}
           </Button>
-          <Button variant="secondary">Unstake</Button>
+          <Button
+            variant={isStakeSelected ? "unactive" : "red"}
+            onClick={() => setIsStakeSelected(false)}
+          >
+            Unstake{" "}
+            {!isStakeSelected && <TbLeafOff className="inline" size={24} />}
+          </Button>
         </Panel>
       </div>
       <Panel className="p-10 rounded-lg">
