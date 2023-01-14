@@ -15,14 +15,10 @@ declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 #[program]
 pub mod sunrise_stake {
     use super::*;
-    use crate::utils::{
-        marinade,
-        marinade::{
-            amount_to_be_deposited_in_liq_pool, calc_lamports_from_msol_amount,
-            calc_msol_from_lamports, recoverable_yield,
-        },
-        token::{burn, create_token_account},
-    };
+    use crate::utils::{marinade, marinade::{
+        amount_to_be_deposited_in_liq_pool, calc_lamports_from_msol_amount,
+        calc_msol_from_lamports, recoverable_yield,
+    }, system, token::{burn, create_token_account}};
     use anchor_lang::solana_program::program::invoke_signed;
     use anchor_lang::solana_program::system_instruction::transfer;
     use std::ops::Deref;
@@ -117,7 +113,7 @@ pub mod sunrise_stake {
     }
 
     // TODO move the parameters relating to the order unstake ticket into a struct
-    pub fn liquid_unstake(ctx: Context<LiquidUnstake>, lamports: u64, epoch: u64, index: u64, _order_unstake_ticket_account_bump: u8) -> Result<()> {
+    pub fn liquid_unstake(ctx: Context<LiquidUnstake>, lamports: u64, epoch: u64, index: u64, order_unstake_ticket_account_bump: u8) -> Result<()> {
         // check the ticket info is correct
         require_eq!(ctx.accounts.clock.epoch, epoch);
         require_eq!(ctx.accounts.order_unstake_ticket_management_account.tickets + 1, index);
@@ -125,9 +121,9 @@ pub mod sunrise_stake {
         msg!("Checking liq_pool pool balance");
         let amounts = calculate_liquid_unstake_amounts(ctx.accounts, lamports)?;
 
-        if amounts.amount_to_withdraw_from_liq_pool > 0 {
-            msg!("Removing {} lamports from the liquidity pool", amounts.amount_to_withdraw_from_liq_pool);
-            marinade::remove_liquidity(ctx.accounts, amounts.amount_to_withdraw_from_liq_pool)?;
+        if amounts.amount_to_withdraw_from_liq_pool.liq_pool_token > 0 {
+            // msg!("Removing {:?} from the liquidity pool", amounts.amount_to_withdraw_from_liq_pool);
+            marinade::remove_liquidity(ctx.accounts, amounts.amount_to_withdraw_from_liq_pool.liq_pool_token)?;
         }
 
         if amounts.amount_to_liquid_unstake > 0 {
@@ -142,10 +138,23 @@ pub mod sunrise_stake {
         if amounts.amount_to_order_delayed_unstake > 0 {
             let msol_lamports =
                 calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), amounts.amount_to_order_delayed_unstake)?;
-            let accounts = ctx.accounts.deref().into();
+
+            msg!("Creating order unstake ticket account");
+            let create_ticket_props = ctx.accounts.deref().into();
+            system::create_order_unstake_ticket_account(
+                &create_ticket_props,
+                order_unstake_ticket_account_bump,
+                index)?;
 
             msg!("Ordering a delayed unstake of {} msol lamports", msol_lamports);
-            marinade::order_unstake(&accounts, msol_lamports)?;
+            let order_unstake_props = ctx.accounts.deref().into();
+            marinade::order_unstake(&order_unstake_props, msol_lamports)?;
+
+            // updating the internal record of delayed unstakes ordered.
+            ctx.accounts.order_unstake_ticket_management_account.add_ticket(
+                amounts.amount_to_order_delayed_unstake,
+                ctx.accounts.clock.epoch
+            )?;
         }
 
         msg!("Burn GSol");
@@ -299,9 +308,21 @@ pub struct OrderUnstakeTicketManagementAccount {
     pub state_address: Pubkey,
     pub epoch: u64,
     pub tickets: u64,
+    pub total_ordered_lamports: u64,
 }
 impl OrderUnstakeTicketManagementAccount {
-    const SPACE: usize = 32 + 8 + 8 + 8 /* DISCRIMINATOR */ ;
+    const SPACE: usize = 32 + 8 + 8 + 8 + 8 /* DISCRIMINATOR */ ;
+
+    pub fn add_ticket(&mut self, ticket_amount_lamports: u64, epoch: u64) -> Result<()> {
+        if self.epoch == 0 {
+            self.epoch = epoch;
+        } else {
+            require_eq!(self.epoch, epoch, ErrorCode::InvalidOrderUnstakeManagementAccount);
+        }
+        self.tickets += 1;
+        self.total_ordered_lamports += ticket_amount_lamports;
+        Ok(())
+    }
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -504,6 +525,7 @@ pub struct LiquidUnstake<'info> {
     pub liq_pool_mint: Box<Account<'info, Mint>>,
 
     #[account(
+    mut,
     constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
     )]
     pub gsol_mint: Box<Account<'info, Mint>>,
@@ -566,10 +588,16 @@ pub struct LiquidUnstake<'info> {
     pub gsol_token_account_authority: Signer<'info>,
 
     #[account(
+        mut,
+        // This will be initialised programmatically if it is needed
+        // init,
+        // payer = gsol_token_account_authority,
+        // space = MARINADE_TICKET_ACCOUNT_SPACE,
         seeds = [state.key().as_ref(), ORDER_UNSTAKE_TICKET_ACCOUNT, &epoch.to_be_bytes(), &order_unstake_ticket_index.to_be_bytes()],
-        bump = order_unstake_ticket_account_bump
+        bump = order_unstake_ticket_account_bump,
     )]
-    pub order_unstake_ticket_account: SystemAccount<'info>,
+    /// CHECK: Checked in marinade program
+    pub order_unstake_ticket_account: UncheckedAccount<'info>,
 
     #[account(
         init_if_needed,
@@ -752,4 +780,6 @@ pub struct WithdrawToTreasury<'info> {
 pub enum ErrorCode {
     #[msg("An error occurred when calculating an MSol value")]
     CalculationFailure,
+    #[msg("The order unstake management account is invalid for this epoch")]
+    InvalidOrderUnstakeManagementAccount,
 }
