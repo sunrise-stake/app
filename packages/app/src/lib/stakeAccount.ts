@@ -1,4 +1,4 @@
-import { Balance, SunriseStakeClient } from "./client";
+import { SunriseStakeClient } from "./client";
 import { Connection } from "@solana/web3.js";
 import { ConnectedWallet, toBN } from "./util";
 import { AnchorProvider, Wallet } from "@project-serum/anchor";
@@ -6,6 +6,7 @@ import BN from "bn.js";
 import { Environment } from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
+import {Balance} from "./client/util";
 
 export const SUNRISE_STAKE_STATE =
   Environment[
@@ -30,7 +31,9 @@ export class StakeAccount {
       wallet as unknown as Wallet,
       {}
     );
-    const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE);
+    const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE, {
+      verbose: !!process.env.REACT_APP_VERBOSE
+    });
     client.details().then(console.log).catch(console.error);
     return new StakeAccount(client);
   }

@@ -114,27 +114,6 @@ impl<'a> From<&OrderUnstake<'a>> for OrderUnstakeProperties<'a> {
         unstake.to_owned().into()
     }
 }
-impl<'a> From<LiquidUnstake<'a>> for OrderUnstakeProperties<'a> {
-    fn from(unstake: LiquidUnstake<'a>) -> Self {
-        Self {
-            state: unstake.state,
-            marinade_state: unstake.marinade_state,
-            msol_mint: *unstake.msol_mint,
-            burn_msol_from: *unstake.get_msol_from,
-            burn_msol_authority: unstake.get_msol_from_authority,
-            new_ticket_account: unstake.order_unstake_ticket_account.to_account_info(),
-            token_program: unstake.token_program,
-            marinade_program: unstake.marinade_program,
-            rent: unstake.rent,
-            clock: unstake.clock,
-        }
-    }
-}
-impl<'a> From<&LiquidUnstake<'a>> for OrderUnstakeProperties<'a> {
-    fn from(unstake: &LiquidUnstake<'a>) -> Self {
-        unstake.to_owned().into()
-    }
-}
 impl<'a> From<TriggerPoolRebalance<'a>> for OrderUnstakeProperties<'a> {
     fn from(trigger_pool_rebalance: TriggerPoolRebalance<'a>) -> Self {
         Self {
@@ -289,7 +268,6 @@ pub struct AddLiquidityProperties<'info> {
     state: Box<Account<'info, State>>,
     marinade_state: Box<Account<'info, MarinadeState>>,
     msol_mint: Account<'info, Mint>,
-    gsol_mint: Account<'info, Mint>,
     liq_pool_mint: Account<'info, Mint>,
     /// CHECK: Checked in marinade program
     liq_pool_mint_authority: AccountInfo<'info>,
@@ -309,7 +287,6 @@ impl<'a> From<Deposit<'a>> for AddLiquidityProperties<'a> {
             state: deposit.state,
             marinade_state: deposit.marinade_state,
             msol_mint: *deposit.msol_mint,
-            gsol_mint: *deposit.gsol_mint,
             liq_pool_mint: *deposit.liq_pool_mint,
             liq_pool_mint_authority: deposit.liq_pool_mint_authority,
             liq_pool_sol_leg_pda: deposit.liq_pool_sol_leg_pda,
@@ -334,7 +311,6 @@ impl<'a> From<TriggerPoolRebalance<'a>> for AddLiquidityProperties<'a> {
             state: trigger_pool_rebalance.state,
             marinade_state: trigger_pool_rebalance.marinade_state,
             msol_mint: *trigger_pool_rebalance.msol_mint,
-            gsol_mint: *trigger_pool_rebalance.gsol_mint,
             liq_pool_mint: *trigger_pool_rebalance.liq_pool_mint,
             liq_pool_mint_authority: trigger_pool_rebalance.liq_pool_mint_authority,
             liq_pool_sol_leg_pda: trigger_pool_rebalance.liq_pool_sol_leg_pda,
@@ -667,7 +643,7 @@ pub struct PoolBalanceProperties<'info> {
     liq_pool_sol_leg_pda: AccountInfo<'info>,
     liq_pool_msol_leg: Account<'info, TokenAccount>,
     liq_pool_token_account: Account<'info, TokenAccount>,
-    order_unstake_ticket_management_account: Account<'info, OrderUnstakeTicketManagementAccount>,
+    order_unstake_ticket_management_account: Option<Account<'info, OrderUnstakeTicketManagementAccount>>,
 }
 impl<'a> From<LiquidUnstake<'a>> for PoolBalanceProperties<'a> {
     fn from(unstake: LiquidUnstake<'a>) -> Self {
@@ -680,7 +656,7 @@ impl<'a> From<LiquidUnstake<'a>> for PoolBalanceProperties<'a> {
             liq_pool_sol_leg_pda: unstake.liq_pool_sol_leg_pda,
             liq_pool_msol_leg: *unstake.liq_pool_msol_leg,
             liq_pool_token_account: *unstake.get_liq_pool_token_from,
-            order_unstake_ticket_management_account: *unstake.order_unstake_ticket_management_account,
+            order_unstake_ticket_management_account: None,
         }
     }
 }
@@ -700,7 +676,7 @@ impl<'a> From<TriggerPoolRebalance<'a>> for PoolBalanceProperties<'a> {
             liq_pool_sol_leg_pda: trigger_pool_rebalance.liq_pool_sol_leg_pda,
             liq_pool_msol_leg: *trigger_pool_rebalance.liq_pool_msol_leg,
             liq_pool_token_account: *trigger_pool_rebalance.liq_pool_token_account,
-            order_unstake_ticket_management_account: *trigger_pool_rebalance.order_unstake_ticket_management_account,
+            order_unstake_ticket_management_account: Some(*trigger_pool_rebalance.order_unstake_ticket_management_account),
         }
     }
 }
@@ -739,7 +715,10 @@ pub fn calculate_pool_balance_amounts(accounts: &PoolBalanceProperties, requeste
         .checked_sub_lamports(amount_to_withdraw_from_liq_pool.lamports)
         .expect("actual_pool_balance_after_unstake");
 
-    let delayed_unstake_in_flight_this_epoch = accounts.order_unstake_ticket_management_account.total_ordered_lamports;
+    let delayed_unstake_in_flight_this_epoch = match &accounts.order_unstake_ticket_management_account {
+        Some(order_unstake_ticket_management_account) => order_unstake_ticket_management_account.total_ordered_lamports,
+        None => 0,
+    };
 
     // This amount should be ordered for delayed unstake to rebalance the liquidity pool to its preferred minimum
     let amount_to_order_delayed_unstake = preferred_min_liq_pool_after_unstake

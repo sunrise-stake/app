@@ -1,8 +1,10 @@
-import {LiquidUnstakeResult, SunriseStakeClient} from "@sunrisestake/app/src/lib/client";
+import { SunriseStakeClient} from "@sunrisestake/app/src/lib/client";
 import { Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
 import { createBurnInstruction } from "@solana/spl-token";
+
+export const NETWORK_FEE = 5000;
 
 export const burnGSol = async (amount: BN, client: SunriseStakeClient) => {
   const burnInstruction = createBurnInstruction(
@@ -22,7 +24,7 @@ export const expectStakerGSolTokenBalance = async (
   const gsolBalance = await client.provider.connection.getTokenAccountBalance(
       client.stakerGSolTokenAccount!
   );
-  console.log("Staker's gSOL balance", gsolBalance.value.uiAmount);
+  log("Staker's gSOL balance", gsolBalance.value.uiAmount);
   expect(gsolBalance.value.amount).to.equal(new BN(amount).toString());
 };
 
@@ -35,7 +37,7 @@ const expectAmount = (
   const minExpected = new BN(expectedAmount).subn(tolerance);
   const maxExpected = new BN(expectedAmount).addn(tolerance);
 
-  console.log(
+  log(
       "Expecting",
       actualAmountBN.toString(),
       "to be at least",
@@ -67,15 +69,15 @@ export const getLPPrice = async (client: SunriseStakeClient) => {
 
   const lpPrice = (solBalance + msolValue) / Number(lpSupply);
 
-  console.log("LP sol leg balance", lpSolLegBalance);
-  console.log("LP msol leg balance", lpMsolLegBalance.value.amount);
-  console.log("Msol price", msolPrice);
+  log("LP sol leg balance", lpSolLegBalance);
+  log("LP msol leg balance", lpMsolLegBalance.value.amount);
+  log("Msol price", msolPrice);
 
-  console.log("sol leg", solBalance);
-  console.log("msol leg", msolValue);
+  log("sol leg", solBalance);
+  log("msol leg", msolValue);
 
-  console.log("LP supply", lpSupply);
-  console.log("LP price", lpPrice);
+  log("LP supply", lpSupply);
+  log("LP price", lpPrice);
 
   return lpPrice;
 }
@@ -88,7 +90,7 @@ export const expectMSolTokenBalance = async (
   const msolBalance = await client.provider.connection.getTokenAccountBalance(
       client.msolTokenAccount!
   );
-  console.log("mSOL balance", msolBalance.value.amount);
+  log("mSOL balance", msolBalance.value.amount);
   expectAmount(new BN(msolBalance.value.amount), expectedAmount, tolerance);
 };
 
@@ -100,14 +102,14 @@ export const expectLiqPoolTokenBalance = async (
   const liqPoolBalance = await client.provider.connection.getTokenAccountBalance(
       client.liqPoolTokenAccount!
   );
-  console.log("LiqPool balance", liqPoolBalance.value.amount);
-  console.log("Expected amount", expectedAmount);
+  log("LiqPool balance", liqPoolBalance.value.amount);
+  log("Expected amount", expectedAmount);
   expectAmount(new BN(liqPoolBalance.value.amount), expectedAmount, tolerance);
 };
 
 export const getBalance = async (client: SunriseStakeClient) => {
   const balance = await client.provider.connection.getBalance(client.staker);
-  console.log("Staker SOL balance", balance);
+  log("Staker SOL balance", balance);
   // cast to string then convert to BN as BN has trouble with large values of type number in its constructor
   return new BN(`${balance}`);
 };
@@ -131,7 +133,7 @@ export const expectTreasurySolBalance = async (
   const treasuryBalance = await client.provider.connection.getBalance(
       client.config!.treasury
   );
-  console.log("Treasury SOL balance", treasuryBalance);
+  log("Treasury SOL balance", treasuryBalance);
   expectAmount(treasuryBalance, expectedAmount, tolerance);
 };
 
@@ -141,26 +143,22 @@ export const networkFeeForConfirmedTransaction = async (client: SunriseStakeClie
   return tx!.meta!.fee
 }
 
-export const calculateFee = async (client: SunriseStakeClient, unstakeResult: LiquidUnstakeResult, lpSolValue: number, unstaleAmount: BN) => {
-  const networkFee = await networkFeeForConfirmedTransaction(client, unstakeResult.txSig);
-  const rentForOrderUnstakeTicket = await client.provider.connection.getBalance(unstakeResult.orderUnstakeTicket);
-  const rentForOrderUnstakeManagementTicket = await client.provider.connection.getBalance(unstakeResult.orderUnstakeTicketManagementAccount);
-  const amountBeingLiquidUnstaked = unstaleAmount.sub(new BN("" + lpSolValue));
+export const calculateFee = async (client: SunriseStakeClient, lpSolValue: number, unstakeAmount: BN) => {
+  const amountBeingLiquidUnstaked = unstakeAmount.sub(new BN("" + lpSolValue));
   const fee = amountBeingLiquidUnstaked
       .muln(3).divn(1000)
-      .addn(rentForOrderUnstakeTicket)
-      .addn(rentForOrderUnstakeManagementTicket)
-      .addn(networkFee);
+      .addn(NETWORK_FEE);
 
-  console.log({
+  log({
     fee: fee.toString(),
     amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
-    unstakeSOL: unstaleAmount.toString(),
+    unstakeSOL: unstakeAmount.toString(),
     lpSolValue: lpSolValue,
-    rentForOrderUnstakeTicket,
-    rentForOrderUnstakeManagementTicket,
-    networkFee,
   })
 
   return fee;
+}
+
+export const log = (...args: any[]) => {
+  !!process.env.VERBOSE && console.log(...args);
 }

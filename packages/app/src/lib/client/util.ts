@@ -1,34 +1,49 @@
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import {AccountInfo, ConfirmOptions, Connection, PublicKey, TokenAmount, Transaction} from "@solana/web3.js";
+import * as anchor from "@project-serum/anchor";
+import {AnchorProvider, Program} from "@project-serum/anchor";
+import {ManagementAccount} from "./types/ManagementAccount";
 
 export const enum ProgramDerivedAddressSeed {
-  G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
-  M_SOL_ACCOUNT = "msol_account",
-  ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT= "order_unstake_ticket_mgmt",
-  ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
+    G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
+    M_SOL_ACCOUNT = "msol_account",
+    ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT= "order_unstake_ticket_mgmt",
+    ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
+    PRE_POOL_ACCOUNT = "pre_pool_account"
 }
 
 export interface SunriseStakeConfig {
-  stateAddress: PublicKey;
-  gsolMint: PublicKey;
-  treasury: PublicKey;
-  updateAuthority: PublicKey;
-  programId: PublicKey;
-  liqPoolProportion: number;
+    stateAddress: PublicKey;
+    gsolMint: PublicKey;
+    treasury: PublicKey;
+    updateAuthority: PublicKey;
+    programId: PublicKey;
+    liqPoolProportion: number;
 
-  liqPoolMinProportion: number;
+    liqPoolMinProportion: number;
+
+    options: Options;
 }
+
+// Return the type of an element in an array
+// type A = ArrayElement<string[]>; // string
+// type B = ArrayElement<readonly string[]>; // string
+// type C = ArrayElement<[string, number]>; // string | number
+// type D = ArrayElement<["foo", "bar"]>; // "foo" | "bar"
+// type E = ArrayElement<(P | (Q | R))[]>; // P | Q | R
+type ArrayElement<ArrayType extends readonly unknown[]> =
+    ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
 const findProgramDerivedAddress = (
     config: SunriseStakeConfig,
     seed: ProgramDerivedAddressSeed,
     extraSeeds: Buffer[] = []
 ): [PublicKey, number] => {
-  const seeds = [
-    config.stateAddress.toBuffer(),
-    Buffer.from(seed),
-    ...extraSeeds,
-  ];
-  return PublicKey.findProgramAddressSync(seeds, config.programId);
+    const seeds = [
+        config.stateAddress.toBuffer(),
+        Buffer.from(seed),
+        ...extraSeeds,
+    ];
+    return PublicKey.findProgramAddressSync(seeds, config.programId);
 };
 
 export const findMSolTokenAccountAuthority = (
@@ -72,15 +87,81 @@ export const findOrderUnstakeTicketAccount = (
     );
 };
 
+export const findPrePoolAccount = (
+    config: SunriseStakeConfig
+): [PublicKey, number] =>
+    findProgramDerivedAddress(
+        config,
+        ProgramDerivedAddressSeed.PRE_POOL_ACCOUNT
+    );
+
+
 export const logKeys = (transaction: Transaction): void =>
     transaction.instructions.forEach((instruction, j) => {
-      instruction.keys.forEach((key, i) => {
-        console.log(j, i, key.pubkey.toBase58());
-      });
+        instruction.keys.forEach((key, i) => {
+            console.log(j, i, key.pubkey.toBase58());
+        });
     });
 
 export const confirm = (connection: Connection) => async (txSig: string) =>
     connection.confirmTransaction({
-      signature: txSig,
-      ...(await connection.getLatestBlockhash()),
+        signature: txSig,
+        ...(await connection.getLatestBlockhash()),
     });
+
+
+export const setUpAnchor = (): anchor.AnchorProvider => {
+    // Configure the client to use the local cluster.
+    const provider = AnchorProvider.env();
+    anchor.setProvider(provider);
+
+    return provider;
+};
+
+export interface Balance {
+    depositedSol: TokenAmount;
+    totalDepositedSol: TokenAmount;
+    msolBalance: TokenAmount;
+    msolPrice: number;
+}
+
+export const PROGRAM_ID = new PublicKey(
+    "gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p"
+);
+
+export const ZERO_BALANCE = {
+    value: {
+        amount: "0",
+        decimals: 9,
+        uiAmount: 0,
+        uiAmountString: "0",
+    },
+};
+
+export interface Options {
+    confirmOptions?: ConfirmOptions,
+    verbose?: boolean
+}
+export const findAllTickets = async (
+    connection: Connection,
+    config: SunriseStakeConfig,
+    managementAccount: ManagementAccount
+):Promise<PublicKey[]> => {
+    const epochInfo = await connection.getEpochInfo();
+    const lastEpoch = BigInt(epochInfo.epoch - 1);
+
+    // find all tickets for the last epoch in reverse order, this allows us to better paginate later
+    const tickets: PublicKey[] = [];
+    for (let i = managementAccount.tickets.toNumber(); i > 0; i++) {
+        const [orderUnstakeTicketAccount] = findOrderUnstakeTicketAccount(config, lastEpoch, BigInt(i));
+
+        tickets.push(orderUnstakeTicketAccount);
+    }
+    // TODO Later add pagination here in case the count is too high for one call
+    const accountInfos = await connection.getMultipleAccountsInfo(tickets);
+
+    return accountInfos
+        .map((accountInfo, i): [PublicKey, ArrayElement<typeof accountInfos>] => [tickets[i], accountInfo])
+        .filter((element): element is [PublicKey, AccountInfo<Buffer>]  => element[1] !== null)
+        .map(([ticket, accountInfo]) => ticket);
+}

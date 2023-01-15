@@ -353,21 +353,6 @@ export type SunriseStake = {
           "isSigner": true
         },
         {
-          "name": "orderUnstakeTicketAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "orderUnstakeTicketManagementAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "rent",
           "isMut": false,
           "isSigner": false
@@ -392,18 +377,6 @@ export type SunriseStake = {
         {
           "name": "lamports",
           "type": "u64"
-        },
-        {
-          "name": "epoch",
-          "type": "u64"
-        },
-        {
-          "name": "index",
-          "type": "u64"
-        },
-        {
-          "name": "orderUnstakeTicketAccountBump",
-          "type": "u8"
         }
       ]
     },
@@ -432,16 +405,8 @@ export type SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "gsolMintAuthority",
           "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Used to ensure the correct GSOL mint is used"
-          ]
+          "isSigner": false
         },
         {
           "name": "liqPoolMint",
@@ -505,13 +470,14 @@ export type SunriseStake = {
         },
         {
           "name": "orderUnstakeTicketManagementAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "previousOrderUnstakeTicketManagementAccount",
-          "isMut": false,
-          "isSigner": false
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true
         },
         {
           "name": "clock",
@@ -1298,21 +1264,6 @@ export const IDL: SunriseStake = {
           "isSigner": true
         },
         {
-          "name": "orderUnstakeTicketAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "orderUnstakeTicketManagementAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "rent",
           "isMut": false,
           "isSigner": false
@@ -1337,18 +1288,6 @@ export const IDL: SunriseStake = {
         {
           "name": "lamports",
           "type": "u64"
-        },
-        {
-          "name": "epoch",
-          "type": "u64"
-        },
-        {
-          "name": "index",
-          "type": "u64"
-        },
-        {
-          "name": "orderUnstakeTicketAccountBump",
-          "type": "u8"
         }
       ]
     },
@@ -1377,16 +1316,8 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "gsolMintAuthority",
           "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Used to ensure the correct GSOL mint is used"
-          ]
+          "isSigner": false
         },
         {
           "name": "liqPoolMint",
@@ -1450,13 +1381,14 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "orderUnstakeTicketManagementAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "previousOrderUnstakeTicketManagementAccount",
-          "isMut": false,
-          "isSigner": false
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true
         },
         {
           "name": "clock",

@@ -17,25 +17,6 @@ pub struct CreateAccountProperties<'info> {
     rent: Sysvar<'info, Rent>,
     clock: Sysvar<'info, Clock>,
 }
-impl<'a> From<LiquidUnstake<'a>> for CreateAccountProperties<'a> {
-    fn from(unstake: LiquidUnstake<'a>) -> Self {
-        Self {
-            state: unstake.state,
-            // TODO factor in rent cost in amount to be withdrawn
-            payer: unstake.gsol_token_account_authority,
-            new_account: unstake.order_unstake_ticket_account.to_account_info(),
-            system_program: unstake.system_program,
-            marinade_program: unstake.marinade_program,
-            rent: unstake.rent,
-            clock: unstake.clock,
-        }
-    }
-}
-impl<'a> From<&LiquidUnstake<'a>> for CreateAccountProperties<'a> {
-    fn from(unstake: &LiquidUnstake<'a>) -> Self {
-        unstake.to_owned().into()
-    }
-}
 impl<'a> From<TriggerPoolRebalance<'a>> for CreateAccountProperties<'a> {
     fn from(trigger_pool_rebalance: TriggerPoolRebalance<'a>) -> Self {
         Self {
