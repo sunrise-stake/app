@@ -2,12 +2,12 @@ import BN from "bn.js";
 import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import { SunriseStakeClient } from "../app/src/lib/client";
 import {
-  burnGSol, expectLiqPoolTokenBalance,
+  burnGSol, calculateFee, expectLiqPoolTokenBalance,
   expectMSolTokenBalance,
   expectStakerGSolTokenBalance,
   expectStakerSolBalance,
-  expectTreasurySolBalance, networkFeeForConfirmedTransaction,
-  getBalance, getLPPrice, calculateFee,
+  expectTreasurySolBalance,
+  getBalance, getLPPrice, log, NETWORK_FEE,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -22,7 +22,7 @@ describe("sunrise-stake", () => {
 
   const depositSOL = new BN(100_000_000_000); // Deposit 100 SOL
   const unstakeSOLUnderLPBalance = new BN(1_000_000_000); // 1 SOL
-  const unstakeSOLExceedLPBalance = new BN(2_000_000_000); // 20 SOL
+  const unstakeSOLExceedLPBalance = new BN(20_000_000_000); // 20 SOL
   const orderUnstakeSOL = new BN(2_000_000_000); // Order a delayed unstake of 2 SOL
 
   let treasury = Keypair.generate();
@@ -33,10 +33,13 @@ describe("sunrise-stake", () => {
   it.only("can register a new Sunrise state", async () => {
     client = await SunriseStakeClient.register(
         treasury.publicKey,
-        Keypair.generate()
+        Keypair.generate(),
+        {
+          verbose: !!process.env.VERBOSE
+        }
     );
 
-    console.log(await client.details())
+    log(await client.details())
   });
 
   it.only("can update the state", async () => {
@@ -108,8 +111,9 @@ describe("sunrise-stake", () => {
 
     await client.unstake(unstakeSOLUnderLPBalance);
 
+
     const expectedPostUnstakeBalance = stakerPreSolBalance
-        .add(unstakeSOLUnderLPBalance);
+        .add(unstakeSOLUnderLPBalance).subn(NETWORK_FEE);
 
     // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
@@ -117,7 +121,7 @@ describe("sunrise-stake", () => {
     await expectStakerSolBalance(client, expectedPostUnstakeBalance, 50);
   });
 
-  it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
+  it.only("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
     const lpSolValue = (await client.details()).lpDetails.lpSolValue;
 
     const stakerPreSolBalance = await getBalance(client);
@@ -125,14 +129,14 @@ describe("sunrise-stake", () => {
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(
         client.stakerGSolTokenAccount!
     );
-    const unstakeResult = await client.unstake(unstakeSOLExceedLPBalance);
+    await client.unstake(unstakeSOLExceedLPBalance);
 
     await expectStakerGSolTokenBalance(
         client,
         new BN(gsolBalance.value.amount).sub(unstakeSOLExceedLPBalance)
     );
 
-    const liquidUnstakeFee = await calculateFee(client, unstakeResult, lpSolValue, unstakeSOLExceedLPBalance)
+    const liquidUnstakeFee = await calculateFee(client, lpSolValue, unstakeSOLExceedLPBalance)
 
     const expectedPostUnstakeBalance = stakerPreSolBalance
         .add(unstakeSOLExceedLPBalance)
@@ -181,9 +185,9 @@ describe("sunrise-stake", () => {
     // we run the validator at 32 slots per epoch, so we "only" need to wait for ~16 seconds
     // wait 20 seconds to be safe
     // An alternative is to write rust tests using solana-program-test
-    console.log("Waiting 20s for next epoch...");
+    log("Waiting 20s for next epoch...");
     await new Promise((resolve) => setTimeout(resolve, 20000));
-    await client.provider.connection.getEpochInfo().then(console.log);
+    await client.provider.connection.getEpochInfo().then(log);
 
     const sunriseLamports = await client.provider.connection
         .getAccountInfo(delayedUnstakeTicket.address)
@@ -192,15 +196,15 @@ describe("sunrise-stake", () => {
         .getAccountInfo(delayedUnstakeTicket.marinadeTicketAccount)
         .then((account) => account?.lamports);
 
-    console.log(
+    log(
         "total reclaimed rent: ",
         sunriseLamports,
         marinadeLamports,
         (sunriseLamports ?? 0) + (marinadeLamports ?? 0)
     );
-    console.log("ticket size: ", orderUnstakeSOL.toString());
-    console.log("existing balance", stakerPreSolBalance.toString());
-    console.log(
+    log("ticket size: ", orderUnstakeSOL.toString());
+    log("existing balance", stakerPreSolBalance.toString());
+    log(
         "existing balance plus reclaimed rent",
         stakerPreSolBalance
             .addn(sunriseLamports ?? 0)

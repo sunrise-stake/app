@@ -15,6 +15,11 @@ import {
   findMSolTokenAccountAuthority,
   SunriseStakeConfig,
   logKeys,
+  Options,
+  PROGRAM_ID,
+  setUpAnchor,
+  ZERO_BALANCE,
+  Balance,
 } from "./util";
 import {
   Marinade,
@@ -35,40 +40,6 @@ import {
 import {DEFAULT_LP_MIN_PROPORTION, DEFAULT_LP_PROPORTION} from "../constants";
 import {liquidUnstake} from "./marinade";
 
-const setUpAnchor = (): anchor.AnchorProvider => {
-  // Configure the client to use the local cluster.
-  const provider = AnchorProvider.env();
-  anchor.setProvider(provider);
-
-  return provider;
-};
-
-export interface Balance {
-  depositedSol: TokenAmount;
-  totalDepositedSol: TokenAmount;
-  msolBalance: TokenAmount;
-  msolPrice: number;
-}
-
-export interface LiquidUnstakeResult {
-  txSig: string;
-  orderUnstakeTicket: PublicKey;
-    orderUnstakeTicketManagementAccount: PublicKey;
-}
-
-export const PROGRAM_ID = new PublicKey(
-    "gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p"
-);
-
-const ZERO_BALANCE = {
-  value: {
-    amount: "0",
-    decimals: 9,
-    uiAmount: 0,
-    uiAmountString: "0",
-  },
-};
-
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
   config: SunriseStakeConfig | undefined;
@@ -88,10 +59,15 @@ export class SunriseStakeClient {
 
   private constructor(
       readonly provider: AnchorProvider,
-      readonly stateAddress: PublicKey
+      readonly stateAddress: PublicKey,
+      readonly options: Options = {}
   ) {
     this.program = new Program<SunriseStake>(IDL, PROGRAM_ID, provider);
     this.staker = this.provider.publicKey;
+  }
+
+  private log(...args: any[]) {
+    !!this.config?.options.verbose && console.log(...args);
   }
 
   private async init(): Promise<void> {
@@ -107,9 +83,10 @@ export class SunriseStakeClient {
       updateAuthority: sunriseStakeState.updateAuthority,
       liqPoolProportion: sunriseStakeState.liqPoolProportion,
       liqPoolMinProportion: sunriseStakeState.liqPoolMinProportion,
+      options: this.options,
     };
 
-    console.log("Config", this.config);
+    this.log("Config", this.config);
 
     this.stakerGSolTokenAccount = PublicKey.findProgramAddressSync(
         [
@@ -179,17 +156,17 @@ export class SunriseStakeClient {
       await this.createGSolTokenAccount();
     }
 
-    console.log("Token account created. Depositing...");
+    this.log("Token account created. Depositing...");
 
     const { transaction } = await this.marinade.deposit(lamports);
 
     return this.provider.sendAndConfirm(transaction, []).catch((e) => {
-      console.log(e.logs);
+      this.log(e.logs);
       throw e;
     });
   }
 
-  public async unstake(lamports: BN): Promise<LiquidUnstakeResult> {
+  public async unstake(lamports: BN): Promise<string> {
     if (
         !this.marinadeState ||
         !this.marinade ||
@@ -199,7 +176,7 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const { transaction, orderUnstakeTicketAccount, managementAccount } = await liquidUnstake(
+    const transaction = await liquidUnstake(
         this.config,
         this.marinade,
         this.marinadeState,
@@ -209,21 +186,10 @@ export class SunriseStakeClient {
         this.stakerGSolTokenAccount,
         lamports
     );
-// when using the marinade sdk
-//         await this.marinade.liquidUnstake(
-//         lamports,
-//         this.msolTokenAccount
-//     );
 
-    logKeys(transaction);
+    !!this.config.options.verbose && logKeys(transaction);
 
-    const txSig = await this.provider.sendAndConfirm(transaction, []);
-
-    return {
-      txSig,
-      orderUnstakeTicket: orderUnstakeTicketAccount,
-      orderUnstakeTicketManagementAccount: managementAccount.address
-    }
+    return this.provider.sendAndConfirm(transaction, []);
   }
 
   public async orderUnstake(lamports: BN): Promise<[string, PublicKey]> {
@@ -465,7 +431,8 @@ export class SunriseStakeClient {
 
   public static async register(
       treasury: PublicKey,
-      gsolMint: Keypair
+      gsolMint: Keypair,
+      options: Options = {}
   ): Promise<SunriseStakeClient> {
     const sunriseStakeState = Keypair.generate();
     const client = new SunriseStakeClient(
@@ -481,6 +448,7 @@ export class SunriseStakeClient {
       treasury,
       liqPoolProportion: DEFAULT_LP_PROPORTION,
       liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      options
     };
     const marinadeConfig = new MarinadeConfig({
       connection: client.provider.connection,
@@ -622,9 +590,10 @@ export class SunriseStakeClient {
 
   public static async get(
       provider: AnchorProvider,
-      stateAddress: PublicKey
+      stateAddress: PublicKey,
+      options: Options = {}
   ): Promise<SunriseStakeClient> {
-    const client = new SunriseStakeClient(provider, stateAddress);
+    const client = new SunriseStakeClient(provider, stateAddress, options);
     await client.init();
     return client;
   }

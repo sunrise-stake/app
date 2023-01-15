@@ -5,7 +5,6 @@
   "dependencies": {
     "@headlessui/react": "^1.7.4",
     "@heroicons/react": "^2.0.13",
-    "@project-serum/anchor": "^0.25.0",
     "@solana/spl-token": "^0.3.6",
     "@solana/wallet-adapter-base": "^0.9.18",
     "@solana/wallet-adapter-react": "^0.15.23",

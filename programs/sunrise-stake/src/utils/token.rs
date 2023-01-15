@@ -49,7 +49,6 @@ pub fn create_token_account<'a>(
     system_program: &Program<'a, System>,
     token_program: &Program<'a, Token>,
     associated_token_program: &Program<'a, AssociatedToken>,
-    rent: &Sysvar<'a, Rent>,
 ) -> Result<()> {
     let cpi_program = associated_token_program.to_account_info();
     let cpi_accounts = Create {
@@ -59,7 +58,6 @@ pub fn create_token_account<'a>(
         mint: mint.to_account_info(),
         system_program: system_program.to_account_info(),
         token_program: token_program.to_account_info(),
-        rent: rent.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
     anchor_spl::associated_token::create(cpi_ctx)
