@@ -19,7 +19,7 @@ const Button: React.FC<ButtonProps> = ({
         "px-8 py-4 rounded-lg text-white text-xl",
         {
           "bg-green": variant === "primary",
-          "bg-red-400": variant === "danger",
+          "bg-danger": variant === "danger",
           "bg-outset": variant === "secondary",
         },
         className

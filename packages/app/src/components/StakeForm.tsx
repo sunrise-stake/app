@@ -1,7 +1,6 @@
 import BN from "bn.js";
 import React, { useState } from "react";
 import { FiArrowDownLeft, FiArrowUpRight } from "react-icons/fi";
-import clx from "classnames";
 
 import DepositWarningModal from "./modals/DepositWarningModal";
 import useModal from "../hooks/useModal";
@@ -22,8 +21,6 @@ const AmountInput: React.FC<AmountInputProps> = ({
   amount,
   setAmount,
 }) => {
-  const [isMax, setIsMax] = useState(false);
-
   return (
     <div className={className}>
       <div className="flex flex-row justify-between p-8 my-auto bg-background">
@@ -31,48 +28,27 @@ const AmountInput: React.FC<AmountInputProps> = ({
         <div className="my-auto">
           <div className="text-right">
             Balance:{" "}
-            <span className="text-blue">
+            <span
+              className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md"
+              onClick={() => {
+                if (balance) {
+                  setAmount(toFixedWithPrecision(toSol(balance)).toString());
+                }
+              }}
+            >
               {balance ? toFixedWithPrecision(toSol(balance)) : "-"} SOL
             </span>
           </div>
-          <span className="flex flex-row mt-2">
-            <button
-              className={clx(
-                "text-xl my-auto mx-4 px-4 py-1 border-solid border-[1px] border-green rounded-md bg-green",
-                { "bg-opacity-25": !isMax }
-              )}
-              onClick={() => {
-                setIsMax((prevState) => {
-                  if (prevState) {
-                    // setAmount here creates a warning but I don't understand why, it says this is a bad setState call
-                    setAmount("0");
-                  } else {
-                    balance &&
-                      setAmount(
-                        toFixedWithPrecision(toSol(balance)).toString()
-                      );
-                  }
-                  return !prevState;
-                });
-              }}
-            >
-              Max
-            </button>
-
-            <input
-              className="w-28 border-none bg-transparent text-3xl text-right"
-              type="number"
-              min="0"
-              // It still show comma instead of point for decimal
-              lang="en"
-              placeholder="0.00"
-              value={amount}
-              onChange={(ev) => {
-                setAmount(ev.currentTarget.value);
-                setIsMax(false);
-              }}
-            />
-          </span>
+          <input
+            className="w-full border-none bg-transparent text-3xl text-right"
+            type="number"
+            min="0"
+            placeholder="0.00"
+            value={amount}
+            onChange={(ev) => {
+              setAmount(ev.currentTarget.value);
+            }}
+          />
         </div>
       </div>
     </div>
