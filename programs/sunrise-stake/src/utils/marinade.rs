@@ -15,6 +15,7 @@ use marinade_cpi::{
     program::MarinadeFinance,
     State as MarinadeState,
 };
+use crate::utils::seeds::PRE_POOL_ACCOUNT;
 
 pub struct GenericUnstakeProperties<'info> {
     state: Box<Account<'info, State>>,
@@ -328,7 +329,8 @@ impl<'a> From<&TriggerPoolRebalance<'a>> for AddLiquidityProperties<'a> {
         trigger_pool_rebalance.to_owned().into()
     }
 }
-pub fn add_liquidity(accounts: &AddLiquidityProperties, lamports: u64) -> Result<()> {
+
+fn create_add_liquidity_ctx<'a,'b,'c,'info>(accounts: &'a AddLiquidityProperties<'info>) -> CpiContext<'a,'b,'c,'info, MarinadeAddLiquidity<'info>> {
     let cpi_program = accounts.marinade_program.to_account_info();
     let cpi_accounts = MarinadeAddLiquidity {
         state: accounts.marinade_state.to_account_info(),
@@ -341,8 +343,20 @@ pub fn add_liquidity(accounts: &AddLiquidityProperties, lamports: u64) -> Result
         system_program: accounts.system_program.to_account_info(),
         token_program: accounts.token_program.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    CpiContext::new(cpi_program, cpi_accounts)
+}
+
+pub fn add_liquidity(accounts: &AddLiquidityProperties, lamports: u64) -> Result<()> {
+    let cpi_ctx = create_add_liquidity_ctx(accounts);
     marinade_add_liquidity(cpi_ctx, lamports)
+}
+
+pub fn add_liquidity_from_prepool_pda(accounts: &AddLiquidityProperties, lamports: u64, bump: u8) -> Result<()> {
+    let cpi_ctx = create_add_liquidity_ctx(accounts);
+    let bump_slice = &[bump][..];
+    let state_address = accounts.state.key();
+    let seeds = &[state_address.as_ref(), PRE_POOL_ACCOUNT, bump_slice][..];
+    marinade_add_liquidity(cpi_ctx.with_signer(&[seeds]), lamports)
 }
 
 pub fn remove_liquidity(accounts: &LiquidUnstake, liq_pool_tokens: u64) -> Result<()> {

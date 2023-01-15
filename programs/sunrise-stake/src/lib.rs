@@ -205,8 +205,10 @@ pub mod sunrise_stake {
             ctx.accounts.payer.to_account_info(),
         )?;
 
-        let add_liquidity_props = ctx.accounts.deref().into();
-        marinade::add_liquidity(&add_liquidity_props, claimed_lamports)?;
+        if claimed_lamports > 0 {
+            let add_liquidity_props = ctx.accounts.deref().into();
+            marinade::add_liquidity_from_prepool_pda(&add_liquidity_props, claimed_lamports, pre_pool_account_bump)?;
+        }
 
         Ok(())
     }
