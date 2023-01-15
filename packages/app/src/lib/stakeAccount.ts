@@ -6,7 +6,7 @@ import BN from "bn.js";
 import { Environment } from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
-import {Balance} from "./client/util";
+import { Balance } from "./client/util";
 
 export const SUNRISE_STAKE_STATE =
   Environment[
@@ -32,31 +32,22 @@ export class StakeAccount {
       {}
     );
     const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE, {
-      verbose: !!process.env.REACT_APP_VERBOSE
+      verbose: Boolean(process.env.REACT_APP_VERBOSE),
     });
     client.details().then(console.log).catch(console.error);
     return new StakeAccount(client);
   }
 
   async getBalance(): Promise<BalanceInfo> {
-    const balance = await this.client.getBalance();
+    const balance = await this.client.balance();
+    const earnedLamports = await this.client.extractableYield();
     const msolValue = new BN(
       new BN(balance.msolBalance.amount).toNumber() * balance.msolPrice
     );
-    const stake = msolValue.sub(new BN(balance.totalDepositedSol.amount ?? 0));
-
-    console.log({ balance, msolValue, stake });
-
-    console.log("msolBalance", balance.msolBalance.amount);
-    console.log("msolPrice", balance.msolPrice);
-    console.log("msolValue", msolValue.toString());
-    console.log("earned lamports", stake.toNumber());
-    console.log("total deposited sol", balance.totalDepositedSol.amount);
-
     return {
       ...balance,
       msolValue,
-      earnedLamports: stake,
+      earnedLamports,
     };
   }
 

@@ -1,9 +1,9 @@
+use crate::utils::seeds::ORDER_UNSTAKE_TICKET_ACCOUNT;
+use crate::{State, TriggerPoolRebalance};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::solana_program::system_instruction;
 use marinade_cpi::program::MarinadeFinance;
-use crate::{LiquidUnstake, OrderUnstakeTicketManagementAccount, State, TriggerPoolRebalance};
-use crate::utils::seeds::ORDER_UNSTAKE_TICKET_ACCOUNT;
 
 pub const MARINADE_TICKET_ACCOUNT_SPACE: u64 = 32 + 32 + 8 + 8 + 8;
 
@@ -23,7 +23,9 @@ impl<'a> From<TriggerPoolRebalance<'a>> for CreateAccountProperties<'a> {
             state: trigger_pool_rebalance.state,
             // TODO factor in rent cost in amount to be withdrawn
             payer: trigger_pool_rebalance.payer,
-            new_account: trigger_pool_rebalance.order_unstake_ticket_account.to_account_info(),
+            new_account: trigger_pool_rebalance
+                .order_unstake_ticket_account
+                .to_account_info(),
             system_program: trigger_pool_rebalance.system_program,
             marinade_program: trigger_pool_rebalance.marinade_program,
             rent: trigger_pool_rebalance.rent,
@@ -45,48 +47,21 @@ pub fn create_order_unstake_ticket_account(
     order_unstake_ticket_account_bump: u8,
     order_unstake_ticket_account_index: u64,
 ) -> Result<()> {
-    let new_ticket_lamports = properties.rent.minimum_balance(MARINADE_TICKET_ACCOUNT_SPACE as usize);
+    let new_ticket_lamports = properties
+        .rent
+        .minimum_balance(MARINADE_TICKET_ACCOUNT_SPACE as usize);
 
     let state = properties.state.key();
     let epoch = properties.clock.epoch.to_be_bytes();
     let index = order_unstake_ticket_account_index.to_be_bytes();
     let bump = &[order_unstake_ticket_account_bump][..];
-    let seeds = &[state.as_ref(), ORDER_UNSTAKE_TICKET_ACCOUNT, epoch.as_ref(), index.as_ref(), bump][..];
-
-    // Using invoke_signed directly instead of using CpiContext because we want to use invoke_signed,
-    // but not use create_account_with_seed, which is difficult to use.
-    invoke_signed(
-        &system_instruction::create_account(
-            &properties.payer.key(),
-            &properties.new_account.key(),
-            new_ticket_lamports,
-            MARINADE_TICKET_ACCOUNT_SPACE,
-            properties.marinade_program.key,
-        ),
-        &[
-            properties.payer.to_account_info(),
-            properties.new_account.to_account_info(),
-            properties.system_program.to_account_info(),
-        ],
-        &[seeds],
-    )?;
-
-    Ok(())
-}
-
-// Create an order unstake ticket management account.
-// This is the equivalent to adding "init" to the anchor account macro. But we do this in code instead
-// to avoid creating one if we don't need it.
-pub fn create_order_unstake_ticket_management_account(
-    properties: &CreateAccountProperties,
-    order_unstake_ticket_account_bump: u8,
-) -> Result<()> {
-    let new_ticket_lamports = properties.rent.minimum_balance(OrderUnstakeTicketManagementAccount::SPACE as usize);
-
-    let state = properties.state.key();
-    let epoch = properties.clock.epoch.to_be_bytes();
-    let bump = &[order_unstake_ticket_account_bump][..];
-    let seeds = &[state.as_ref(), ORDER_UNSTAKE_TICKET_ACCOUNT, epoch.as_ref(), bump][..];
+    let seeds = &[
+        state.as_ref(),
+        ORDER_UNSTAKE_TICKET_ACCOUNT,
+        epoch.as_ref(),
+        index.as_ref(),
+        bump,
+    ][..];
 
     // Using invoke_signed directly instead of using CpiContext because we want to use invoke_signed,
     // but not use create_account_with_seed, which is difficult to use.

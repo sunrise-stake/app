@@ -1,5 +1,10 @@
+import BN from "bn.js";
+import { Balance } from "../util";
+
 export interface Details {
+  // TODO Standardise on number/bigint/BigDecimal
   staker: string;
+  balances: Balance;
   stakerGSolTokenAccount: string;
   sunriseStakeConfig: {
     gsolMint: string;
@@ -11,16 +16,19 @@ export interface Details {
   };
   marinadeFinanceProgramId: string;
   marinadeStateAddress: string;
-  msolLeg: string;
-  msolPrice: number;
-  sunriseMsolBalance: number | null;
-  stakeDelta: number;
+
+  spDetails: {
+    msolPrice: number;
+    stakeDelta: number;
+    msolValue: BN;
+  };
   lpDetails: {
     mintAddress: string;
     supply: bigint;
     mintAuthority?: string;
     decimals: number;
-    lpBalance: number | null;
-    lpSolValue: number;
+    lpSolShare: BN;
+    lpSolValue: BN;
+    msolLeg: string;
   };
 }
