@@ -1,4 +1,5 @@
 #![allow(clippy::result_large_err)]
+mod sunrise_spl;
 mod utils;
 
 use crate::utils::seeds::*;
@@ -9,10 +10,11 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
-
+use sunrise_spl::instructions::{
+    RegisterPool, SplDepositSol, SplDepositStake, SplWithdrawSol, SplWithdrawStake,
+};
 declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 
-#[program]
 pub mod sunrise_stake {
     use super::*;
     use crate::utils::marinade;
@@ -93,12 +95,15 @@ pub mod sunrise_stake {
         )
     }
 
-    pub fn deposit_stake_account(ctx: Context<DepositStakeAccount>, validator_index: u32) -> Result<()> {
+    pub fn deposit_stake_account(
+        ctx: Context<DepositStakeAccount>,
+        validator_index: u32,
+    ) -> Result<()> {
         let lamports = marinade::get_delegated_stake_amount(&ctx.accounts.stake_account)?;
 
         msg!("Depositing stake account");
         marinade::deposit_stake_account(ctx.accounts, validator_index)?;
-        
+
         msg!("Mint {} GSOL", lamports);
         mint_to(
             lamports,
@@ -138,7 +143,7 @@ pub mod sunrise_stake {
         burn(
             lamports,
             &ctx.accounts.gsol_mint.to_account_info(),
-            &ctx.accounts.gsol_token_account_authority,
+            &ctx.accounts.gsol_mint_authority.to_account_info(),
             &ctx.accounts.gsol_token_account.to_account_info(),
             &ctx.accounts.token_program.to_account_info(),
         )?;
@@ -184,7 +189,8 @@ pub mod sunrise_stake {
         burn(
             lamports,
             &ctx.accounts.gsol_mint.to_account_info(),
-            &ctx.accounts.gsol_token_account_authority,
+            &ctx.accounts.gsol_mint_authority.to_account_info(),
+            //&ctx.accounts.gsol_token_account_authority,
             &ctx.accounts.gsol_token_account.to_account_info(),
             &ctx.accounts.token_program.to_account_info(),
         )?;
@@ -207,6 +213,31 @@ pub mod sunrise_stake {
         marinade::unstake(&accounts, recoverable_yield_msol)?;
 
         Ok(())
+    }
+
+    //----------------------------------------------------------------------------
+    // Instructions for SPL Stake Pool Support
+    //----------------------------------------------------------------------------
+
+    pub fn register_spl_pool(ctx: Context<RegisterPool>) -> Result<()> {
+        let pool_details_bump = *ctx.bumps.get("pool_details").unwrap();
+        ctx.accounts.register(pool_details_bump)
+    }
+
+    pub fn spl_deposit_sol(ctx: Context<SplDepositSol>, amount: u64) -> Result<()> {
+        ctx.accounts.deposit_sol(amount)
+    }
+
+    pub fn spl_deposit_stake(ctx: Context<SplDepositStake>) -> Result<()> {
+        ctx.accounts.deposit_stake()
+    }
+
+    pub fn spl_withdraw_sol(ctx: Context<SplWithdrawSol>, amount: u64) -> Result<()> {
+        ctx.accounts.withdraw_sol(amount)
+    }
+
+    pub fn spl_withdraw_stake(ctx: Context<SplWithdrawStake>, amount: u64) -> Result<()> {
+        ctx.accounts.withdraw_stake(amount)
     }
 }
 
@@ -373,16 +404,16 @@ pub struct Deposit<'info> {
 pub struct DepositStakeAccount<'info> {
     #[account(has_one = marinade_state)]
     pub state: Box<Account<'info, State>>,
-    
+
     #[account()]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
-    
+
     #[account(
         mut,
         constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
     )]
     pub gsol_mint: Box<Account<'info, Mint>>,
-    
+
     #[account(
     seeds = [
     state.key().as_ref(),
@@ -404,7 +435,7 @@ pub struct DepositStakeAccount<'info> {
     #[account(mut)]
     /// CHECK: Checked in marinade program
     pub duplication_flag: AccountInfo<'info>,
-    
+
     /// Marinade makes a distinction between the `stake_authority`(proof of ownership of stake account)
     /// and the `rent_payer`(pays to init the validator_record account). Both are required to be signers
     /// for the instruction. These two accounts can be treated as one and the same, and here, they are.
@@ -421,23 +452,23 @@ pub struct DepositStakeAccount<'info> {
     token::authority = msol_token_account_authority,
     )]
     pub mint_msol_to: Account<'info, TokenAccount>,
-    
+
     #[account(
     mut,
     token::mint = gsol_mint,
     token::authority = stake_authority.key(),
     )]
     pub mint_gsol_to: Account<'info, TokenAccount>,
-    
+
     /// CHECK: Checked in marinade program
     pub msol_mint_authority: AccountInfo<'info>,
-    
+
     #[account(
     seeds = [state.key().as_ref(), MSOL_ACCOUNT],
     bump = state.msol_authority_bump
     )]
     pub msol_token_account_authority: SystemAccount<'info>,
-    
+
     pub clock: Sysvar<'info, Clock>,
     pub rent: Sysvar<'info, Rent>,
 
@@ -686,5 +717,13 @@ pub enum ErrorCode {
     #[msg("An error occurred when calculating an MSol value")]
     CalculationFailure,
     #[msg("Stake account deposit must be delegated")]
-    InvalidStakeAccountDelegation,
+    NotDelegated,
+    #[msg("Wrong update authority for Sunrise state")]
+    InvalidUpdateAuthority,
+    #[msg("Invalid Program Account")]
+    InvalidProgramAccount,
+    #[msg("Invalid Mint")]
+    InvalidMint,
+    #[msg("Unexpected Accounts")]
+    UnexpectedAccounts,
 }

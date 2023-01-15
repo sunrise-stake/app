@@ -19,3 +19,4 @@ default = []
 anchor-lang = "0.25.0"
 anchor-spl = "0.25.0"
 marinade-cpi = "0.3.0"
+spl-stake-pool = {version = "0.6.4", features = ["no-entrypoint"]}
