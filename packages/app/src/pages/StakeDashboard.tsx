@@ -3,6 +3,7 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import BN from "bn.js";
 import { FC, useCallback, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
+import { TbLeafOff } from "react-icons/tb";
 
 import { useSunriseStake } from "../hooks/useSunriseStake";
 import { BalanceInfo } from "../lib/stakeAccount";
@@ -12,6 +13,7 @@ import { toBN } from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
+import UnstakeForm from "../components/UnstakeForm";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -26,6 +28,7 @@ export const StakeDashboard: FC = () => {
   const [delayedUnstakeTickets, setDelayedUnstakeTickets] = useState<
     TicketAccount[]
   >([]);
+  const [isStakeSelected, setIsStakeSelected] = useState(true);
 
   const updateBalances = useCallback(async () => {
     if (!wallet.publicKey || !client) return;
@@ -97,10 +100,20 @@ export const StakeDashboard: FC = () => {
       </div>
       <div className="flex">
         <Panel className="inline-block mx-auto mb-9 p-4 rounded-lg">
-          <Button className="mr-5">
-            Deposit SOL <FaLeaf className="inline" size={24} />
+          <Button
+            variant={isStakeSelected ? "primary" : "secondary"}
+            className="mr-5"
+            onClick={() => setIsStakeSelected(true)}
+          >
+            Stake {isStakeSelected && <FaLeaf className="inline" size={24} />}
           </Button>
-          <Button variant="secondary">Withdraw gSOL</Button>
+          <Button
+            variant={isStakeSelected ? "secondary" : "danger"}
+            onClick={() => setIsStakeSelected(false)}
+          >
+            Unstake{" "}
+            {!isStakeSelected && <TbLeafOff className="inline" size={24} />}
+          </Button>
         </Panel>
       </div>
       <Panel className="p-10 rounded-lg">
@@ -113,12 +126,15 @@ export const StakeDashboard: FC = () => {
             ></div>
           </div>
         )}
-        <StakeForm
-          solBalance={solBalance}
-          withdraw={withdraw}
-          deposit={deposit}
-          setDelayedWithdraw={setDelayedWithdraw}
-        />
+        {isStakeSelected ? (
+          <StakeForm solBalance={solBalance} deposit={deposit} />
+        ) : (
+          <UnstakeForm
+            solBalance={solBalance}
+            withdraw={withdraw}
+            setDelayedWithdraw={setDelayedWithdraw}
+          />
+        )}
         <div
           style={{ display: "none" }}
           className="bg-neutral-800 rounded-lg m-4"
