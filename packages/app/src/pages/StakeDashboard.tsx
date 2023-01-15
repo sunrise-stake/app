@@ -13,6 +13,7 @@ import { toBN } from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
+import UnstakeForm from "../components/UnstakeForm";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -125,13 +126,15 @@ export const StakeDashboard: FC = () => {
             ></div>
           </div>
         )}
-        <StakeForm
-          isStakeSelected={isStakeSelected}
-          solBalance={solBalance}
-          withdraw={withdraw}
-          deposit={deposit}
-          setDelayedWithdraw={setDelayedWithdraw}
-        />
+        {isStakeSelected ? (
+          <StakeForm solBalance={solBalance} deposit={deposit} />
+        ) : (
+          <UnstakeForm
+            solBalance={solBalance}
+            withdraw={withdraw}
+            setDelayedWithdraw={setDelayedWithdraw}
+          />
+        )}
         <div
           style={{ display: "none" }}
           className="bg-neutral-800 rounded-lg m-4"
