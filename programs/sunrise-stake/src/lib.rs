@@ -3,6 +3,7 @@ mod utils;
 
 use crate::utils::seeds::*;
 use crate::utils::token::{create_mint, mint_to};
+use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::associated_token::AssociatedToken;
@@ -15,16 +16,21 @@ declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 #[program]
 pub mod sunrise_stake {
     use super::*;
-    use crate::utils::{marinade, marinade::{
-        amount_to_be_deposited_in_liq_pool, calc_lamports_from_msol_amount,
-        calc_msol_from_lamports, recoverable_yield, calculate_pool_balance_amounts
-    }, system, token::{burn, create_token_account}};
+    use crate::utils::marinade::ClaimUnstakeTicketProperties;
+    use crate::utils::system::MARINADE_TICKET_ACCOUNT_SPACE;
+    use crate::utils::{
+        marinade,
+        marinade::{
+            amount_to_be_deposited_in_liq_pool, calc_lamports_from_msol_amount,
+            calc_msol_from_lamports, calculate_extractable_yield, calculate_pool_balance_amounts,
+        },
+        system,
+        token::{burn, create_token_account},
+    };
     use anchor_lang::solana_program::program::invoke_signed;
     use anchor_lang::solana_program::system_instruction::transfer;
-    use std::ops::Deref;
     use anchor_lang::AccountsClose;
-    use marinade_cpi::TicketAccountData;
-    use crate::utils::marinade::ClaimUnstakeTicketProperties;
+    use std::ops::Deref;
 
     pub fn deposit(ctx: Context<Deposit>, lamports: u64) -> Result<()> {
         msg!("Checking liq_pool pool balance");
@@ -116,18 +122,22 @@ pub mod sunrise_stake {
     }
 
     pub fn liquid_unstake(ctx: Context<LiquidUnstake>, lamports: u64) -> Result<()> {
-
         msg!("Checking liq_pool pool balance");
         let calculate_balance_props = ctx.accounts.deref().into();
         let amounts = calculate_pool_balance_amounts(&calculate_balance_props, lamports)?;
 
         if amounts.amount_to_withdraw_from_liq_pool.liq_pool_token > 0 {
-            marinade::remove_liquidity(ctx.accounts, amounts.amount_to_withdraw_from_liq_pool.liq_pool_token)?;
+            marinade::remove_liquidity(
+                ctx.accounts,
+                amounts.amount_to_withdraw_from_liq_pool.liq_pool_token,
+            )?;
         }
 
         if amounts.amount_to_liquid_unstake > 0 {
-            let msol_lamports =
-                calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), amounts.amount_to_liquid_unstake)?;
+            let msol_lamports = calc_msol_from_lamports(
+                ctx.accounts.marinade_state.as_ref(),
+                amounts.amount_to_liquid_unstake,
+            )?;
 
             msg!("Unstaking {} msol lamports", msol_lamports);
             let accounts = ctx.accounts.deref().into();
@@ -151,20 +161,76 @@ pub mod sunrise_stake {
         epoch: u64,
         index: u64,
         order_unstake_ticket_account_bump: u8,
-        previous_order_unstake_ticket_management_account_bump: u8,
-        pre_pool_account_bump: u8
+        _previous_order_unstake_ticket_management_account_bump: u8,
     ) -> Result<()> {
         // check the ticket info is correct
         require_eq!(ctx.accounts.clock.epoch, epoch);
-        require_eq!(ctx.accounts.order_unstake_ticket_management_account.tickets + 1, index);
+        require_eq!(
+            ctx.accounts.order_unstake_ticket_management_account.tickets + 1,
+            index
+        );
+
+        let management_account = &mut ctx.accounts.order_unstake_ticket_management_account;
+        if management_account.epoch == 0 {
+            // set up management account
+            management_account.epoch = epoch;
+            management_account.tickets = 0;
+        } else {
+            // check the epoch is correct
+            require_eq!(management_account.epoch, epoch);
+        }
+
+        let mut claimed_lamports = 0;
+        let mut props: ClaimUnstakeTicketProperties = ctx.accounts.deref().into();
+        // All remaining accounts are previous epoch tickets that are now ready to be claimed.
+        for ticket in ctx.remaining_accounts.iter() {
+            msg!("ticket account size {}", ticket.data_len());
+            msg!("expected account size {}", MARINADE_TICKET_ACCOUNT_SPACE);
+            let ticket_account = TicketAccountData::try_from_slice(&ticket.data.borrow_mut())?;
+            claimed_lamports += ticket_account.lamports_amount;
+
+            props.ticket_account = ticket.to_account_info();
+
+            marinade::claim_unstake_ticket(&props)?;
+        }
+
+        // TODO check here that all tickets for the previous epoch are now closed
+        // Close the previous epoch's ticket management account
+        // and pass the rent to the tx payer, which compensates them for opening a new one
+        msg!("Closing previous epoch's ticket management account");
+        ctx.accounts
+            .previous_order_unstake_ticket_management_account
+            .close(ctx.accounts.payer.to_account_info())?;
+
+        if claimed_lamports > 0 {
+            msg!(
+                "Claimed {} lamports from tickets - depositing into liquidity pool",
+                claimed_lamports
+            );
+            let add_liquidity_props = ctx.accounts.deref().into();
+            marinade::add_liquidity_from_pda(&add_liquidity_props, claimed_lamports)?;
+        }
+
+        msg!(
+            "Before reload {}",
+            ctx.accounts.liq_pool_token_account.amount
+        );
+        ctx.accounts.liq_pool_token_account.reload()?;
+        msg!("Reloaded liq_pool_token_amount to reflect any added liquidity");
+        msg!(
+            "after reload {}",
+            ctx.accounts.liq_pool_token_account.amount
+        );
 
         msg!("Checking liq_pool pool balance");
         let calculate_pool_balance_props = ctx.accounts.deref().into();
         let amounts = calculate_pool_balance_amounts(&calculate_pool_balance_props, 0)?;
 
         if amounts.amount_to_order_delayed_unstake > 0 {
-            let msol_lamports =
-                calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), amounts.amount_to_order_delayed_unstake)?;
+            let msol_lamports = calc_msol_from_lamports(
+                ctx.accounts.marinade_state.as_ref(),
+                amounts.amount_to_order_delayed_unstake,
+            )?;
 
             // TODO move to just using init
             msg!("Creating order unstake ticket account");
@@ -172,60 +238,44 @@ pub mod sunrise_stake {
             system::create_order_unstake_ticket_account(
                 &create_ticket_props,
                 order_unstake_ticket_account_bump,
-                index)?;
+                index,
+            )?;
 
-
-            msg!("Ordering a delayed unstake of {} msol lamports", msol_lamports);
+            msg!(
+                "Ordering a delayed unstake of {} msol lamports",
+                msol_lamports
+            );
             let order_unstake_props = ctx.accounts.deref().into();
             marinade::order_unstake(&order_unstake_props, msol_lamports)?;
 
             // updating the internal record of delayed unstakes ordered.
-            ctx.accounts.order_unstake_ticket_management_account.add_ticket(
-                amounts.amount_to_order_delayed_unstake,
-                ctx.accounts.clock.epoch
-            )?;
-        }
-
-        let mut claimed_lamports = 0;
-        // All remaining accounts are previous epoch tickets that are now ready to be claimed.
-        for ticket in ctx.remaining_accounts.iter() {
-            let mut props: ClaimUnstakeTicketProperties = ctx.accounts.deref().into();
-            props.ticket_account = ticket.to_account_info();
-
-            marinade::claim_unstake_ticket(&props)?;
-
-            let ticket_account = TicketAccountData::try_from_slice(&ticket.data.borrow())?;
-            claimed_lamports += ticket_account.lamports_amount;
-        }
-
-        // TODO check here that all tickets for the previous epoch are now closed
-        // Close the previous epoch's ticket management account
-        // and pass the rent to the tx payer, which compensates them for opening a new one
-        ctx.accounts.previous_order_unstake_ticket_management_account.close(
-            ctx.accounts.payer.to_account_info(),
-        )?;
-
-        if claimed_lamports > 0 {
-            let add_liquidity_props = ctx.accounts.deref().into();
-            marinade::add_liquidity_from_prepool_pda(&add_liquidity_props, claimed_lamports, pre_pool_account_bump)?;
+            ctx.accounts
+                .order_unstake_ticket_management_account
+                .add_ticket(
+                    amounts.amount_to_order_delayed_unstake,
+                    ctx.accounts.clock.epoch,
+                )?;
         }
 
         Ok(())
     }
 
-    pub fn withdraw_to_treasury(ctx: Context<WithdrawToTreasury>) -> Result<()> {
+    pub fn extract_to_treasury(ctx: Context<ExtractToTreasury>) -> Result<()> {
         // TODO at present, this withdraws all msol yield. In future, we should be able to choose how much to withdraw
-        let recoverable_yield_msol = recoverable_yield(
-            &ctx.accounts.marinade_state,
+        let extractable_yield = calculate_extractable_yield(
+            ctx.accounts,
             &ctx.accounts.get_msol_from,
             &ctx.accounts.gsol_mint,
         )?;
 
+        let extractable_yield_msol =
+            calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), extractable_yield)?;
+
         // TODO later change to use "slow unstake" rather than incur liq pool fees
 
-        msg!("Withdrawing {} msol to treasury", recoverable_yield_msol);
+        msg!("Withdrawing {} msol to treasury", extractable_yield);
         let accounts = ctx.accounts.deref().into();
-        marinade::unstake(&accounts, recoverable_yield_msol)?;
+        marinade::unstake(&accounts, extractable_yield_msol)?;
 
         Ok(())
     }
@@ -359,7 +409,11 @@ impl OrderUnstakeTicketManagementAccount {
         if self.epoch == 0 {
             self.epoch = epoch;
         } else {
-            require_eq!(self.epoch, epoch, ErrorCode::InvalidOrderUnstakeManagementAccount);
+            require_eq!(
+                self.epoch,
+                epoch,
+                ErrorCode::InvalidOrderUnstakeManagementAccount
+            );
         }
         self.tickets += 1;
         self.total_ordered_lamports += ticket_amount_lamports;
@@ -494,7 +548,7 @@ pub struct Deposit<'info> {
     pub liq_pool_sol_leg_pda: AccountInfo<'info>,
 
     #[account(mut)]
-    pub liq_pool_msol_leg: Account<'info, TokenAccount>,
+    pub liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
     /// CHECK: Checked in marinade program
     pub liq_pool_msol_leg_authority: AccountInfo<'info>,
 
@@ -591,7 +645,7 @@ pub struct LiquidUnstake<'info> {
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub treasury_msol_account: AccountInfo<'info>,
+    pub treasury_msol_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
     mut,
@@ -636,7 +690,6 @@ epoch: u64,
 order_unstake_ticket_index: u64,
 order_unstake_ticket_account_bump: u8,
 previous_order_unstake_ticket_management_account_bump: u8,
-pre_pool_account_bump: u8
 )]
 pub struct TriggerPoolRebalance<'info> {
     #[account(
@@ -686,6 +739,7 @@ pub struct TriggerPoolRebalance<'info> {
     pub get_msol_from: Box<Account<'info, TokenAccount>>,
 
     #[account(
+    mut,
     seeds = [state.key().as_ref(), MSOL_ACCOUNT],
     bump = state.msol_authority_bump
     )]
@@ -702,13 +756,6 @@ pub struct TriggerPoolRebalance<'info> {
     #[account(mut)]
     /// CHECK: Checked in marinade program
     pub reserve_pda: UncheckedAccount<'info>,
-
-    #[account(
-    mut,
-    seeds = [state.key().as_ref(), PRE_POOL_ACCOUNT],
-    bump = pre_pool_account_bump,
-    )]
-    pub pre_pool_account: SystemAccount<'info>,
 
     #[account(
     mut,
@@ -729,7 +776,8 @@ pub struct TriggerPoolRebalance<'info> {
     seeds = [state.key().as_ref(), ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT, &epoch.to_be_bytes()],
     bump
     )]
-    pub order_unstake_ticket_management_account: Box<Account<'info, OrderUnstakeTicketManagementAccount>>,
+    pub order_unstake_ticket_management_account:
+        Box<Account<'info, OrderUnstakeTicketManagementAccount>>,
 
     #[account(
     mut,
@@ -741,7 +789,8 @@ pub struct TriggerPoolRebalance<'info> {
     seeds = [state.key().as_ref(), ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT, &(epoch - 1).to_be_bytes()],
     bump = previous_order_unstake_ticket_management_account_bump
     )]
-    pub previous_order_unstake_ticket_management_account: Option<Account<'info, OrderUnstakeTicketManagementAccount>>,
+    pub previous_order_unstake_ticket_management_account:
+        Option<Account<'info, OrderUnstakeTicketManagementAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
     pub rent: Sysvar<'info, Rent>,
@@ -861,7 +910,7 @@ pub struct ClaimUnstakeTicket<'info> {
 }
 
 #[derive(Accounts, Clone)]
-pub struct WithdrawToTreasury<'info> {
+pub struct ExtractToTreasury<'info> {
     #[account(
     has_one = treasury,
     has_one = marinade_state,
@@ -872,10 +921,13 @@ pub struct WithdrawToTreasury<'info> {
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     #[account(mut)]
-    pub msol_mint: Account<'info, Mint>,
+    pub msol_mint: Box<Account<'info, Mint>>,
 
     #[account()]
     pub gsol_mint: Box<Account<'info, Mint>>,
+
+    #[account()]
+    pub liq_pool_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
@@ -883,18 +935,26 @@ pub struct WithdrawToTreasury<'info> {
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub liq_pool_msol_leg: Account<'info, TokenAccount>,
+    pub liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
+
+    #[account(
+    mut,
+    token::mint = liq_pool_mint,
+    // use the same authority PDA for this and the msol token account
+    token::authority = get_msol_from_authority
+    )]
+    pub liq_pool_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub treasury_msol_account: AccountInfo<'info>,
+    pub treasury_msol_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
     mut,
     token::mint = msol_mint,
     token::authority = get_msol_from_authority,
     )]
-    pub get_msol_from: Account<'info, TokenAccount>,
+    pub get_msol_from: Box<Account<'info, TokenAccount>>,
 
     #[account(
     seeds = [state.key().as_ref(), MSOL_ACCOUNT],
@@ -909,6 +969,17 @@ pub struct WithdrawToTreasury<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub marinade_program: Program<'info, MarinadeFinance>,
+}
+
+// If imported from the marinade crate, deserialisation does not work
+// TODO fix
+#[derive(Debug, BorshDeserialize)]
+pub struct TicketAccountData {
+    pub discriminator: u64,
+    pub state_address: Pubkey, // instance of marinade state this ticket belongs to
+    pub beneficiary: Pubkey,   // main account where to send SOL when claimed
+    pub lamports_amount: u64,  // amount this ticked is worth
+    pub created_epoch: u64, // epoch when this acc was created (epoch when delayed-unstake was requested)
 }
 
 #[error_code]

@@ -445,7 +445,7 @@ export type SunriseStake = {
         },
         {
           "name": "getMsolFromAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -455,11 +455,6 @@ export type SunriseStake = {
         },
         {
           "name": "reservePda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "prePoolAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -521,15 +516,11 @@ export type SunriseStake = {
         {
           "name": "previousOrderUnstakeTicketManagementAccountBump",
           "type": "u8"
-        },
-        {
-          "name": "prePoolAccountBump",
-          "type": "u8"
         }
       ]
     },
     {
-      "name": "withdrawToTreasury",
+      "name": "extractToTreasury",
       "accounts": [
         {
           "name": "state",
@@ -552,12 +543,22 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "liqPoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "liqPoolSolLegPda",
           "isMut": true,
           "isSigner": false
         },
         {
           "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -1356,7 +1357,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "getMsolFromAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1366,11 +1367,6 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "reservePda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "prePoolAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -1432,15 +1428,11 @@ export const IDL: SunriseStake = {
         {
           "name": "previousOrderUnstakeTicketManagementAccountBump",
           "type": "u8"
-        },
-        {
-          "name": "prePoolAccountBump",
-          "type": "u8"
         }
       ]
     },
     {
-      "name": "withdrawToTreasury",
+      "name": "extractToTreasury",
       "accounts": [
         {
           "name": "state",
@@ -1463,12 +1455,22 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "liqPoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "liqPoolSolLegPda",
           "isMut": true,
           "isSigner": false
         },
         {
           "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
           "isMut": true,
           "isSigner": false
         },
