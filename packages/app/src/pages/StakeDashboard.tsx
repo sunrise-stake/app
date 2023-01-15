@@ -100,14 +100,14 @@ export const StakeDashboard: FC = () => {
       <div className="flex">
         <Panel className="inline-block mx-auto mb-9 p-4 rounded-lg">
           <Button
-            variant={isStakeSelected ? "green" : "unactive"}
+            variant={isStakeSelected ? "primary" : "secondary"}
             className="mr-5"
             onClick={() => setIsStakeSelected(true)}
           >
             Stake {isStakeSelected && <FaLeaf className="inline" size={24} />}
           </Button>
           <Button
-            variant={isStakeSelected ? "unactive" : "red"}
+            variant={isStakeSelected ? "secondary" : "danger"}
             onClick={() => setIsStakeSelected(false)}
           >
             Unstake{" "}
