@@ -1,6 +1,4 @@
 import {
-    ComputeBudgetProgram,
-    Keypair,
     PublicKey,
     SystemProgram,
     SYSVAR_CLOCK_PUBKEY,
@@ -209,6 +207,8 @@ export const triggerRebalance = async (
         rent: SYSVAR_RENT_PUBKEY,
         marinadeProgram,
     };
+
+    console.log("Triggering rebalance", accounts);
 
     const instruction = await program.methods
         .triggerPoolRebalance(

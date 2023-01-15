@@ -437,7 +437,8 @@ export class SunriseStakeClient {
     const sunriseStakeState = Keypair.generate();
     const client = new SunriseStakeClient(
         setUpAnchor(),
-        sunriseStakeState.publicKey
+        sunriseStakeState.publicKey,
+        options
     );
 
     const config = {
