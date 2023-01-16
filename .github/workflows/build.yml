@@ -4,7 +4,7 @@ on:
   pull_request:
 
 env:
-  solana_version: v1.14.12
+  solana_version: stable
   VERBOSE: 1
 
 jobs:
@@ -131,3 +131,8 @@ jobs:
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
           ls node_modules/.bin
           yarn test
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: program-logs
+          path: .anchor/program-logs/*
