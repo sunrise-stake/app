@@ -237,12 +237,17 @@ describe("sunrise-stake", () => {
   it("can claim an unstake ticket after one epoch has passed", async () => {
     const stakerPreSolBalance = await getBalance(client);
 
+    let epochInfo = await client.provider.connection.getEpochInfo();
+    log("current epoch", epochInfo.epoch);
+
     // unfortunately with the test validator, it is impossible to move the epoch forward without just waiting.
-    // we run the validator at 32 slots per epoch, so we "only" need to wait for ~16 seconds
-    // wait 20 seconds to be safe
+    // we run the validator at 32 slots per epoch, so we "only" need to wait for ~12 seconds
     // An alternative is to write rust tests using solana-program-test
-    log("Waiting 20s for next epoch...");
-    await new Promise((resolve) => setTimeout(resolve, 20000));
+    log("Waiting 12s for next epoch...");
+    await new Promise((resolve) => setTimeout(resolve, 12000));
+
+    epochInfo = await client.provider.connection.getEpochInfo();
+    log("current epoch", epochInfo.epoch);
 
     await client.provider.connection.getEpochInfo().then(log);
 
