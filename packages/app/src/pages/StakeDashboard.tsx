@@ -15,6 +15,7 @@ import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
+import { InfoBox } from "../components/InfoBox";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -169,6 +170,23 @@ export const StakeDashboard: FC = () => {
         {txSig !== undefined && <div>Done {txSig}</div>}
         {error != null && <div>Error: {error.message}</div>}
       </Panel>
+      <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
+        <InfoBox className="p-2 rounded text-center">
+          <span className="font-bold text-xl">0.00</span>
+          <br />
+          Earned
+        </InfoBox>
+        <InfoBox className="p-2 rounded text-center">
+          <span className="font-bold text-xl">0.00</span>
+          <br />
+          tCO₂E
+        </InfoBox>
+        <InfoBox className="p-2 rounded text-center">
+          <span className="font-bold text-xl">0.00</span>
+          <br />
+          Total tCO₂E
+        </InfoBox>
+      </div>
     </div>
   );
 };
