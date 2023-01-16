@@ -1,4 +1,3 @@
-import { PROGRAM_ID } from "../app/src/lib/client/";
 import "./util";
 import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/stakeAccount";
 import { AnchorProvider, Program } from "@project-serum/anchor";
@@ -8,6 +7,13 @@ import {
   IDL,
   SunriseStake,
 } from "@sunrisestake/app/src/lib/client/types/sunrise_stake";
+import { PROGRAM_ID } from "@sunrisestake/app/src/lib/client/util";
+
+/**
+ * USAGE (devnet)
+ *
+ * ANCHOR_PROVIDER_URL=https://api.devnet.solana.com REACT_APP_SOLANA_NETWORK=devnet yarn ts-node packages/scripts/resizeState.ts 140
+ */
 
 const resizeAmount = parseInt(process.argv[2], 10);
 
