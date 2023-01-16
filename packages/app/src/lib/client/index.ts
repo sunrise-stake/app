@@ -2,8 +2,10 @@ import { SunriseStake, IDL } from "./types/sunrise_stake";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
+  ConfirmOptions,
   Keypair,
   PublicKey,
+  Signer,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   Transaction,
@@ -122,6 +124,19 @@ export class SunriseStakeClient {
     });
   }
 
+  private async sendAndConfirmTransaction(
+    transaction: Transaction,
+    signers?: Signer[],
+    opts?: ConfirmOptions
+  ): Promise<string> {
+    return this.provider
+      .sendAndConfirm(transaction, signers, opts)
+      .catch((e) => {
+        this.log(e.logs);
+        throw e;
+      });
+  }
+
   async createGSolTokenAccount(): Promise<string> {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
@@ -135,7 +150,7 @@ export class SunriseStakeClient {
         this.config.gsolMint
       );
     const createATAIx = new Transaction().add(createATAInstruction);
-    return this.provider.sendAndConfirm(createATAIx, []);
+    return this.sendAndConfirmTransaction(createATAIx, []);
   }
 
   public async deposit(lamports: BN): Promise<string> {
@@ -160,10 +175,7 @@ export class SunriseStakeClient {
 
     const { transaction } = await this.marinade.deposit(lamports);
 
-    return this.provider.sendAndConfirm(transaction, []).catch((e) => {
-      this.log(e.logs);
-      throw e;
-    });
+    return this.sendAndConfirmTransaction(transaction, []);
   }
 
   public async unstake(lamports: BN): Promise<string> {
@@ -189,7 +201,7 @@ export class SunriseStakeClient {
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
-    return this.provider.sendAndConfirm(transaction, []);
+    return this.sendAndConfirmTransaction(transaction, []);
   }
 
   /**
@@ -214,7 +226,7 @@ export class SunriseStakeClient {
     );
 
     const transaction = new Transaction().add(instruction);
-    return this.provider.sendAndConfirm(transaction, []);
+    return this.sendAndConfirmTransaction(transaction, []);
   }
 
   public async orderUnstake(lamports: BN): Promise<[string, PublicKey]> {
@@ -231,7 +243,7 @@ export class SunriseStakeClient {
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
-    const txSig = await this.provider.sendAndConfirm(transaction, [
+    const txSig = await this.sendAndConfirmTransaction(transaction, [
       newTicketAccount,
       proxyTicketAccount,
     ]);
@@ -314,7 +326,7 @@ export class SunriseStakeClient {
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
-    return this.provider.sendAndConfirm(transaction, []);
+    return this.sendAndConfirmTransaction(transaction, []);
   }
 
   public async claimUnstakeTicketFromAddress(
@@ -379,7 +391,7 @@ export class SunriseStakeClient {
       .accounts(accounts)
       .transaction();
 
-    return this.provider.sendAndConfirm(transaction, []);
+    return this.sendAndConfirmTransaction(transaction, []);
   }
 
   public async details(): Promise<Details> {

@@ -133,6 +133,7 @@ jobs:
           yarn test
 
       - uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: program-logs
           path: .anchor/program-logs/*
