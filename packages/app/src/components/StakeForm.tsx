@@ -32,7 +32,7 @@ const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
         setAmount={setAmount}
       />
       <div className="flex items-center justify-end">
-        <Button className="mr-5" onClick={depositModal.trigger}>
+        <Button onClick={depositModal.trigger}>
           Deposit <FiArrowUpRight className="inline" size={24} />
         </Button>
       </div>
