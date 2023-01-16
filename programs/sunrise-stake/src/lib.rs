@@ -1049,8 +1049,8 @@ pub struct CreateMetadata<'info> {
       )]
     pub gsol_mint_authority: SystemAccount<'info>,
 
-    // It does not need to be a signer here, what is the correct type for this?
-    pub update_authority: Signer<'info>,
+    // It does not need to be a signer here, is AccountInfo the correct type?
+    pub update_authority: AccountInfo<'info>,
 
     pub payer: Signer<'info>,
 
