@@ -47,7 +47,7 @@
     "web-vitals": "^3.0.2"
   },
   "scripts": {
-    "start": "react-app-rewired start",
+    "start": "BROWSER=none react-app-rewired start",
     "build": "dotenv -e .env.${STAGE:-development} react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
