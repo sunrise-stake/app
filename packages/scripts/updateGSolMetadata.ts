@@ -91,6 +91,15 @@ console.log("Updating gSol metadata");
   const [gsolMintAuthority] = findGSolMintAuthority(client.config!);
   console.log("gsol mint auth", gsolMintAuthority);
 
+  const signature = await client.createMetadata(
+    uri,
+    tokenName,
+    symbol,
+    gsolMintAuthority
+  );
+
+  console.log(signature);
+
   const balance = await connection.getBalance(wallet.publicKey);
   console.log("Current balance is", balance / LAMPORTS_PER_SOL);
 })().catch(console.error);
