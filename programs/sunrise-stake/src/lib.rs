@@ -10,6 +10,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
+use mpl_token_metadata::instruction::create_metadata_accounts_v3;
 
 declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 
@@ -360,6 +361,58 @@ pub mod sunrise_stake {
     // without having to create a new one.
     // Once it is stable, we should remove this function.
     pub fn resize_state(_ctx: Context<ResizeState>, _size: u64) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn create_metadata(
+        ctx: Context<CreateMetadata>,
+        uri: String,
+        name: String,
+        symbol: String,
+    ) -> Result<()> {
+        msg!("Create Metadata for gSol");
+
+        let state_address = ctx.accounts.state.key();
+        let seeds = &[
+            state_address.as_ref(),
+            GSOL_MINT_AUTHORITY,
+            &[ctx.accounts.state.gsol_mint_authority_bump],
+        ];
+        let pda_signer = &[&seeds[..]];
+
+        let account_info = vec![
+            ctx.accounts.metadata.to_account_info(),
+            ctx.accounts.gsol_mint.to_account_info(),
+            ctx.accounts.gsol_mint_authority.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.update_authority.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+            ctx.accounts.rent.to_account_info(),
+        ];
+
+        invoke_signed(
+            &create_metadata_accounts_v3(
+                ctx.accounts.token_metadata_program.key(),
+                ctx.accounts.metadata.key(),
+                ctx.accounts.gsol_mint.key(),
+                ctx.accounts.gsol_mint_authority.key(),
+                ctx.accounts.payer.key(),
+                ctx.accounts.update_authority.key(),
+                name,
+                symbol,
+                uri,
+                None,
+                0,
+                true,
+                true,
+                None,
+                None,
+                None,
+            ),
+            account_info.as_slice(),
+            pda_signer,
+        )?;
+
         Ok(())
     }
 }
@@ -969,6 +1022,47 @@ pub struct ExtractToTreasury<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub marinade_program: Program<'info, MarinadeFinance>,
+}
+
+#[derive(Accounts, Clone)]
+pub struct CreateMetadata<'info> {
+    #[account(
+    has_one = marinade_state,
+    )]
+    pub state: Box<Account<'info, State>>,
+
+    #[account()]
+    pub marinade_state: Box<Account<'info, MarinadeState>>,
+
+    #[account(
+    mut,
+    constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
+    )]
+    pub gsol_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+      seeds = [
+      state.key().as_ref(),
+      GSOL_MINT_AUTHORITY,
+      ],
+      bump = state.gsol_mint_authority_bump,
+      )]
+    pub gsol_mint_authority: SystemAccount<'info>,
+
+    // It does not need to be a signer here, what is the correct type for this?
+    pub update_authority: Signer<'info>,
+
+    pub payer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+    pub token_program: Program<'info, Token>,
+
+    /// CHECK:
+    #[account(mut)]
+    pub metadata: AccountInfo<'info>,
+    /// CHECK:
+    pub token_metadata_program: AccountInfo<'info>,
 }
 
 // If imported from the marinade crate, deserialisation does not work
