@@ -1,70 +1,40 @@
-import React, { useRef } from "react";
+import BN from "bn.js";
+import React, { useState } from "react";
+import { FiArrowUpRight } from "react-icons/fi";
+
 import DepositWarningModal from "./modals/DepositWarningModal";
 import useModal from "../hooks/useModal";
-import LiquidWithdrawWarningModal from "./modals/LiquidWithdrawWarningModal";
+import { Button } from "./Button";
+import AmountInput from "./AmountInput";
 
 interface StakeFormProps {
-  withdraw: (amount: string) => void;
   deposit: (amount: string) => void;
-  setDelayedWithdraw: (delayedWithdraw: boolean) => void;
+  solBalance: BN | undefined;
 }
 
-const StakeForm: React.FC<StakeFormProps> = ({
-  withdraw,
-  deposit,
-  setDelayedWithdraw,
-}) => {
-  const depositModal = useModal(() => deposit(amount.current?.value ?? ""));
-  const withdrawModal = useModal(() => withdraw(amount.current?.value ?? ""));
+const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
+  const [amount, setAmount] = useState("");
 
-  const amount = useRef<HTMLInputElement>(null);
+  const depositModal = useModal(() => deposit(amount));
+
   return (
-    <div className="w-96 flex flex-col items-center justify-center align-center">
+    <div>
       {depositModal.modalShown && (
         <DepositWarningModal
           ok={depositModal.onModalOK}
           cancel={depositModal.onModalClose}
         />
       )}
-      {withdrawModal.modalShown && (
-        <LiquidWithdrawWarningModal
-          ok={withdrawModal.onModalOK}
-          cancel={withdrawModal.onModalClose}
-        />
-      )}
-      <h2 className="text-2xl text-center text-primary-500">
-        How much do you want to stake?
-      </h2>
-      <input
-        type="number"
-        name="amount"
-        placeholder="Amount"
-        ref={amount}
-        className="input input-bordered text-center py-3 mt-3 rounded-md w-full bg-neutral-800 text-1xl"
+      <AmountInput
+        className="mb-5"
+        balance={solBalance}
+        amount={amount}
+        setAmount={setAmount}
       />
-      <button
-        type="submit"
-        className="w-full inline-block py-3 mt-3 bg-green text-slate-800 font-medium text-xl leading-snug uppercase rounded-md shadow-md hover:bg-blue-sunrise hover:shadow-lg focus:bg-[#5A9370] focus:shadow-lg focus:outline-none focus:ring-0 active:bg-[#5A9370] active:shadow-lg transition duration-150 ease-in-out"
-        onClick={depositModal.trigger}
-      >
-        deposit
-      </button>
-      <h2 className="text-2xl text-center py-3 ">or</h2>
-      <button
-        type="submit"
-        className="inline-block py-3 px-20 mt-3 border-2 w-full rounded-md border-green text-green font-medium text-xl leading-tight uppercase hover:bg-black hover:bg-opacity-5 focus:outline-none focus:ring-0 transition duration-150 ease-in-out active:bg-[#5A9370] active:text-slate-800"
-        onClick={() => withdraw(amount.current?.value ?? "")}
-      >
-        withdraw
-      </button>
-      <div className="flex flex-row items-center justify-center mt-3">
-        <input
-          type="checkbox"
-          name="delayedWithdraw"
-          className="form-checkbox h-5 w-5"
-          onChange={(e) => setDelayedWithdraw(e.target.checked)}
-        />
-        <label className="ml-2">Delayed</label>
+      <div className="flex items-center justify-end">
+        <Button className="mr-5" onClick={depositModal.trigger}>
+          Deposit <FiArrowUpRight className="inline" size={24} />
+        </Button>
       </div>
     </div>
   );
