@@ -5,6 +5,7 @@ on:
 
 env:
   solana_version: stable
+  VERBOSE: 1
 
 jobs:
   install:
