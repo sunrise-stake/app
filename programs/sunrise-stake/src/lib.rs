@@ -327,7 +327,7 @@ pub mod sunrise_stake {
             &ctx.accounts.associated_token_program,
         )?;
 
-        // create marinade msol/sol liquditiy pool token account
+        // create marinade msol/sol liqudity pool token account
         // the same token account authority PDA is used for the
         // msol token account and the liquidity pool token account
         create_token_account(
