@@ -23,7 +23,7 @@ pub fn create_metadata_account(
         accounts.gsol_mint.to_account_info(),
         accounts.gsol_mint_authority.to_account_info(),
         accounts.update_authority.to_account_info(), // payer
-        accounts.update_authority.to_account_info(),
+        accounts.gsol_mint_authority.to_account_info(),
         accounts.system_program.to_account_info(),
         accounts.rent.to_account_info(),
     ];
