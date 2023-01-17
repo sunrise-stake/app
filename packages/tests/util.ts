@@ -4,8 +4,8 @@ import BN from "bn.js";
 import { expect } from "chai";
 import { createBurnInstruction } from "@solana/spl-token";
 
-export const NETWORK_FEE = 5000;
-export const MARINADE_TICKET_RENT = 1503360;
+// Set in anchor.toml
+const SLOTS_IN_EPOCH = 32;
 
 export const burnGSol = async (amount: BN, client: SunriseStakeClient) => {
   const burnInstruction = createBurnInstruction(
@@ -152,42 +152,33 @@ export const networkFeeForConfirmedTransaction = async (
   return tx!.meta!.fee;
 };
 
-export const calculateFee = async (
-  client: SunriseStakeClient,
-  unstakeAmount: BN
-) => {
-  const details = await client.details();
-
-  const lpSolShare = details.lpDetails.lpSolShare;
-  const preferredMinLiqPoolValue = new BN(
-    details.balances.totalDepositedSol.amount
-  ).muln(0.1);
-  const postUnstakeLpSolValue = new BN(lpSolShare).sub(unstakeAmount);
-  const amountToOrderUnstake = new BN(preferredMinLiqPoolValue).sub(
-    postUnstakeLpSolValue
-  );
-
-  const rentForOrderUnstakeTicket =
-    amountToOrderUnstake.toNumber() > 0 ? MARINADE_TICKET_RENT : 0;
-
-  const amountBeingLiquidUnstaked = unstakeAmount.sub(lpSolShare);
-
-  const fee = amountBeingLiquidUnstaked
-    .muln(3)
-    .divn(1000)
-    .addn(rentForOrderUnstakeTicket)
-    .addn(NETWORK_FEE);
-
-  log({
-    fee: fee.toString(),
-    amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
-    unstakeSOL: unstakeAmount.toString(),
-    lpSolShare: lpSolShare.toString(),
-  });
-
-  return fee;
-};
-
 export const log = (...args: any[]) => {
   Boolean(process.env.VERBOSE) && console.log(...args);
+};
+
+export const waitForNextEpoch = async (client: SunriseStakeClient) => {
+  const startingEpoch = await client.provider.connection.getEpochInfo();
+  const nextEpoch = startingEpoch.epoch + 1;
+  log("Waiting for epoch", nextEpoch);
+
+  const startSlot = startingEpoch.slotIndex;
+
+  let subscriptionId = 0;
+
+  await new Promise((resolve) => {
+    subscriptionId = client.provider.connection.onSlotChange((slotInfo) => {
+      log("slot", slotInfo.slot, "startSlot", startSlot);
+
+      if (slotInfo.slot % SLOTS_IN_EPOCH === 1 && slotInfo.slot > startSlot) {
+        void client.provider.connection.getEpochInfo().then((currentEpoch) => {
+          log("currentEpoch", currentEpoch);
+          if (currentEpoch.epoch === nextEpoch) {
+            resolve(slotInfo.slot);
+          }
+        });
+      }
+    });
+  });
+
+  await client.provider.connection.removeSlotChangeListener(subscriptionId);
 };

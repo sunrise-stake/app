@@ -102,14 +102,14 @@ const BalanceInfoTable: FC<BalanceInfoProps> = ({
               <h4 className="text-xl text-neutral-400">
                 {stakeBalance.gsolBalance.uiAmountString} ◎
               </h4>
-              <h4 className="text-sm text-neutral-400">Deposited SOL</h4>
+              <h4 className="text-sm text-neutral-400">gSOL</h4>
             </div>
           </div>
           <div className="flex flex-col">
             <div className="flex items-center my-2 ">
               <img
                 src={"./mSOL.png"}
-                alt="Solana Logo"
+                alt="Marinade Logo"
                 style={{ height: "1.5rem", marginRight: "1rem" }}
               />
               <h4 className="text-xl text-neutral-400">
@@ -120,26 +120,34 @@ const BalanceInfoTable: FC<BalanceInfoProps> = ({
             <div className="flex flex-row justify-between">
               <div>
                 <h4 className="text-xl text-neutral-400">
-                  {toFixedWithPrecision(toSol(stakeBalance.earnedLamports))}
+                  {toFixedWithPrecision(toSol(stakeBalance.extractableYield))}
                 </h4>
-                <h4 className="text-sm text-neutral-400">Earned</h4>
+                <h4 className="text-sm text-neutral-400">gSOL</h4>
               </div>
               <div>
                 <h4 className="text-xl text-neutral-400">
                   {toFixedWithPrecision(
-                    solToCarbon(toSol(stakeBalance.earnedLamports))
+                    solToCarbon(toSol(stakeBalance.extractableYield))
                   )}
                 </h4>
-                <h4 className="text-sm text-neutral-400">tCO₂E </h4>
+                <h4 className="text-sm text-neutral-400">
+                  tCO₂E ready to extract
+                </h4>
               </div>
               {treasuryBalanceLamports !== undefined && (
                 <div>
                   <h4 className="text-xl bold text-neutral-400">
                     {toFixedWithPrecision(
-                      solToCarbon(toSol(treasuryBalanceLamports))
+                      solToCarbon(
+                        toSol(
+                          treasuryBalanceLamports.add(
+                            stakeBalance.extractableYield
+                          )
+                        )
+                      )
                     )}
                   </h4>
-                  <h4 className="text-sm text-neutral-400">Total tCO₂E </h4>
+                  <h4 className="text-sm text-neutral-400">Total tCO₂E</h4>
                 </div>
               )}
             </div>

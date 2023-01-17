@@ -9,6 +9,7 @@ import {
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   Transaction,
+  TransactionInstruction,
 } from "@solana/web3.js";
 import {
   confirm,
@@ -39,7 +40,12 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { DEFAULT_LP_MIN_PROPORTION, DEFAULT_LP_PROPORTION } from "../constants";
+import {
+  DEFAULT_LP_MIN_PROPORTION,
+  DEFAULT_LP_PROPORTION,
+  MARINADE_TICKET_RENT,
+  NETWORK_FEE,
+} from "../constants";
 import { liquidUnstake, triggerRebalance } from "./marinade";
 
 export class SunriseStakeClient {
@@ -348,7 +354,7 @@ export class SunriseStakeClient {
     return this.claimUnstakeTicket(account);
   }
 
-  public async extractYield(): Promise<string> {
+  public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -386,12 +392,46 @@ export class SunriseStakeClient {
       marinadeProgram,
     };
 
-    const transaction = await this.program.methods
+    return this.program.methods
       .extractToTreasury()
       .accounts(accounts)
-      .transaction();
+      .instruction();
+  }
 
-    return this.sendAndConfirmTransaction(transaction, []);
+  public async extractYield(): Promise<string> {
+    const instruction = await this.extractYieldIx();
+    const transaction = new Transaction().add(instruction);
+
+    return this.sendAndConfirmTransaction(transaction);
+  }
+
+  public async calculateWithdrawalFee(withdrawalLamports: BN): Promise<BN> {
+    const details = await this.details();
+
+    // Calculate how much can be withdrawn from the lp (without fee)
+    const lpSolShare = details.lpDetails.lpSolShare;
+    const preferredMinLiqPoolValue = new BN(
+      details.balances.gsolSupply.amount
+    ).muln(0.1);
+    const postUnstakeLpSolValue = new BN(lpSolShare).sub(withdrawalLamports);
+
+    // Calculate how much will be withdrawn through liquid unstaking (with fee)
+    const amountBeingLiquidUnstaked = withdrawalLamports.sub(lpSolShare);
+
+    // Determine if a rebalance will occur (if the lp value is too low)
+    // This will incur a cost due to the unstake ticket rent
+    const amountToOrderUnstake = new BN(preferredMinLiqPoolValue).sub(
+      postUnstakeLpSolValue
+    );
+    const rentForOrderUnstakeTicket =
+      amountToOrderUnstake.toNumber() > 0 ? MARINADE_TICKET_RENT : 0;
+
+    // Calculate the fee
+    return amountBeingLiquidUnstaked
+      .muln(3)
+      .divn(1000)
+      .addn(rentForOrderUnstakeTicket)
+      .addn(NETWORK_FEE);
   }
 
   public async details(): Promise<Details> {
@@ -667,7 +707,7 @@ export class SunriseStakeClient {
   public async balance(): Promise<Balance> {
     if (!this.marinadeState || !this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
-    const depositedLamportsPromise = this.provider.connection
+    const gsolBalancePromise = this.provider.connection
       .getTokenAccountBalance(this.stakerGSolTokenAccount)
       .catch((e) => {
         // Treat a missing account as zero balance
@@ -707,20 +747,31 @@ export class SunriseStakeClient {
         liqPoolAssociatedTokenAccountAddress
       );
 
-    const [depositedLamports, gsolSupply, msolLamportsBalance, lpBalance] =
-      await Promise.all([
-        depositedLamportsPromise,
-        gsolSupplyPromise,
-        msolLamportsBalancePromise,
-        liqPoolBalancePromise,
-      ]);
+    const treasuryBalancePromise = this.provider.connection.getBalance(
+      this.config.treasury
+    );
+
+    const [
+      gsolBalance,
+      gsolSupply,
+      msolLamportsBalance,
+      lpBalance,
+      treasuryBalance,
+    ] = await Promise.all([
+      gsolBalancePromise,
+      gsolSupplyPromise,
+      msolLamportsBalancePromise,
+      liqPoolBalancePromise,
+      treasuryBalancePromise,
+    ]);
 
     return {
-      gsolBalance: depositedLamports.value,
-      totalDepositedSol: gsolSupply.value,
+      gsolBalance: gsolBalance.value,
+      gsolSupply: gsolSupply.value,
       msolBalance: msolLamportsBalance.value,
       msolPrice: this.marinadeState.mSolPrice,
       liqPoolBalance: lpBalance.value,
+      treasuryBalance,
     };
   }
 
