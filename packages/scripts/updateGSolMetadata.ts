@@ -18,10 +18,10 @@ import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import * as fs from "fs";
 import { findGSolMintAuthority } from "@sunrisestake/app/src/lib/client/util";
 
-const tokenName = "Sunrise Stake";
-const description = "Sunrise Stake Token";
-const symbol = "SRS";
-const imageFile = "logo.png";
+const tokenName = "Sunrise gSOL";
+const description = "Sunrise Stake Green SOL Token";
+const symbol = "GSOL";
+const imageFile = "gSOL.png";
 
 async function airdropSolIfNeeded(signer: Keypair, connection: Connection) {
   const balance = await connection.getBalance(signer.publicKey);
