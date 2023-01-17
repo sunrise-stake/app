@@ -126,7 +126,7 @@ export interface Balance {
 }
 
 export const PROGRAM_ID = new PublicKey(
-  "gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p"
+  "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
 );
 
 export const ZERO_BALANCE = {

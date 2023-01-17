@@ -403,6 +403,8 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
+    const epochInfoPromise = this.provider.connection.getEpochInfo();
+
     const lpMintInfoPromise = this.marinadeState.lpMint.mintInfo();
     const lpMsolBalancePromise =
       this.provider.connection.getTokenAccountBalance(
@@ -414,8 +416,9 @@ export class SunriseStakeClient {
 
     const balancesPromise = this.balance();
 
-    const [lpMintInfo, lpSolLegBalance, lpMsolBalance, balances] =
+    const [epochInfo, lpMintInfo, lpSolLegBalance, lpMsolBalance, balances] =
       await Promise.all([
+        epochInfoPromise,
         lpMintInfoPromise,
         solLegBalancePromise,
         lpMsolBalancePromise,
@@ -466,6 +469,7 @@ export class SunriseStakeClient {
     return {
       staker: this.staker.toBase58(),
       balances,
+      epochInfo,
       stakerGSolTokenAccount: this.stakerGSolTokenAccount.toBase58(),
       sunriseStakeConfig: {
         gsolMint: this.config.gsolMint.toBase58(),
@@ -510,7 +514,7 @@ export class SunriseStakeClient {
     if (!this.marinadeState || !this.msolTokenAccount)
       throw new Error("init not called");
 
-    const { balances, spDetails, lpDetails } = await this.details();
+    const { epochInfo, balances, spDetails, lpDetails } = await this.details();
 
     // deposited in Stake Pool
     const msolBalance = new BN(balances.msolBalance.amount);
@@ -529,6 +533,7 @@ export class SunriseStakeClient {
     const extractableSOLEffective = extractableSOLGross.sub(fee);
 
     this.log({
+      epoch: epochInfo.epoch,
       msolBalance: msolBalance.toString(),
       solValueOfMSol: solValueOfMSol.toString(),
       solValueOfLP: solValueOfLP.toString(),

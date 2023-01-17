@@ -10,7 +10,7 @@
 #
 #env:
 #  solana_version: stable
-#  SUNRISE_STAKE_PROGRAM_ID: gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p
+#  SUNRISE_STAKE_PROGRAM_ID: sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6
 #
 #jobs:
 #  install:

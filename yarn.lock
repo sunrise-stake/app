@@ -3184,10 +3184,10 @@
     eventemitter3 "^4.0.7"
     uuid "^8.3.2"
 
-"@sunrisestake/marinade-ts-sdk@4.0.4-alpha.17":
-  version "4.0.4-alpha.17"
-  resolved "https://registry.yarnpkg.com/@sunrisestake/marinade-ts-sdk/-/marinade-ts-sdk-4.0.4-alpha.17.tgz#fdd07056f0dc863d0a969605aee887efe9af5bf2"
-  integrity sha512-EGZCy3yY1i/QaqKSdL8vB1Lbp6juJ1ETq+qlQXsT1UBVFKwoqhwVmxz9ga21SqWO2oM7rwLqOG7Ag3+sCVhEqg==
+"@sunrisestake/marinade-ts-sdk@4.0.4-alpha.18":
+  version "4.0.4-alpha.18"
+  resolved "https://registry.yarnpkg.com/@sunrisestake/marinade-ts-sdk/-/marinade-ts-sdk-4.0.4-alpha.18.tgz#bb8963de65ea7b237edefcef9ffcd6af6a6d6020"
+  integrity sha512-vNIPxjFC+wBq/mCWqYPxfrJuGdrYP/TBvwAwRr+44OzKQHUVO9ZFKbGOMoVDQ5XvA+uT22BhZjDRrqor3dPwfg==
   dependencies:
     "@project-serum/anchor" "^0.18.2"
     "@solana/spl-token" "^0.3.6"

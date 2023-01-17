@@ -10,14 +10,14 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
-use mpl_token_metadata::instruction::create_metadata_accounts_v3;
 
-declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
+declare_id!("sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6");
 
 #[program]
 pub mod sunrise_stake {
     use super::*;
     use crate::utils::marinade::ClaimUnstakeTicketProperties;
+    use crate::utils::metaplex::create_metadata_account;
     use crate::utils::system::MARINADE_TICKET_ACCOUNT_SPACE;
     use crate::utils::{
         marinade,
@@ -364,6 +364,7 @@ pub mod sunrise_stake {
         Ok(())
     }
 
+    // used once to create token metadata for gSOL
     pub fn create_metadata(
         ctx: Context<CreateMetadata>,
         uri: String,
@@ -371,49 +372,7 @@ pub mod sunrise_stake {
         symbol: String,
     ) -> Result<()> {
         msg!("Create Metadata for gSol");
-
-        let state_address = ctx.accounts.state.key();
-        let seeds = &[
-            state_address.as_ref(),
-            GSOL_MINT_AUTHORITY,
-            &[ctx.accounts.state.gsol_mint_authority_bump],
-        ];
-        let pda_signer = &[&seeds[..]];
-
-        let account_info = vec![
-            ctx.accounts.metadata.to_account_info(),
-            ctx.accounts.gsol_mint.to_account_info(),
-            ctx.accounts.gsol_mint_authority.to_account_info(),
-            ctx.accounts.update_authority.to_account_info(), // payer
-            ctx.accounts.update_authority.to_account_info(),
-            ctx.accounts.system_program.to_account_info(),
-            ctx.accounts.rent.to_account_info(),
-        ];
-
-        invoke_signed(
-            &create_metadata_accounts_v3(
-                ctx.accounts.token_metadata_program.key(),
-                ctx.accounts.metadata.key(),
-                ctx.accounts.gsol_mint.key(),
-                ctx.accounts.gsol_mint_authority.key(),
-                ctx.accounts.update_authority.key(), // payer
-                ctx.accounts.update_authority.key(),
-                name,
-                symbol,
-                uri,
-                None,
-                0,
-                true,
-                true,
-                None,
-                None,
-                None,
-            ),
-            account_info.as_slice(),
-            pda_signer,
-        )?;
-
-        Ok(())
+        create_metadata_account(ctx.accounts, uri, name, symbol)
     }
 }
 
@@ -1028,6 +987,7 @@ pub struct ExtractToTreasury<'info> {
 pub struct CreateMetadata<'info> {
     #[account(
     has_one = marinade_state,
+    has_one = update_authority,
     )]
     pub state: Box<Account<'info, State>>,
 
