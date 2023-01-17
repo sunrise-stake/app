@@ -100,7 +100,7 @@ const BalanceInfoTable: FC<BalanceInfoProps> = ({
             />
             <div>
               <h4 className="text-xl text-neutral-400">
-                {stakeBalance.depositedSol.uiAmountString} ◎
+                {stakeBalance.gsolBalance.uiAmountString} ◎
               </h4>
               <h4 className="text-sm text-neutral-400">Deposited SOL</h4>
             </div>
