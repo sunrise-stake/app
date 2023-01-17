@@ -12,7 +12,7 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"),
   },
   devnet: {
-    state: new PublicKey("5n9pFrHb1RLuDuX4eb6Jh89kLpzcFs4R5BFuTJkFcd4q"),
+    state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
   },
 };
 
