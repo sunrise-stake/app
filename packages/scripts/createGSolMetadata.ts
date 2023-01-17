@@ -40,7 +40,7 @@ console.log("Creating gSol metadata");
     );
 
   // Upload image and get image uri
-  const buffer = fs.readFileSync("packages/app/" + imageFile);
+  const buffer = fs.readFileSync("packages/app/public/" + imageFile);
   const file = toMetaplexFile(buffer, imageFile);
 
   const imageUri = await metaplex.storage().upload(file);
