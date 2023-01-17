@@ -1033,6 +1033,41 @@ pub struct CreateMetadata<'info> {
     pub token_metadata_program: AccountInfo<'info>,
 }
 
+#[derive(Accounts, Clone)]
+pub struct UpdateMetadata<'info> {
+    #[account(
+    has_one = marinade_state,
+    has_one = update_authority,
+    )]
+    pub state: Box<Account<'info, State>>,
+
+    #[account()]
+    pub marinade_state: Box<Account<'info, MarinadeState>>,
+
+    #[account(
+    mut,
+    constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
+    )]
+    pub gsol_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+      seeds = [
+      state.key().as_ref(),
+      GSOL_MINT_AUTHORITY,
+      ],
+      bump = state.gsol_mint_authority_bump,
+      )]
+    pub gsol_mint_authority: SystemAccount<'info>,
+
+    pub update_authority: Signer<'info>,
+
+    /// CHECK:
+    #[account(mut)]
+    pub metadata: AccountInfo<'info>,
+    /// CHECK:
+    pub token_metadata_program: AccountInfo<'info>,
+}
+
 // If imported from the marinade crate, deserialisation does not work
 // TODO fix
 #[derive(Debug, BorshDeserialize)]

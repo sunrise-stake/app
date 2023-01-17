@@ -92,7 +92,6 @@ console.log("Creating gSol metadata");
       gsolMint: sunriseStakeState.gsolMint,
       gsolMintAuthority,
       updateAuthority: sunriseStakeState.updateAuthority, // should be equal to the one who is running the script?
-      tokenProgram: TOKEN_PROGRAM_ID,
       metadata: metadataAddress,
       tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
     })
