@@ -118,7 +118,7 @@ export const setUpAnchor = (): anchor.AnchorProvider => {
 };
 
 export interface Balance {
-  depositedSol: TokenAmount;
+  gsolBalance: TokenAmount;
   totalDepositedSol: TokenAmount;
   msolBalance: TokenAmount;
   msolPrice: number;

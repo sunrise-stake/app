@@ -523,7 +523,7 @@ export class SunriseStakeClient {
     // deposited in Liquidity Pool
     const solValueOfLP = lpDetails.lpSolValue;
 
-    const gsolSupply = new BN(balances.depositedSol.amount);
+    const gsolSupply = new BN(balances.gsolBalance.amount);
 
     const totalSolValueStaked = solValueOfMSol.add(solValueOfLP);
     const extractableSOLGross = totalSolValueStaked.sub(gsolSupply);
@@ -716,7 +716,7 @@ export class SunriseStakeClient {
       ]);
 
     return {
-      depositedSol: depositedLamports.value,
+      gsolBalance: depositedLamports.value,
       totalDepositedSol: gsolSupply.value,
       msolBalance: msolLamportsBalance.value,
       msolPrice: this.marinadeState.mSolPrice,
