@@ -1049,7 +1049,7 @@ pub struct CreateMetadata<'info> {
       )]
     pub gsol_mint_authority: SystemAccount<'info>,
 
-    // It does not need to be a signer here, is AccountInfo the correct type?
+    /// CHECK:
     pub update_authority: AccountInfo<'info>,
 
     pub payer: Signer<'info>,
