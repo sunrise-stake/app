@@ -85,7 +85,7 @@ console.log("Creating gSol metadata");
   )[0];
 
   const transactionSignature = await client.program.methods
-    .createMetadata(uri, name, symbol)
+    .updateMetadata(uri, name, symbol)
     .accounts({
       state: client.stateAddress,
       marinadeState: client.marinade.config.marinadeStateAddress,
