@@ -23,7 +23,10 @@ const description = "Sunrise Stake Green SOL Token";
 const symbol = "GSOL";
 const imageFile = "gSOL.png";
 
-async function airdropSolIfNeeded(signer: Keypair, connection: Connection) {
+async function airdropSolIfNeeded(
+  signer: Keypair,
+  connection: Connection
+): Promise<void> {
   const balance = await connection.getBalance(signer.publicKey);
   console.log("Current balance is", balance / LAMPORTS_PER_SOL);
 
@@ -77,9 +80,9 @@ console.log("Updating gSol metadata");
   // Upload metadata and get metadata uri
   const { uri } = await metaplex.nfts().uploadMetadata({
     name: tokenName,
-    description: description,
-    image: imageUri,
-    symbol: symbol,
+    description,
+    imageUri,
+    symbol,
   });
   console.log("metadata uri:", uri);
 
@@ -88,6 +91,7 @@ console.log("Updating gSol metadata");
 
   const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE);
 
+  // eslint-disable-next-line
   const [gsolMintAuthority] = findGSolMintAuthority(client.config!);
   console.log("gsol mint auth", gsolMintAuthority);
 
