@@ -41,7 +41,6 @@ import {
 } from "@solana/spl-token";
 import { DEFAULT_LP_MIN_PROPORTION, DEFAULT_LP_PROPORTION } from "../constants";
 import { liquidUnstake, triggerRebalance } from "./marinade";
-import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -718,57 +717,6 @@ export class SunriseStakeClient {
       msolPrice: this.marinadeState.mSolPrice,
       liqPoolBalance: lpBalance.value,
     };
-  }
-
-  public async createMetadata(
-    uri: string,
-    name: string,
-    symbol: string,
-    gsolMintAuthority: PublicKey
-  ): Promise<string> {
-    if (
-      !this.marinadeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.stakerGSolTokenAccount
-    )
-      throw new Error("init not called");
-
-    this.log("Token account created. Depositing...");
-
-    const sunriseStakeState = await this.program.account.state.fetch(
-      this.stateAddress
-    );
-
-    const metadataAddress = (
-      await anchor.web3.PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("metadata"),
-          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-          sunriseStakeState.gsolMint.toBuffer(),
-        ],
-        TOKEN_METADATA_PROGRAM_ID
-      )
-    )[0];
-
-    const transaction = new Transaction();
-    const createMetadataInstruction = await this.program.methods
-      .createMetadata(uri, name, symbol)
-      .accounts({
-        state: this.stateAddress,
-        marinadeState: this.marinade.config.marinadeStateAddress,
-        gsolMint: sunriseStakeState.gsolMint,
-        gsolMintAuthority: gsolMintAuthority,
-        updateAuthority: sunriseStakeState.updateAuthority,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        metadata: metadataAddress,
-        tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
-      })
-      .instruction();
-
-    transaction.add(createMetadataInstruction);
-
-    return this.sendAndConfirmTransaction(transaction, []);
   }
 
   public static async get(
