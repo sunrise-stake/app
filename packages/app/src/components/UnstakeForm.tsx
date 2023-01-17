@@ -10,13 +10,13 @@ import AmountInput from "./AmountInput";
 interface UnstakeFormProps {
   withdraw: (amount: string) => void;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
-  solBalance: BN | undefined;
+  gSolBalance: BN | undefined;
 }
 
 const UnstakeForm: React.FC<UnstakeFormProps> = ({
   withdraw,
   setDelayedWithdraw,
-  solBalance,
+  gSolBalance,
 }) => {
   const [amount, setAmount] = useState("");
 
@@ -32,7 +32,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
       )}
       <AmountInput
         className="mb-5"
-        balance={solBalance}
+        balance={gSolBalance}
         amount={amount}
         setAmount={setAmount}
       />
