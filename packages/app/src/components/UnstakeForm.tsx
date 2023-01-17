@@ -6,6 +6,7 @@ import useModal from "../hooks/useModal";
 import LiquidWithdrawWarningModal from "./modals/LiquidWithdrawWarningModal";
 import { Button } from "./Button";
 import AmountInput from "./AmountInput";
+import UnstakeOption from "./UnstakeOption";
 
 interface UnstakeFormProps {
   withdraw: (amount: string) => void;
@@ -30,13 +31,15 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
           cancel={withdrawModal.onModalClose}
         />
       )}
+
       <AmountInput
         className="mb-5"
         balance={gSolBalance}
         amount={amount}
         setAmount={setAmount}
       />
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <UnstakeOption />
         <Button onClick={() => withdraw(amount)}>
           Withdraw <FiArrowDownLeft className="inline" size={24} />
         </Button>
