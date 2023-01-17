@@ -1,9 +1,11 @@
 import BN from "bn.js";
 import { Balance } from "../util";
+import { EpochInfo } from "@solana/web3.js";
 
 export interface Details {
   // TODO Standardise on number/bigint/BigDecimal
   staker: string;
+  epochInfo: EpochInfo;
   balances: Balance;
   stakerGSolTokenAccount: string;
   sunriseStakeConfig: {

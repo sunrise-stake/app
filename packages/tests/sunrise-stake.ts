@@ -242,9 +242,10 @@ describe("sunrise-stake", () => {
 
     // unfortunately with the test validator, it is impossible to move the epoch forward without just waiting.
     // we run the validator at 32 slots per epoch, so we "only" need to wait for ~12 seconds
+    // we wait 15 seconds to be safe
     // An alternative is to write rust tests using solana-program-test
-    log("Waiting 12s for next epoch...");
-    await new Promise((resolve) => setTimeout(resolve, 12000));
+    log("Waiting 15s for next epoch...");
+    await new Promise((resolve) => setTimeout(resolve, 15000));
 
     epochInfo = await client.provider.connection.getEpochInfo();
     log("current epoch", epochInfo.epoch);
