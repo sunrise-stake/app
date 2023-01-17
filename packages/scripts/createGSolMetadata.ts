@@ -1,4 +1,4 @@
-import { SunriseStakeClient } from "../app/src/lib/client/";
+import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
 import "./util";
 import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/stakeAccount";
 import { AnchorProvider, setProvider } from "@project-serum/anchor";
