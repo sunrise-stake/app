@@ -2,7 +2,7 @@ import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
 import "./util";
 import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/stakeAccount";
 import * as anchor from "@project-serum/anchor";
-import { clusterApiUrl, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { clusterApiUrl, Connection } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   Metaplex,
