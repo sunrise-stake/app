@@ -1,5 +1,5 @@
 use crate::{
-    sunrise_spl::state::SplPoolDetails,
+    check_mint_supply,
     utils::{seeds, token as TokenUtils},
     State,
 };
@@ -31,7 +31,10 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 ///   14. `[]` Stake program id,
 #[derive(Accounts)]
 pub struct SplDepositStake<'info> {
-    #[account(has_one = gsol_mint)]
+    #[account(
+        has_one = gsol_mint,
+        constraint = state.blaze_state == *stake_pool.key
+    )]
     pub state: Box<Account<'info, State>>,
     pub gsol_mint: Box<Account<'info, Mint>>,
     #[account(
@@ -51,13 +54,13 @@ pub struct SplDepositStake<'info> {
     )]
     pub depositor_gsol_token_account: Account<'info, TokenAccount>,
 
+    #[account(mut, token::authority = bsol_account_authority)]
+    pub bsol_token_account: Account<'info, TokenAccount>,
     #[account(
-        mut, has_one = state, has_one = pool_token_vault,
-        seeds = [b"pool".as_ref(), stake_pool.key().as_ref()], bump
+        seeds = [state.key().as_ref(), seeds::BSOL_ACCOUNT],
+        bump = state.bsol_authority_bump
     )]
-    pub pool_details: Account<'info, SplPoolDetails>,
-    #[account(mut)]
-    pub pool_token_vault: Account<'info, TokenAccount>,
+    pub bsol_account_authority: AccountInfo<'info>,
 
     #[account(mut)]
     /// CHECK: Checked by seeds of pool_details
@@ -117,7 +120,7 @@ impl<'info> SplDepositStake<'info> {
         Ok(())
     }
 
-    pub fn deposit_stake(&self) -> Result<()> {
+    pub fn deposit_stake(&mut self) -> Result<()> {
         self.check_stake_pool_program()?;
 
         let stake_account_info = StakeState::try_from_slice(&self.stake_account.data.borrow())?;
@@ -138,9 +141,9 @@ impl<'info> SplDepositStake<'info> {
             &self.stake_account_depositor.key,
             &self.validator_stake_account.key,
             &self.reserve_stake_account.key,
-            &self.pool_token_vault.key(),
+            &self.bsol_token_account.key(),
             &self.manager_fee_account.key,
-            &self.pool_token_vault.key(),
+            &self.bsol_token_account.key(),
             &self.stake_pool_token_mint.key,
             self.token_program.key,
         );
@@ -158,7 +161,7 @@ impl<'info> SplDepositStake<'info> {
                 self.validator_stake_account.clone(),
                 self.reserve_stake_account.clone(),
                 self.manager_fee_account.clone(),
-                self.pool_token_vault.to_account_info(),
+                self.bsol_token_account.to_account_info(),
                 self.stake_pool_token_mint.clone(),
                 self.sysvar_clock.clone(),
                 self.sysvar_stake_history.clone(),
@@ -174,6 +177,13 @@ impl<'info> SplDepositStake<'info> {
             &self.depositor_gsol_token_account.to_account_info(),
             &self.token_program,
             &self.state,
-        )
+        )?;
+
+        let state = &mut self.state;
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol
+            .checked_add(stake_amount)
+            .unwrap();
+
+        check_mint_supply(&self.state, &self.gsol_mint)
     }
 }

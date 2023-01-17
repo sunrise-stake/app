@@ -11,7 +11,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
 use sunrise_spl::instructions::{
-    RegisterPool, SplDepositSol, SplDepositStake, SplWithdrawSol, SplWithdrawStake,
+    SplDepositSol, SplDepositStake, SplWithdrawSol, SplWithdrawStake,
 };
 declare_id!("gStMmPPFUGhmyQE8r895q28JVW9JkvDepNu2hTg1f4p");
 
@@ -21,7 +21,7 @@ pub mod sunrise_stake {
     use crate::utils::marinade::{
         calc_lamports_from_msol_amount, calc_msol_from_lamports, recoverable_yield,
     };
-    use crate::utils::token::{burn, create_msol_token_account};
+    use crate::utils::token::{burn, create_token_account};
     use anchor_lang::solana_program::program::invoke_signed;
     use anchor_lang::solana_program::system_instruction::transfer;
     use std::ops::Deref;
@@ -29,11 +29,15 @@ pub mod sunrise_stake {
     pub fn register_state(ctx: Context<RegisterState>, state: RegisterStateInput) -> Result<()> {
         let state_account = &mut ctx.accounts.state;
         state_account.marinade_state = state.marinade_state;
+        state_account.blaze_state = state.blaze_state;
         state_account.update_authority = state.update_authority;
         state_account.gsol_mint_authority_bump = state.gsol_mint_authority_bump;
         state_account.msol_authority_bump = state.msol_authority_bump;
+        state_account.bsol_authority_bump = state.bsol_authority_bump;
         state_account.treasury = state.treasury;
         state_account.gsol_mint = ctx.accounts.mint.key();
+        state_account.marinade_minted_gsol = 0;
+        state_account.blaze_minted_gsol = 0;
 
         // create the gsol mint
         let gsol_mint_authority = Pubkey::create_program_address(
@@ -58,11 +62,23 @@ pub mod sunrise_stake {
         // Note - the relationship between msol_mint and marinade_state is not verified here
         // Specifically, the marinade_state is not passed into the register function as an account.
         // This simplifies the registration code, but if it is registered incorrectly, deposits will fail.
-        create_msol_token_account(
+        create_token_account(
             &ctx.accounts.payer,
             &ctx.accounts.msol_token_account,
             &ctx.accounts.msol_mint,
             &ctx.accounts.msol_token_account_authority,
+            &ctx.accounts.system_program,
+            &ctx.accounts.token_program,
+            &ctx.accounts.associated_token_program,
+            &ctx.accounts.rent,
+        )?;
+
+        // create bsol token account
+        create_token_account(
+            &ctx.accounts.payer,
+            &ctx.accounts.bsol_token_account,
+            &ctx.accounts.bsol_mint,
+            &ctx.accounts.bsol_token_account_authority,
             &ctx.accounts.system_program,
             &ctx.accounts.token_program,
             &ctx.accounts.associated_token_program,
@@ -92,7 +108,12 @@ pub mod sunrise_stake {
             &ctx.accounts.mint_gsol_to.to_account_info(),
             &ctx.accounts.token_program.to_account_info(),
             &ctx.accounts.state,
-        )
+        )?;
+        let state =&mut ctx.accounts.state;
+        state.marinade_minted_gsol = state.marinade_minted_gsol
+            .checked_add(lamports)
+            .unwrap();
+        Ok(())
     }
 
     pub fn deposit_stake_account(
@@ -112,7 +133,12 @@ pub mod sunrise_stake {
             &ctx.accounts.mint_gsol_to.to_account_info(),
             &ctx.accounts.token_program.to_account_info(),
             &ctx.accounts.state,
-        )
+        )?;
+        let state = &mut ctx.accounts.state;
+        state.marinade_minted_gsol = state.marinade_minted_gsol
+            .checked_add(lamports)
+            .unwrap();
+        Ok(())
     }
 
     pub fn order_unstake(ctx: Context<OrderUnstake>, lamports: u64) -> Result<()> {
@@ -147,6 +173,11 @@ pub mod sunrise_stake {
             &ctx.accounts.gsol_token_account.to_account_info(),
             &ctx.accounts.token_program.to_account_info(),
         )?;
+
+        let state = &mut ctx.accounts.state;
+        state.marinade_minted_gsol = state.marinade_minted_gsol
+            .checked_sub(lamports)
+            .unwrap();
 
         Ok(())
     }
@@ -189,11 +220,15 @@ pub mod sunrise_stake {
         burn(
             lamports,
             &ctx.accounts.gsol_mint.to_account_info(),
-            &ctx.accounts.gsol_mint_authority.to_account_info(),
-            //&ctx.accounts.gsol_token_account_authority,
+            &ctx.accounts.gsol_token_account_authority,
             &ctx.accounts.gsol_token_account.to_account_info(),
             &ctx.accounts.token_program.to_account_info(),
         )?;
+
+        let state = &mut ctx.accounts.state;
+        state.marinade_minted_gsol = state.marinade_minted_gsol
+            .checked_sub(lamports)
+            .unwrap();
 
         Ok(())
     }
@@ -216,13 +251,8 @@ pub mod sunrise_stake {
     }
 
     //----------------------------------------------------------------------------
-    // Instructions for SPL Stake Pool Support
+    // Instructions for Blaze Stake Pool Support
     //----------------------------------------------------------------------------
-
-    pub fn register_spl_pool(ctx: Context<RegisterPool>) -> Result<()> {
-        let pool_details_bump = *ctx.bumps.get("pool_details").unwrap();
-        ctx.accounts.register(pool_details_bump)
-    }
 
     pub fn spl_deposit_sol(ctx: Context<SplDepositSol>, amount: u64) -> Result<()> {
         ctx.accounts.deposit_sol(amount)
@@ -244,14 +274,29 @@ pub mod sunrise_stake {
 #[account]
 pub struct State {
     pub marinade_state: Pubkey,
+    pub blaze_state: Pubkey,
     pub update_authority: Pubkey,
     pub gsol_mint: Pubkey,
     pub treasury: Pubkey,
     pub gsol_mint_authority_bump: u8,
     pub msol_authority_bump: u8,
+    pub bsol_authority_bump: u8,
+    pub marinade_minted_gsol: u64,
+    pub blaze_minted_gsol: u64,
 }
 impl State {
-    const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 8 /* DISCRIMINATOR */ ;
+    const SPACE: usize = 32 + 32 + 32 + 32 + 32 + 1 + 1 + 1 + 8 + 8 + 8 /* DISCRIMINATOR */ ;
+}
+
+pub fn check_mint_supply(state: &State, gsol_mint: &Account<Mint>) -> Result<()> {
+    require_keys_eq!(state.gsol_mint, gsol_mint.key());
+    let expected_total = state.blaze_minted_gsol
+        .checked_add(state.marinade_minted_gsol)
+        .unwrap();
+
+    // Should be impossible but still
+    require_eq!(expected_total, gsol_mint.supply, ErrorCode::UnexpectedMintSupply);
+    Ok(())
 }
 
 /// Maps a marinade ticket account to a GSOL token holder
@@ -268,10 +313,12 @@ impl SunriseTicketAccount {
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct RegisterStateInput {
     pub marinade_state: Pubkey,
+    pub blaze_state: Pubkey,
     pub update_authority: Pubkey,
     pub treasury: Pubkey,
     pub gsol_mint_authority_bump: u8,
     pub msol_authority_bump: u8,
+    pub bsol_authority_bump: u8,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -294,6 +341,8 @@ pub struct RegisterState<'info> {
 
     #[account(mut)]
     pub msol_mint: Box<Account<'info, Mint>>,
+    #[account(mut)]
+    pub bsol_mint: Box<Account<'info, Mint>>,
 
     /// Must be a PDA, but otherwise owned by the system account ie not initialised with data
     #[account(
@@ -305,6 +354,16 @@ pub struct RegisterState<'info> {
     /// CHECK: Checked by the AssociatedTokenAccount program
     #[account(mut)]
     pub msol_token_account: UncheckedAccount<'info>,
+
+    #[account(
+    seeds = [state.key().as_ref(), BSOL_ACCOUNT],
+    bump = state_in.msol_authority_bump
+    )]
+    pub bsol_token_account_authority: SystemAccount<'info>,
+    
+    /// CHECK: Checked by AssociatedTokenAccount program
+    #[account(mut)]
+    pub bsol_token_account: UncheckedAccount<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -330,7 +389,7 @@ pub struct UpdateState<'info> {
 #[derive(Accounts)]
 pub struct Deposit<'info> {
     #[account(
-    has_one = marinade_state,
+    has_one = marinade_state
     )]
     pub state: Box<Account<'info, State>>,
 
@@ -726,4 +785,6 @@ pub enum ErrorCode {
     InvalidMint,
     #[msg("Unexpected Accounts")]
     UnexpectedAccounts,
+    #[msg("Unexpected gsol mint supply")]
+    UnexpectedMintSupply,
 }

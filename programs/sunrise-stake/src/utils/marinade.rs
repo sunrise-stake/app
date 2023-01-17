@@ -1,12 +1,9 @@
 use crate::{
     utils::{calc::proportional, seeds::MSOL_ACCOUNT},
-    ClaimUnstakeTicket, Deposit, DepositStakeAccount,
-    LiquidUnstake, OrderUnstake, State, WithdrawToTreasury,
+    ClaimUnstakeTicket, Deposit, DepositStakeAccount, LiquidUnstake, OrderUnstake, State,
+    WithdrawToTreasury,
 };
-use anchor_lang::{
-    context::CpiContext, prelude::*,
-    solana_program::stake::state::StakeState,
-};
+use anchor_lang::{context::CpiContext, prelude::*, solana_program::stake::state::StakeState};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::{
     cpi::{
@@ -312,7 +309,7 @@ pub fn recoverable_yield<'a>(
     gsol_mint: &Account<'a, Mint>,
 ) -> Result<u64> {
     // The amount of msol in the shared account - represents the total proportion
-    // of the marinade stake pool owned by this SunshineStake instance
+    // of the marinade stake pool owned by this SunriseStake instance
     let msol_balance = msol_token_account.amount;
     // The amount of issued gsol - represents the total SOL staked by users
     let gsol_supply = gsol_mint.supply;
@@ -333,12 +330,13 @@ pub fn recoverable_yield<'a>(
 
 pub fn get_delegated_stake_amount<'a>(stake_account: &AccountInfo<'a>) -> Result<u64> {
     // Gets the active stake amount of the stake account. We need this to determine how much gSol to mint.
-    let stake_account_state = StakeState::try_from_slice(
-        &stake_account.to_account_info().data.borrow())?;
+    let stake_account_state =
+        StakeState::try_from_slice(&stake_account.to_account_info().data.borrow())?;
 
-    let delegation = stake_account_state.delegation().ok_or_else(|| {
-        crate::ErrorCode::InvalidStakeAccountDelegation
-    })?;
-    
+    let delegation = stake_account_state
+        .delegation()
+        .ok_or_else(|| crate::ErrorCode::NotDelegated)?;
+
     Ok(delegation.stake)
 }
+

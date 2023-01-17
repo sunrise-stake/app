@@ -41,9 +41,9 @@ pub fn create_mint<'a>(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn create_msol_token_account<'a>(
+pub fn create_token_account<'a>(
     payer: &Signer<'a>,
-    msol_token_account: &AccountInfo<'a>,
+    token_account: &AccountInfo<'a>,
     mint: &Account<'a, Mint>,
     authority: &AccountInfo<'a>,
     system_program: &Program<'a, System>,
@@ -55,7 +55,7 @@ pub fn create_msol_token_account<'a>(
     let cpi_accounts = Create {
         payer: payer.to_account_info(),
         authority: authority.to_account_info(),
-        associated_token: msol_token_account.clone(),
+        associated_token: token_account.clone(),
         mint: mint.to_account_info(),
         system_program: system_program.to_account_info(),
         token_program: token_program.to_account_info(),

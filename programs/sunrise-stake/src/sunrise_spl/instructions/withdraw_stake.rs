@@ -1,10 +1,11 @@
 use crate::{
-    sunrise_spl::state::SplPoolDetails,
-    utils::{seeds, token as TokenUtils},
+    check_mint_supply,
+    utils::{calc, seeds, token as TokenUtils},
     State,
 };
 use anchor_lang::{prelude::*, solana_program::program::invoke_signed};
 use anchor_spl::token::{Mint, Token, TokenAccount};
+use spl_stake_pool::state::StakePool;
 
 ///   CPI Instructions:
 ///
@@ -44,7 +45,10 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
 pub struct SplWithdrawStake<'info> {
-    #[account(has_one = gsol_mint)]
+    #[account(
+        has_one = gsol_mint,
+        constraint = state.blaze_state == *stake_pool.key
+    )]
     pub state: Box<Account<'info, State>>,
     pub gsol_mint: Box<Account<'info, Mint>>,
     #[account(
@@ -64,13 +68,13 @@ pub struct SplWithdrawStake<'info> {
     /// CHECK:
     pub user_new_stake_account: AccountInfo<'info>, //Should be an uninitialized stake account
 
+    #[account(mut, token::authority = bsol_account_authority)]
+    pub bsol_token_account: Account<'info, TokenAccount>,
     #[account(
-        mut, has_one = state, has_one = pool_token_vault,
-        seeds = [b"pool".as_ref(), stake_pool.key().as_ref()], bump
+        seeds = [state.key().as_ref(), seeds::BSOL_ACCOUNT],
+        bump = state.bsol_authority_bump
     )]
-    pub pool_details: Account<'info, SplPoolDetails>,
-    #[account(mut)]
-    pub pool_token_vault: Account<'info, TokenAccount>,
+    pub bsol_account_authority: AccountInfo<'info>,
 
     #[account(mut)]
     /// CHECK:
@@ -105,13 +109,24 @@ impl<'info> SplWithdrawStake<'info> {
         Ok(())
     }
 
-    pub fn withdraw_stake(&self, amount: u64) -> Result<()> {
+    fn calculate_bsol_from_lamports(&self, lamports: u64) -> Result<u64> {
+        let stake_pool = StakePool::try_from_slice(&self.stake_pool.data.borrow())?;
+        let token_supply = stake_pool.pool_token_supply;
+        let total_lamports = stake_pool.total_lamports;
+
+        let bsol = calc::proportional(lamports, token_supply, total_lamports)?;
+        Ok(bsol)
+    }
+
+    pub fn withdraw_stake(&mut self, lamports: u64) -> Result<()> {
         self.check_stake_pool_program()?;
 
-        let bump = self.pool_details.bump;
-        let signer_seeds = &[b"pool".as_ref(), &self.stake_pool.key.as_ref(), &[bump]];
+        let bump = self.state.bsol_authority_bump;
+        let state_key = self.state.to_account_info().key.as_ref();
+        let signer_seeds = &[state_key.as_ref(), seeds::BSOL_ACCOUNT, &[bump]];
         let signer_seeds = &[&signer_seeds[..]];
 
+        let pool_tokens = self.calculate_bsol_from_lamports(lamports)?;
         invoke_signed(
             &spl_stake_pool::instruction::withdraw_stake(
                 &spl_stake_pool::ID,
@@ -121,12 +136,12 @@ impl<'info> SplWithdrawStake<'info> {
                 self.stake_account_to_split.key,
                 self.user_new_stake_account.key,
                 self.user.key,
-                &self.pool_details.key(),
-                &self.pool_token_vault.key(),
+                &self.bsol_account_authority.key(),
+                &self.bsol_token_account.key(),
                 self.manager_fee_account.key,
                 self.stake_pool_token_mint.key,
                 self.token_program.key,
-                amount,
+                pool_tokens,
             ),
             &[
                 self.stake_pool_program.clone(),
@@ -136,8 +151,8 @@ impl<'info> SplWithdrawStake<'info> {
                 self.stake_account_to_split.clone(),
                 self.user_new_stake_account.to_account_info(),
                 self.user.to_account_info(),
-                self.pool_details.to_account_info(),
-                self.pool_token_vault.to_account_info(),
+                self.bsol_account_authority.to_account_info(),
+                self.bsol_token_account.to_account_info(),
                 self.manager_fee_account.clone(),
                 self.stake_pool_token_mint.clone(),
                 self.sysvar_clock.clone(),
@@ -147,12 +162,25 @@ impl<'info> SplWithdrawStake<'info> {
             signer_seeds,
         )?;
 
+        // Fees may apply so we might be burning more than the user expects
+
+        // let fees = u64::try_from(stake_pool.sol_withdrawal_fee
+        //    .apply(equivalent_bsol).unwrap()).ok();
+        // We could subtract the fees here so the user doesn't burn more gsol than
+        // lamports received
         TokenUtils::burn(
-            amount,
+            lamports,
             &self.gsol_mint.to_account_info(),
-            &self.gsol_mint_authority,
+            &self.user.to_account_info(),
             &self.user_gsol_token_account.to_account_info(),
             &self.token_program,
-        )
+        )?;
+
+        let state = &mut self.state;
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol
+            .checked_sub(lamports)
+            .unwrap();
+
+        check_mint_supply(&self.state, &self.gsol_mint)
     }
 }
