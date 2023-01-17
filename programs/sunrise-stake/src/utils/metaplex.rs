@@ -77,9 +77,9 @@ pub fn update_metadata_account(
     ];
 
     let token_metadata = DataV2 {
-        name: name,
-        symbol: symbol,
-        uri: uri,
+        name,
+        symbol,
+        uri,
         seller_fee_basis_points: 0,
         creators: None,
         collection: None,
