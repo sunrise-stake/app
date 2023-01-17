@@ -3,7 +3,6 @@ import "./util";
 import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/stakeAccount";
 import * as anchor from "@project-serum/anchor";
 import { clusterApiUrl, Connection } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   Metaplex,
   walletAdapterIdentity,
