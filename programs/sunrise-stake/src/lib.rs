@@ -384,7 +384,7 @@ pub mod sunrise_stake {
             ctx.accounts.metadata.to_account_info(),
             ctx.accounts.gsol_mint.to_account_info(),
             ctx.accounts.gsol_mint_authority.to_account_info(),
-            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.update_authority.to_account_info(), // payer
             ctx.accounts.update_authority.to_account_info(),
             ctx.accounts.system_program.to_account_info(),
             ctx.accounts.rent.to_account_info(),
@@ -396,7 +396,7 @@ pub mod sunrise_stake {
                 ctx.accounts.metadata.key(),
                 ctx.accounts.gsol_mint.key(),
                 ctx.accounts.gsol_mint_authority.key(),
-                ctx.accounts.payer.key(),
+                ctx.accounts.update_authority.key(), // payer
                 ctx.accounts.update_authority.key(),
                 name,
                 symbol,
@@ -1049,10 +1049,7 @@ pub struct CreateMetadata<'info> {
       )]
     pub gsol_mint_authority: SystemAccount<'info>,
 
-    /// CHECK:
-    pub update_authority: AccountInfo<'info>,
-
-    pub payer: Signer<'info>,
+    pub update_authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
