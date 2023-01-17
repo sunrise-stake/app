@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+button, input {
+  display: inline-flex;
+  align-items: center;
+  line-height: 24px !important;
+}
+
 body:after{
   content: "alpha";
   position: fixed;

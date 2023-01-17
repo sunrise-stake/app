@@ -1,6 +1,7 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import BN from "bn.js";
+import clx from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
@@ -14,6 +15,7 @@ import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
+import { InfoBox } from "../components/InfoBox";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -93,6 +95,11 @@ export const StakeDashboard: FC = () => {
   return (
     <div style={{ maxWidth: "864px" }} className="mx-auto">
       <div className="text-center">
+        <img
+          className="block sm:hidden w-auto h-16 mx-auto mb-3"
+          src={"./logo.png"}
+          alt="Sunrise"
+        />
         <h2 className="text-green-bright font-bold text-6xl">Sunrise Stake</h2>
         <h3 className="mb-16 text-white font-normal text-3xl">
           Offset emissions while you sleep.
@@ -105,14 +112,27 @@ export const StakeDashboard: FC = () => {
             className="mr-5"
             onClick={() => setIsStakeSelected(true)}
           >
-            Stake {isStakeSelected && <FaLeaf className="inline" size={24} />}
+            Stake
+            <FaLeaf
+              className={clx(
+                "animate-fade-in inline ml-2 transition-opacity duration-500",
+                { hidden: !isStakeSelected }
+              )}
+              size={24}
+            />
           </Button>
           <Button
             variant={isStakeSelected ? "secondary" : "danger"}
             onClick={() => setIsStakeSelected(false)}
           >
-            Unstake{" "}
-            {!isStakeSelected && <TbLeafOff className="inline" size={24} />}
+            Unstake
+            <TbLeafOff
+              className={clx(
+                "animate-fade-in inline ml-2 transition-opacity duration-500",
+                { hidden: isStakeSelected }
+              )}
+              size={24}
+            />
           </Button>
         </Panel>
       </div>
@@ -150,6 +170,23 @@ export const StakeDashboard: FC = () => {
         {txSig !== undefined && <div>Done {txSig}</div>}
         {error != null && <div>Error: {error.message}</div>}
       </Panel>
+      <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
+        <InfoBox className="p-2 rounded text-center">
+          <span className="font-bold text-xl">0.00</span>
+          <br />
+          Earned
+        </InfoBox>
+        <InfoBox className="p-2 rounded text-center">
+          <span className="font-bold text-xl">0.00</span>
+          <br />
+          tCO₂E
+        </InfoBox>
+        <InfoBox className="p-2 rounded text-center">
+          <span className="font-bold text-xl">0.00</span>
+          <br />
+          Total tCO₂E
+        </InfoBox>
+      </div>
     </div>
   );
 };
