@@ -17,7 +17,7 @@ declare_id!("sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6");
 pub mod sunrise_stake {
     use super::*;
     use crate::utils::marinade::ClaimUnstakeTicketProperties;
-    use crate::utils::metaplex::create_metadata_account;
+    use crate::utils::metaplex::{create_metadata_account, update_metadata_account};
     use crate::utils::system::MARINADE_TICKET_ACCOUNT_SPACE;
     use crate::utils::{
         marinade,
@@ -373,6 +373,17 @@ pub mod sunrise_stake {
     ) -> Result<()> {
         msg!("Create Metadata for gSol");
         create_metadata_account(ctx.accounts, uri, name, symbol)
+    }
+
+    // used once to create token metadata for gSOL
+    pub fn update_metadata(
+        ctx: Context<CreateMetadata>,
+        uri: String,
+        name: String,
+        symbol: String,
+    ) -> Result<()> {
+        msg!("Update Metadata for gSol");
+        update_metadata_account(ctx.accounts, uri, name, symbol)
     }
 }
 
