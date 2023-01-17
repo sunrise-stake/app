@@ -128,23 +128,7 @@ export class SunriseStakeClient {
     });
   }
 
-  async createGSolTokenAccount(): Promise<string> {
-    if (!this.stakerGSolTokenAccount || !this.config)
-      throw new Error("init not called");
-
-    // give the staker a gSOL account
-    const createATAInstruction =
-      createAssociatedTokenAccountIdempotentInstruction(
-        this.provider.publicKey,
-        this.stakerGSolTokenAccount,
-        this.staker,
-        this.config.gsolMint
-      );
-    const createATAIx = new Transaction().add(createATAInstruction);
-    return this.provider.sendAndConfirm(createATAIx, []);
-  }
-
-  createGSolTokenAccountInstruction(): TransactionInstruction {
+  createGSolTokenAccountIx(): TransactionInstruction {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
 
@@ -173,14 +157,16 @@ export class SunriseStakeClient {
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
       this.stakerGSolTokenAccount
     );
-    if (!gsolTokenAccount) {
-      await this.createGSolTokenAccount();
-    }
-
-    console.log("Token account created. Depositing...");
 
     const { transaction } = await this.marinade.deposit(lamports);
 
+    if (!gsolTokenAccount) {
+      let createUserTokenAccount = await this.createGSolTokenAccountIx();
+      transaction.add(createUserTokenAccount);
+      console.log("Token account created");
+    }
+
+    console.log("Depositing...");
     return this.provider.sendAndConfirm(transaction, []).catch((e) => {
       console.log(e.logs);
       throw e;
@@ -202,14 +188,13 @@ export class SunriseStakeClient {
 
     const { transaction } = await this.marinade.depositStakeAccount(stakeAccountAddress);
 
-    // Chain user's gsol token account creation with depositStakeAccount's instruction 
-    // so they can sign at once
     if (!gSolTokenAccount) {
-      let createATAIx = this.createGSolTokenAccountInstruction();
-      transaction.add(createATAIx);
+      let createUserTokenAccount = this.createGSolTokenAccountIx();
+      transaction.add(createUserTokenAccount);
+      console.log("Token account created");
     }
 
-    console.log("Token account created. Depositing Stake Account...");
+    console.log("Depositing Stake Account...");
     return this.provider.sendAndConfirm(transaction, []).catch((e) => {
       console.log(e.logs);
       throw e;

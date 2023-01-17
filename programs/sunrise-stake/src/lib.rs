@@ -169,7 +169,7 @@ pub mod sunrise_stake {
         burn(
             lamports,
             &ctx.accounts.gsol_mint.to_account_info(),
-            &ctx.accounts.gsol_mint_authority.to_account_info(),
+            &ctx.accounts.gsol_token_account_authority.to_account_info(),
             &ctx.accounts.gsol_token_account.to_account_info(),
             &ctx.accounts.token_program.to_account_info(),
         )?;
