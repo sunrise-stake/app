@@ -60,6 +60,7 @@ pub struct SplDepositStake<'info> {
         seeds = [state.key().as_ref(), seeds::BSOL_ACCOUNT],
         bump = state.bsol_authority_bump
     )]
+    /// CHECK:
     pub bsol_account_authority: AccountInfo<'info>,
 
     #[account(mut)]
