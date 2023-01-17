@@ -13,7 +13,7 @@ const gsolMintKeypair = Keypair.fromSecretKey(
   Buffer.from(
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require(process.env.GSOL_MINT_KEYPAIR ??
-      process.cwd() + "/gso12BFMxXD7RJaTUFfZZyuLW32M1hA9LoLZN7u9Und.json")
+      process.cwd() + "/gso1xA56hacfgTHTF4F7wN5r4jbnJsKh99vR595uybA.json")
   )
 );
 
