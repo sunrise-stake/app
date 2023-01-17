@@ -764,11 +764,6 @@ export type SunriseStake = {
           "isSigner": true
         },
         {
-          "name": "payer",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1746,11 +1741,6 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "updateAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
           "isMut": false,
           "isSigner": true
         },

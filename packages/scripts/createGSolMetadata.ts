@@ -90,7 +90,7 @@ console.log("Creating gSol metadata");
       state: client.stateAddress,
       marinadeState: client.marinade.config.marinadeStateAddress,
       gsolMint: sunriseStakeState.gsolMint,
-      gsolMintAuthority: gsolMintAuthority,
+      gsolMintAuthority,
       updateAuthority: sunriseStakeState.updateAuthority, // should be equal to the one who is running the script?
       tokenProgram: TOKEN_PROGRAM_ID,
       metadata: metadataAddress,
