@@ -37,9 +37,18 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (
         <>
-          <div className="relative mt-1">
-            <Listbox.Button className="w-42 rounded-md bg-outset py-3 pl-3 pr-10 text-left ">
-              <span className="text-white ml-3">{options[selected]}</span>
+          <div className="relative">
+            <Listbox.Button
+              className={({ open }) =>
+                clx("w-42 bg-outset py-3 pl-3 pr-10 text-left rounded-", {
+                  "rounded-t-md": open,
+                  "rounded-md": !open,
+                })
+              }
+            >
+              <span className="text-white ml-3 font-bold">
+                {options[selected]}
+              </span>
 
               <span className="absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
                 <FiChevronDown
@@ -56,51 +65,26 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                <Listbox.Option
-                  className="text-gray-900 relative cursor-default select-none py-2 pl-3 pr-9"
-                  value={0}
-                >
-                  {({ selected }) => (
-                    <>
-                      <div className="flex items-center">
-                        <span
-                          className={clx(
-                            {
-                              "font-semibold": selected,
-                              "font-normal": !selected,
-                            },
-                            "ml-3"
-                          )}
-                        >
-                          Delayed
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </Listbox.Option>
-                <Listbox.Option
-                  className="text-gray-900 relative py-2 pl-3 pr-9"
-                  value={1}
-                >
-                  {({ selected }) => (
-                    <>
-                      <div className="flex items-center">
-                        <span
-                          className={clx(
-                            {
-                              "font-semibold": selected,
-                              "font-normal": !selected,
-                            },
-                            "ml-3"
-                          )}
-                        >
-                          Immediate
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </Listbox.Option>
+              <Listbox.Options className="absolute max-h-56 w-full overflow-auto rounded-b bg-outset py-1 text-base border-t border-green-bright  ">
+                {selected === 1 ? (
+                  <Listbox.Option
+                    className={"relative cursor-pointer py-2 pl-3 pr-9"}
+                    value={0}
+                  >
+                    <div className="flex items-center">
+                      <span className="ml-3 font-bold">Delayed</span>
+                    </div>
+                  </Listbox.Option>
+                ) : (
+                  <Listbox.Option
+                    className="relative cursor-pointer py-2 pl-3 pr-9"
+                    value={1}
+                  >
+                    <div className="flex items-center">
+                      <span className="ml-3 font-bold">Immediate</span>
+                    </div>
+                  </Listbox.Option>
+                )}
               </Listbox.Options>
             </Transition>
           </div>
