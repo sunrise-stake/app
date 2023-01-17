@@ -119,10 +119,11 @@ export const setUpAnchor = (): anchor.AnchorProvider => {
 
 export interface Balance {
   gsolBalance: TokenAmount;
-  totalDepositedSol: TokenAmount;
+  gsolSupply: TokenAmount;
   msolBalance: TokenAmount;
   msolPrice: number;
   liqPoolBalance: TokenAmount;
+  treasuryBalance: number;
 }
 
 export const PROGRAM_ID = new PublicKey(

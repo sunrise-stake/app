@@ -1,9 +1,9 @@
 import { SunriseStakeClient } from "./client";
-import { Connection } from "@solana/web3.js";
+import { Connection, Transaction } from "@solana/web3.js";
 import { ConnectedWallet, toBN } from "./util";
 import { AnchorProvider, Wallet } from "@project-serum/anchor";
 import BN from "bn.js";
-import { Environment } from "./constants";
+import { Environment, MINIMUM_EXTRACTABLE_YIELD } from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
 import { Balance } from "./client/util";
@@ -16,7 +16,7 @@ export const SUNRISE_STAKE_STATE =
 
 export type BalanceInfo = Balance & {
   msolValue: BN;
-  earnedLamports: BN;
+  extractableYield: BN;
 };
 
 export class StakeAccount {
@@ -40,14 +40,14 @@ export class StakeAccount {
 
   async getBalance(): Promise<BalanceInfo> {
     const balance = await this.client.balance();
-    const earnedLamports = await this.client.extractableYield();
+    const extractableYield = await this.client.extractableYield();
     const msolValue = new BN(
       new BN(balance.msolBalance.amount).toNumber() * balance.msolPrice
     );
     return {
       ...balance,
       msolValue,
-      earnedLamports,
+      extractableYield,
     };
   }
 
@@ -76,5 +76,22 @@ export class StakeAccount {
     return this.client.provider.connection
       .getBalance(this.client.config.treasury)
       .then(toBN);
+  }
+
+  async executeCrankOperations(): Promise<string> {
+    const instructions = [];
+
+    const extractableYield = await this.client.extractableYield();
+
+    if (extractableYield.gtn(MINIMUM_EXTRACTABLE_YIELD)) {
+      const extractYieldIx = await this.client.extractYieldIx();
+      instructions.push(extractYieldIx);
+    }
+
+    // TODO add treasuryController crank function
+
+    const tx = new Transaction().add(...instructions);
+
+    return this.client.provider.sendAndConfirm(tx, []);
   }
 }
