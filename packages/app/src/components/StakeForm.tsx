@@ -28,6 +28,7 @@ const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
       <AmountInput
         className="mb-5"
         balance={solBalance}
+        token="SOL"
         amount={amount}
         setAmount={setAmount}
       />
