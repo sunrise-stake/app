@@ -35,7 +35,7 @@ const App: FC = () => {
 
   return (
     <>
-      <div className="App min-h-screen bg-background text-white">
+      <div className="App min-h-screen text-white">
         <ConnectionProvider endpoint={endpoint}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
