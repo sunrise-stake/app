@@ -220,8 +220,6 @@ export const StakeDashboard: FC = () => {
             />
           );
         })}
-        {/* <WithdrawTicket />
-        <WithdrawTicket /> */}
       </div>
     </div>
   );
