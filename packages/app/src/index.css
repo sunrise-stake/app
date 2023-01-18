@@ -2,21 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  @apply text-lightgreen;
-}
-
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /*color: #3b493f;*/
+  background: bottom right no-repeat url("../public/background.png");
 }
 
-body:after{
+.AlphaRibbon:after{
   content: "alpha";
   position: fixed;
   z-index: 1070;
@@ -38,7 +28,11 @@ body:after{
   transform:rotate(-45deg);
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none;
+}
+
+.appearance-textfield {
+  appearance: textfield;
 }

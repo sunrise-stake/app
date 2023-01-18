@@ -12,6 +12,15 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"),
   },
   devnet: {
-    state: new PublicKey("5n9pFrHb1RLuDuX4eb6Jh89kLpzcFs4R5BFuTJkFcd4q"),
+    state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
   },
 };
+
+export const DEFAULT_LP_PROPORTION = 10;
+export const DEFAULT_LP_MIN_PROPORTION = 5;
+
+export const MARINADE_TICKET_RENT = 1503360;
+
+export const NETWORK_FEE = 5000;
+
+export const MINIMUM_EXTRACTABLE_YIELD = 100_000_000; // 0.1 SOL

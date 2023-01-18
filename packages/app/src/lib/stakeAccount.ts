@@ -1,13 +1,14 @@
-import { Balance, SunriseStakeClient } from "./client";
-import { Connection } from "@solana/web3.js";
+import { SunriseStakeClient } from "./client";
+import { Connection, Transaction } from "@solana/web3.js";
 import { ConnectedWallet, toBN } from "./util";
 import { AnchorProvider, Wallet } from "@project-serum/anchor";
 import BN from "bn.js";
-import { Environment } from "./constants";
+import { Environment, MINIMUM_EXTRACTABLE_YIELD } from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
+import { Balance } from "./client/util";
 
-const SUNRISE_STAKE_STATE =
+export const SUNRISE_STAKE_STATE =
   Environment[
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
       WalletAdapterNetwork.Devnet
@@ -15,7 +16,7 @@ const SUNRISE_STAKE_STATE =
 
 export type BalanceInfo = Balance & {
   msolValue: BN;
-  earnedLamports: BN;
+  extractableYield: BN;
 };
 
 export class StakeAccount {
@@ -30,30 +31,23 @@ export class StakeAccount {
       wallet as unknown as Wallet,
       {}
     );
-    const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE);
+    const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE, {
+      verbose: Boolean(process.env.REACT_APP_VERBOSE),
+    });
     client.details().then(console.log).catch(console.error);
     return new StakeAccount(client);
   }
 
   async getBalance(): Promise<BalanceInfo> {
-    const balance = await this.client.getBalance();
+    const balance = await this.client.balance();
+    const extractableYield = await this.client.extractableYield();
     const msolValue = new BN(
       new BN(balance.msolBalance.amount).toNumber() * balance.msolPrice
     );
-    const stake = msolValue.sub(new BN(balance.totalDepositedSol.amount ?? 0));
-
-    console.log({ balance, msolValue, stake });
-
-    console.log("msolBalance", balance.msolBalance.amount);
-    console.log("msolPrice", balance.msolPrice);
-    console.log("msolValue", msolValue.toString());
-    console.log("earned lamports", stake.toNumber());
-    console.log("total deposited sol", balance.totalDepositedSol.amount);
-
     return {
       ...balance,
       msolValue,
-      earnedLamports: stake,
+      extractableYield,
     };
   }
 
@@ -82,5 +76,22 @@ export class StakeAccount {
     return this.client.provider.connection
       .getBalance(this.client.config.treasury)
       .then(toBN);
+  }
+
+  async executeCrankOperations(): Promise<string> {
+    const instructions = [];
+
+    const extractableYield = await this.client.extractableYield();
+
+    if (extractableYield.gtn(MINIMUM_EXTRACTABLE_YIELD)) {
+      const extractYieldIx = await this.client.extractYieldIx();
+      instructions.push(extractYieldIx);
+    }
+
+    // TODO add treasuryController crank function
+
+    const tx = new Transaction().add(...instructions);
+
+    return this.client.provider.sendAndConfirm(tx, []);
   }
 }

@@ -1,5 +1,12 @@
+import BN from "bn.js";
+import { Balance } from "../util";
+import { EpochInfo } from "@solana/web3.js";
+
 export interface Details {
+  // TODO Standardise on number/bigint/BigDecimal
   staker: string;
+  epochInfo: EpochInfo;
+  balances: Balance;
   stakerGSolTokenAccount: string;
   sunriseStakeConfig: {
     gsolMint: string;
@@ -11,15 +18,19 @@ export interface Details {
   };
   marinadeFinanceProgramId: string;
   marinadeStateAddress: string;
-  msolLeg: string;
-  msolPrice: number;
-  sunriseMsolBalance: number | null;
-  stakeDelta: number;
+
+  spDetails: {
+    msolPrice: number;
+    stakeDelta: number;
+    msolValue: BN;
+  };
   lpDetails: {
     mintAddress: string;
     supply: bigint;
     mintAuthority?: string;
     decimals: number;
-    lpBalance: number | null;
+    lpSolShare: BN;
+    lpSolValue: BN;
+    msolLeg: string;
   };
 }
