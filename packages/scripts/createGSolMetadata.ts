@@ -2,35 +2,37 @@ import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
 import "./util";
 import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/stakeAccount";
 import * as anchor from "@project-serum/anchor";
-import { clusterApiUrl, Connection } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   Metaplex,
-  walletAdapterIdentity,
+  keypairIdentity,
   bundlrStorage,
   toMetaplexFile,
 } from "@metaplex-foundation/js";
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import * as fs from "fs";
-import {
-  findGSolMintAuthority,
-  setUpAnchor,
-} from "@sunrisestake/app/src/lib/client/util";
+import { findGSolMintAuthority } from "@sunrisestake/app/src/lib/client/util";
+import { AnchorProvider } from "@project-serum/anchor";
+import { Keypair } from "@solana/web3.js";
+import os from "os";
 
 const name = "Sunrise gSOL";
 const description = "Sunrise Stake Green SOL Token";
 const symbol = "GSOL";
 const imageFile = "gSOL.png";
 
+const keypair = Keypair.fromSecretKey(
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  Buffer.from(require(os.homedir() + "/.config/solana/id.json"))
+);
+
 console.log("Creating gSol metadata");
 
 (async () => {
-  const connection = new Connection(clusterApiUrl("devnet"));
+  const provider = AnchorProvider.env();
 
-  const provider = setUpAnchor();
-
-  const metaplex = Metaplex.make(connection)
-    .use(walletAdapterIdentity(provider.wallet))
+  const metaplex = Metaplex.make(provider.connection)
+    .use(keypairIdentity(keypair))
     .use(
       bundlrStorage({
         address: "https://devnet.bundlr.network",
@@ -66,7 +68,7 @@ console.log("Creating gSol metadata");
     throw new Error("init not called");
 
   // eslint-disable-next-line
-  const [gsolMintAuthority] = findGSolMintAuthority(client.config);
+    const [gsolMintAuthority] = findGSolMintAuthority(client.config);
   console.log("gsol mint auth", gsolMintAuthority);
 
   const sunriseStakeState = await client.program.account.state.fetch(
