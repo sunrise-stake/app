@@ -21,7 +21,7 @@ export const WalletConnectionWrapper: FC = () => {
         <div>
           <WalletMultiButton startIcon={<FaWallet size={"28px"} />}>
             {!wallet.connected ? (
-              <div className="hidden sm:block ml-2">Connect Wallet</div>
+              <div className="hidden sm:block">Connect Wallet</div>
             ) : null}
           </WalletMultiButton>
         </div>
