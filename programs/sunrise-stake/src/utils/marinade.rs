@@ -513,11 +513,15 @@ pub fn bsol_value_in_lamports<'a>(
     blaze_stake_pool: &AccountInfo,
     bsol_token_account: &Account<'a, TokenAccount>,
 ) -> Result<u64> {
-    let stake_pool = spl_stake_pool::state::StakePool::try_from_slice(
-        &blaze_stake_pool.data.borrow())?;
+    let stake_pool =
+        spl_stake_pool::state::StakePool::try_from_slice(&blaze_stake_pool.data.borrow())?;
     let bsol_balance = bsol_token_account.amount;
-    
-    proportional(bsol_balance, stake_pool.total_lamports, stake_pool.pool_token_supply)
+
+    proportional(
+        bsol_balance,
+        stake_pool.total_lamports,
+        stake_pool.pool_token_supply,
+    )
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -856,15 +860,13 @@ pub fn calculate_pool_balance_amounts(
     Ok(amounts)
 }
 
-pub fn get_delegated_stake_amount<'a>(stake_account: &AccountInfo<'a>) -> Result<u64> {
+pub fn get_delegated_stake_amount(stake_account: &AccountInfo) -> Result<u64> {
     // Gets the active stake amount of the stake account. We need this to determine how much gSol to mint.
     let stake_account_state =
         StakeState::try_from_slice(&stake_account.to_account_info().data.borrow())?;
 
-    let delegation = stake_account_state
-        .delegation()
-        .ok_or_else(|| crate::ErrorCode::NotDelegated)?;
-
-    Ok(delegation.stake)
+    match stake_account_state.delegation() {
+        Some(delegation) => Ok(delegation.stake),
+        None => Err(crate::ErrorCode::NotDelegated.into()),
+    }
 }
-

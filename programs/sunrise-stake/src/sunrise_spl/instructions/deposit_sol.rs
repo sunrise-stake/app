@@ -1,6 +1,6 @@
 use crate::{
     check_mint_supply,
-    utils::{seeds, token as TokenUtils, },
+    utils::{seeds, token as TokenUtils},
     State,
 };
 use anchor_lang::{prelude::*, solana_program::program::invoke};
@@ -89,14 +89,14 @@ impl<'info> SplDepositSol<'info> {
         invoke(
             &spl_stake_pool::instruction::deposit_sol(
                 &spl_stake_pool::ID,
-                &self.stake_pool.key,
-                &self.stake_pool_withdraw_authority.key,
-                &self.reserve_stake_account.key,
-                &self.depositor.key,
+                self.stake_pool.key,
+                self.stake_pool_withdraw_authority.key,
+                self.reserve_stake_account.key,
+                self.depositor.key,
                 &self.bsol_token_account.key(),
-                &self.manager_fee_account.key,
+                self.manager_fee_account.key,
                 &self.bsol_token_account.key(),
-                &self.stake_pool_token_mint.key,
+                self.stake_pool_token_mint.key,
                 self.token_program.key,
                 amount,
             ),
@@ -124,10 +124,8 @@ impl<'info> SplDepositSol<'info> {
         )?;
 
         let state = &mut self.state;
-        self.state.blaze_minted_gsol = state.blaze_minted_gsol
-            .checked_add(amount)
-            .unwrap();
-        
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(amount).unwrap();
+
         check_mint_supply(&self.state, &self.gsol_mint)
     }
 }

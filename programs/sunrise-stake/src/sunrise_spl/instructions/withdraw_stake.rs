@@ -123,7 +123,7 @@ impl<'info> SplWithdrawStake<'info> {
         self.check_stake_pool_program()?;
 
         let bump = self.state.bsol_authority_bump;
-        let state_key = self.state.to_account_info().key.as_ref();
+        let state_key = self.state.to_account_info().key;
         let signer_seeds = &[state_key.as_ref(), seeds::BSOL_ACCOUNT, &[bump]];
         let signer_seeds = &[&signer_seeds[..]];
 
@@ -178,9 +178,7 @@ impl<'info> SplWithdrawStake<'info> {
         )?;
 
         let state = &mut self.state;
-        self.state.blaze_minted_gsol = state.blaze_minted_gsol
-            .checked_sub(lamports)
-            .unwrap();
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_sub(lamports).unwrap();
 
         check_mint_supply(&self.state, &self.gsol_mint)
     }

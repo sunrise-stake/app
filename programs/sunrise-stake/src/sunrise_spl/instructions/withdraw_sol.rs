@@ -102,7 +102,7 @@ impl<'info> SplWithdrawSol<'info> {
         self.check_stake_pool_program()?;
 
         let bump = self.state.bsol_authority_bump;
-        let state_key = self.state.to_account_info().key.as_ref();
+        let state_key = self.state.to_account_info().key;
         let signer_seeds = &[state_key.as_ref(), seeds::BSOL_ACCOUNT, &[bump]];
         let signer_seeds = &[&signer_seeds[..]];
 
@@ -110,14 +110,14 @@ impl<'info> SplWithdrawSol<'info> {
         invoke_signed(
             &spl_stake_pool::instruction::withdraw_sol(
                 &spl_stake_pool::ID,
-                &self.stake_pool.key,
-                &self.stake_pool_withdraw_authority.key,
+                self.stake_pool.key,
+                self.stake_pool_withdraw_authority.key,
                 &self.bsol_account_authority.key(),
                 &self.bsol_token_account.key(),
-                &self.reserve_stake_account.key,
-                &self.user.key,
-                &self.manager_fee_account.key,
-                &self.stake_pool_token_mint.key,
+                self.reserve_stake_account.key,
+                self.user.key,
+                self.manager_fee_account.key,
+                self.stake_pool_token_mint.key,
                 self.token_program.key,
                 pool_tokens,
             ),
@@ -152,11 +152,9 @@ impl<'info> SplWithdrawSol<'info> {
             &self.user_gsol_token_account.to_account_info(),
             &self.token_program,
         )?;
-        
+
         let state = &mut self.state;
-        self.state.blaze_minted_gsol = state.blaze_minted_gsol
-            .checked_sub(lamports)
-            .unwrap();
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_sub(lamports).unwrap();
 
         check_mint_supply(&self.state, &self.gsol_mint)
     }

@@ -7,17 +7,13 @@ use crate::utils::token::{create_mint, mint_to};
 use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
-  program::invoke_signed,
-  program_option::COption,
-  system_instruction::transfer,
+    program::invoke_signed, program_option::COption, system_instruction::transfer,
 };
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
-use sunrise_spl::instructions::{
-    SplDepositSol, SplDepositStake, SplWithdrawSol, SplWithdrawStake,
-};
+use sunrise_spl::instructions::{SplDepositSol, SplDepositStake, SplWithdrawSol, SplWithdrawStake};
 
 declare_id!("sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6");
 
@@ -34,10 +30,10 @@ pub mod sunrise_stake {
         system,
         token::{burn, create_token_account},
     };
-   
+
     use anchor_lang::AccountsClose;
     use std::ops::Deref;
-    
+
     pub fn deposit(ctx: Context<Deposit>, lamports: u64) -> Result<()> {
         msg!("Checking liq_pool pool balance");
         let to_deposit_in_liq_pool = amount_to_be_deposited_in_liq_pool(ctx.accounts, lamports)?;
@@ -63,10 +59,8 @@ pub mod sunrise_stake {
             &ctx.accounts.token_program.to_account_info(),
             &ctx.accounts.state,
         )?;
-        let state =&mut ctx.accounts.state;
-        state.marinade_minted_gsol = state.marinade_minted_gsol
-            .checked_add(lamports)
-            .unwrap();
+        let state = &mut ctx.accounts.state;
+        state.marinade_minted_gsol = state.marinade_minted_gsol.checked_add(lamports).unwrap();
         Ok(())
     }
 
@@ -89,9 +83,7 @@ pub mod sunrise_stake {
             &ctx.accounts.state,
         )?;
         let state = &mut ctx.accounts.state;
-        state.marinade_minted_gsol = state.marinade_minted_gsol
-            .checked_add(lamports)
-            .unwrap();
+        state.marinade_minted_gsol = state.marinade_minted_gsol.checked_add(lamports).unwrap();
         Ok(())
     }
 
@@ -129,9 +121,7 @@ pub mod sunrise_stake {
         )?;
 
         let state = &mut ctx.accounts.state;
-        state.marinade_minted_gsol = state.marinade_minted_gsol
-            .checked_sub(lamports)
-            .unwrap();
+        state.marinade_minted_gsol = state.marinade_minted_gsol.checked_sub(lamports).unwrap();
 
         Ok(())
     }
@@ -195,9 +185,7 @@ pub mod sunrise_stake {
         )?;
 
         let state = &mut ctx.accounts.state;
-        state.marinade_minted_gsol = state.marinade_minted_gsol
-            .checked_sub(lamports)
-            .unwrap();
+        state.marinade_minted_gsol = state.marinade_minted_gsol.checked_sub(lamports).unwrap();
 
         Ok(())
     }
@@ -498,12 +486,17 @@ impl State {
 
 pub fn check_mint_supply(state: &State, gsol_mint: &Account<Mint>) -> Result<()> {
     require_keys_eq!(state.gsol_mint, gsol_mint.key());
-    let expected_total = state.blaze_minted_gsol
+    let expected_total = state
+        .blaze_minted_gsol
         .checked_add(state.marinade_minted_gsol)
         .unwrap();
 
     // Should be impossible but still
-    require_eq!(expected_total, gsol_mint.supply, ErrorCode::UnexpectedMintSupply);
+    require_eq!(
+        expected_total,
+        gsol_mint.supply,
+        ErrorCode::UnexpectedMintSupply
+    );
     Ok(())
 }
 
@@ -603,7 +596,7 @@ pub struct RegisterState<'info> {
     bump = state_in.msol_authority_bump
     )]
     pub bsol_token_account_authority: SystemAccount<'info>,
-    
+
     /// CHECK: Checked by AssociatedTokenAccount program
     #[account(mut)]
     pub bsol_token_account: UncheckedAccount<'info>,

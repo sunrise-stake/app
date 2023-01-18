@@ -105,7 +105,7 @@ impl<'info> SplDepositStake<'info> {
         Ok(())
     }
 
-    fn authorize_stake_pool(&self, instructions: &Vec<Instruction>) -> Result<()> {
+    fn authorize_stake_pool(&self, instructions: &[Instruction]) -> Result<()> {
         let authorize_staker_ix = &instructions[0];
         let authorize_withdrawer_ix = &instructions[1];
 
@@ -135,21 +135,21 @@ impl<'info> SplDepositStake<'info> {
         // a prerequisite for calling Ix3
         let deposit_state_instructions = &spl_stake_pool::instruction::deposit_stake(
             &spl_stake_pool::ID,
-            &self.stake_pool.key,
-            &self.validator_list.key,
-            &self.stake_pool_withdraw_authority.key,
-            &self.stake_account.key,
-            &self.stake_account_depositor.key,
-            &self.validator_stake_account.key,
-            &self.reserve_stake_account.key,
+            self.stake_pool.key,
+            self.validator_list.key,
+            self.stake_pool_withdraw_authority.key,
+            self.stake_account.key,
+            self.stake_account_depositor.key,
+            self.validator_stake_account.key,
+            self.reserve_stake_account.key,
             &self.bsol_token_account.key(),
-            &self.manager_fee_account.key,
+            self.manager_fee_account.key,
             &self.bsol_token_account.key(),
-            &self.stake_pool_token_mint.key,
+            self.stake_pool_token_mint.key,
             self.token_program.key,
         );
 
-        self.authorize_stake_pool(&deposit_state_instructions)?;
+        self.authorize_stake_pool(&deposit_state_instructions[..])?;
         invoke(
             &deposit_state_instructions[2],
             &[
@@ -181,9 +181,7 @@ impl<'info> SplDepositStake<'info> {
         )?;
 
         let state = &mut self.state;
-        self.state.blaze_minted_gsol = state.blaze_minted_gsol
-            .checked_add(stake_amount)
-            .unwrap();
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(stake_amount).unwrap();
 
         check_mint_supply(&self.state, &self.gsol_mint)
     }

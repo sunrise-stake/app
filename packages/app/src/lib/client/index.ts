@@ -147,7 +147,7 @@ export class SunriseStakeClient {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
 
-    const createATAInstruction = 
+    const createATAInstruction =
       createAssociatedTokenAccountIdempotentInstruction(
         this.provider.publicKey,
         this.stakerGSolTokenAccount,
@@ -174,18 +174,19 @@ export class SunriseStakeClient {
     const { transaction } = await this.marinade.deposit(lamports);
 
     if (!gsolTokenAccount) {
-      let createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = await this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
       console.log("Token account created");
     }
 
     console.log("Depositing...");
-    
+
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-
-  public async depositStakeAccount(stakeAccountAddress: PublicKey): Promise<string> {
+  public async depositStakeAccount(
+    stakeAccountAddress: PublicKey
+  ): Promise<string> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -198,16 +199,18 @@ export class SunriseStakeClient {
       this.stakerGSolTokenAccount
     );
 
-    const { transaction } = await this.marinade.depositStakeAccount(stakeAccountAddress);
+    const { transaction } = await this.marinade.depositStakeAccount(
+      stakeAccountAddress
+    );
 
     if (!gSolTokenAccount) {
-      let createUserTokenAccount = this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
       console.log("Token account created");
     }
-    
+
     console.log("Depositing Stake Account...");
-    
+
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
