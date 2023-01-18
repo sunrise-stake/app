@@ -3,7 +3,6 @@ import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import { SunriseStakeClient } from "../app/src/lib/client";
 import {
   burnGSol,
-  calculateFee,
   expectAmount,
   expectLiqPoolTokenBalance,
   expectMSolTokenBalance,
@@ -13,7 +12,7 @@ import {
   getBalance,
   getLPPrice,
   log,
-  NETWORK_FEE,
+  waitForNextEpoch,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -21,6 +20,7 @@ import { TicketAccount } from "@sunrisestake/app/src/lib/client/types/TicketAcco
 import {
   DEFAULT_LP_MIN_PROPORTION,
   DEFAULT_LP_PROPORTION,
+  NETWORK_FEE,
 } from "@sunrisestake/app/src/lib/constants";
 
 chai.use(chaiAsPromised);
@@ -162,9 +162,17 @@ describe("sunrise-stake", () => {
     await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
   });
 
+  it("can calculate the withdrawal fee if unstaking more than the LP balance", async () => {
+    const liquidUnstakeFee = await client.calculateWithdrawalFee(
+      unstakeLamportsExceedLPBalance
+    );
+
+    // calculated through experimentation
+    expectAmount(36835869, liquidUnstakeFee, 100);
+  });
+
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
-    const liquidUnstakeFee = await calculateFee(
-      client,
+    const liquidUnstakeFee = await client.calculateWithdrawalFee(
       unstakeLamportsExceedLPBalance
     );
 
@@ -244,8 +252,9 @@ describe("sunrise-stake", () => {
     // we run the validator at 32 slots per epoch, so we "only" need to wait for ~12 seconds
     // we wait 15 seconds to be safe
     // An alternative is to write rust tests using solana-program-test
-    log("Waiting 15s for next epoch...");
-    await new Promise((resolve) => setTimeout(resolve, 15000));
+    // log("Waiting 15s for next epoch...");
+    await waitForNextEpoch(client);
+    // await new Promise((resolve) => setTimeout(resolve, 15000));
 
     epochInfo = await client.provider.connection.getEpochInfo();
     log("current epoch", epochInfo.epoch);
