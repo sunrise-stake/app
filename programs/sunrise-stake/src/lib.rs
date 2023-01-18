@@ -18,7 +18,6 @@ pub mod sunrise_stake {
     use super::*;
     use crate::utils::marinade::ClaimUnstakeTicketProperties;
     use crate::utils::metaplex::{create_metadata_account, update_metadata_account};
-    use crate::utils::system::MARINADE_TICKET_ACCOUNT_SPACE;
     use crate::utils::{
         marinade,
         marinade::{
@@ -184,31 +183,36 @@ pub mod sunrise_stake {
         let mut claimed_lamports = 0;
         let mut props: ClaimUnstakeTicketProperties = ctx.accounts.deref().into();
         // All remaining accounts are previous epoch tickets that are now ready to be claimed.
+        msg!("Tickets to claim: {}", ctx.remaining_accounts.len());
         for ticket in ctx.remaining_accounts.iter() {
-            msg!("ticket account size {}", ticket.data_len());
-            msg!("expected account size {}", MARINADE_TICKET_ACCOUNT_SPACE);
             let ticket_account = TicketAccountData::try_from_slice(&ticket.data.borrow_mut())?;
             claimed_lamports += ticket_account.lamports_amount;
+
+            msg!(
+                "Claiming ticket {} with value {}",
+                ticket.key(),
+                ticket_account.lamports_amount
+            );
 
             props.ticket_account = ticket.to_account_info();
 
             marinade::claim_unstake_ticket(&props)?;
         }
 
-        // TODO check here that all tickets for the previous epoch are now closed
-        // Close the previous epoch's ticket management account
-        // and pass the rent to the tx payer, which compensates them for opening a new one
-        msg!("Closing previous epoch's ticket management account");
-        ctx.accounts
-            .previous_order_unstake_ticket_management_account
-            .close(ctx.accounts.payer.to_account_info())?;
-
         if claimed_lamports > 0 {
             msg!(
                 "Claimed {} lamports from tickets - depositing into liquidity pool",
                 claimed_lamports
             );
+
             let add_liquidity_props = ctx.accounts.deref().into();
+            let lamports_to_deposit = ctx.accounts.get_msol_from_authority.try_lamports()?;
+
+            msg!(
+                "Current balance of msol token authority {}, claiming amount {}",
+                lamports_to_deposit,
+                claimed_lamports
+            );
             marinade::add_liquidity_from_pda(&add_liquidity_props, claimed_lamports)?;
         }
 
@@ -257,6 +261,16 @@ pub mod sunrise_stake {
                     ctx.accounts.clock.epoch,
                 )?;
         }
+
+        // WARNING - this must happen _after_ the order unstake ticket account is created
+        // otherwise the transaction fails with "sum of account balances before and after instruction do not match"
+        // TODO check here that all tickets for the previous epoch are now closed
+        // Close the previous epoch's ticket management account
+        // and pass the rent to the tx payer, which compensates them for opening a new one
+        msg!("Closing previous epoch's ticket management account");
+        ctx.accounts
+            .previous_order_unstake_ticket_management_account
+            .close(ctx.accounts.payer.to_account_info())?;
 
         Ok(())
     }
