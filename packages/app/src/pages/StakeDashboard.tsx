@@ -16,6 +16,7 @@ import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
 import { InfoBox } from "../components/InfoBox";
+import WithdrawTicket from "../components/WithdrawTickets";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -155,10 +156,11 @@ export const StakeDashboard: FC = () => {
             }
             withdraw={withdraw}
             setDelayedWithdraw={setDelayedWithdraw}
+            delayedWithdraw={delayedWithdraw}
           />
         )}
         <div
-          style={{ display: "none" }}
+          // style={{ display: "none" }}
           className="bg-neutral-800 rounded-lg m-4"
         >
           <BalanceInfoTable
@@ -188,6 +190,20 @@ export const StakeDashboard: FC = () => {
           <br />
           Total tCO₂E
         </InfoBox>
+      </div>
+
+      <div className="flex flex-col items-center">
+        {delayedUnstakeTickets.map((ticket) => {
+          return (
+            <WithdrawTicket
+              key={ticket.address.toBase58()}
+              ticket={ticket}
+              redeem={redeem}
+            />
+          );
+        })}
+        {/* <WithdrawTicket />
+        <WithdrawTicket /> */}
       </div>
     </div>
   );

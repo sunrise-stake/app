@@ -101,19 +101,21 @@ export const liquidUnstake = async (
     marinadeProgram,
   };
 
-  const { instruction: rebalanceInstruction } = await triggerRebalance(
-    config,
-    marinade,
-    marinadeState,
-    program,
-    stateAddress
-  );
+  // const { instruction: rebalanceInstruction } = await triggerRebalance(
+  //   config,
+  //   marinade,
+  //   marinadeState,
+  //   program,
+  //   stateAddress
+  // );
 
-  return program.methods
-    .liquidUnstake(lamports)
-    .accounts(accounts)
-    .postInstructions([rebalanceInstruction])
-    .transaction();
+  return (
+    program.methods
+      .liquidUnstake(lamports)
+      .accounts(accounts)
+      // .postInstructions([rebalanceInstruction])
+      .transaction()
+  );
 };
 
 export interface TriggerRebalanceResult {
