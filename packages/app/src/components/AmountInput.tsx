@@ -31,11 +31,10 @@ const AmountInput: React.FC<AmountInputProps> = ({
   return (
     <div className={className}>
       <div className="flex flex-row justify-between p-8 my-auto bg-background">
-        <img src={`${token}.png`} className="h-12 my-auto" />
-        <div className="my-auto">
+        <div className="grow my-auto">
           <div className="text-right">
             Balance:{" "}
-            <span
+            <button
               className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md"
               onClick={() => {
                 if (balance) {
@@ -43,10 +42,11 @@ const AmountInput: React.FC<AmountInputProps> = ({
                 }
               }}
             >
-              {balance ? toFixedWithPrecision(toSol(balance)) : "-"} SOL
-            </span>
+              {balance ? toFixedWithPrecision(toSol(balance)) : "-"} {token}
+            </button>
           </div>
           <div className="flex">
+            <img src={`${token}.png`} className="h-12 my-auto pr-2" />
             <input
               className="appearance-textfield grow w-full border-none bg-transparent text-3xl text-right"
               type="number"
