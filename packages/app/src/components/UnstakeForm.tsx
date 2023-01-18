@@ -55,6 +55,8 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         <UnstakeOption
           setDelayedWithdraw={setDelayedWithdraw}
           delayedWithdraw={delayedWithdraw}
+          withdrawalFee={withdrawalFee}
+          feeLoading={feeLoading}
         />
         <Button onClick={() => withdraw(amount)}>
           Withdraw <FiArrowDownLeft className="inline" size={24} />
