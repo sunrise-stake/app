@@ -2,17 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-button, input {
-  display: inline-flex;
-  align-items: center;
-  line-height: 24px !important;
-}
-
 body {
   background: bottom right no-repeat url("../public/background.png");
 }
 
-body:after{
+.AlphaRibbon:after{
   content: "alpha";
   position: fixed;
   z-index: 1070;

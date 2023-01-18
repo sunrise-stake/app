@@ -16,7 +16,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button
       className={clx(
-        "px-8 py-4 rounded-lg text-white text-xl",
+        "inline-flex px-8 py-4 rounded-lg leading-6 text-white text-xl",
         {
           "bg-green": variant === "primary",
           "bg-danger": variant === "danger",
