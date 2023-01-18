@@ -13,6 +13,7 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WalletConnectionWrapper } from "./pages/WalletConnectionWrapper";
 import { clusterApiUrl } from "@solana/web3.js";
+import Notifications from "./components/Notification";
 
 require("./solana-wallet-adapter.css");
 
@@ -39,6 +40,7 @@ const App: FC = () => {
         <ConnectionProvider endpoint={endpoint}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
+              <Notifications />
               <Content />
             </WalletModalProvider>
           </WalletProvider>

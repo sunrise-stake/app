@@ -17,13 +17,12 @@ import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
 import { InfoBox } from "../components/InfoBox";
 import WithdrawTicket from "../components/WithdrawTickets";
+import { notify } from "../utils/notifications";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
   const { connection } = useConnection();
   const client = useSunriseStake();
-  const [txSig, setTxSig] = useState<string>();
-  const [error, setError] = useState<Error>();
   const [solBalance, setSolBalance] = useState<BN>();
   const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
   const [treasuryBalanceLamports, setTreasuryBalanceLamports] = useState<BN>();
@@ -42,7 +41,11 @@ export const StakeDashboard: FC = () => {
   }, [wallet.publicKey, client, connection]);
 
   const handleError = useCallback((error: Error) => {
-    setError(error);
+    notify({
+      type: "error",
+      message: "Transaction failed",
+      description: error.message,
+    });
     console.error(error);
   }, []);
 
@@ -57,7 +60,13 @@ export const StakeDashboard: FC = () => {
 
       client
         .deposit(new BN(Number(amount) * LAMPORTS_PER_SOL))
-        .then(setTxSig)
+        .then((tx) =>
+          notify({
+            type: "success",
+            message: "Deposit successful",
+            txid: tx,
+          })
+        )
         .then(updateBalances)
         .catch(handleError);
     },
@@ -73,7 +82,13 @@ export const StakeDashboard: FC = () => {
         : client.withdraw.bind(client);
 
       withdraw(new BN(Number(amount) * LAMPORTS_PER_SOL))
-        .then(setTxSig)
+        .then((tx) =>
+          notify({
+            type: "success",
+            message: "Withdrawal successful",
+            txid: tx,
+          })
+        )
         .then(updateBalances)
         .catch(handleError);
     },
@@ -86,7 +101,13 @@ export const StakeDashboard: FC = () => {
 
       client
         .claimUnstakeTicket(ticket)
-        .then(setTxSig)
+        .then((tx) =>
+          notify({
+            type: "success",
+            message: "Redeeming successful",
+            txid: tx,
+          })
+        )
         .then(updateBalances)
         .catch(handleError);
     },
@@ -171,8 +192,6 @@ export const StakeDashboard: FC = () => {
             redeem={redeem}
           />
         </div>
-        {txSig !== undefined && <div>Done {txSig}</div>}
-        {error != null && <div>Error: {error.message}</div>}
       </Panel>
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="p-2 rounded text-center">
