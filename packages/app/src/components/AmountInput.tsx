@@ -4,6 +4,7 @@ import { toFixedWithPrecision, toSol } from "../lib/util";
 
 interface AmountInputProps {
   className?: string;
+  token?: string;
   balance: BN | undefined;
   amount: string;
   setAmount: Function;
@@ -14,11 +15,12 @@ const AmountInput: React.FC<AmountInputProps> = ({
   className,
   amount,
   setAmount,
+  token = "SOL",
 }) => {
   return (
     <div className={className}>
       <div className="flex flex-row justify-between p-8 my-auto bg-background">
-        <img src="solana-logo.png" className="h-24 my-auto" />
+        <img src={`${token}.png`} className="h-12 my-auto" />
         <div className="my-auto">
           <div className="text-right">
             Balance:{" "}

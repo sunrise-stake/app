@@ -36,6 +36,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
 
       <AmountInput
         className="mb-5"
+        token="gSOL"
         balance={gSolBalance}
         amount={amount}
         setAmount={setAmount}
