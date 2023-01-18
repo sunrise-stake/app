@@ -71,6 +71,10 @@ export class StakeAccount {
     return this.client.claimUnstakeTicket(ticket);
   }
 
+  async calculateWithdrawalFee(lamports: BN): Promise<BN> {
+    return this.client.calculateWithdrawalFee(lamports);
+  }
+
   async treasuryBalance(): Promise<BN> {
     if (!this.client.config) throw new Error("Client not initialized");
     return this.client.provider.connection

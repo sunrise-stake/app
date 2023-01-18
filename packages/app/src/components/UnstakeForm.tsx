@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { FiArrowDownLeft } from "react-icons/fi";
 
 import useModal from "../hooks/useModal";
@@ -13,17 +13,27 @@ interface UnstakeFormProps {
   delayedWithdraw: boolean;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
   gSolBalance: BN | undefined;
+  calculateFee?: (amount: BN) => Promise<BN>;
 }
 
 const UnstakeForm: React.FC<UnstakeFormProps> = ({
   withdraw,
   delayedWithdraw,
   setDelayedWithdraw,
+  calculateFee,
   gSolBalance,
 }) => {
   const [amount, setAmount] = useState("");
+  const [feeLoading, setFeeLoading] = useState(false);
 
   const withdrawModal = useModal(() => withdraw(amount));
+
+  const withdrawalFee = useMemo(() => {
+    if (!amount || !calculateFee) return new BN(0);
+
+    setFeeLoading(true);
+    return calculateFee(new BN(amount)).finally(() => setFeeLoading(false));
+  }, [calculateFee, amount]);
 
   return (
     <div>

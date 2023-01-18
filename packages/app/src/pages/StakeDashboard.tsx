@@ -157,6 +157,7 @@ export const StakeDashboard: FC = () => {
             withdraw={withdraw}
             setDelayedWithdraw={setDelayedWithdraw}
             delayedWithdraw={delayedWithdraw}
+            calculateFee={client?.calculateWithdrawalFee}
           />
         )}
         <div
