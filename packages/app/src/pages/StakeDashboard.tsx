@@ -151,7 +151,7 @@ export const StakeDashboard: FC = () => {
         ) : (
           <UnstakeForm
             gSolBalance={
-              stakeBalance && new BN(stakeBalance.depositedSol.amount)
+              stakeBalance && new BN(stakeBalance.gsolBalance.amount)
             }
             withdraw={withdraw}
             setDelayedWithdraw={setDelayedWithdraw}
