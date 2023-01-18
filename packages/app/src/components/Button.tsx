@@ -2,7 +2,7 @@ import clx from "classnames";
 import React, { ReactNode } from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "danger" | "ticket";
   children?: ReactNode;
   className?: string;
 }
@@ -21,6 +21,7 @@ const Button: React.FC<ButtonProps> = ({
           "bg-green": variant === "primary",
           "bg-danger": variant === "danger",
           "bg-outset": variant === "secondary",
+          "bg-ticket": variant === "ticket",
         },
         className
       )}

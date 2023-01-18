@@ -9,13 +9,14 @@ import { TbLeafOff } from "react-icons/tb";
 import { useSunriseStake } from "../hooks/useSunriseStake";
 import { BalanceInfo } from "../lib/stakeAccount";
 import StakeForm from "../components/StakeForm";
-import BalanceInfoTable from "../components/BalanceInfoTable";
-import { toBN } from "../lib/util";
+import BalanceInfoTable, { solToCarbon } from "../components/BalanceInfoTable";
+import { toBN, toFixedWithPrecision, toSol } from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
 import { InfoBox } from "../components/InfoBox";
+import WithdrawTicket from "../components/WithdrawTickets";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -155,6 +156,7 @@ export const StakeDashboard: FC = () => {
             }
             withdraw={withdraw}
             setDelayedWithdraw={setDelayedWithdraw}
+            delayedWithdraw={delayedWithdraw}
           />
         )}
         <div
@@ -174,20 +176,50 @@ export const StakeDashboard: FC = () => {
       </Panel>
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">0.00</span>
+          <span className="font-bold text-xl">
+            {stakeBalance &&
+              toFixedWithPrecision(toSol(stakeBalance.extractableYield))}
+          </span>
           <br />
-          Earned
+          gSOL
         </InfoBox>
         <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">0.00</span>
+          <span className="font-bold text-xl">
+            {stakeBalance &&
+              toFixedWithPrecision(
+                solToCarbon(toSol(stakeBalance.extractableYield))
+              )}
+          </span>
           <br />
           tCO₂E
         </InfoBox>
         <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">0.00</span>
+          <span className="font-bold text-xl">
+            {treasuryBalanceLamports &&
+              stakeBalance &&
+              toFixedWithPrecision(
+                solToCarbon(
+                  toSol(
+                    treasuryBalanceLamports.add(stakeBalance.extractableYield)
+                  )
+                )
+              )}
+          </span>
           <br />
           Total tCO₂E
         </InfoBox>
+      </div>
+
+      <div className="flex flex-col items-center">
+        {delayedUnstakeTickets.map((ticket) => {
+          return (
+            <WithdrawTicket
+              key={ticket.address.toBase58()}
+              ticket={ticket}
+              redeem={redeem}
+            />
+          );
+        })}
       </div>
     </div>
   );
