@@ -18,6 +18,7 @@ module.exports = {
         danger: "#bf5a5a",
         ticket: "#d6a241",
         textColor: "#ffffff",
+        warning: "f9c23c",
       },
       fontFamily: {
         sans: ['"Open Sans"', defaultTheme.fontFamily.sans],
