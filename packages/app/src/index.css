@@ -27,3 +27,12 @@ body {
   -webkit-transform:rotate(-45deg);
   transform:rotate(-45deg);
 }
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none;
+}
+
+.appearance-textfield {
+  appearance: textfield;
+}
