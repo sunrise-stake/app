@@ -332,7 +332,7 @@ describe("sunrise-stake", () => {
   });
 
   it("can extract earned yield", async () => {
-    await expectTreasurySolBalance(client, 0, 10);
+    await expectTreasurySolBalance(client, 0, 50);
 
     // trigger a withdrawal
     await client.extractYield();

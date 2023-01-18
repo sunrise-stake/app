@@ -10,12 +10,14 @@ import UnstakeOption from "./UnstakeOption";
 
 interface UnstakeFormProps {
   withdraw: (amount: string) => void;
+  delayedWithdraw: boolean;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
   gSolBalance: BN | undefined;
 }
 
 const UnstakeForm: React.FC<UnstakeFormProps> = ({
   withdraw,
+  delayedWithdraw,
   setDelayedWithdraw,
   gSolBalance,
 }) => {
@@ -40,7 +42,10 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         setAmount={setAmount}
       />
       <div className="flex items-center justify-between">
-        <UnstakeOption />
+        <UnstakeOption
+          setDelayedWithdraw={setDelayedWithdraw}
+          delayedWithdraw={delayedWithdraw}
+        />
         <Button onClick={() => withdraw(amount)}>
           Withdraw <FiArrowDownLeft className="inline" size={24} />
         </Button>

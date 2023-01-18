@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import "../util";
 import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
 import { getMetadataAddress, metadata, provider, uploadMetadata } from "./util";
 import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/stakeAccount";

@@ -106,7 +106,8 @@ export const liquidUnstake = async (
     marinade,
     marinadeState,
     program,
-    stateAddress
+    stateAddress,
+    staker
   );
 
   return program.methods
@@ -127,7 +128,8 @@ export const triggerRebalance = async (
   marinade: Marinade,
   marinadeState: MarinadeState,
   program: Program<SunriseStake>,
-  stateAddress: PublicKey
+  stateAddress: PublicKey,
+  payer: PublicKey
 ): Promise<TriggerRebalanceResult> => {
   const sunriseStakeState = await program.account.state.fetch(stateAddress);
   const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
@@ -194,6 +196,7 @@ export const triggerRebalance = async (
 
   const accounts: Accounts = {
     state: stateAddress,
+    payer,
     marinadeState: marinadeState.marinadeStateAddress,
     gsolMint: sunriseStakeState.gsolMint,
     msolMint: marinadeState.mSolMint.address,

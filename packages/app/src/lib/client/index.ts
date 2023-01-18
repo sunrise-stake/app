@@ -228,7 +228,8 @@ export class SunriseStakeClient {
       this.marinade,
       this.marinadeState,
       this.program,
-      this.stateAddress
+      this.stateAddress,
+      this.provider.publicKey
     );
 
     const transaction = new Transaction().add(instruction);
