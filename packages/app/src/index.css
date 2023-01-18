@@ -8,6 +8,10 @@ button, input {
   line-height: 24px !important;
 }
 
+body {
+  background: bottom right no-repeat url("../public/background.png");
+}
+
 body:after{
   content: "alpha";
   position: fixed;
