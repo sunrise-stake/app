@@ -18,3 +18,9 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
 
 export const DEFAULT_LP_PROPORTION = 10;
 export const DEFAULT_LP_MIN_PROPORTION = 5;
+
+export const MARINADE_TICKET_RENT = 1503360;
+
+export const NETWORK_FEE = 5000;
+
+export const MINIMUM_EXTRACTABLE_YIELD = 100_000_000; // 0.1 SOL
