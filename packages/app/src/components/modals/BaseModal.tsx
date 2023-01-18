@@ -72,11 +72,11 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
                     onClick={clickOk}
                   >
                     <div className="font-bold">Continue</div>{" "}
-                    <BiRightArrowAlt className="ml-2" size={24} />
+                    <BiRightArrowAlt className="ml-2" size={16} />
                   </button>
                   <button
                     type="button"
-                    className="flex items-center mt-3 w-full justify-center rounded-md  bg-danger px-4 py-2 text-base font-medium shadow-sm text-white hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
+                    className="flex items-center mt-3 w-full justify-center rounded-md  bg-danger px-4 py-2 text-base font-medium shadow-sm text-white hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
                     onClick={clickCancel}
                     ref={cancelButtonRef}
                   >
