@@ -359,6 +359,7 @@ pub mod sunrise_stake {
 
     pub fn spl_withdraw_stake(ctx: Context<SplWithdrawStake>, amount: u64) -> Result<()> {
         ctx.accounts.withdraw_stake(amount)
+    }
 
     ////////////////////////////
     // ADMIN FUNCTIONS
@@ -370,7 +371,7 @@ pub mod sunrise_stake {
         state_account.update_authority = state.update_authority;
         state_account.gsol_mint_authority_bump = state.gsol_mint_authority_bump;
         state_account.msol_authority_bump = state.msol_authority_bump;
-        state_account.bsol_authority_bump = state.bsol_authority_bump,
+        state_account.bsol_authority_bump = state.bsol_authority_bump;
         state_account.treasury = state.treasury;
         state_account.gsol_mint = ctx.accounts.mint.key();
         state_account.liq_pool_proportion = state.liq_pool_proportion;
