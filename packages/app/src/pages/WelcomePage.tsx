@@ -2,7 +2,7 @@ import { FC } from "react";
 import Spinner from "../components/Spinner";
 import CarbonRecovered from "../components/CarbonRecovered";
 import { useSunriseStake } from "../context/sunriseStakeContext";
-import { Button } from "../components/Button";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 // TODO remove duplication with StakeDashboard
 
@@ -31,15 +31,13 @@ export const WelcomePage: FC = () => {
               Offset emissions while you sleep.
             </h3>
           </div>
-          <p>
+          <p className="mb-12">
             Invest in the future by using your staking rewards to support
             climate projects.
           </p>
-          <Button className="my-16 hover:opacity-75">
-            Start reducing CO2 emissions
-          </Button>
+          <WalletMultiButton>Start reducing CO2 emissions</WalletMultiButton>
           <img
-            className="h-25 w-auto m-auto py-2"
+            className="h-25 w-auto mt-12 py-2"
             src={"./logo.png"}
             alt="Sunrise"
           />
