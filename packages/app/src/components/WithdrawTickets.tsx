@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import clx from "classnames";
 import { Button } from "./Button";
 import { TicketIcon } from "@heroicons/react/24/solid";
@@ -17,7 +17,16 @@ interface WithdrawTicketProps {
 }
 
 const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+
+  useEffect(() => {
+    if (isClicked) {
+      const timeout = setTimeout(() => {
+        setIsClicked(false);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isClicked]);
 
   // TODO: Think of a better way
   if (ticket.ticketDue === undefined) {
@@ -25,17 +34,14 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
   }
 
   return (
-    <div
-      className="relative my-4 flex"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative my-4 flex">
       <Button
         variant="ticket"
         className="text-white relative z-10"
         onClick={() => {
           if (ticket.ticketDue === undefined || !ticket.ticketDue) {
             console.log("Ticket is not due yet");
+            setIsClicked((prevState) => !prevState);
             return;
           }
           redeem(ticket);
@@ -55,12 +61,13 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
       </Button>
 
       <Button
-        variant={ticket.ticketDue ? "ticket" : "danger"}
+        onClick={() => setIsClicked(false)}
+        variant={"danger"}
         className={clx(
           "text-white text-sm p-2 relative rounded transition-transform duration-500 z-0 m-auto w-44",
           {
-            "transform translate-x-5": isHovered,
-            "transform -translate-x-full": !isHovered,
+            "transform translate-x-5": isClicked,
+            "transform -translate-x-full": !isClicked,
           }
         )}
       >
