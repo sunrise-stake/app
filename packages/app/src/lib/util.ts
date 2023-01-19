@@ -47,3 +47,14 @@ export const CARBON_PRICE_USD_CENTS_PER_TONNE = 8021;
 
 export const solToCarbon = (sol: number): number =>
   (sol * SOL_PRICE_USD_CENTS) / CARBON_PRICE_USD_CENTS_PER_TONNE;
+
+export function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
+  func: F,
+  waitFor: number
+): (...args: Parameters<F>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<F>): void => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), waitFor);
+  };
+}

@@ -7,9 +7,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { SunriseClientWrapper } from "../lib/sunriseClientWrapper";
-import { walletIsConnected } from "../lib/util";
 import { Keypair } from "@solana/web3.js";
 import { Details } from "../lib/client/types/Details";
 
@@ -30,7 +29,7 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [client, setClient] = useState<SunriseClientWrapper>();
   const [details, setDetails] = useState<Details>();
   const { connection } = useConnection();
-  const wallet = useWallet();
+  const wallet = useAnchorWallet();
 
   const updateClient = useCallback(
     async (client: SunriseClientWrapper) => {
@@ -41,27 +40,27 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   );
 
   useEffect(() => {
-    if (walletIsConnected(wallet)) {
-      console.log("wallet connected");
+    console.log("wallet changed", wallet);
+    // dOn't overwrite a readwrite client with a readonly one
+    if (wallet && (!client || client.readonlyWallet)) {
       SunriseClientWrapper.init(connection, wallet, setDetails)
         .then(updateClient)
         .catch(console.error);
-    } else {
-      console.log("wallet not connected");
+    } else if (!client) {
       SunriseClientWrapper.init(
         connection,
         {
-          connected: true,
           publicKey: dummyKey,
           signAllTransactions: async (txes) => txes,
           signTransaction: async (tx) => tx,
         },
-        setDetails
+        setDetails,
+        true
       )
         .then(updateClient)
         .catch(console.error);
     }
-  }, [connection, wallet.connected, wallet.publicKey?.toBase58()]);
+  }, [connection, wallet?.publicKey?.toBase58()]);
 
   return (
     <SunriseContext.Provider value={{ client, details }}>

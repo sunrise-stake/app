@@ -1,13 +1,13 @@
 import { SunriseStakeClient } from "./client";
 import { Connection, Transaction } from "@solana/web3.js";
-import { ConnectedWallet, toBN } from "./util";
-import { AnchorProvider, Wallet } from "@project-serum/anchor";
+import { AnchorProvider } from "@project-serum/anchor";
 import BN from "bn.js";
 import { Environment, MINIMUM_EXTRACTABLE_YIELD } from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
-import { Balance } from "./client/util";
 import { Details } from "./client/types/Details";
+import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { debounce } from "./util";
 
 export const SUNRISE_STAKE_STATE =
   Environment[
@@ -15,15 +15,12 @@ export const SUNRISE_STAKE_STATE =
       WalletAdapterNetwork.Devnet
   ].state;
 
-export type BalanceInfo = Balance & {
-  msolValue: BN;
-  extractableYield: BN;
-};
-
 export class SunriseClientWrapper {
+  public debouncedUpdate = debounce(this.triggerUpdate.bind(this), 1000);
   constructor(
     private readonly client: SunriseStakeClient,
-    private readonly detailsListener: (details: Details) => void
+    private readonly detailsListener: (details: Details) => void,
+    readonly readonlyWallet: boolean
   ) {
     const accountsToListenTo = [
       this.client.provider.publicKey,
@@ -37,39 +34,61 @@ export class SunriseClientWrapper {
     accountsToListenTo.forEach((account) => {
       if (account) {
         this.client.provider.connection.onAccountChange(account, () => {
-          this.client.details().then(detailsListener).catch(console.error);
+          console.log("account changed", account.toBase58());
+          this.debouncedUpdate();
         });
       }
     });
   }
 
+  private triggerUpdate(): void {
+    console.log("Updating details");
+    this.client.details().then(this.detailsListener).catch(console.error);
+  }
+
   static async init(
     connection: Connection,
-    wallet: ConnectedWallet,
-    listener: (details: Details) => void
+    wallet: AnchorWallet,
+    listener: (details: Details) => void,
+    readonlyWallet = false
   ): Promise<SunriseClientWrapper> {
     const provider = new AnchorProvider(
       connection,
-      wallet as unknown as Wallet,
+      wallet as unknown as AnchorWallet,
       {}
     );
     const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE, {
       verbose: Boolean(process.env.REACT_APP_VERBOSE),
     });
 
-    return new SunriseClientWrapper(client, listener);
+    return new SunriseClientWrapper(client, listener, readonlyWallet);
   }
 
+  private readonly triggerUpdateAndReturn = <T>(result: T): T => {
+    this.debouncedUpdate();
+    return result;
+  };
+
   async deposit(amount: BN): Promise<string> {
-    return this.client.deposit(amount);
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .deposit(amount)
+      .then(this.triggerUpdateAndReturn.bind(this));
   }
 
   async withdraw(amount: BN): Promise<string> {
-    return this.client.unstake(amount);
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .unstake(amount)
+      .then(this.triggerUpdateAndReturn.bind(this));
   }
 
   async orderWithdrawal(amount: BN): Promise<string> {
-    return this.client.orderUnstake(amount).then(([txSig]) => txSig);
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .orderUnstake(amount)
+      .then(([txSig]) => txSig)
+      .then(this.triggerUpdateAndReturn.bind(this));
   }
 
   async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
@@ -77,21 +96,19 @@ export class SunriseClientWrapper {
   }
 
   async claimUnstakeTicket(ticket: TicketAccount): Promise<string> {
-    return this.client.claimUnstakeTicket(ticket);
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .claimUnstakeTicket(ticket)
+      .then(this.triggerUpdateAndReturn.bind(this));
   }
 
   async getDetails(): Promise<Details> {
+    console.log("getDetails");
     return this.client.details();
   }
 
-  async treasuryBalance(): Promise<BN> {
-    if (!this.client.config) throw new Error("Client not initialized");
-    return this.client.provider.connection
-      .getBalance(this.client.config.treasury)
-      .then(toBN);
-  }
-
   async executeCrankOperations(): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
     const instructions = [];
 
     const { extractableYield } = await this.client.details();
@@ -105,6 +122,8 @@ export class SunriseClientWrapper {
 
     const tx = new Transaction().add(...instructions);
 
-    return this.client.provider.sendAndConfirm(tx, []);
+    return this.client.provider
+      .sendAndConfirm(tx, [])
+      .then(this.triggerUpdateAndReturn.bind(this));
   }
 }

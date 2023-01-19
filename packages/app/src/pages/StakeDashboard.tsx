@@ -31,7 +31,7 @@ export const StakeDashboard: FC = () => {
 
   // TODO move to details?
   const setBalances = useCallback(async () => {
-    if (!wallet.publicKey || !client || !details) return;
+    if (!wallet.publicKey || !client) return;
     setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
     setDelayedUnstakeTickets(await client.getDelayedUnstakeTickets());
   }, [wallet.publicKey, client, connection]);
