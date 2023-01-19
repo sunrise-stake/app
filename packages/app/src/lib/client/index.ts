@@ -406,9 +406,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction);
   }
 
-  public async calculateWithdrawalFee(withdrawalLamports: BN): Promise<BN> {
-    const details = await this.details();
-
+  public calculateWithdrawalFee(withdrawalLamports: BN, details: Details): BN {
     // Calculate how much can be withdrawn from the lp (without fee)
     const lpSolShare = details.lpDetails.lpSolShare;
     const preferredMinLiqPoolValue = new BN(

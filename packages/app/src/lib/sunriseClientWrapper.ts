@@ -95,6 +95,10 @@ export class SunriseClientWrapper {
     return this.client.getDelayedUnstakeTickets();
   }
 
+  calculateWithdrawalFee(amount: BN, details: Details): BN {
+    return this.client.calculateWithdrawalFee(amount, details);
+  }
+
   async claimUnstakeTicket(ticket: TicketAccount): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client

@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FiArrowDownLeft } from "react-icons/fi";
 
 import useModal from "../hooks/useModal";
@@ -7,23 +7,43 @@ import LiquidWithdrawWarningModal from "./modals/LiquidWithdrawWarningModal";
 import { Button } from "./Button";
 import AmountInput from "./AmountInput";
 import UnstakeOption from "./UnstakeOption";
+import { useSunriseStake } from "../context/sunriseStakeContext";
+import { ZERO } from "../lib/util";
 
 interface UnstakeFormProps {
   withdraw: (amount: string) => void;
   delayedWithdraw: boolean;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
-  gSolBalance: BN | undefined;
 }
 
 const UnstakeForm: React.FC<UnstakeFormProps> = ({
   withdraw,
   delayedWithdraw,
   setDelayedWithdraw,
-  gSolBalance,
 }) => {
+  const { client, details } = useSunriseStake();
   const [amount, setAmount] = useState("");
+  const [feeLoading, setFeeLoading] = useState(true);
 
   const withdrawModal = useModal(() => withdraw(amount));
+
+  useEffect(() => {
+    if (client && details) setFeeLoading(false);
+  }, [client, details]);
+
+  const withdrawalFee = useMemo(() => {
+    if (!client || !details) return new BN(0);
+
+    setFeeLoading(false);
+
+    if (!amount) return ZERO;
+
+    // Use a rounded up value because BN can not handle decimals.
+    // Calculated fee is possible higher than actual fee
+    const roundedUp = Math.ceil(Number(amount));
+
+    return client.calculateWithdrawalFee(new BN(roundedUp), details);
+  }, [client, details, amount]);
 
   return (
     <div>
@@ -37,7 +57,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
       <AmountInput
         className="mb-5"
         token="gSOL"
-        balance={gSolBalance}
+        balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
         amount={amount}
         setAmount={setAmount}
       />
@@ -45,6 +65,8 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         <UnstakeOption
           setDelayedWithdraw={setDelayedWithdraw}
           delayedWithdraw={delayedWithdraw}
+          withdrawalFee={withdrawalFee}
+          feeLoading={feeLoading}
         />
         <Button onClick={() => withdraw(amount)}>
           Withdraw <FiArrowDownLeft className="inline" size={24} />
