@@ -2,6 +2,7 @@ import React, { FC } from "react";
 import { solToCarbon, toFixedWithPrecision, toSol } from "../lib/util";
 import BN from "bn.js";
 import { useSunriseStake } from "../context/sunriseStakeContext";
+import Spinner from "./Spinner";
 
 const CarbonRecovered: FC = () => {
   const { details } = useSunriseStake();
@@ -29,7 +30,7 @@ const CarbonRecovered: FC = () => {
       </div>
     </div>
   ) : (
-    <></>
+    <Spinner />
   ); // TODO loading screen
 };
 
