@@ -31,8 +31,12 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
   const withdrawalFee = useMemo(() => {
     if (!amount || !calculateFee) return new BN(0);
 
+    // Use a rounded up value because BN can not handle decimals.
+    // Calculated fee is possible higher than actual fee
+    const roundedUp = Math.ceil(Number(amount));
     setFeeLoading(true);
-    return calculateFee(new BN(amount)).finally(() => setFeeLoading(false));
+
+    return calculateFee(new BN(roundedUp)).finally(() => setFeeLoading(false));
   }, [calculateFee, amount]);
 
   return (

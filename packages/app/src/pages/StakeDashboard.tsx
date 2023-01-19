@@ -17,7 +17,6 @@ import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
 import { InfoBox } from "../components/InfoBox";
 import WithdrawTicket from "../components/WithdrawTickets";
-import Spinner from "../components/Spinner";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -225,7 +224,6 @@ export const StakeDashboard: FC = () => {
           );
         })}
       </div>
-      <Spinner />
     </div>
   );
 };
