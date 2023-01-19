@@ -1,25 +1,12 @@
-import { FC, useCallback, useEffect, useState } from "react";
-import { useReadOnlySunriseStake } from "../hooks/useSunriseStake";
+import { FC } from "react";
 import Spinner from "../components/Spinner";
 import CarbonRecovered from "../components/CarbonRecovered";
-import BN from "bn.js";
-import { ZERO } from "../lib/util";
+import { useSunriseStake } from "../context/sunriseStakeContext";
 
 // TODO remove duplication with StakeDashboard
 
 export const WelcomePage: FC = () => {
-  const client = useReadOnlySunriseStake();
-  const [treasuryBalanceLamports, setTreasuryBalanceLamports] = useState<BN>();
-
-  const updateBalances = useCallback(async () => {
-    if (!client) return;
-    setTreasuryBalanceLamports(await client.treasuryBalance());
-  }, [client]);
-
-  useEffect((): void => {
-    if (!client) return;
-    updateBalances().catch(console.error);
-  }, [updateBalances, client]);
+  const { client } = useSunriseStake();
 
   return (
     <div className="w-full">
@@ -29,9 +16,7 @@ export const WelcomePage: FC = () => {
         src={"./logo.png"}
         alt="Sunrise"
       />
-      <CarbonRecovered
-        treasuryBalanceLamports={treasuryBalanceLamports ?? ZERO}
-      />
+      <CarbonRecovered />
     </div>
   );
 };

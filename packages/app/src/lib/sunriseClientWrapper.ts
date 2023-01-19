@@ -7,6 +7,7 @@ import { Environment, MINIMUM_EXTRACTABLE_YIELD } from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
 import { Balance } from "./client/util";
+import { Details } from "./client/types/Details";
 
 export const SUNRISE_STAKE_STATE =
   Environment[
@@ -19,13 +20,34 @@ export type BalanceInfo = Balance & {
   extractableYield: BN;
 };
 
-export class StakeAccount {
-  constructor(private readonly client: SunriseStakeClient) {}
+export class SunriseClientWrapper {
+  constructor(
+    private readonly client: SunriseStakeClient,
+    private readonly detailsListener: (details: Details) => void
+  ) {
+    const accountsToListenTo = [
+      this.client.provider.publicKey,
+      this.client.stakerGSolTokenAccount,
+      this.client.config?.gsolMint,
+      // this.client.marinadeState?.lpMint.address, // Remove this as it might get too noisy
+      this.client.msolTokenAccount,
+    ];
+
+    // TODO too noisy?
+    accountsToListenTo.forEach((account) => {
+      if (account) {
+        this.client.provider.connection.onAccountChange(account, () => {
+          this.client.details().then(detailsListener).catch(console.error);
+        });
+      }
+    });
+  }
 
   static async init(
     connection: Connection,
-    wallet: ConnectedWallet
-  ): Promise<StakeAccount> {
+    wallet: ConnectedWallet,
+    listener: (details: Details) => void
+  ): Promise<SunriseClientWrapper> {
     const provider = new AnchorProvider(
       connection,
       wallet as unknown as Wallet,
@@ -34,21 +56,8 @@ export class StakeAccount {
     const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE, {
       verbose: Boolean(process.env.REACT_APP_VERBOSE),
     });
-    client.details().then(console.log).catch(console.error);
-    return new StakeAccount(client);
-  }
 
-  async getBalance(): Promise<BalanceInfo> {
-    const balance = await this.client.balance();
-    const extractableYield = await this.client.extractableYield();
-    const msolValue = new BN(
-      new BN(balance.msolBalance.amount).toNumber() * balance.msolPrice
-    );
-    return {
-      ...balance,
-      msolValue,
-      extractableYield,
-    };
+    return new SunriseClientWrapper(client, listener);
   }
 
   async deposit(amount: BN): Promise<string> {
@@ -71,6 +80,10 @@ export class StakeAccount {
     return this.client.claimUnstakeTicket(ticket);
   }
 
+  async getDetails(): Promise<Details> {
+    return this.client.details();
+  }
+
   async treasuryBalance(): Promise<BN> {
     if (!this.client.config) throw new Error("Client not initialized");
     return this.client.provider.connection
@@ -81,7 +94,7 @@ export class StakeAccount {
   async executeCrankOperations(): Promise<string> {
     const instructions = [];
 
-    const extractableYield = await this.client.extractableYield();
+    const { extractableYield } = await this.client.details();
 
     if (extractableYield.gtn(MINIMUM_EXTRACTABLE_YIELD)) {
       const extractYieldIx = await this.client.extractYieldIx();
