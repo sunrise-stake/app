@@ -13,6 +13,7 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WalletConnectionWrapper } from "./pages/WalletConnectionWrapper";
 import { clusterApiUrl } from "@solana/web3.js";
+import { SunriseProvider } from "./context/sunriseStakeContext";
 
 require("./solana-wallet-adapter.css");
 
@@ -39,7 +40,9 @@ const App: FC = () => {
         <ConnectionProvider endpoint={endpoint}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
-              <Content />
+              <SunriseProvider>
+                <Content />
+              </SunriseProvider>
             </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>

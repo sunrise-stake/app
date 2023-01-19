@@ -18,6 +18,7 @@ export interface Details {
   };
   marinadeFinanceProgramId: string;
   marinadeStateAddress: string;
+  extractableYield: BN;
 
   spDetails: {
     msolPrice: number;

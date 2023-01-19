@@ -47,6 +47,7 @@ import {
   NETWORK_FEE,
 } from "../constants";
 import { liquidUnstake, triggerRebalance } from "./marinade";
+import { ZERO } from "../util";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -406,9 +407,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction);
   }
 
-  public async calculateWithdrawalFee(withdrawalLamports: BN): Promise<BN> {
-    const details = await this.details();
-
+  public calculateWithdrawalFee(withdrawalLamports: BN, details: Details): BN {
     // Calculate how much can be withdrawn from the lp (without fee)
     const lpSolShare = details.lpDetails.lpSolShare;
     const preferredMinLiqPoolValue = new BN(
@@ -424,8 +423,17 @@ export class SunriseStakeClient {
     const amountToOrderUnstake = new BN(preferredMinLiqPoolValue).sub(
       postUnstakeLpSolValue
     );
-    const rentForOrderUnstakeTicket =
-      amountToOrderUnstake.toNumber() > 0 ? MARINADE_TICKET_RENT : 0;
+    const rentForOrderUnstakeTicket = amountToOrderUnstake.gt(ZERO)
+      ? MARINADE_TICKET_RENT
+      : 0;
+
+    console.log({
+      amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
+      rentForOrderUnstakeTicket: rentForOrderUnstakeTicket.toString(),
+      networkFee: NETWORK_FEE.toString(),
+    });
+
+    if (amountBeingLiquidUnstaked.lte(ZERO)) return ZERO;
 
     // Calculate the fee
     return amountBeingLiquidUnstaked
@@ -507,7 +515,7 @@ export class SunriseStakeClient {
       msolLeg: this.marinadeState.mSolLeg.toBase58(),
     };
 
-    return {
+    const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
       balances,
       epochInfo,
@@ -525,6 +533,14 @@ export class SunriseStakeClient {
       marinadeStateAddress: this.marinadeState.marinadeStateAddress.toBase58(),
       spDetails,
       lpDetails,
+    };
+
+    const extractableYield =
+      this.calculateExtractableYield(detailsWithoutYield);
+
+    return {
+      ...detailsWithoutYield,
+      extractableYield,
     };
   }
 
@@ -551,11 +567,14 @@ export class SunriseStakeClient {
     );
   }
 
-  public async extractableYield(): Promise<BN> {
+  private calculateExtractableYield({
+    epochInfo,
+    balances,
+    spDetails,
+    lpDetails,
+  }: Omit<Details, "extractableYield">): BN {
     if (!this.marinadeState || !this.msolTokenAccount)
       throw new Error("init not called");
-
-    const { epochInfo, balances, spDetails, lpDetails } = await this.details();
 
     // deposited in Stake Pool
     const msolBalance = new BN(balances.msolBalance.amount);
