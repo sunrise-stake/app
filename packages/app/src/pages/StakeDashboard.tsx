@@ -20,13 +20,12 @@ import UnstakeForm from "../components/UnstakeForm";
 import { InfoBox } from "../components/InfoBox";
 import WithdrawTicket from "../components/WithdrawTickets";
 import { useSunriseStake } from "../context/sunriseStakeContext";
+import { NotificationType, notifyTransaction } from "../utils/notifications";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
   const { connection } = useConnection();
   const { client, details } = useSunriseStake();
-  const [txSig, setTxSig] = useState<string>();
-  const [error, setError] = useState<Error>();
   const [solBalance, setSolBalance] = useState<BN>();
   const [delayedWithdraw, setDelayedWithdraw] = useState(false);
   const [delayedUnstakeTickets, setDelayedUnstakeTickets] = useState<
@@ -42,7 +41,11 @@ export const StakeDashboard: FC = () => {
   }, [wallet.publicKey?.toBase58(), client, connection]);
 
   const handleError = useCallback((error: Error) => {
-    setError(error);
+    notifyTransaction({
+      type: NotificationType.error,
+      message: "Transaction failed",
+      description: error.message,
+    });
     console.error(error);
   }, []);
 
@@ -63,7 +66,13 @@ export const StakeDashboard: FC = () => {
 
       client
         .deposit(solToLamports(amount))
-        .then(setTxSig)
+        .then((tx) =>
+          notifyTransaction({
+            type: NotificationType.success,
+            message: "Deposit successful",
+            txid: tx,
+          })
+        )
         .then(setBalances)
         .catch(handleError);
     },
@@ -79,7 +88,13 @@ export const StakeDashboard: FC = () => {
         : client.withdraw.bind(client);
 
       withdraw(solToLamports(amount))
-        .then(setTxSig)
+        .then((tx) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: "Withdrawal successful",
+            txid: tx,
+          });
+        })
         .then(setBalances)
         .catch(handleError);
     },
@@ -92,7 +107,13 @@ export const StakeDashboard: FC = () => {
 
       client
         .claimUnstakeTicket(ticket)
-        .then(setTxSig)
+        .then((tx) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: "Redeeming successful",
+            txid: tx,
+          });
+        })
         .then(setBalances)
         .catch(handleError);
     },
@@ -162,8 +183,6 @@ export const StakeDashboard: FC = () => {
             delayedWithdraw={delayedWithdraw}
           />
         )}
-        {txSig !== undefined && <div>Done {txSig}</div>}
-        {error != null && <div>Error: {error.message}</div>}
       </Panel>
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="p-2 rounded text-center">

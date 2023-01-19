@@ -14,6 +14,7 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WalletConnectionWrapper } from "./pages/WalletConnectionWrapper";
 import { clusterApiUrl } from "@solana/web3.js";
 import { SunriseProvider } from "./context/sunriseStakeContext";
+import { Toaster } from "react-hot-toast";
 
 require("./solana-wallet-adapter.css");
 
@@ -41,6 +42,7 @@ const App: FC = () => {
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
               <SunriseProvider>
+                <Toaster />
                 <Content />
               </SunriseProvider>
             </WalletModalProvider>
