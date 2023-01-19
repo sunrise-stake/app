@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useCallback } from "react";
 import BN from "bn.js";
-import { toFixedWithPrecision, toSol } from "../lib/util";
+import { solToLamports, toFixedWithPrecision, toSol } from "../lib/util";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 
 interface AmountInputProps {
@@ -9,6 +9,7 @@ interface AmountInputProps {
   balance: BN | undefined;
   amount: string;
   setAmount: Function;
+  setValid: (valid: boolean) => void;
 }
 
 const AmountInput: React.FC<AmountInputProps> = ({
@@ -17,15 +18,38 @@ const AmountInput: React.FC<AmountInputProps> = ({
   amount,
   setAmount,
   token = "SOL",
+  setValid,
 }) => {
+  const min = solToLamports(0);
+  const max = balance ?? new BN(0);
+
   const handleIncDecBtnClick = (op: "INC" | "DEC"): void => {
     const parsedAmount = parseFloat(amount);
     if (!amount && op === "INC") setAmount("1");
     else if ((!amount && op === "DEC") || (parsedAmount <= 0 && op === "DEC"))
-      setAmount("0");
+      updateAmount("0");
     else {
-      setAmount(op === "INC" ? parsedAmount + 1 : parsedAmount - 1);
+      updateAmount(String(op === "INC" ? parsedAmount + 1 : parsedAmount - 1));
     }
+  };
+
+  const updateAmount = useCallback(
+    (amountStr: string) => {
+      const parsedValue = solToLamports(amountStr);
+
+      console.log("parsedValue ", parsedValue.toString());
+      console.log("minValue ", min.toString());
+      console.log("maxValue ", max.toString());
+
+      setAmount(amountStr);
+      setValid(parsedValue.gt(min) && parsedValue.lte(max));
+    },
+    [setValid]
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const { value } = e.target;
+    updateAmount(value);
   };
 
   return (
@@ -51,11 +75,10 @@ const AmountInput: React.FC<AmountInputProps> = ({
               className="appearance-textfield grow w-full border-none bg-transparent text-3xl text-right"
               type="number"
               min="0"
+              max={balance ? toFixedWithPrecision(toSol(balance)) : "0"}
               placeholder="0.00"
               value={amount}
-              onChange={(ev) => {
-                setAmount(ev.currentTarget.value);
-              }}
+              onChange={handleChange}
             />
             <div>
               <button

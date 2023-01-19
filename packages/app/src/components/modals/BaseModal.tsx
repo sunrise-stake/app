@@ -1,5 +1,8 @@
-import { FC, Fragment, ReactNode, useCallback, useRef, useState } from "react";
+import { FC, Fragment, ReactNode, useCallback, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import { GiCancel } from "react-icons/gi";
+import { FiArrowRight } from "react-icons/fi";
+import { Button } from "../Button";
 
 export interface ModalProps {
   ok: () => void;
@@ -11,7 +14,6 @@ type Props = ModalProps & {
 };
 const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const cancelButtonRef = useRef(null);
 
   const clickOk = useCallback(() => {
     ok();
@@ -25,12 +27,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-10"
-        initialFocus={cancelButtonRef}
-        onClose={setIsOpen}
-      >
+      <Dialog as="div" className="relative z-10" onClose={setIsOpen}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -54,31 +51,31 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-outset px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
                 {children}
-                <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3 items-center text-center">
-                  <button
+                <div className="mx-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-32 items-center text-center">
+                  <Button
                     disabled={!okEnabled}
-                    type="button"
+                    variant="primary"
                     className={
-                      "inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm " +
-                      "hover:bg-indigo-700 " +
-                      "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 " +
+                      "w-full justify-center items-center" +
+                      "hover:opacity-70 " +
                       "disabled:opacity-50 disabled:cursor-not-allowed " +
                       "sm:col-start-2 sm:text-sm"
                     }
                     onClick={clickOk}
                   >
-                    Continue
-                  </button>
-                  <button
-                    type="button"
-                    className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
+                    <div className="font-bold">Continue</div>{" "}
+                    <FiArrowRight className="ml-2 scale-150" />
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="mt-3 items-center w-full justify-center hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
                     onClick={clickCancel}
-                    ref={cancelButtonRef}
                   >
-                    Cancel
-                  </button>
+                    <div className="font-bold">Cancel</div>{" "}
+                    <GiCancel className="ml-2" />
+                  </Button>
                 </div>
               </Dialog.Panel>
             </Transition.Child>

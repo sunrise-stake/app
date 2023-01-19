@@ -2,6 +2,8 @@ import clx from "classnames";
 import { FC, Fragment } from "react";
 import { FiChevronDown } from "react-icons/fi";
 import { Listbox, Transition } from "@headlessui/react";
+import Spinner from "./Spinner";
+import { toFixedWithPrecision } from "../lib/util";
 
 enum WithdrawOption {
   Delayed = "Delayed",
@@ -11,25 +13,31 @@ enum WithdrawOption {
 interface UnstakeOptionProps {
   delayedWithdraw: boolean;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
+  withdrawalFee: number;
+  feeLoading: boolean;
 }
 const UnstakeOption: FC<UnstakeOptionProps> = ({
   delayedWithdraw,
   setDelayedWithdraw,
-}) => {
-  return (
-    <div className="flex flex-row items-center gap-4">
-      <UnstakeOptionSelector
-        delayedWithdraw={delayedWithdraw}
-        setDelayedWithdraw={setDelayedWithdraw}
-      />
-      {delayedWithdraw ? (
-        <span className="text-green-bright text-bold text-lg">Free</span>
-      ) : (
-        <span className="text-danger text-bold text-lg">3% Fee</span>
-      )}
-    </div>
-  );
-};
+  withdrawalFee,
+  feeLoading,
+}) => (
+  <div className="flex flex-row items-center gap-4">
+    <UnstakeOptionSelector
+      delayedWithdraw={delayedWithdraw}
+      setDelayedWithdraw={setDelayedWithdraw}
+    />
+    {delayedWithdraw || withdrawalFee === 0 ? (
+      <span className="text-green-bright text-bold text-lg">Free</span>
+    ) : feeLoading ? (
+      <Spinner />
+    ) : (
+      <span className="text-danger text-bold text-lg">
+        Fee: {toFixedWithPrecision(withdrawalFee)}%
+      </span>
+    )}
+  </div>
+);
 
 interface SelectorProps {
   delayedWithdraw: boolean;

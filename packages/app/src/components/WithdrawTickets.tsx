@@ -7,6 +7,9 @@ import { AiOutlineClockCircle } from "react-icons/ai";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { toFixedWithPrecision, toSol } from "../lib/util";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 interface WithdrawTicketProps {
   ticket: TicketAccount;
