@@ -423,8 +423,9 @@ export class SunriseStakeClient {
     const amountToOrderUnstake = new BN(preferredMinLiqPoolValue).sub(
       postUnstakeLpSolValue
     );
-    const rentForOrderUnstakeTicket =
-      amountToOrderUnstake.toNumber() > 0 ? MARINADE_TICKET_RENT : 0;
+    const rentForOrderUnstakeTicket = amountToOrderUnstake.gt(ZERO)
+      ? MARINADE_TICKET_RENT
+      : 0;
 
     console.log({
       amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),

@@ -32,13 +32,20 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
   }, [client, details]);
 
   const withdrawalFee = useMemo(() => {
-    if (!client || !details) return new BN(0);
+    if (!client || !details || !amount) return 0;
 
     setFeeLoading(false);
 
-    if (!amount) return ZERO;
+    const lamports = solToLamports(amount);
 
-    return client.calculateWithdrawalFee(solToLamports(amount), details);
+    if (lamports.lte(ZERO)) return 0;
+    const fee = client.calculateWithdrawalFee(lamports, details);
+
+    const feeNumerator = fee.muln(100_000);
+
+    console.log("fee ", fee.toString());
+
+    return feeNumerator.div(lamports).toNumber() / 1000;
   }, [client, details, amount]);
 
   return (
