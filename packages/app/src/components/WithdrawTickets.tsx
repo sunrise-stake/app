@@ -36,7 +36,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
   return (
     <div className="relative my-4 flex">
       <Button
-        variant="ticket"
+        variant={ticket.ticketDue ? "primary" : "ticket"}
         className="text-white relative z-10"
         onClick={() => {
           if (ticket.ticketDue === undefined || !ticket.ticketDue) {
@@ -47,38 +47,37 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
           redeem(ticket);
         }}
       >
-        <TicketIcon width={36} className="mr-2" />
-        {ticket.ticketDue ? (
-          <MdOutlineLockOpen width={36} />
-        ) : (
-          <MdOutlineLockClock width={36} />
-        )}
+        <div className="flex flex-row items-center">
+          <TicketIcon
+            width={44}
+            className="mr-4 py-1 px-2 rounded bg-[#C78F28]"
+          />
+          {ticket.ticketDue ? (
+            <MdOutlineLockOpen width={36} className="text-outset" />
+          ) : (
+            <MdOutlineLockClock width={36} className="text-danger" />
+          )}
 
-        <div className="ml-2">1 Ticket</div>
-        <div className="text-xs text-outset relative top-5">
-          {toFixedWithPrecision(toSol(ticket.lamportsAmount))} SOL
+          {/* <div className="ml-2">1 Ticket</div> */}
+          <div className="text-lg text-outset ml-4 ">
+            {toFixedWithPrecision(toSol(ticket.lamportsAmount))} SOL
+          </div>
         </div>
       </Button>
 
       <Button
         onClick={() => setIsClicked(false)}
-        variant={"danger"}
+        variant="secondary"
         className={clx(
-          "text-white text-sm p-2 relative rounded transition-transform duration-500 z-0 m-auto w-44",
+          "text-danger border border-danger text-sm px-2 py-1 relative rounded-md transition-transform duration-500 z-0 m-auto w-44",
           {
             "transform translate-x-5": isClicked,
             "transform -translate-x-full": !isClicked,
           }
         )}
       >
-        {ticket.ticketDue ? (
-          "Redeem now"
-        ) : (
-          <>
-            <AiOutlineClockCircle className="mr-2" /> Due{" "}
-            {ticket.ticketDueDate ? dayjs(ticket.ticketDueDate).fromNow() : ""}
-          </>
-        )}
+        <AiOutlineClockCircle className="mr-2" /> Due{" "}
+        {dayjs(ticket.ticketDueDate).fromNow()}
       </Button>
     </div>
   );
