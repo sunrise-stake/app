@@ -1,5 +1,4 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import BN from "bn.js";
 import clx from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
@@ -7,7 +6,13 @@ import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 
 import StakeForm from "../components/StakeForm";
-import { solToCarbon, toBN, toFixedWithPrecision, toSol } from "../lib/util";
+import {
+  solToCarbon,
+  solToLamports,
+  toBN,
+  toFixedWithPrecision,
+  toSol,
+} from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
@@ -34,7 +39,7 @@ export const StakeDashboard: FC = () => {
     if (!wallet.publicKey || !client || !details) return;
     setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
     setDelayedUnstakeTickets(await client.getDelayedUnstakeTickets());
-  }, [wallet.publicKey, client, connection]);
+  }, [wallet.publicKey?.toBase58(), client, connection]);
 
   const handleError = useCallback((error: Error) => {
     setError(error);
@@ -42,16 +47,22 @@ export const StakeDashboard: FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!wallet.connected) return;
+    if (!wallet.publicKey) return;
     setBalances().catch(console.error);
-  }, [wallet, connection, setSolBalance, client, setBalances]);
+  }, [
+    wallet.publicKey?.toBase58(),
+    connection,
+    setSolBalance,
+    client,
+    setBalances,
+  ]);
 
   const deposit = useCallback(
     (amount: string) => {
       if (!client) return;
 
       client
-        .deposit(new BN(Number(amount) * LAMPORTS_PER_SOL))
+        .deposit(solToLamports(amount))
         .then(setTxSig)
         .then(setBalances)
         .catch(handleError);
@@ -67,7 +78,7 @@ export const StakeDashboard: FC = () => {
         ? client.orderWithdrawal.bind(client)
         : client.withdraw.bind(client);
 
-      withdraw(new BN(Number(amount) * LAMPORTS_PER_SOL))
+      withdraw(solToLamports(amount))
         .then(setTxSig)
         .then(setBalances)
         .catch(handleError);
@@ -146,7 +157,6 @@ export const StakeDashboard: FC = () => {
           <StakeForm solBalance={solBalance} deposit={deposit} />
         ) : (
           <UnstakeForm
-            gSolBalance={details && new BN(details.balances.gsolBalance.amount)}
             withdraw={withdraw}
             setDelayedWithdraw={setDelayedWithdraw}
             delayedWithdraw={delayedWithdraw}
