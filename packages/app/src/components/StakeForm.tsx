@@ -14,6 +14,7 @@ interface StakeFormProps {
 
 const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
   const [amount, setAmount] = useState("");
+  const [valid, setValid] = useState(false);
 
   const depositModal = useModal(() => deposit(amount));
 
@@ -31,9 +32,10 @@ const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
         token="SOL"
         amount={amount}
         setAmount={setAmount}
+        setValid={setValid}
       />
       <div className="flex items-center justify-end">
-        <Button onClick={depositModal.trigger}>
+        <Button onClick={depositModal.trigger} disabled={!valid}>
           Deposit <FiArrowUpRight className="inline" size={24} />
         </Button>
       </div>

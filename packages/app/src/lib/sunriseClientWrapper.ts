@@ -1,6 +1,5 @@
 import { SunriseStakeClient } from "./client";
 import { Connection, Transaction } from "@solana/web3.js";
-import { debounce } from "./util";
 import { AnchorProvider } from "@project-serum/anchor";
 import BN from "bn.js";
 import { Environment, MINIMUM_EXTRACTABLE_YIELD } from "./constants";
@@ -8,6 +7,7 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
 import { Details } from "./client/types/Details";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { debounce } from "./util";
 
 export const SUNRISE_STAKE_STATE =
   Environment[
