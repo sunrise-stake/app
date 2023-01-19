@@ -1,13 +1,15 @@
 import { create } from "zustand";
 import produce from "immer";
 
+export interface NotificationType {
+  type: string;
+  message: string;
+  description?: string;
+  txid?: string;
+}
+
 interface NotificationStore {
-  notifications: Array<{
-    type: string;
-    message: string;
-    description?: string;
-    txid?: string;
-  }>;
+  notifications: NotificationType[];
   set: (x: any) => void;
 }
 

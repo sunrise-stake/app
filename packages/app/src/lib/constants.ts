@@ -6,10 +6,10 @@ interface EnvironmentConfig {
 }
 export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
   "mainnet-beta": {
-    state: new PublicKey("BYR3oVpbzoTFV834SVDyXtsFwa3hF5rFcVwHkfKnfhpN"),
+    state: new PublicKey("BYR3oVpbzoTFV834SVDyXtsFwa3hF5rFcVwHkfKnfhpN"), // Warning obsolete
   },
   testnet: {
-    state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"),
+    state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"), // Warning obsolete
   },
   devnet: {
     state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),

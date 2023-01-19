@@ -5,7 +5,9 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-import useNotificationStore from "../stores/useNotificationStore";
+import useNotificationStore, {
+  NotificationType,
+} from "../stores/useNotificationStore";
 
 const NotificationList: FC = () => {
   const { notifications, set: setNotificationStore } = useNotificationStore(
@@ -19,7 +21,7 @@ const NotificationList: FC = () => {
       className={`z-20 fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6`}
     >
       <div className={`flex flex-col w-full`}>
-        {reversedNotifications.map((n, idx) => (
+        {reversedNotifications.map((n: NotificationType, idx) => (
           <Notification
             key={`${n.message}${idx}`}
             type={n.type}
