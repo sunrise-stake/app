@@ -34,7 +34,7 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const updateClient = useCallback(
     async (clientToUpdate: SunriseClientWrapper) => {
       // don't overwrite a readwrite client with a readonly one
-      if (!!client && !client.readonlyWallet) return;
+      if (clientToUpdate.readonlyWallet && client) return;
 
       console.log("setting client: readonly", clientToUpdate.readonlyWallet);
       setClient(clientToUpdate);

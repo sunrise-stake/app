@@ -23,6 +23,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
 }) => {
   const { client, details } = useSunriseStake();
   const [amount, setAmount] = useState("");
+  const [valid, setValid] = useState(false);
   const [feeLoading, setFeeLoading] = useState(true);
 
   const withdrawModal = useModal(() => withdraw(amount));
@@ -63,6 +64,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
         amount={amount}
         setAmount={setAmount}
+        setValid={setValid}
       />
       <div className="flex items-center justify-between">
         <UnstakeOption
@@ -71,7 +73,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
           withdrawalFee={withdrawalFee}
           feeLoading={feeLoading}
         />
-        <Button onClick={() => withdraw(amount)}>
+        <Button onClick={() => withdraw(amount)} disabled={!valid}>
           Withdraw <FiArrowDownLeft className="inline" size={24} />
         </Button>
       </div>
