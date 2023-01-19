@@ -58,9 +58,8 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
                     disabled={!okEnabled}
                     variant="primary"
                     className={
-                      "inline-flex w-full justify-center items-center rounded-md border border-transparent bg-green px-4 py-2 text-base font-medium text-white shadow-sm " +
+                      "w-full justify-center items-center" +
                       "hover:opacity-70 " +
-                      "focus:outline-none focus:ring-2 focus:ring-offset-2 " +
                       "disabled:opacity-50 disabled:cursor-not-allowed " +
                       "sm:col-start-2 sm:text-sm"
                     }
@@ -71,7 +70,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
                   </Button>
                   <Button
                     variant="danger"
-                    className="flex items-center mt-3 w-full justify-center rounded-md  px-4 py-2 text-base font-medium shadow-sm text-white hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
+                    className="mt-3 items-center w-full justify-center hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
                     onClick={clickCancel}
                   >
                     <div className="font-bold">Cancel</div>{" "}
