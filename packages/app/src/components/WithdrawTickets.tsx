@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import clx from "classnames";
 import { Button } from "./Button";
 import { TicketIcon } from "@heroicons/react/24/solid";
@@ -17,7 +17,16 @@ interface WithdrawTicketProps {
 }
 
 const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+
+  useEffect(() => {
+    if (isClicked) {
+      const timeout = setTimeout(() => {
+        setIsClicked(false);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isClicked]);
 
   // TODO: Think of a better way
   if (ticket.ticketDue === undefined) {
@@ -25,53 +34,50 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
   }
 
   return (
-    <div
-      className="relative my-4 flex"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative my-4 flex">
       <Button
-        variant="ticket"
+        variant={ticket.ticketDue ? "primary" : "ticket"}
         className="text-white relative z-10"
         onClick={() => {
           if (ticket.ticketDue === undefined || !ticket.ticketDue) {
             console.log("Ticket is not due yet");
+            setIsClicked((prevState) => !prevState);
             return;
           }
           redeem(ticket);
         }}
       >
-        <TicketIcon width={36} className="mr-2" />
-        {ticket.ticketDue ? (
-          <MdOutlineLockOpen width={36} />
-        ) : (
-          <MdOutlineLockClock width={36} />
-        )}
+        <div className="flex flex-row items-center">
+          <TicketIcon
+            width={44}
+            className="mr-4 py-1 px-2 rounded bg-[#C78F28]"
+          />
+          {ticket.ticketDue ? (
+            <MdOutlineLockOpen width={36} className="text-outset" />
+          ) : (
+            <MdOutlineLockClock width={36} className="text-danger" />
+          )}
 
-        <div className="ml-2">1 Ticket</div>
-        <div className="text-xs text-outset relative top-5">
-          {toFixedWithPrecision(toSol(ticket.lamportsAmount))} SOL
+          {/* <div className="ml-2">1 Ticket</div> */}
+          <div className="text-lg text-outset ml-4 ">
+            {toFixedWithPrecision(toSol(ticket.lamportsAmount))} SOL
+          </div>
         </div>
       </Button>
 
       <Button
-        variant={ticket.ticketDue ? "ticket" : "danger"}
+        onClick={() => setIsClicked(false)}
+        variant="secondary"
         className={clx(
-          "text-white text-sm p-2 relative rounded transition-transform duration-500 z-0 m-auto w-44",
+          "text-danger border border-danger text-sm px-2 py-1 relative rounded-md transition-transform duration-500 z-0 m-auto w-44",
           {
-            "transform translate-x-5": isHovered,
-            "transform -translate-x-full": !isHovered,
+            "transform translate-x-5": isClicked,
+            "transform -translate-x-full": !isClicked,
           }
         )}
       >
-        {ticket.ticketDue ? (
-          "Redeem now"
-        ) : (
-          <>
-            <AiOutlineClockCircle className="mr-2" /> Due{" "}
-            {ticket.ticketDueDate ? dayjs(ticket.ticketDueDate).fromNow() : ""}
-          </>
-        )}
+        <AiOutlineClockCircle className="mr-2" /> Due{" "}
+        {dayjs(ticket.ticketDueDate).fromNow()}
       </Button>
     </div>
   );
