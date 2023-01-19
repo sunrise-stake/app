@@ -18,8 +18,16 @@ export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
 
 export const solToLamports = (sol: number | string): BN => {
   console.log("solToLamports", sol);
+
+  // handle very big numbers but also integers.
+  // note this doesn't handle large numbers with decimals.
+  // in other words, if you ask for eg a withdrawal of 1e20 SOL + 0.1 SOL, it will round that to 1e20 SOL.TODO fix this later.
+  const numString =
+    Number(sol) > Number.MAX_SAFE_INTEGER
+      ? (BigInt(sol) * BigInt(LAMPORTS_PER_SOL)).toString()
+      : (Number(sol) * LAMPORTS_PER_SOL).toString();
   // cast to string to avoid error with BN if the number is too high
-  return new BN(`${Number(sol) * LAMPORTS_PER_SOL}`);
+  return new BN(numString);
 };
 
 // Get the number of decimal places to show in a formatted number
