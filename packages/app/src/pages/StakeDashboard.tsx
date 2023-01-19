@@ -36,9 +36,7 @@ export const StakeDashboard: FC = () => {
 
   // TODO move to details?
   const setBalances = useCallback(async () => {
-    console.log("setBalances 1");
     if (!wallet.publicKey || !client) return;
-    console.log("setBalances 2");
     setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
     setDelayedUnstakeTickets(await client.getDelayedUnstakeTickets());
   }, [wallet.publicKey?.toBase58(), client, connection]);
@@ -49,9 +47,7 @@ export const StakeDashboard: FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("StakeDashboard: useEffect 1", { wallet, client });
     if (!wallet.publicKey) return;
-    console.log("StakeDashboard: useEffect 2");
     setBalances().catch(console.error);
   }, [
     wallet.publicKey?.toBase58(),

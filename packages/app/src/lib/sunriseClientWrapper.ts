@@ -34,7 +34,6 @@ export class SunriseClientWrapper {
     accountsToListenTo.forEach((account) => {
       if (account) {
         this.client.provider.connection.onAccountChange(account, () => {
-          console.log("account changed", account.toBase58());
           this.debouncedUpdate();
         });
       }
@@ -107,7 +106,6 @@ export class SunriseClientWrapper {
   }
 
   async getDetails(): Promise<Details> {
-    console.log("getDetails");
     return this.client.details();
   }
 

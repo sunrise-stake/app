@@ -80,11 +80,9 @@ export class SunriseStakeClient {
   }
 
   private async init(): Promise<void> {
-    console.log("INIT");
     const sunriseStakeState = await this.program.account.state.fetch(
       this.stateAddress
     );
-    console.log("FETCHED STATE");
 
     this.config = {
       gsolMint: sunriseStakeState.gsolMint,
@@ -131,8 +129,6 @@ export class SunriseStakeClient {
       mint: this.marinadeState.lpMint.address,
       owner: this.msolTokenAccountAuthority,
     });
-
-    console.log("INIT DONE");
   }
 
   private async sendAndConfirmTransaction(
@@ -434,7 +430,6 @@ export class SunriseStakeClient {
       amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
       rentForOrderUnstakeTicket: rentForOrderUnstakeTicket.toString(),
       networkFee: NETWORK_FEE.toString(),
-      isZero: amountBeingLiquidUnstaked.lte(ZERO),
     });
 
     if (amountBeingLiquidUnstaked.lte(ZERO)) return ZERO;

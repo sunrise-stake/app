@@ -38,9 +38,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
 
     if (!amount) return ZERO;
 
-    const fee = client.calculateWithdrawalFee(solToLamports(amount), details);
-    console.log("fee", fee.toString());
-    return fee;
+    return client.calculateWithdrawalFee(solToLamports(amount), details);
   }, [client, details, amount]);
 
   return (

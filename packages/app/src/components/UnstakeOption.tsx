@@ -35,7 +35,7 @@ const UnstakeOption: FC<UnstakeOptionProps> = ({
         <Spinner />
       ) : (
         <span className="text-danger text-bold text-lg">
-          {toSol(withdrawalFee)}
+          Fee: {toSol(withdrawalFee)}
         </span>
       )}
     </div>

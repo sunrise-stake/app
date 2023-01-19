@@ -46,12 +46,10 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     console.log("wallet changed", wallet);
     if (wallet) {
-      console.log("creating client");
       SunriseClientWrapper.init(connection, wallet, setDetails)
         .then(updateClient)
         .catch(console.error);
     } else {
-      console.log("creating readonly client");
       SunriseClientWrapper.init(
         connection,
         {

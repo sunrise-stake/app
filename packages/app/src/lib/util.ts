@@ -17,7 +17,8 @@ export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
   (LAMPORTS_PER_SOL / 10 ** precision);
 
 export const solToLamports = (sol: number | string): BN =>
-  new BN(Number(sol) * LAMPORTS_PER_SOL);
+  // cast to string to avoid error with BN if the number is too high
+  new BN(`${Number(sol) * LAMPORTS_PER_SOL}`);
 
 // Get the number of decimal places to show in a formatted number
 // Min = 0, Max = MAX_NUM_PRECISION
