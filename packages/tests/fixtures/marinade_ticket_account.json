@@ -1,0 +1,13 @@
+{
+  "pubkey": "GAPcGZtAZAFuZJz6mdQ88a9BFeesF1aGh7oBDa9JXHwE",
+  "account": {
+    "lamports": 1503360,
+    "data": [
+      "hU0SYtMB5wN1EZsxdYB1huP0p+XND4kOlqdTsQ/Mx2gelHOgCDJw8YXy29NtrkKZNZ8jOGPO65yPmxgy3XqzcUZ+jtIGwKbsPw0DAAAAAAAAAAAAAAAAAA==",
+      "base64"
+    ],
+    "owner": "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD",
+    "executable": false,
+    "rentEpoch": 361
+  }
+}

@@ -1,0 +1,56 @@
+[workspace]
+types = "packages/app/src/lib/client/types"
+
+[features]
+seeds = false
+skip-lint = false
+[programs.localnet]
+sunrise_stake = "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "packages/tests/fixtures/id.json"
+
+#[test]
+#startup_wait = 30000
+
+[scripts]
+test = "yarn test:anchor"
+
+[[test.genesis]]
+address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+program = "packages/tests/fixtures/marinade_finance.so"
+
+[test.validator]
+slots_per_epoch = "32"
+
+[[test.validator.account]]
+address = "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
+filename = "packages/tests/fixtures/marinade_state.json"
+
+[[test.validator.account]]
+address = "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So"
+filename = "packages/tests/fixtures/m_sol_mint_address.json"
+
+[[test.validator.account]]
+address = "7GgPYjS5Dza89wV6FpZ23kUJRG5vbQ1GM25ezspYFSoE"
+filename = "packages/tests/fixtures/m_sol_leg.json"
+
+[[test.validator.account]]
+address = "B1aLzaNMeFVAyQ6f3XbbUyKcH2YPHu2fqiEagmiF23VR"
+filename = "packages/tests/fixtures/treasury_msol_account.json"
+
+[[test.validator.account]]
+address = "UefNb6z6yvArqe4cJHTXCqStRsKmWhGxnZzuHbikP5Q"
+filename = "packages/tests/fixtures/sol_leg_pda.json"
+
+[[test.validator.account]]
+address = "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
+filename = "packages/tests/fixtures/lp_mint_address.json"
+
+[[test.validator.account]]
+address = "Du3Ysj1wKbxPKkuPPnvzQLQh8oMSVifs3jGZjJWXFmHN"
+filename = "packages/tests/fixtures/reserve_pda.json"
