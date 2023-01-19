@@ -8,7 +8,7 @@ import { Button } from "./Button";
 import AmountInput from "./AmountInput";
 import UnstakeOption from "./UnstakeOption";
 import { useSunriseStake } from "../context/sunriseStakeContext";
-import { ZERO } from "../lib/util";
+import { solToLamports, ZERO } from "../lib/util";
 
 interface UnstakeFormProps {
   withdraw: (amount: string) => void;
@@ -38,11 +38,9 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
 
     if (!amount) return ZERO;
 
-    // Use a rounded up value because BN can not handle decimals.
-    // Calculated fee is possible higher than actual fee
-    const roundedUp = Math.ceil(Number(amount));
-
-    return client.calculateWithdrawalFee(new BN(roundedUp), details);
+    const fee = client.calculateWithdrawalFee(solToLamports(amount), details);
+    console.log("fee", fee.toString());
+    return fee;
   }, [client, details, amount]);
 
   return (

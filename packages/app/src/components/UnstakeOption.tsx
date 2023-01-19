@@ -4,6 +4,7 @@ import { FiChevronDown } from "react-icons/fi";
 import { Listbox, Transition } from "@headlessui/react";
 import BN from "bn.js";
 import Spinner from "./Spinner";
+import { toSol } from "../lib/util";
 
 enum WithdrawOption {
   Delayed = "Delayed",
@@ -13,7 +14,7 @@ enum WithdrawOption {
 interface UnstakeOptionProps {
   delayedWithdraw: boolean;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
-  withdrawalFee: BN | Promise<BN>;
+  withdrawalFee: BN;
   feeLoading: boolean;
 }
 const UnstakeOption: FC<UnstakeOptionProps> = ({
@@ -33,7 +34,9 @@ const UnstakeOption: FC<UnstakeOptionProps> = ({
       ) : feeLoading ? (
         <Spinner />
       ) : (
-        <span className="text-danger text-bold text-lg">10</span>
+        <span className="text-danger text-bold text-lg">
+          {toSol(withdrawalFee)}
+        </span>
       )}
     </div>
   );

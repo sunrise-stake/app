@@ -32,21 +32,26 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const wallet = useAnchorWallet();
 
   const updateClient = useCallback(
-    async (client: SunriseClientWrapper) => {
-      setClient(client);
-      setDetails(await client.getDetails());
+    async (clientToUpdate: SunriseClientWrapper) => {
+      // don't overwrite a readwrite client with a readonly one
+      if (!!client && !client.readonlyWallet) return;
+
+      console.log("setting client: readonly", clientToUpdate.readonlyWallet);
+      setClient(clientToUpdate);
+      setDetails(await clientToUpdate.getDetails());
     },
     [setClient]
   );
 
   useEffect(() => {
     console.log("wallet changed", wallet);
-    // dOn't overwrite a readwrite client with a readonly one
-    if (wallet && (!client || client.readonlyWallet)) {
+    if (wallet) {
+      console.log("creating client");
       SunriseClientWrapper.init(connection, wallet, setDetails)
         .then(updateClient)
         .catch(console.error);
-    } else if (!client) {
+    } else {
+      console.log("creating readonly client");
       SunriseClientWrapper.init(
         connection,
         {
