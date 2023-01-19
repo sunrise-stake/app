@@ -1,29 +1,27 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import { useReadOnlySunriseStake } from "../hooks/useSunriseStake";
+import { useSunriseStake } from "../hooks/useSunriseStake";
 import Spinner from "../components/Spinner";
 import CarbonRecovered from "../components/CarbonRecovered";
 import BN from "bn.js";
 import { ZERO } from "../lib/util";
 
-// TODO remove duplication with StakeDashboard
-
 export const WelcomePage: FC = () => {
-  const client = useReadOnlySunriseStake();
+  const sunrise = useSunriseStake({ readOnly: true });
   const [treasuryBalanceLamports, setTreasuryBalanceLamports] = useState<BN>();
 
   const updateBalances = useCallback(async () => {
-    if (!client) return;
-    setTreasuryBalanceLamports(await client.treasuryBalance());
-  }, [client]);
+    if (!sunrise.stakeAccount) return;
+    setTreasuryBalanceLamports(await sunrise.stakeAccount.treasuryBalance());
+  }, [sunrise.stakeAccount]);
 
   useEffect((): void => {
-    if (!client) return;
+    if (!sunrise.stakeAccount) return;
     updateBalances().catch(console.error);
-  }, [updateBalances, client]);
+  }, [updateBalances, sunrise.stakeAccount]);
 
   return (
     <div className="w-full">
-      {!client && <Spinner />}
+      {!sunrise.stakeAccount && <Spinner />}
       <img
         className="h-25 w-auto m-auto py-2"
         src={"./logo.png"}

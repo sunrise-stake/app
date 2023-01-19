@@ -1,13 +1,13 @@
-import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import React, { FC } from "react";
 import { FaWallet } from "react-icons/fa";
+import { useSunriseStake } from "../hooks/useSunriseStake";
 
 import { StakeDashboard } from "./StakeDashboard";
 import { WelcomePage } from "./WelcomePage";
 
 export const WalletConnectionWrapper: FC = () => {
-  const wallet = useWallet();
+  const { wallet } = useSunriseStake();
   return (
     <div className="min-h-full w-full flex flex-col items-center">
       <header className="container flex mt-12 mb-4 px-8">

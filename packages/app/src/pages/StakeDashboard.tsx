@@ -1,4 +1,3 @@
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import BN from "bn.js";
 import clx from "classnames";
@@ -19,9 +18,7 @@ import { InfoBox } from "../components/InfoBox";
 import WithdrawTicket from "../components/WithdrawTickets";
 
 export const StakeDashboard: FC = () => {
-  const wallet = useWallet();
-  const { connection } = useConnection();
-  const client = useSunriseStake();
+  const sunrise = useSunriseStake();
   const [txSig, setTxSig] = useState<string>();
   const [error, setError] = useState<Error>();
   const [solBalance, setSolBalance] = useState<BN>();
@@ -34,12 +31,17 @@ export const StakeDashboard: FC = () => {
   const [isStakeSelected, setIsStakeSelected] = useState(true);
 
   const updateBalances = useCallback(async () => {
-    if (!wallet.publicKey || !client) return;
-    setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
-    setStakeBalance(await client.getBalance());
-    setTreasuryBalanceLamports(await client.treasuryBalance());
-    setDelayedUnstakeTickets(await client.getDelayedUnstakeTickets());
-  }, [wallet.publicKey, client, connection]);
+    if (!sunrise.wallet.publicKey || !sunrise.stakeAccount) return;
+
+    setSolBalance(
+      await sunrise.connection.getBalance(sunrise.wallet.publicKey).then(toBN)
+    );
+    setStakeBalance(await sunrise.stakeAccount.getBalance());
+    setTreasuryBalanceLamports(await sunrise.stakeAccount.treasuryBalance());
+    setDelayedUnstakeTickets(
+      await sunrise.stakeAccount.getDelayedUnstakeTickets()
+    );
+  }, [sunrise.wallet.publicKey, sunrise.stakeAccount, sunrise.connection]);
 
   const handleError = useCallback((error: Error) => {
     setError(error);
@@ -47,50 +49,56 @@ export const StakeDashboard: FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!wallet.connected) return;
+    if (!sunrise.wallet.connected) return;
     updateBalances().catch(console.error);
-  }, [wallet, connection, setSolBalance, client, updateBalances]);
+  }, [
+    sunrise.wallet,
+    sunrise.connection,
+    setSolBalance,
+    sunrise.stakeAccount,
+    updateBalances,
+  ]);
 
   const deposit = useCallback(
     (amount: string) => {
-      if (!client) return;
+      if (!sunrise.stakeAccount) return;
 
-      client
+      sunrise.stakeAccount
         .deposit(new BN(Number(amount) * LAMPORTS_PER_SOL))
         .then(setTxSig)
         .then(updateBalances)
         .catch(handleError);
     },
-    [client, updateBalances]
+    [sunrise.stakeAccount, updateBalances]
   );
 
   const withdraw = useCallback(
     (amount: string) => {
-      if (!client) return;
+      if (!sunrise.stakeAccount) return;
 
       const withdraw = delayedWithdraw
-        ? client.orderWithdrawal.bind(client)
-        : client.withdraw.bind(client);
+        ? sunrise.stakeAccount.orderWithdrawal.bind(sunrise.stakeAccount)
+        : sunrise.stakeAccount.withdraw.bind(sunrise.stakeAccount);
 
       withdraw(new BN(Number(amount) * LAMPORTS_PER_SOL))
         .then(setTxSig)
         .then(updateBalances)
         .catch(handleError);
     },
-    [client, updateBalances, delayedWithdraw]
+    [sunrise.stakeAccount, updateBalances, delayedWithdraw]
   );
 
   const redeem = useCallback(
     (ticket: TicketAccount) => {
-      if (!client) return;
+      if (!sunrise.stakeAccount) return;
 
-      client
+      sunrise.stakeAccount
         .claimUnstakeTicket(ticket)
         .then(setTxSig)
         .then(updateBalances)
         .catch(handleError);
     },
-    [client, updateBalances]
+    [sunrise.stakeAccount, updateBalances]
   );
 
   return (
@@ -138,7 +146,7 @@ export const StakeDashboard: FC = () => {
         </Panel>
       </div>
       <Panel className="p-10 rounded-lg">
-        {!client && (
+        {!sunrise.stakeAccount && (
           <div className="flex flex-col items-center m-4">
             <h1 className="text-3xl text-center">Loading...</h1>
             <div

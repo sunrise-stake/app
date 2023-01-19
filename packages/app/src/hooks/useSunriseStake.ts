@@ -1,39 +1,39 @@
 import { useEffect, useState } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import {
+  useConnection,
+  useWallet,
+  WalletContextState,
+} from "@solana/wallet-adapter-react";
 import { StakeAccount } from "../lib/stakeAccount";
-import { walletIsConnected } from "../lib/util";
-import { Keypair } from "@solana/web3.js";
+import { ConnectedWallet, walletIsConnected } from "../lib/util";
+import { Connection, Keypair } from "@solana/web3.js";
 
-export const useSunriseStake = (): StakeAccount | undefined => {
+const FAKE_WALLET: ConnectedWallet = {
+  connected: true,
+  publicKey: Keypair.generate().publicKey,
+  signAllTransactions: async (txes: any) => txes,
+  signTransaction: async (tx: any) => tx,
+};
+
+interface SunriseStakeContext {
+  connection: Connection;
+  wallet: WalletContextState;
+  stakeAccount: StakeAccount | undefined;
+}
+
+export const useSunriseStake = (
+  opts = { readOnly: false }
+): SunriseStakeContext => {
   const wallet = useWallet();
   const { connection } = useConnection();
-  const [sunriseStake, setSunriseStake] = useState<StakeAccount>();
+  const [stakeAccount, setStakeAccount] = useState<StakeAccount>();
   useEffect(() => {
     if (walletIsConnected(wallet)) {
-      StakeAccount.init(connection, wallet)
-        .then(setSunriseStake)
+      StakeAccount.init(connection, opts?.readOnly ? FAKE_WALLET : wallet)
+        .then(setStakeAccount)
         .catch(console.error);
     }
   }, [wallet, connection]);
 
-  return sunriseStake;
-};
-
-const dummyKey = Keypair.generate().publicKey;
-export const useReadOnlySunriseStake = (): StakeAccount | undefined => {
-  const { connection } = useConnection();
-  const [sunriseStake, setSunriseStake] = useState<StakeAccount>();
-
-  useEffect(() => {
-    StakeAccount.init(connection, {
-      connected: true,
-      publicKey: dummyKey,
-      signAllTransactions: async (txes) => txes,
-      signTransaction: async (tx) => tx,
-    })
-      .then(setSunriseStake)
-      .catch(console.error);
-  }, [connection]);
-
-  return sunriseStake;
+  return { connection, stakeAccount, wallet };
 };

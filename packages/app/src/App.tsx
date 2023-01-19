@@ -16,8 +16,6 @@ import { clusterApiUrl } from "@solana/web3.js";
 
 require("./solana-wallet-adapter.css");
 
-const Content: FC = () => <WalletConnectionWrapper />;
-
 const App: FC = () => {
   const network =
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
@@ -37,9 +35,9 @@ const App: FC = () => {
     <>
       <div className="App min-h-screen text-white">
         <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} autoConnect>
+          <WalletProvider wallets={wallets}>
             <WalletModalProvider>
-              <Content />
+              <WalletConnectionWrapper />
             </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>
