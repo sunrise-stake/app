@@ -27,17 +27,22 @@ export const WelcomePage: FC = () => {
             <h2 className="text-green-bright font-bold text-6xl">
               Sunrise Stake
             </h2>
-            <h3 className="mb-16 text-white font-normal text-3xl">
+            <h3 className="mb-16 text-white font-normal text-lg sm:text-3xl">
               Offset emissions while you sleep.
             </h3>
           </div>
-          <p className="mb-12">
+          <p className="mb-12 hidden sm:block">
             Invest in the future by using your staking rewards to support
             climate projects.
           </p>
-          <WalletMultiButton>Start reducing CO2 emissions</WalletMultiButton>
+          <div className="hover:brightness-75 mb-12">
+            <WalletMultiButton>
+              Start&nbsp;
+              <span className="hidden sm:block"> reducing CO2 emissions</span>
+            </WalletMultiButton>
+          </div>
           <img
-            className="h-25 w-auto mt-12 py-2"
+            className="h-25 w-auto py-2 hidden sm:block"
             src={"./logo.png"}
             alt="Sunrise"
           />
