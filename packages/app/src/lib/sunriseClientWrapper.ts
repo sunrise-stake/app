@@ -19,6 +19,12 @@ export const SUNRISE_STAKE_STATE =
       WalletAdapterNetwork.Devnet
   ].state;
 
+export const HOLDING_ACCOUNT =
+  Environment[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ].holdingAccount;
+
 export const SOLBLAZE_CONFIG =
   SolBlazeConstants[
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||

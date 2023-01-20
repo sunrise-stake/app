@@ -3,16 +3,26 @@ import { PublicKey } from "@solana/web3.js";
 
 interface EnvironmentConfig {
   state: PublicKey;
+  holdingAccount: PublicKey;
 }
 export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
   "mainnet-beta": {
     state: new PublicKey("43m66crxGfXSJpmx5wXRoFuHubhHA1GCvtHgmHW6cM1P"),
+    holdingAccount: new PublicKey(
+      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
+    ), // TODO incorrect
   },
   testnet: {
     state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"), // Warning obsolete
+    holdingAccount: new PublicKey(
+      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
+    ), // TODO incorrect
   },
   devnet: {
     state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
+    holdingAccount: new PublicKey(
+      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
+    ),
   },
 };
 

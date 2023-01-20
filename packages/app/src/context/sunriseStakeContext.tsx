@@ -61,7 +61,10 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
         undefined,
         true
       )
-        .then(async (client) => client.getDetails())
+        .then(async (client) => {
+          console.log("getting details");
+          return client.getDetails();
+        })
         .then(setDetails)
         .catch(console.error);
     }

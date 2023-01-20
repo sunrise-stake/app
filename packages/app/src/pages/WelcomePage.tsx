@@ -7,11 +7,11 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 // TODO remove duplication with StakeDashboard
 
 export const WelcomePage: FC = () => {
-  const { client } = useSunriseStake();
+  const { details } = useSunriseStake();
 
   return (
     <div className="w-full">
-      {!client ? (
+      {!details ? (
         <Spinner />
       ) : (
         <div
