@@ -37,7 +37,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
         variant={ticket.ticketDue ? "primary" : "ticket"}
-        className="relative z-10 h-16 min-w-[12rem]"
+        className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem]"
         onClick={() => {
           if (ticket.ticketDue === undefined || !ticket.ticketDue) {
             console.log("Ticket is not due yet");
@@ -48,7 +48,10 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
         }}
       >
         <div className="flex flex-row items-center">
-          <TicketIcon width={44} className="mr-4 py-1 px-2 rounded" />
+          <TicketIcon
+            width={44}
+            className="-ml-6 sm:ml-0 sm:mr-4 py-1 px-2 rounded"
+          />
           {/* {ticket.ticketDue ? (
             <MdOutlineLockOpen width={36} className="text-outset" />
           ) : (
@@ -56,7 +59,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
           )} */}
 
           {/* <div className="ml-2">1 Ticket</div> */}
-          <div className="text-lg ml-4 ">
+          <div className="text-lg ml-2 -mr-2 sm:mr-0 ">
             {toFixedWithPrecision(toSol(ticket.lamportsAmount))} SOL
           </div>
         </div>
@@ -66,9 +69,9 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
         onClick={() => setIsClicked(false)}
         variant="secondary"
         className={clx(
-          "text-danger border border-danger text-sm px-2 py-1 absolute items-center rounded-md transition-transform duration-500 z-0 h-16 max-w-[12rem]",
+          "text-danger border border-danger text-sm absolute items-center rounded-md transition-transform duration-500 z-0 h-16 max-w-[10rem] sm:max-w-[12rem]",
           {
-            "transform translate-x-[16rem]": isClicked,
+            "transform translate-x-[11rem] sm:translate-x-[14rem]": isClicked,
             "transform translate-x-0": !isClicked,
           }
         )}
