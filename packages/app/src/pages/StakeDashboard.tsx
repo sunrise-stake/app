@@ -21,7 +21,7 @@ import { InfoBox } from "../components/InfoBox";
 import WithdrawTicket from "../components/WithdrawTickets";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { NotificationType, notifyTransaction } from "../utils/notifications";
-import { HOLDING_ACCOUNT } from "../lib/sunriseClientWrapper";
+import { useCarbon } from "../hooks/useCarbon";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -33,7 +33,7 @@ export const StakeDashboard: FC = () => {
     TicketAccount[]
   >([]);
   const [isStakeSelected, setIsStakeSelected] = useState(true);
-  const [totalCarbon, setTotalCarbon] = useState<number>();
+  const { totalCarbon } = useCarbon();
 
   // TODO move to details?
   const setBalances = useCallback(async () => {
@@ -50,32 +50,6 @@ export const StakeDashboard: FC = () => {
     });
     console.error(error);
   }, []);
-
-  useEffect(() => {
-    void (async () => {
-      if (!details) return;
-      // TODO extract to some library
-      // Total carbon is the carbon value of
-      // 1. the extractable yield
-      // 2. the treasury balance
-      // 3. the holding account balance
-      // (TODO this last one will be replaced with the TreasuryController total_spent value)
-
-      const extractableYield = details.extractableYield;
-      const treasuryBalance = new BN(details.balances.treasuryBalance);
-      const holdingAccountBalance = new BN(
-        await connection.getBalance(HOLDING_ACCOUNT)
-      );
-
-      const totalLamports = extractableYield
-        .add(treasuryBalance)
-        .add(holdingAccountBalance);
-
-      const totalCarbon = solToCarbon(toSol(totalLamports));
-
-      setTotalCarbon(totalCarbon);
-    })();
-  }, [details]);
 
   useEffect(() => {
     if (!wallet.publicKey) return;
