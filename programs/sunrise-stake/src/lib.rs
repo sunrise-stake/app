@@ -2,8 +2,19 @@
 mod sunrise_spl;
 mod utils;
 
+use crate::utils::marinade::ClaimUnstakeTicketProperties;
+use crate::utils::metaplex::{create_metadata_account, update_metadata_account};
 use crate::utils::seeds::*;
 use crate::utils::token::{create_mint, mint_to};
+use crate::utils::{
+    marinade,
+    marinade::{
+        amount_to_be_deposited_in_liq_pool, calc_lamports_from_msol_amount,
+        calc_msol_from_lamports, calculate_extractable_yield, calculate_pool_balance_amounts,
+    },
+    system,
+    token::{burn, create_token_account},
+};
 use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
@@ -13,26 +24,16 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
-use sunrise_spl::instructions::{SplDepositSol, SplDepositStake, SplWithdrawSol, SplWithdrawStake};
+use sunrise_spl::*;
+
+use anchor_lang::AccountsClose;
+use std::ops::Deref;
 
 declare_id!("sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6");
 
+#[program]
 pub mod sunrise_stake {
     use super::*;
-    use crate::utils::marinade::ClaimUnstakeTicketProperties;
-    use crate::utils::metaplex::{create_metadata_account, update_metadata_account};
-    use crate::utils::{
-        marinade,
-        marinade::{
-            amount_to_be_deposited_in_liq_pool, calc_lamports_from_msol_amount,
-            calc_msol_from_lamports, calculate_extractable_yield, calculate_pool_balance_amounts,
-        },
-        system,
-        token::{burn, create_token_account},
-    };
-
-    use anchor_lang::AccountsClose;
-    use std::ops::Deref;
 
     pub fn deposit(ctx: Context<Deposit>, lamports: u64) -> Result<()> {
         msg!("Checking liq_pool pool balance");
@@ -593,7 +594,7 @@ pub struct RegisterState<'info> {
 
     #[account(
     seeds = [state.key().as_ref(), BSOL_ACCOUNT],
-    bump = state_in.msol_authority_bump
+    bump = state_in.bsol_authority_bump
     )]
     pub bsol_token_account_authority: SystemAccount<'info>,
 
@@ -644,12 +645,10 @@ pub struct ResizeState<'info> {
 
 #[derive(Accounts, Clone)]
 pub struct Deposit<'info> {
-    #[account(
-    has_one = marinade_state
-    )]
+    #[account(mut,has_one = marinade_state)]
     pub state: Box<Account<'info, State>>,
 
-    #[account()]
+    #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     #[account(
@@ -730,10 +729,10 @@ pub struct Deposit<'info> {
 
 #[derive(Accounts, Clone)]
 pub struct DepositStakeAccount<'info> {
-    #[account(has_one = marinade_state)]
+    #[account(mut, has_one = marinade_state)]
     pub state: Box<Account<'info, State>>,
 
-    #[account()]
+    #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     #[account(
