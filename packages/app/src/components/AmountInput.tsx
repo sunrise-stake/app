@@ -61,8 +61,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
               className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md"
               onClick={() => {
                 if (balance) {
-                  setValid(true);
-                  setAmount(toFixedWithPrecision(toSol(balance)).toString());
+                  updateAmount(toFixedWithPrecision(toSol(balance)).toString());
                 }
               }}
             >
