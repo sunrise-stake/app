@@ -134,7 +134,7 @@ export const StakeDashboard: FC = () => {
         </h3>
       </div>
       <div className="flex">
-        <Panel className="inline-block mx-auto mb-9 p-4 rounded-lg">
+        <Panel className="flex grid-cols-1 mx-auto mb-9 p-4 rounded-lg">
           <Button
             variant={isStakeSelected ? "primary" : "secondary"}
             className="mr-5"
