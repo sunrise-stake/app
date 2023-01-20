@@ -55,10 +55,7 @@ import {
   orders,
   triggerRebalance,
 } from "./marinade";
-import {
-  blazeDeposit,
-  blazeDepositStake,
-} from "./blaze";
+import { blazeDeposit, blazeDepositStake } from "./blaze";
 import { ZERO } from "../util";
 
 export class SunriseStakeClient {
@@ -209,10 +206,7 @@ export class SunriseStakeClient {
   }
 
   public async blazeDeposit(lamports: BN): Promise<string> {
-    if (
-      !this.config ||
-      !this.stakerGSolTokenAccount
-    )
+    if (!this.config || !this.stakerGSolTokenAccount)
       throw new Error("init not called");
 
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
@@ -232,7 +226,7 @@ export class SunriseStakeClient {
       this.program,
       this.provider.publicKey,
       this.stakerGSolTokenAccount,
-      lamports,
+      lamports
     );
 
     console.log("Depositing...");
@@ -240,11 +234,10 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  public async blazeDepositStakeAccount(stakeAccountAddress: PublicKey): Promise<string> {
-    if (
-      !this.config ||
-      !this.stakerGSolTokenAccount
-    )
+  public async blazeDepositStakeAccount(
+    stakeAccountAddress: PublicKey
+  ): Promise<string> {
+    if (!this.config || !this.stakerGSolTokenAccount)
       throw new Error("init not called");
 
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
@@ -264,7 +257,7 @@ export class SunriseStakeClient {
       this.provider,
       this.program,
       stakeAccountAddress,
-      this.stakerGSolTokenAccount,
+      this.stakerGSolTokenAccount
     );
 
     console.log("Depositing...");

@@ -10,13 +10,7 @@ import {
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
 import { ManagementAccount } from "./types/ManagementAccount";
-import {
-  Marinade,
-  MarinadeState,
-  MarinadeUtils,
-  Provider,
-} from "@sunrisestake/marinade-ts-sdk";
-import { SunriseStakeClient } from ".";
+import { MarinadeState } from "@sunrisestake/marinade-ts-sdk";
 
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
@@ -203,36 +197,39 @@ export const proportionalBN = (
   return new BN(result.toString());
 };
 
-
-export const getVoterAddress = async(
+export const getVoterAddress = async (
   stakeAccountAddress: PublicKey,
-  connection: Connection,
+  connection: Connection
 ): Promise<PublicKey> => {
-  const { value: stakeAccountInfo } = await connection.getParsedAccountInfo(stakeAccountAddress);
+  const { value: stakeAccountInfo } = await connection.getParsedAccountInfo(
+    stakeAccountAddress
+  );
 
   if (!stakeAccountInfo) {
-    throw new Error(`Failed getting info for ${stakeAccountAddress.toBase58()}`);
+    throw new Error(
+      `Failed getting info for ${stakeAccountAddress.toBase58()}`
+    );
   }
 
   if (!stakeAccountInfo.owner.equals(StakeProgram.programId)) {
-    throw new Error(`${stakeAccountAddress.toBase58()} is not a stake account`)
+    throw new Error(`${stakeAccountAddress.toBase58()} is not a stake account`);
   }
 
-  if (!stakeAccountInfo.data || stakeAccountInfo.data instanceof Buffer) {
-    throw new Error(`Failed to parse account data`);
+  if (stakeAccountInfo.data instanceof Buffer) {
+    throw new Error(`Invalid parsed account data`);
   }
 
   const { parsed: data } = stakeAccountInfo.data;
 
-  let voterAddress = data.voterAddress === null ? null : new PublicKey(data.voterAddress);
+  const voterAddress =
+    data.voterAddress === null ? null : new PublicKey(data.voterAddress);
 
   if (!voterAddress) {
     throw new Error(`The stake account is not delegated`);
   }
 
   return voterAddress;
-}
-
+};
 
 export const getValidatorIndex = async (
   marinadeState: MarinadeState,

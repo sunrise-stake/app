@@ -9,46 +9,33 @@ import {
 import BN from "bn.js";
 import {
   findBSolTokenAccountAuthority,
-  findGSolMintAuthority
+  findGSolMintAuthority,
+  SunriseStakeConfig,
+  getVoterAddress,
 } from "./util";
+import { SOLBLAZE_CONFIG } from "../sunriseClientWrapper";
 import {
-  SOLBLAZE_CONFIG
-} from "../sunriseClientWrapper";
-import { 
   STAKE_POOL_PROGRAM_ID,
   SOLBLAZE_DEPOSIT_AUTHORITY,
   SOLBLAZE_WITHDRAW_AUTHORITY,
 } from "../constants";
 import { AnchorProvider, Program, utils } from "@project-serum/anchor";
 import { SunriseStake } from "./types/sunrise_stake";
-import { SunriseStakeConfig, getVoterAddress } from "./util";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-
-const findBlazeDepositAuthority = (): [PublicKey, number]=> {
-  const seeds = [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("deposit")];
-  return PublicKey.findProgramAddressSync(seeds, STAKE_POOL_PROGRAM_ID);
-}
-
-const findBlazeWithdrawAuthority = (): [PublicKey, number]=> {
-  const seeds = [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("withdraw")];
-  return PublicKey.findProgramAddressSync(seeds, STAKE_POOL_PROGRAM_ID);
-}
 
 export const blazeDeposit = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
   depositor: PublicKey,
   depositorGsolTokenAccount: PublicKey,
-  lamports: BN,
+  lamports: BN
 ): Promise<Transaction> => {
   const [gsolMintAuthority] = findGSolMintAuthority(config);
   const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
-  const bsolAssociatedTokenAddress = await utils.token.associatedAddress(
-    {
-      mint: SOLBLAZE_CONFIG.bsolMint,
-      owner: bsolTokenAccountAuthority,
-    }
-  );
+  const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
+    mint: SOLBLAZE_CONFIG.bsolMint,
+    owner: bsolTokenAccountAuthority,
+  });
 
   type Accounts = Parameters<
     ReturnType<typeof program.methods.splDepositSol>["accounts"]
@@ -60,7 +47,7 @@ export const blazeDeposit = async (
     gsolMintAuthority,
     depositor,
     depositorGsolTokenAccount,
-    bsolTokenAccount: bsolAssociatedTokenAddress, 
+    bsolTokenAccount: bsolAssociatedTokenAddress,
     bsolAccountAuthority: bsolTokenAccountAuthority,
     stakePool: SOLBLAZE_CONFIG.pool,
     stakePoolWithdrawAuthority: SOLBLAZE_CONFIG.stakeAuthority,
@@ -76,30 +63,30 @@ export const blazeDeposit = async (
     .splDepositSol(lamports)
     .accounts(accounts)
     .transaction();
-}
+};
 
 export const blazeDepositStake = async (
   config: SunriseStakeConfig,
   provider: AnchorProvider,
   program: Program<SunriseStake>,
   stakeAccount: PublicKey,
-  depositorGsolTokenAccount: PublicKey,
+  depositorGsolTokenAccount: PublicKey
 ): Promise<Transaction> => {
-  const sunriseStakeState = await program.account.state.fetch(config.stateAddress);
   const [gsolMintAuthority] = findGSolMintAuthority(config);
   const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
-  const bsolAssociatedTokenAddress = await utils.token.associatedAddress(
-    {
-      mint: SOLBLAZE_CONFIG.bsolMint,
-      owner: bsolTokenAccountAuthority,
-    }
-  );
+  const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
+    mint: SOLBLAZE_CONFIG.bsolMint,
+    owner: bsolTokenAccountAuthority,
+  });
 
   type Accounts = Parameters<
     ReturnType<typeof program.methods.splDepositStake>["accounts"]
   >[0];
 
-  const validatorAccount = await getVoterAddress(stakeAccount, provider.connection);
+  const validatorAccount = await getVoterAddress(
+    stakeAccount,
+    provider.connection
+  );
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
@@ -107,7 +94,7 @@ export const blazeDepositStake = async (
     stakeAccountDepositor: provider.publicKey,
     stakeAccount,
     depositorGsolTokenAccount,
-    bsolTokenAccount: bsolAssociatedTokenAddress, 
+    bsolTokenAccount: bsolAssociatedTokenAddress,
     bsolAccountAuthority: bsolTokenAccountAuthority,
     stakePool: SOLBLAZE_CONFIG.pool,
     validatorList: SOLBLAZE_CONFIG.validatorList,
@@ -124,8 +111,5 @@ export const blazeDepositStake = async (
     tokenProgram: TOKEN_PROGRAM_ID,
   };
 
-  return program.methods
-    .splDepositStake()
-    .accounts(accounts)
-    .transaction();
-}
+  return program.methods.splDepositStake().accounts(accounts).transaction();
+};
