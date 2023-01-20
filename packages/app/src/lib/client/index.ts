@@ -53,6 +53,10 @@ import {
   liquidUnstake,
   triggerRebalance,
 } from "./marinade";
+import {
+  blazeDeposit,
+  blazeDepositStake,
+} from "./blaze";
 import { ZERO } from "../util";
 import { SOLBLAZE_CONFIG } from "../sunriseClientWrapper";
 
@@ -179,8 +183,6 @@ export class SunriseStakeClient {
       this.stakerGSolTokenAccount
     );
 
-    // const { transaction } = await this.marinade.deposit(lamports);
-
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
@@ -205,6 +207,70 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
+  public async blazeDeposit(lamports: BN): Promise<string> {
+    if (
+      !this.config ||
+      !this.stakerGSolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const gsolTokenAccount = await this.provider.connection.getAccountInfo(
+      this.stakerGSolTokenAccount
+    );
+
+    const transaction = new Transaction();
+
+    if (!gsolTokenAccount) {
+      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      transaction.add(createUserTokenAccount);
+      console.log("Token account created");
+    }
+
+    const depositTx = await blazeDeposit(
+      this.config,
+      this.program,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      lamports,
+    );
+
+    console.log("Depositing...");
+    transaction.add(depositTx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+  public async blazeDepositStakeAccount(stakeAccountAddress: PublicKey): Promise<string> {
+    if (
+      !this.config ||
+      !this.stakerGSolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const gsolTokenAccount = await this.provider.connection.getAccountInfo(
+      this.stakerGSolTokenAccount
+    );
+
+    const transaction = new Transaction();
+
+    if (!gsolTokenAccount) {
+      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      transaction.add(createUserTokenAccount);
+      console.log("Token account created");
+    }
+
+    const depositTx = await blazeDepositStake(
+      this.config,
+      this.provider,
+      this.program,
+      stakeAccountAddress,
+      this.stakerGSolTokenAccount,
+    );
+
+    console.log("Depositing...");
+    transaction.add(depositTx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
+
   public async depositStakeAccount(
     stakeAccountAddress: PublicKey
   ): Promise<string> {
@@ -221,10 +287,6 @@ export class SunriseStakeClient {
     const gSolTokenAccount = await this.provider.connection.getAccountInfo(
       this.stakerGSolTokenAccount
     );
-
-    // const { transaction } = await this.marinade.depositStakeAccount(
-    //  stakeAccountAddress
-    // );
 
     if (!gSolTokenAccount) {
       const createUserTokenAccount = this.createGSolTokenAccountIx();

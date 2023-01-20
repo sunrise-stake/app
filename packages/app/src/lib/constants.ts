@@ -1,5 +1,8 @@
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { PublicKey } from "@solana/web3.js";
+import { SOLBLAZE_CONFIG } from "./sunriseClientWrapper";
+
+export const STAKE_POOL_PROGRAM_ID = new PublicKey("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
 
 interface EnvironmentConfig {
   state: PublicKey;
@@ -91,6 +94,16 @@ export const SolBlazeConstants: Record<WalletAdapterNetwork, SolBlazeConfig> = {
     validatorInfo: PublicKey.default,
   },
 };
+
+export const [SOLBLAZE_WITHDRAW_AUTHORITY, ] = 
+  PublicKey.findProgramAddressSync([SOLBLAZE_CONFIG.pool.toBuffer(), 
+  Buffer.from("withdraw")], STAKE_POOL_PROGRAM_ID
+);
+
+export const [SOLBLAZE_DEPOSIT_AUTHORITY, ] = 
+  PublicKey.findProgramAddressSync([SOLBLAZE_CONFIG.pool.toBuffer(), 
+  Buffer.from("deposit")], STAKE_POOL_PROGRAM_ID
+);
 
 export const DEFAULT_LP_PROPORTION = 10;
 export const DEFAULT_LP_MIN_PROPORTION = 5;
