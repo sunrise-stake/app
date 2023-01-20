@@ -29,7 +29,7 @@ export class SunriseClientWrapper {
   public debouncedUpdate = debounce(this.triggerUpdate.bind(this), 1000);
   constructor(
     private readonly client: SunriseStakeClient,
-    private readonly detailsListener: (details: Details) => void,
+    private readonly detailsListener: ((details: Details) => void) | undefined,
     readonly readonlyWallet: boolean
   ) {
     const accountsToListenTo = [
@@ -58,7 +58,7 @@ export class SunriseClientWrapper {
   static async init(
     connection: Connection,
     wallet: AnchorWallet,
-    listener: (details: Details) => void,
+    listener?: (details: Details) => void,
     readonlyWallet = false
   ): Promise<SunriseClientWrapper> {
     const provider = new AnchorProvider(

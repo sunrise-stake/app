@@ -50,6 +50,7 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
         .then(updateClient)
         .catch(console.error);
     } else {
+      // just get the details from the chain - no client available yet
       SunriseClientWrapper.init(
         connection,
         {
@@ -57,10 +58,11 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
           signAllTransactions: async (txes) => txes,
           signTransaction: async (tx) => tx,
         },
-        setDetails,
+        undefined,
         true
       )
-        .then(updateClient)
+        .then(async (client) => client.getDetails())
+        .then(setDetails)
         .catch(console.error);
     }
   }, [connection, wallet?.publicKey?.toBase58()]);
