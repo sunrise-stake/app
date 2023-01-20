@@ -11,11 +11,11 @@ sunrise_stake = "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "Localnet"
 wallet = "packages/tests/fixtures/id.json"
 
-#[test]
-#startup_wait = 30000
+[test]
+startup_wait = 30000
 
 [scripts]
 test = "yarn test:anchor"
@@ -54,3 +54,7 @@ filename = "packages/tests/fixtures/lp_mint_address.json"
 [[test.validator.account]]
 address = "Du3Ysj1wKbxPKkuPPnvzQLQh8oMSVifs3jGZjJWXFmHN"
 filename = "packages/tests/fixtures/reserve_pda.json"
+
+[[test.validator.account]]
+address = "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"
+filename = "packages/tests/fixtures/b_sol_mint_address.json"
