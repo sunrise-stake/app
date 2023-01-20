@@ -37,7 +37,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
         variant={ticket.ticketDue ? "primary" : "ticket"}
-        className="relative z-10 h-16 min-w-[12rem] hover:brightness-75"
+        className="relative z-10 h-16 min-w-[12rem]"
         onClick={() => {
           if (ticket.ticketDue === undefined || !ticket.ticketDue) {
             console.log("Ticket is not due yet");
