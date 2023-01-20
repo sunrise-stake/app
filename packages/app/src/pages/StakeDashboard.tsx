@@ -223,7 +223,7 @@ export const StakeDashboard: FC = () => {
         </InfoBox>
       </div>
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col gap-8 mb-8 justify-center">
         {delayedUnstakeTickets.map((ticket) => {
           return (
             <WithdrawTicket
