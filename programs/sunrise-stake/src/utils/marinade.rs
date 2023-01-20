@@ -334,7 +334,6 @@ impl<'a> From<Deposit<'a>> for AddLiquidityProperties<'a> {
 }
 impl<'a> From<&Deposit<'a>> for AddLiquidityProperties<'a> {
     fn from(deposit: &Deposit<'a>) -> Self {
-        msg!("From &Deposit");
         deposit.to_owned().into()
     }
 }

@@ -2,7 +2,11 @@ import { SunriseStakeClient } from "./client";
 import { Connection, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@project-serum/anchor";
 import BN from "bn.js";
-import { Environment, MINIMUM_EXTRACTABLE_YIELD } from "./constants";
+import {
+  Environment,
+  MINIMUM_EXTRACTABLE_YIELD,
+  SolBlazeConstants,
+} from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
 import { Details } from "./client/types/Details";
@@ -14,6 +18,12 @@ export const SUNRISE_STAKE_STATE =
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
       WalletAdapterNetwork.Devnet
   ].state;
+
+export const SOLBLAZE_CONFIG =
+  SolBlazeConstants[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ];
 
 export class SunriseClientWrapper {
   public debouncedUpdate = debounce(this.triggerUpdate.bind(this), 1000);

@@ -7,12 +7,12 @@ export type SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "marinadeState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -118,7 +118,7 @@ export type SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -717,6 +717,400 @@ export type SunriseStake = {
       "args": []
     },
     {
+      "name": "splDepositSol",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositor",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "depositorGsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserveStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "splDepositStake",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAccountDepositor",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "stakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositorGsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "validatorList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolDepositAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "stakePoolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "validatorStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarStakeHistory",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarClock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nativeStakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "splWithdrawSol",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "userGsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserveStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarClock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarStakeHistory",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nativeStakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "splWithdrawStake",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "userGsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userNewStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "validatorStakeList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAccountToSplit",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarClock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nativeStakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "registerState",
       "accounts": [
         {
@@ -740,6 +1134,11 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "bsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "msolTokenAccountAuthority",
           "isMut": false,
           "isSigner": false,
@@ -759,6 +1158,16 @@ export type SunriseStake = {
         },
         {
           "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -1036,6 +1445,22 @@ export type SunriseStake = {
               "for the difference"
             ],
             "type": "u8"
+          },
+          {
+            "name": "blazeState",
+            "type": "publicKey"
+          },
+          {
+            "name": "marinadeMintedGsol",
+            "type": "u64"
+          },
+          {
+            "name": "blazeMintedGsol",
+            "type": "u64"
+          },
+          {
+            "name": "bsolAuthorityBump",
+            "type": "u8"
           }
         ]
       }
@@ -1099,6 +1524,10 @@ export type SunriseStake = {
             "type": "publicKey"
           },
           {
+            "name": "blazeState",
+            "type": "publicKey"
+          },
+          {
             "name": "updateAuthority",
             "type": "publicKey"
           },
@@ -1112,6 +1541,10 @@ export type SunriseStake = {
           },
           {
             "name": "msolAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "bsolAuthorityBump",
             "type": "u8"
           },
           {
@@ -1158,6 +1591,36 @@ export type SunriseStake = {
     },
     {
       "code": 6001,
+      "name": "NotDelegated",
+      "msg": "Stake account deposit must be delegated"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidUpdateAuthority",
+      "msg": "Wrong update authority for Sunrise state"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidProgramAccount",
+      "msg": "Invalid Program Account"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidMint",
+      "msg": "Invalid Mint"
+    },
+    {
+      "code": 6005,
+      "name": "UnexpectedAccounts",
+      "msg": "Unexpected Accounts"
+    },
+    {
+      "code": 6006,
+      "name": "UnexpectedMintSupply",
+      "msg": "Unexpected gsol mint supply"
+    },
+    {
+      "code": 6007,
       "name": "InvalidOrderUnstakeManagementAccount",
       "msg": "The order unstake management account is invalid for this epoch"
     }
@@ -1173,12 +1636,12 @@ export const IDL: SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "marinadeState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1276,6 +1739,122 @@ export const IDL: SunriseStake = {
         {
           "name": "lamports",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "depositStakeAccount",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "validatorList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "duplicationFlag",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAuthority",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Marinade makes a distinction between the `stake_authority`(proof of ownership of stake account)",
+            "and the `rent_payer`(pays to init the validator_record account). Both are required to be signers",
+            "for the instruction. These two accounts can be treated as one and the same, and here, they are."
+          ]
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintMsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintGsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "validatorIndex",
+          "type": "u32"
         }
       ]
     },
@@ -1767,6 +2346,400 @@ export const IDL: SunriseStake = {
       "args": []
     },
     {
+      "name": "splDepositSol",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositor",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "depositorGsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserveStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "splDepositStake",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAccountDepositor",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "stakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositorGsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "validatorList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolDepositAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "stakePoolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "validatorStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reserveStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarStakeHistory",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarClock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nativeStakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "splWithdrawSol",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "userGsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "reserveStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarClock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarStakeHistory",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nativeStakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "splWithdrawStake",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "userGsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userNewStakeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "validatorStakeList",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakeAccountToSplit",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerFeeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sysvarClock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nativeStakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "registerState",
       "accounts": [
         {
@@ -1790,6 +2763,11 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "bsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "msolTokenAccountAuthority",
           "isMut": false,
           "isSigner": false,
@@ -1809,6 +2787,16 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bsolTokenAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -2086,6 +3074,22 @@ export const IDL: SunriseStake = {
               "for the difference"
             ],
             "type": "u8"
+          },
+          {
+            "name": "blazeState",
+            "type": "publicKey"
+          },
+          {
+            "name": "marinadeMintedGsol",
+            "type": "u64"
+          },
+          {
+            "name": "blazeMintedGsol",
+            "type": "u64"
+          },
+          {
+            "name": "bsolAuthorityBump",
+            "type": "u8"
           }
         ]
       }
@@ -2149,6 +3153,10 @@ export const IDL: SunriseStake = {
             "type": "publicKey"
           },
           {
+            "name": "blazeState",
+            "type": "publicKey"
+          },
+          {
             "name": "updateAuthority",
             "type": "publicKey"
           },
@@ -2162,6 +3170,10 @@ export const IDL: SunriseStake = {
           },
           {
             "name": "msolAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "bsolAuthorityBump",
             "type": "u8"
           },
           {
@@ -2208,6 +3220,36 @@ export const IDL: SunriseStake = {
     },
     {
       "code": 6001,
+      "name": "NotDelegated",
+      "msg": "Stake account deposit must be delegated"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidUpdateAuthority",
+      "msg": "Wrong update authority for Sunrise state"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidProgramAccount",
+      "msg": "Invalid Program Account"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidMint",
+      "msg": "Invalid Mint"
+    },
+    {
+      "code": 6005,
+      "name": "UnexpectedAccounts",
+      "msg": "Unexpected Accounts"
+    },
+    {
+      "code": 6006,
+      "name": "UnexpectedMintSupply",
+      "msg": "Unexpected gsol mint supply"
+    },
+    {
+      "code": 6007,
       "name": "InvalidOrderUnstakeManagementAccount",
       "msg": "The order unstake management account is invalid for this epoch"
     }
