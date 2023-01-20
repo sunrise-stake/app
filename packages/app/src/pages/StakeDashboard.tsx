@@ -1,66 +1,82 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import BN from "bn.js";
 import clx from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 
-import { useSunriseStake } from "../hooks/useSunriseStake";
-import { BalanceInfo } from "../lib/stakeAccount";
 import StakeForm from "../components/StakeForm";
-import BalanceInfoTable from "../components/BalanceInfoTable";
-import { toBN } from "../lib/util";
+import {
+  solToCarbon,
+  solToLamports,
+  toBN,
+  toFixedWithPrecision,
+  toSol,
+} from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
 import { InfoBox } from "../components/InfoBox";
+import WithdrawTicket from "../components/WithdrawTickets";
+import { useSunriseStake } from "../context/sunriseStakeContext";
+import { NotificationType, notifyTransaction } from "../utils/notifications";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
   const { connection } = useConnection();
-  const client = useSunriseStake();
-  const [txSig, setTxSig] = useState<string>();
-  const [error, setError] = useState<Error>();
+  const { client, details } = useSunriseStake();
   const [solBalance, setSolBalance] = useState<BN>();
-  const [stakeBalance, setStakeBalance] = useState<BalanceInfo>();
-  const [treasuryBalanceLamports, setTreasuryBalanceLamports] = useState<BN>();
   const [delayedWithdraw, setDelayedWithdraw] = useState(false);
   const [delayedUnstakeTickets, setDelayedUnstakeTickets] = useState<
     TicketAccount[]
   >([]);
   const [isStakeSelected, setIsStakeSelected] = useState(true);
 
-  const updateBalances = useCallback(async () => {
+  // TODO move to details?
+  const setBalances = useCallback(async () => {
     if (!wallet.publicKey || !client) return;
     setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
-    setStakeBalance(await client.getBalance());
-    setTreasuryBalanceLamports(await client.treasuryBalance());
     setDelayedUnstakeTickets(await client.getDelayedUnstakeTickets());
-  }, [wallet.publicKey, client, connection]);
+  }, [wallet.publicKey?.toBase58(), client, connection]);
 
   const handleError = useCallback((error: Error) => {
-    setError(error);
+    notifyTransaction({
+      type: NotificationType.error,
+      message: "Transaction failed",
+      description: error.message,
+    });
     console.error(error);
   }, []);
 
   useEffect(() => {
-    if (!wallet.connected) return;
-    updateBalances().catch(console.error);
-  }, [wallet, connection, setSolBalance, client, updateBalances]);
+    if (!wallet.publicKey) return;
+    setBalances().catch(console.error);
+  }, [
+    wallet.publicKey?.toBase58(),
+    connection,
+    setSolBalance,
+    client,
+    setBalances,
+  ]);
 
   const deposit = useCallback(
     (amount: string) => {
       if (!client) return;
 
       client
-        .deposit(new BN(Number(amount) * LAMPORTS_PER_SOL))
-        .then(setTxSig)
-        .then(updateBalances)
+        .deposit(solToLamports(amount))
+        .then((tx) =>
+          notifyTransaction({
+            type: NotificationType.success,
+            message: "Deposit successful",
+            txid: tx,
+          })
+        )
+        .then(setBalances)
         .catch(handleError);
     },
-    [client, updateBalances]
+    [client, setBalances]
   );
 
   const withdraw = useCallback(
@@ -71,12 +87,18 @@ export const StakeDashboard: FC = () => {
         ? client.orderWithdrawal.bind(client)
         : client.withdraw.bind(client);
 
-      withdraw(new BN(Number(amount) * LAMPORTS_PER_SOL))
-        .then(setTxSig)
-        .then(updateBalances)
+      withdraw(solToLamports(amount))
+        .then((tx) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: "Withdrawal successful",
+            txid: tx,
+          });
+        })
+        .then(setBalances)
         .catch(handleError);
     },
-    [client, updateBalances, delayedWithdraw]
+    [client, setBalances, delayedWithdraw]
   );
 
   const redeem = useCallback(
@@ -85,11 +107,17 @@ export const StakeDashboard: FC = () => {
 
       client
         .claimUnstakeTicket(ticket)
-        .then(setTxSig)
-        .then(updateBalances)
+        .then((tx) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: "Redeeming successful",
+            txid: tx,
+          });
+        })
+        .then(setBalances)
         .catch(handleError);
     },
-    [client, updateBalances]
+    [client, setBalances]
   );
 
   return (
@@ -150,44 +178,61 @@ export const StakeDashboard: FC = () => {
           <StakeForm solBalance={solBalance} deposit={deposit} />
         ) : (
           <UnstakeForm
-            gSolBalance={
-              stakeBalance && new BN(stakeBalance.gsolBalance.amount)
-            }
             withdraw={withdraw}
             setDelayedWithdraw={setDelayedWithdraw}
+            delayedWithdraw={delayedWithdraw}
           />
         )}
-        <div
-          style={{ display: "none" }}
-          className="bg-neutral-800 rounded-lg m-4"
-        >
-          <BalanceInfoTable
-            solBalance={solBalance}
-            stakeBalance={stakeBalance}
-            treasuryBalanceLamports={treasuryBalanceLamports}
-            delayedUnstakeTickets={delayedUnstakeTickets}
-            redeem={redeem}
-          />
-        </div>
-        {txSig !== undefined && <div>Done {txSig}</div>}
-        {error != null && <div>Error: {error.message}</div>}
       </Panel>
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">0.00</span>
+          <span className="font-bold text-xl">
+            {details &&
+              toFixedWithPrecision(
+                toSol(new BN(details.balances.gsolBalance.amount))
+              )}
+          </span>
           <br />
-          Earned
+          gSOL
         </InfoBox>
         <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">0.00</span>
+          <span className="font-bold text-xl">
+            {details &&
+              toFixedWithPrecision(
+                solToCarbon(toSol(details.extractableYield))
+              )}
+          </span>
           <br />
-          tCO₂E
+          Accrued tCO₂E
         </InfoBox>
         <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">0.00</span>
+          <span className="font-bold text-xl">
+            {details &&
+              toFixedWithPrecision(
+                solToCarbon(
+                  toSol(
+                    new BN(details.balances.treasuryBalance).add(
+                      details.extractableYield
+                    )
+                  )
+                )
+              )}
+          </span>
           <br />
           Total tCO₂E
         </InfoBox>
+      </div>
+
+      <div className="flex flex-col items-center">
+        {delayedUnstakeTickets.map((ticket) => {
+          return (
+            <WithdrawTicket
+              key={ticket.address.toBase58()}
+              ticket={ticket}
+              redeem={redeem}
+            />
+          );
+        })}
       </div>
     </div>
   );

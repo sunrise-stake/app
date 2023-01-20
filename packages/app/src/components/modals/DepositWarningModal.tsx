@@ -12,12 +12,16 @@ const DepositWarningModal: FC<ModalProps> = (props) => {
     <BaseModal {...props} okEnabled={allFlagsSet}>
       <div>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <ExclamationTriangleIcon className="h-6 w-6" aria-hidden="true" />
+          <ExclamationTriangleIcon
+            className="w-8"
+            aria-hidden="true"
+            color="#f9c23c"
+          />
         </div>
-        <div className="mt-3 text-center sm:mt-5">
+        <div className="text-center">
           <Dialog.Title
             as="h3"
-            className="text-lg font-medium leading-6 text-gray-900 text-center"
+            className="text-md font-bold leading-6 text-[#f9c23c] text-center"
           >
             Warning
           </Dialog.Title>
@@ -28,14 +32,18 @@ const DepositWarningModal: FC<ModalProps> = (props) => {
               }
               idx={0}
             >
-              <p className="text-sm text-gray-900">
-                You are about to transact on{" "}
-                <em className="text-gray-900">Mainnet</em>.
-              </p>
-              <p className="text-sm text-gray-900">
-                Sunrise is currently in alpha and has not been audited. Please
-                proceed with caution.
-              </p>
+              <div className="flex flex-col gap-1 py-6 px-2">
+                <p className="text-md text-white font-bold">
+                  You are about to transact on{" "}
+                  <em className="text-white text-md font-bold">Mainnet</em>.
+                </p>
+                <p className="text-sm text-white">
+                  Sunrise is currently in alpha and has not been audited.
+                </p>
+                <p className="text-sm text-white mt-8">
+                  Please proceed with caution.
+                </p>
+              </div>
             </WarningConfirm>
           </div>
         </div>

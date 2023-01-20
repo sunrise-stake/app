@@ -1,14 +1,13 @@
 import { SunriseStakeClient } from "../app/src/lib/client/";
 import "./util";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/sunriseClientWrapper";
 import { AnchorProvider } from "@project-serum/anchor";
+import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/sunriseClientWrapper";
 
 (async () => {
   const provider = AnchorProvider.env();
+
   const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE);
-  const details = await client.details();
-  console.log({
-    config: client.config,
-    details,
-  });
+  const txSig = await client.triggerRebalance();
+
+  console.log("Withdraw tx sig: ", txSig);
 })().catch(console.error);

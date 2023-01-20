@@ -1,40 +1,66 @@
 import clx from "classnames";
-import { FC, Fragment, useState } from "react";
+import { FC, Fragment } from "react";
 import { FiChevronDown } from "react-icons/fi";
 import { Listbox, Transition } from "@headlessui/react";
+import Spinner from "./Spinner";
+import { toFixedWithPrecision } from "../lib/util";
 
-const UnstakeOption: FC = () => {
-  const [selected, setSelected] = useState(0);
-  const options = ["Delayed", "Immediate"];
-  return (
-    <div className="flex flex-row items-center gap-4">
-      <UnstakeOptionSelector
-        selected={selected}
-        setSelected={setSelected}
-        options={options}
-      />
-      {selected === 0 ? (
-        <span className="text-green-bright text-bold text-lg">Free</span>
-      ) : (
-        <span className="text-danger text-bold text-lg">3% Fee</span>
-      )}
-    </div>
-  );
-};
+enum WithdrawOption {
+  Delayed = "Delayed",
+  Immediate = "Immediate",
+}
+
+interface UnstakeOptionProps {
+  delayedWithdraw: boolean;
+  setDelayedWithdraw: (delayedWithdraw: boolean) => void;
+  withdrawalFee: number;
+  feeLoading: boolean;
+}
+const UnstakeOption: FC<UnstakeOptionProps> = ({
+  delayedWithdraw,
+  setDelayedWithdraw,
+  withdrawalFee,
+  feeLoading,
+}) => (
+  <div className="flex flex-row items-center gap-4">
+    <UnstakeOptionSelector
+      delayedWithdraw={delayedWithdraw}
+      setDelayedWithdraw={setDelayedWithdraw}
+    />
+    {delayedWithdraw || withdrawalFee === 0 ? (
+      <span className="text-green-bright text-bold text-lg">Free</span>
+    ) : feeLoading ? (
+      <Spinner />
+    ) : (
+      <span className="text-danger text-bold text-lg">
+        Fee: {toFixedWithPrecision(withdrawalFee)}%
+      </span>
+    )}
+  </div>
+);
 
 interface SelectorProps {
-  selected: number;
-  setSelected: any;
-  options: string[];
+  delayedWithdraw: boolean;
+  setDelayedWithdraw: (delayedWithdraw: boolean) => void;
 }
 
 const UnstakeOptionSelector: FC<SelectorProps> = ({
-  selected,
-  setSelected,
-  options,
+  delayedWithdraw,
+  setDelayedWithdraw,
 }) => {
   return (
-    <Listbox value={selected} onChange={setSelected}>
+    <Listbox
+      value={
+        delayedWithdraw ? WithdrawOption.Delayed : WithdrawOption.Immediate
+      }
+      onChange={(e) => {
+        if (e === WithdrawOption.Delayed) {
+          setDelayedWithdraw(true);
+        } else {
+          setDelayedWithdraw(false);
+        }
+      }}
+    >
       {({ open }) => (
         <>
           <div className="relative">
@@ -47,7 +73,9 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
               }
             >
               <span className="text-white ml-3 font-bold">
-                {options[selected]}
+                {delayedWithdraw
+                  ? WithdrawOption.Delayed
+                  : WithdrawOption.Immediate}
               </span>
 
               <span className="absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
@@ -66,22 +94,26 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
               leaveTo="opacity-0"
             >
               <Listbox.Options className="absolute max-h-56 w-full overflow-auto rounded-b bg-outset py-1 text-base border-t border-green-bright  ">
-                {selected === 1 ? (
+                {delayedWithdraw ? (
                   <Listbox.Option
                     className={"relative cursor-pointer py-2 pl-3 pr-9"}
-                    value={0}
+                    value={WithdrawOption.Immediate}
                   >
                     <div className="flex items-center">
-                      <span className="ml-3 font-bold">Delayed</span>
+                      <span className="ml-3 font-bold">
+                        {WithdrawOption.Immediate}
+                      </span>
                     </div>
                   </Listbox.Option>
                 ) : (
                   <Listbox.Option
                     className="relative cursor-pointer py-2 pl-3 pr-9"
-                    value={1}
+                    value={WithdrawOption.Delayed}
                   >
                     <div className="flex items-center">
-                      <span className="ml-3 font-bold">Immediate</span>
+                      <span className="ml-3 font-bold">
+                        {WithdrawOption.Delayed}
+                      </span>
                     </div>
                   </Listbox.Option>
                 )}

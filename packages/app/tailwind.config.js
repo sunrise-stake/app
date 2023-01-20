@@ -16,19 +16,21 @@ module.exports = {
         "green-bright": "#52dc90",
         blue: "#7bcefa",
         danger: "#bf5a5a",
+        ticket: "#d6a241",
         textColor: "#ffffff",
+        warning: "f9c23c",
       },
       fontFamily: {
         sans: ['"Open Sans"', defaultTheme.fontFamily.sans],
       },
       keyframes: {
-        'fade-in': {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
       },
       animation: {
-        'fade-in': 'fade-in 150ms ease-out',
+        "fade-in": "fade-in 150ms ease-out",
       },
     },
   },

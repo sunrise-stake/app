@@ -9,10 +9,16 @@ import {
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
 import { ManagementAccount } from "./types/ManagementAccount";
+import {
+  Marinade,
+  MarinadeState,
+  MarinadeUtils,
+} from "@sunrisestake/marinade-ts-sdk";
 
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
   M_SOL_ACCOUNT = "msol_account",
+  B_SOL_ACCOUNT = "bsol_account",
   ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT = "order_unstake_ticket_mgmt",
   ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
 }
@@ -56,6 +62,11 @@ export const findMSolTokenAccountAuthority = (
   config: SunriseStakeConfig
 ): [PublicKey, number] =>
   findProgramDerivedAddress(config, ProgramDerivedAddressSeed.M_SOL_ACCOUNT);
+
+export const findBSolTokenAccountAuthority = (
+  config: SunriseStakeConfig
+): [PublicKey, number] =>
+  findProgramDerivedAddress(config, ProgramDerivedAddressSeed.B_SOL_ACCOUNT);
 
 export const findGSolMintAuthority = (
   config: SunriseStakeConfig
@@ -189,4 +200,37 @@ export const proportionalBN = (
     (BigInt(amount.toString()) * BigInt(numerator.toString())) /
     BigInt(denominator.toString());
   return new BN(result.toString());
+};
+
+export const getVoterAddress = async (
+  stakeAccountAddress: PublicKey,
+  marinade: Marinade
+): Promise<PublicKey> => {
+  const stakeAccountInfo = await MarinadeUtils.getParsedStakeAccountInfo(
+    marinade.provider,
+    stakeAccountAddress
+  );
+  const voterAddress = stakeAccountInfo.voterAddress;
+
+  if (!voterAddress) {
+    throw new Error("The stake account is not delegated");
+  }
+
+  return voterAddress;
+};
+
+export const getValidatorIndex = async (
+  marinadeState: MarinadeState,
+  voterAddress: PublicKey
+): Promise<number> => {
+  const { validatorRecords } = await marinadeState.getValidatorRecords();
+  const validatorLookupIndex = validatorRecords.findIndex(
+    ({ validatorAccount }) => validatorAccount.equals(voterAddress)
+  );
+  const validatorIndex =
+    validatorLookupIndex === -1
+      ? marinadeState.state.validatorSystem.validatorList.count
+      : validatorLookupIndex;
+
+  return validatorIndex;
 };

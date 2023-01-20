@@ -2,13 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-button, input {
-  display: inline-flex;
-  align-items: center;
-  line-height: 24px !important;
+body {
+  background: bottom right no-repeat url("../public/background.png");
 }
 
-body:after{
+.AlphaRibbon:after{
   content: "alpha";
   position: fixed;
   z-index: 1070;
@@ -28,4 +26,13 @@ body:after{
   -ms-transform:rotate(-45deg);
   -webkit-transform:rotate(-45deg);
   transform:rotate(-45deg);
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none;
+}
+
+.appearance-textfield {
+  appearance: textfield;
 }

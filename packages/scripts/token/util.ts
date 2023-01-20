@@ -5,6 +5,7 @@ import {
   keypairIdentity,
   bundlrStorage,
   toMetaplexFile,
+  BundlrStorageDriver,
 } from "@metaplex-foundation/js";
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import * as fs from "fs";
@@ -27,8 +28,8 @@ export const metaplex = Metaplex.make(provider.connection)
   .use(keypairIdentity(keypair))
   .use(
     bundlrStorage({
-      address: "https://devnet.bundlr.network",
-      providerUrl: "https://api.devnet.solana.com",
+      address: "https://node1.bundlr.network", // There is also https://node2.bundlr.network, what is the difference?
+      providerUrl: "https://api.mainnet-beta.solana.com", // Maybe use custom RPC endpoint from .env file?
       timeout: 60000,
     })
   );
@@ -43,11 +44,25 @@ export const getMetadataAddress = (mint: PublicKey): PublicKey =>
     TOKEN_METADATA_PROGRAM_ID
   )[0];
 
-// Upload image and get image uri
+// Transfrom file to metaplex file
 const buffer = fs.readFileSync("packages/app/public/" + imageFile);
 export const file = toMetaplexFile(buffer, imageFile);
 
+// Fund bundlr node
+const fundBundlrNode = async (): Promise<void> => {
+  const bundlrStorageDriver = metaplex
+    .storage()
+    .driver() as BundlrStorageDriver;
+
+  const price = await bundlrStorageDriver.getUploadPriceForFiles([file]);
+  console.log("Cost of storage for metadata: ", price);
+
+  await bundlrStorageDriver.fund(price);
+};
+
 export const uploadMetadata = async (): Promise<string> => {
+  await fundBundlrNode();
+
   const image = await metaplex.storage().upload(file);
   console.log("image uri: ", image);
 

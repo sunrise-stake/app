@@ -13,6 +13,7 @@
 
 .wallet-adapter-button-trigger {
   background-color: #2e8555;
+  line-height: 24px;
 }
 
 .wallet-adapter-button:not([disabled]):focus-visible {

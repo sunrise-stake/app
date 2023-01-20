@@ -86,6 +86,10 @@ describe("sunrise-stake", () => {
             1 +
             1 +
             1 +
+            32 +
+            8 +
+            8 +
+            1 +
             8 + // Base size
             10 // extra space
         )
@@ -101,8 +105,8 @@ describe("sunrise-stake", () => {
   });
 
   it("returns zero extractable yield if no SOL has been staked", async () => {
-    const earnedYield = await client.extractableYield();
-    expect(earnedYield.toNumber()).to.equal(0);
+    const { extractableYield } = await client.details();
+    expect(extractableYield.toNumber()).to.equal(0);
   });
 
   it("can trigger a rebalance that does nothing", async () => {
@@ -141,10 +145,10 @@ describe("sunrise-stake", () => {
   });
 
   it("no yield to extract yet", async () => {
-    const yieldToExtract = await client.extractableYield();
-    log("yield to withdraw", yieldToExtract.toString());
+    const { extractableYield } = await client.details();
+    log("extractableYield", extractableYield.toString());
 
-    expectAmount(yieldToExtract, 0, 100);
+    expectAmount(extractableYield, 0, 100);
   });
 
   it("can feelessly unstake sol when under the level of the LP", async () => {
@@ -163,8 +167,10 @@ describe("sunrise-stake", () => {
   });
 
   it("can calculate the withdrawal fee if unstaking more than the LP balance", async () => {
-    const liquidUnstakeFee = await client.calculateWithdrawalFee(
-      unstakeLamportsExceedLPBalance
+    const details = await client.details();
+    const liquidUnstakeFee = client.calculateWithdrawalFee(
+      unstakeLamportsExceedLPBalance,
+      details
     );
 
     // calculated through experimentation
@@ -172,8 +178,11 @@ describe("sunrise-stake", () => {
   });
 
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
-    const liquidUnstakeFee = await client.calculateWithdrawalFee(
-      unstakeLamportsExceedLPBalance
+    log("Before big unstake");
+    const details = await client.details();
+    const liquidUnstakeFee = client.calculateWithdrawalFee(
+      unstakeLamportsExceedLPBalance,
+      details
     );
 
     const stakerPreSolBalance = await getBalance(client);
@@ -182,13 +191,10 @@ describe("sunrise-stake", () => {
       client.stakerGSolTokenAccount!
     );
 
-    log("Before big unstake");
-    await client.extractableYield();
-
     await client.unstake(unstakeLamportsExceedLPBalance);
 
     log("after big unstake");
-    await client.extractableYield();
+    await client.details();
 
     await expectStakerGSolTokenBalance(
       client,
@@ -209,7 +215,7 @@ describe("sunrise-stake", () => {
     // since we do not count the in-flight SOL that is being used to rebalance the LP
     // we expect the extractable yield to be negative after a large liquid unstake that
     // triggers a rebalance
-    const extractableYield = await client.extractableYield();
+    const { extractableYield } = await client.details();
     expect(extractableYield.toNumber()).to.be.lessThan(0);
   });
 
@@ -295,12 +301,12 @@ describe("sunrise-stake", () => {
   });
 
   it("can recover previous epoch rebalance tickets by triggering a new rebalance", async () => {
-    const yieldToExtractBefore = await client.extractableYield();
+    const { extractableYield: yieldToExtractBefore } = await client.details();
     log("yield to extract before", yieldToExtractBefore.toString());
 
     await client.triggerRebalance();
 
-    const yieldToExtractAfter = await client.extractableYield();
+    const { extractableYield: yieldToExtractAfter } = await client.details();
     log("yield to extract after", yieldToExtractAfter.toString());
   });
 
@@ -316,23 +322,23 @@ describe("sunrise-stake", () => {
       await client.provider.connection.getTokenSupply(client.config!.gsolMint)
     );
 
-    const preBurnYieldToExtract = await client.extractableYield();
+    const { extractableYield: preBurnYieldToExtract } = await client.details();
     log("pre-burn yield to extract", preBurnYieldToExtract.toString());
 
     // burn 100 gSOL so that there is some unclaimed yield for the crank operation to harvest
     await burnGSol(new BN(burnLamports), client);
 
-    const yieldToExtract = await client.extractableYield();
-    log("yield to extract", yieldToExtract.toString());
+    const { extractableYield: postBurnYieldToExtract } = await client.details();
+    log("yield to extract", postBurnYieldToExtract.toString());
 
     // subtract 0.3% liquid unstake fee until we do delayed unstake
     const expectedYield = new BN(burnLamports).muln(997).divn(1000);
 
-    expectAmount(yieldToExtract, expectedYield, 50);
+    expectAmount(postBurnYieldToExtract, expectedYield, 50);
   });
 
   it("can extract earned yield", async () => {
-    await expectTreasurySolBalance(client, 0, 10);
+    await expectTreasurySolBalance(client, 0, 50);
 
     // trigger a withdrawal
     await client.extractYield();
