@@ -430,12 +430,7 @@ pub mod sunrise_stake {
         let marinade_minted_gsol = state_account.marinade_minted_gsol;
         let blaze_minted_gsol = state_account.blaze_minted_gsol;
 
-        state_account.set_values(
-            &state,
-            &gsol_mint,
-            marinade_minted_gsol,
-            blaze_minted_gsol
-        );
+        state_account.set_values(&state, &gsol_mint, marinade_minted_gsol, blaze_minted_gsol);
 
         // Create any token accounts not yet created
         if *ctx.accounts.msol_token_account.owner != ctx.accounts.token_program.key() {
@@ -487,7 +482,6 @@ pub mod sunrise_stake {
 
         Ok(())
     }
-
 
     // TODO this is only used during development, to add features to the state account
     // without having to create a new one.
@@ -546,7 +540,13 @@ pub struct State {
 impl State {
     const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 1 + 1 + 32 + 8 + 8 + 1 + 8 /* DISCRIMINATOR */ ;
 
-    pub fn set_values(&mut self, input: &StateInput, gsol_mint: &Pubkey, marinade_minted_gsol: u64, blaze_minted_gsol: u64) {
+    pub fn set_values(
+        &mut self,
+        input: &StateInput,
+        gsol_mint: &Pubkey,
+        marinade_minted_gsol: u64,
+        blaze_minted_gsol: u64,
+    ) {
         self.marinade_state = input.marinade_state;
         self.blaze_state = input.blaze_state;
         self.update_authority = input.update_authority;
