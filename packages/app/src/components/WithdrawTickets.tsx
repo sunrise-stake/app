@@ -34,10 +34,10 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
   }
 
   return (
-    <div className="relative my-4 flex">
+    <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
         variant={ticket.ticketDue ? "primary" : "ticket"}
-        className="text-white relative z-10"
+        className="relative z-10 h-16 min-w-[12rem]"
         onClick={() => {
           if (ticket.ticketDue === undefined || !ticket.ticketDue) {
             console.log("Ticket is not due yet");
@@ -48,10 +48,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
         }}
       >
         <div className="flex flex-row items-center">
-          <TicketIcon
-            width={44}
-            className="mr-4 py-1 px-2 rounded bg-[#C78F28]"
-          />
+          <TicketIcon width={44} className="mr-4 py-1 px-2 rounded" />
           {ticket.ticketDue ? (
             <MdOutlineLockOpen width={36} className="text-outset" />
           ) : (
@@ -59,7 +56,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
           )}
 
           {/* <div className="ml-2">1 Ticket</div> */}
-          <div className="text-lg text-outset ml-4 ">
+          <div className="text-lg ml-4 ">
             {toFixedWithPrecision(toSol(ticket.lamportsAmount))} SOL
           </div>
         </div>
@@ -69,15 +66,17 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
         onClick={() => setIsClicked(false)}
         variant="secondary"
         className={clx(
-          "text-danger border border-danger text-sm px-2 py-1 relative rounded-md transition-transform duration-500 z-0 m-auto w-44",
+          "text-danger border border-danger text-sm px-2 py-1 absolute items-center rounded-md transition-transform duration-500 z-0 h-16 max-w-[12rem]",
           {
-            "transform translate-x-5": isClicked,
-            "transform -translate-x-full": !isClicked,
+            "transform translate-x-[16rem]": isClicked,
+            "transform translate-x-0": !isClicked,
           }
         )}
       >
-        <AiOutlineClockCircle className="mr-2" /> Due{" "}
-        {dayjs(ticket.ticketDueDate).fromNow()}
+        <div className="flex flex-row items-center truncate overflow-hidden">
+          <AiOutlineClockCircle className="mr-2" />
+          Due {dayjs(ticket.ticketDueDate).fromNow()}
+        </div>
       </Button>
     </div>
   );
