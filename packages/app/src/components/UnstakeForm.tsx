@@ -66,14 +66,18 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         setAmount={setAmount}
         setValid={setValid}
       />
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col-reverse gap-4 sm:flex-row justify-between">
         <UnstakeOption
           setDelayedWithdraw={setDelayedWithdraw}
           delayedWithdraw={delayedWithdraw}
           withdrawalFee={withdrawalFee}
           feeLoading={feeLoading}
         />
-        <Button onClick={() => withdraw(amount)} disabled={!valid}>
+        <Button
+          onClick={() => withdraw(amount)}
+          disabled={!valid}
+          className="mr-auto sm:mr-0"
+        >
           Withdraw <FiArrowDownLeft className="inline" size={24} />
         </Button>
       </div>
