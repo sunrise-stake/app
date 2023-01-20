@@ -15,7 +15,8 @@
         "app:build": "yarn workspace @sunrisestake/app build"
     },
     "dependencies": {
-        "@project-serum/anchor": "^0.26.0"
+        "@project-serum/anchor": "^0.26.0",
+        "packages": "^0.0.8"
     },
     "devDependencies": {
         "@project-serum/anchor-cli": "^0.26.0",

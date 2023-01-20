@@ -1,5 +1,6 @@
 import {
   PublicKey,
+  StakeProgram,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
@@ -13,6 +14,8 @@ import {
   findOrderUnstakeTicketAccount,
   findOrderUnstakeTicketManagementAccount,
   SunriseStakeConfig,
+  getVoterAddress,
+  getValidatorIndex,
 } from "./util";
 import { Marinade, MarinadeState } from "@sunrisestake/marinade-ts-sdk";
 import { Program, utils } from "@project-serum/anchor";
@@ -20,6 +23,122 @@ import { SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
 import { ManagementAccount } from "./types/ManagementAccount";
+
+export const deposit = async (
+  config: SunriseStakeConfig,
+  program: Program<SunriseStake>,
+  marinade: Marinade,
+  marinadeState: MarinadeState,
+  stateAddress: PublicKey,
+  staker: PublicKey,
+  stakerGsolTokenAccount: PublicKey,
+  lamports: BN
+): Promise<Transaction> => {
+  const sunriseStakeState = await program.account.state.fetch(stateAddress);
+  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
+  const [gsolMintAuthority] = findGSolMintAuthority(config);
+  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
+  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
+    {
+      mint: marinadeState.mSolMintAddress,
+      owner: msolTokenAccountAuthority,
+    }
+  );
+
+  const liqPoolAssociatedTokenAccountAddress =
+    await utils.token.associatedAddress({
+      mint: marinadeState.lpMint.address,
+      owner: msolTokenAccountAuthority,
+    });
+
+  type Accounts = Parameters<
+    ReturnType<typeof program.methods.deposit>["accounts"]
+  >[0];
+
+  const accounts: Accounts = {
+    state: stateAddress,
+    marinadeState: marinadeState.marinadeStateAddress,
+    gsolMint: sunriseStakeState.gsolMint,
+    gsolMintAuthority,
+    msolMint: marinadeState.mSolMint.address,
+    liqPoolMint: marinadeState.lpMint.address,
+    liqPoolSolLegPda: await marinadeState.solLeg(),
+    liqPoolMsolLeg: marinadeState.mSolLeg,
+    liqPoolMsolLegAuthority: await marinadeState.mSolLegAuthority(),
+    liqPoolMintAuthority: await marinadeState.lpMintAuthority(),
+    reservePda: await marinadeState.reserveAddress(),
+    transferFrom: staker,
+    mintMsolTo: msolAssociatedTokenAccountAddress,
+    mintLiqPoolTo: liqPoolAssociatedTokenAccountAddress,
+    mintGsolTo: stakerGsolTokenAccount,
+    msolMintAuthority: await marinadeState.mSolMintAuthority(),
+    msolTokenAccountAuthority,
+    systemProgram: SystemProgram.programId,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    marinadeProgram,
+  };
+
+  return program.methods.deposit(lamports).accounts(accounts).transaction();
+};
+
+export const depositStakeAccount = async (
+  config: SunriseStakeConfig,
+  program: Program<SunriseStake>,
+  marinade: Marinade,
+  marinadeState: MarinadeState,
+  staker: PublicKey,
+  stakeAccountAddress: PublicKey,
+  stakerGsolTokenAccount: PublicKey
+): Promise<Transaction> => {
+  const stateAddress = config.stateAddress;
+
+  const sunriseStakeState = await program.account.state.fetch(stateAddress);
+  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
+  const [gsolMintAuthority] = findGSolMintAuthority(config);
+  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
+  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
+    {
+      mint: marinadeState.mSolMintAddress,
+      owner: msolTokenAccountAuthority,
+    }
+  );
+
+  type Accounts = Parameters<
+    ReturnType<typeof program.methods.depositStakeAccount>["accounts"]
+  >[0];
+
+  const voterAddress = await getVoterAddress(stakeAccountAddress, marinade);
+  const validatorSystem = marinadeState.state.validatorSystem;
+  const stakeSystem = marinadeState.state.stakeSystem;
+  const accounts: Accounts = {
+    state: stateAddress,
+    marinadeState: marinadeState.marinadeStateAddress,
+    gsolMint: sunriseStakeState.gsolMint,
+    gsolMintAuthority,
+    validatorList: validatorSystem.validatorList.account,
+    stakeList: stakeSystem.stakeList.account,
+    stakeAccount: stakeAccountAddress,
+    duplicationFlag: await marinadeState.validatorDuplicationFlag(voterAddress),
+    stakeAuthority: staker,
+    msolMint: marinadeState.mSolMint.address,
+    mintMsolTo: msolAssociatedTokenAccountAddress,
+    mintGsolTo: stakerGsolTokenAccount,
+    msolMintAuthority: await marinadeState.mSolMintAuthority(),
+    msolTokenAccountAuthority,
+    clock: SYSVAR_CLOCK_PUBKEY,
+    rent: SYSVAR_RENT_PUBKEY,
+    stakeProgram: StakeProgram.programId,
+    systemProgram: SystemProgram.programId,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    marinadeProgram,
+  };
+
+  const validatorIndex = await getValidatorIndex(marinadeState, voterAddress);
+  return program.methods
+    .depositStakeAccount(validatorIndex)
+    .accounts(accounts)
+    .transaction();
+};
 
 const getOrderUnstakeTicketManagementAccount = async (
   config: SunriseStakeConfig,
@@ -86,8 +205,6 @@ export const liquidUnstake = async (
     liqPoolMint: marinadeState.lpMint.address,
     gsolMint: sunriseStakeState.gsolMint,
     gsolMintAuthority,
-    gsolTokenAccount: stakerGsolTokenAccount,
-    gsolTokenAccountAuthority: staker,
     liqPoolSolLegPda: await marinadeState.solLeg(),
     liqPoolMsolLeg: marinadeState.mSolLeg,
     liqPoolMsolLegAuthority: await marinadeState.mSolLegAuthority(),
@@ -95,6 +212,8 @@ export const liquidUnstake = async (
     getMsolFrom: msolAssociatedTokenAccountAddress,
     getMsolFromAuthority: msolTokenAccountAuthority,
     getLiqPoolTokenFrom: liqPoolAssociatedTokenAccountAddress,
+    gsolTokenAccount: stakerGsolTokenAccount,
+    gsolTokenAccountAuthority: staker,
     systemProgram: SystemProgram.programId,
     tokenProgram: TOKEN_PROGRAM_ID,
     rent: SYSVAR_RENT_PUBKEY,
