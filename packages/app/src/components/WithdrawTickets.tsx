@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import clx from "classnames";
 import { Button } from "./Button";
 import { TicketIcon } from "@heroicons/react/24/solid";
-import { MdOutlineLockClock, MdOutlineLockOpen } from "react-icons/md";
+// import { MdOutlineLockClock, MdOutlineLockOpen } from "react-icons/md";
 import { AiOutlineClockCircle } from "react-icons/ai";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { toFixedWithPrecision, toSol } from "../lib/util";
@@ -37,7 +37,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
         variant={ticket.ticketDue ? "primary" : "ticket"}
-        className="relative z-10 h-16 min-w-[12rem]"
+        className="relative z-10 h-16 min-w-[12rem] hover:brightness-75"
         onClick={() => {
           if (ticket.ticketDue === undefined || !ticket.ticketDue) {
             console.log("Ticket is not due yet");
@@ -49,11 +49,11 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
       >
         <div className="flex flex-row items-center">
           <TicketIcon width={44} className="mr-4 py-1 px-2 rounded" />
-          {ticket.ticketDue ? (
+          {/* {ticket.ticketDue ? (
             <MdOutlineLockOpen width={36} className="text-outset" />
           ) : (
             <MdOutlineLockClock width={36} className="text-danger" />
-          )}
+          )} */}
 
           {/* <div className="ml-2">1 Ticket</div> */}
           <div className="text-lg ml-4 ">
