@@ -20,9 +20,6 @@ const AmountInput: React.FC<AmountInputProps> = ({
   token = "SOL",
   setValid,
 }) => {
-  const min = solToLamports(0);
-  const max = balance ?? new BN(0);
-
   const handleIncDecBtnClick = (op: "INC" | "DEC"): void => {
     const parsedAmount = parseFloat(amount);
     if (!amount && op === "INC") setAmount("1");
@@ -36,6 +33,8 @@ const AmountInput: React.FC<AmountInputProps> = ({
   const updateAmount = useCallback(
     (amountStr: string) => {
       const parsedValue = solToLamports(amountStr);
+      const min = solToLamports(0);
+      const max = balance ?? new BN(0);
 
       console.log("parsedValue ", parsedValue.toString());
       console.log("minValue ", min.toString());
@@ -44,7 +43,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
       setAmount(amountStr);
       setValid(parsedValue.gt(min) && parsedValue.lte(max));
     },
-    [setValid]
+    [setValid, balance]
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

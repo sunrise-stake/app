@@ -15,6 +15,7 @@ import {
   confirm,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
+  findBSolTokenAccountAuthority,
   SunriseStakeConfig,
   logKeys,
   Options,
@@ -46,8 +47,14 @@ import {
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
 } from "../constants";
-import { liquidUnstake, triggerRebalance } from "./marinade";
+import {
+  deposit,
+  depositStakeAccount,
+  liquidUnstake,
+  triggerRebalance,
+} from "./marinade";
 import { ZERO } from "../util";
+import { SOLBLAZE_CONFIG } from "../sunriseClientWrapper";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -144,11 +151,10 @@ export class SunriseStakeClient {
       });
   }
 
-  async createGSolTokenAccount(): Promise<string> {
+  createGSolTokenAccountIx(): TransactionInstruction {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
 
-    // give the staker a gSOL account
     const createATAInstruction =
       createAssociatedTokenAccountIdempotentInstruction(
         this.provider.publicKey,
@@ -156,8 +162,8 @@ export class SunriseStakeClient {
         this.staker,
         this.config.gsolMint
       );
-    const createATAIx = new Transaction().add(createATAInstruction);
-    return this.sendAndConfirmTransaction(createATAIx, []);
+
+    return createATAInstruction;
   }
 
   public async deposit(lamports: BN): Promise<string> {
@@ -169,19 +175,75 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    // TODO chain these so the user does not have to sign up to three txes
-    // Create the user's gsol token account if it does not exist
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
       this.stakerGSolTokenAccount
     );
+
+    // const { transaction } = await this.marinade.deposit(lamports);
+
+    const transaction = new Transaction();
+
     if (!gsolTokenAccount) {
-      await this.createGSolTokenAccount();
+      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      transaction.add(createUserTokenAccount);
+      console.log("Token account created");
     }
 
-    this.log("Token account created. Depositing...");
+    const depositTx = await deposit(
+      this.config,
+      this.program,
+      this.marinade,
+      this.marinadeState,
+      this.config.stateAddress,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      lamports
+    );
 
-    const { transaction } = await this.marinade.deposit(lamports);
+    console.log("Depositing...");
+    transaction.add(depositTx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
 
+  public async depositStakeAccount(
+    stakeAccountAddress: PublicKey
+  ): Promise<string> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.stakerGSolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const transaction = new Transaction();
+
+    const gSolTokenAccount = await this.provider.connection.getAccountInfo(
+      this.stakerGSolTokenAccount
+    );
+
+    // const { transaction } = await this.marinade.depositStakeAccount(
+    //  stakeAccountAddress
+    // );
+
+    if (!gSolTokenAccount) {
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      transaction.add(createUserTokenAccount);
+      console.log("Token account created");
+    }
+
+    const depositStakeIx = await depositStakeAccount(
+      this.config,
+      this.program,
+      this.marinade,
+      this.marinadeState,
+      this.provider.publicKey,
+      stakeAccountAddress,
+      this.stakerGSolTokenAccount
+    );
+
+    console.log("Depositing Stake Account...");
+    transaction.add(depositStakeIx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
@@ -567,6 +629,89 @@ export class SunriseStakeClient {
     );
   }
 
+  private readonly getRegisterStateAccounts = async (
+    treasury: PublicKey,
+    gsolMint: PublicKey,
+    options: Options = {}
+    // TODO get these types from the IDL
+  ): Promise<{ accounts: any; parameters: any }> => {
+    const config = {
+      gsolMint,
+      programId: this.program.programId,
+      stateAddress: this.stateAddress,
+      updateAuthority: this.provider.publicKey,
+      treasury,
+      liqPoolProportion: DEFAULT_LP_PROPORTION,
+      liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      options,
+    };
+    const marinadeConfig = new MarinadeConfig({
+      connection: this.provider.connection,
+    });
+
+    const marinadeState = await new Marinade(marinadeConfig).getMarinadeState();
+
+    const [, gsolMintAuthorityBump] = findGSolMintAuthority(config);
+
+    const [msolAuthority, msolAuthorityBump] =
+      findMSolTokenAccountAuthority(config);
+    const msolAssociatedTokenAccountAddress =
+      await utils.token.associatedAddress({
+        mint: marinadeState.mSolMintAddress,
+        owner: msolAuthority,
+      });
+    // use the same token authority PDA for the msol token account
+    // and the liquidity pool token account for convenience
+    const liqPoolAssociatedTokenAccountAddress =
+      await utils.token.associatedAddress({
+        mint: marinadeState.lpMint.address,
+        owner: msolAuthority,
+      });
+
+    const [bsolAuthority, bsolAuthorityBump] =
+      findBSolTokenAccountAuthority(config);
+    const bsolTokenAccountAddress = await utils.token.associatedAddress({
+      mint: SOLBLAZE_CONFIG.bsolMint,
+      owner: bsolAuthority,
+    });
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.registerState>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.stateAddress,
+      payer: this.provider.publicKey,
+      mint: gsolMint,
+      msolMint: marinadeState.mSolMintAddress,
+      bsolMint: SOLBLAZE_CONFIG.bsolMint,
+      msolTokenAccountAuthority: msolAuthority,
+      msolTokenAccount: msolAssociatedTokenAccountAddress,
+      liqPoolMint: marinadeState.lpMint.address,
+      liqPoolTokenAccount: liqPoolAssociatedTokenAccountAddress,
+      bsolTokenAccountAuthority: bsolAuthority,
+      bsolTokenAccount: bsolTokenAccountAddress,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+    };
+
+    const parameters = {
+      marinadeState: marinadeConfig.marinadeStateAddress,
+      blazeState: SOLBLAZE_CONFIG.pool,
+      updateAuthority: this.provider.publicKey,
+      treasury,
+      gsolMintAuthorityBump,
+      msolAuthorityBump,
+      bsolAuthorityBump,
+      liqPoolProportion: DEFAULT_LP_PROPORTION,
+      liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+    };
+
+    return { accounts, parameters };
+  };
+
   private calculateExtractableYield({
     epochInfo,
     balances,
@@ -619,66 +764,14 @@ export class SunriseStakeClient {
       options
     );
 
-    const config = {
-      gsolMint: gsolMint.publicKey,
-      programId: client.program.programId,
-      stateAddress: sunriseStakeState.publicKey,
-      updateAuthority: client.provider.publicKey,
+    const { accounts, parameters } = await client.getRegisterStateAccounts(
       treasury,
-      liqPoolProportion: DEFAULT_LP_PROPORTION,
-      liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
-      options,
-    };
-    const marinadeConfig = new MarinadeConfig({
-      connection: client.provider.connection,
-    });
-    const marinadeState = await new Marinade(marinadeConfig).getMarinadeState();
-
-    const [, gsolMintAuthorityBump] = findGSolMintAuthority(config);
-
-    const [msolAuthority, msolAuthorityBump] =
-      findMSolTokenAccountAuthority(config);
-    const msolAssociatedTokenAccountAddress =
-      await utils.token.associatedAddress({
-        mint: marinadeState.mSolMintAddress,
-        owner: msolAuthority,
-      });
-    // use the same token authority PDA for the msol token account
-    // and the liquidity pool token account for convenience
-    const liqPoolAssociatedTokenAccountAddress =
-      await utils.token.associatedAddress({
-        mint: marinadeState.lpMint.address,
-        owner: msolAuthority,
-      });
-
-    type Accounts = Parameters<
-      ReturnType<typeof client.program.methods.registerState>["accounts"]
-    >[0];
-
-    const accounts: Accounts = {
-      state: sunriseStakeState.publicKey,
-      payer: client.provider.publicKey,
-      mint: gsolMint.publicKey,
-      msolMint: marinadeState.mSolMintAddress,
-      msolTokenAccountAuthority: msolAuthority,
-      msolTokenAccount: msolAssociatedTokenAccountAddress,
-      liqPoolMint: marinadeState.lpMint.address,
-      liqPoolTokenAccount: liqPoolAssociatedTokenAccountAddress,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    };
+      gsolMint.publicKey,
+      options
+    );
 
     await client.program.methods
-      .registerState({
-        marinadeState: marinadeConfig.marinadeStateAddress,
-        updateAuthority: client.provider.publicKey,
-        treasury,
-        gsolMintAuthorityBump,
-        msolAuthorityBump,
-        liqPoolProportion: DEFAULT_LP_PROPORTION,
-        liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
-      })
+      .registerState(parameters)
       .accounts(accounts)
       .signers([gsolMint, sunriseStakeState])
       .rpc()
@@ -702,20 +795,18 @@ export class SunriseStakeClient {
   }): Promise<void> {
     if (!this.config) throw new Error("init not called");
 
-    const accounts: Record<string, PublicKey> = {
-      state: this.stateAddress,
-      payer: this.provider.publicKey,
-      updateAuthority: this.provider.publicKey,
-    };
+    const { accounts, parameters } = await this.getRegisterStateAccounts(
+      newTreasury ?? this.config.treasury,
+      this.config.gsolMint
+    );
 
     await this.program.methods
       .updateState({
-        updateAuthority: newUpdateAuthority ?? this.config.updateAuthority,
-        treasury: newTreasury ?? this.config.treasury,
-        liqPoolProportion:
-          newliqPoolProportion ?? this.config.liqPoolProportion,
+        ...parameters,
+        updateAuthority: newUpdateAuthority ?? parameters.updateAuthority,
+        liqPoolProportion: newliqPoolProportion ?? parameters.liqPoolProportion,
         liqPoolMinProportion:
-          newliqPoolMinProportion ?? this.config.liqPoolMinProportion,
+          newliqPoolMinProportion ?? parameters.liqPoolMinProportion,
       })
       .accounts(accounts)
       .rpc()

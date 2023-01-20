@@ -1,20 +1,22 @@
 use crate::{
     utils::{calc::proportional, seeds::MSOL_ACCOUNT},
-    ClaimUnstakeTicket, Deposit, ExtractToTreasury, LiquidUnstake, OrderUnstake,
-    OrderUnstakeTicketManagementAccount, State, TriggerPoolRebalance,
+    ClaimUnstakeTicket, Deposit, DepositStakeAccount, ExtractToTreasury, LiquidUnstake,
+    OrderUnstake, OrderUnstakeTicketManagementAccount, State, TriggerPoolRebalance,
 };
-use anchor_lang::{context::CpiContext, prelude::*};
+use anchor_lang::{context::CpiContext, prelude::*, solana_program::stake::state::StakeState};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::{
     cpi::{
         accounts::{
             AddLiquidity as MarinadeAddLiquidity, Claim as MarinadeClaim,
-            Deposit as MarinadeDeposit, LiquidUnstake as MarinadeLiquidUnstake,
-            OrderUnstake as MarinadeOrderUnstake, RemoveLiquidity as MarinadeRemoveLiquidity,
+            Deposit as MarinadeDeposit, DepositStakeAccount as MarinadeDepositStakeAccount,
+            LiquidUnstake as MarinadeLiquidUnstake, OrderUnstake as MarinadeOrderUnstake,
+            RemoveLiquidity as MarinadeRemoveLiquidity,
         },
         add_liquidity as marinade_add_liquidity, claim as marinade_claim,
-        deposit as marinade_deposit, liquid_unstake as marinade_liquid_unstake,
-        order_unstake as marinade_order_unstake, remove_liquidity as marinade_remove_liquidity,
+        deposit as marinade_deposit, deposit_stake_account as marinade_deposit_stake_account,
+        liquid_unstake as marinade_liquid_unstake, order_unstake as marinade_order_unstake,
+        remove_liquidity as marinade_remove_liquidity,
     },
     program::MarinadeFinance,
     State as MarinadeState,
@@ -214,6 +216,29 @@ pub fn deposit(accounts: &Deposit, lamports: u64) -> Result<()> {
     marinade_deposit(cpi_ctx, lamports)
 }
 
+pub fn deposit_stake_account(accounts: &DepositStakeAccount, validator_index: u32) -> Result<()> {
+    let cpi_program = accounts.marinade_program.to_account_info();
+    let cpi_accounts = MarinadeDepositStakeAccount {
+        state: accounts.marinade_state.to_account_info(),
+        validator_list: accounts.validator_list.to_account_info(),
+        stake_list: accounts.stake_list.to_account_info(),
+        stake_account: accounts.stake_account.to_account_info(),
+        stake_authority: accounts.stake_authority.to_account_info(),
+        duplication_flag: accounts.duplication_flag.to_account_info(),
+        rent_payer: accounts.stake_authority.to_account_info(),
+        msol_mint: accounts.msol_mint.to_account_info(),
+        mint_to: accounts.mint_msol_to.to_account_info(),
+        msol_mint_authority: accounts.msol_mint_authority.to_account_info(),
+        clock: accounts.clock.to_account_info(),
+        rent: accounts.rent.to_account_info(),
+        system_program: accounts.system_program.to_account_info(),
+        token_program: accounts.token_program.to_account_info(),
+        stake_program: accounts.stake_program.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    marinade_deposit_stake_account(cpi_ctx, validator_index)
+}
+
 pub fn unstake(accounts: &GenericUnstakeProperties, msol_lamports: u64) -> Result<()> {
     let cpi_program = accounts.marinade_program.to_account_info();
     let cpi_accounts = MarinadeLiquidUnstake {
@@ -309,7 +334,6 @@ impl<'a> From<Deposit<'a>> for AddLiquidityProperties<'a> {
 }
 impl<'a> From<&Deposit<'a>> for AddLiquidityProperties<'a> {
     fn from(deposit: &Deposit<'a>) -> Self {
-        msg!("From &Deposit");
         deposit.to_owned().into()
     }
 }
@@ -480,6 +504,23 @@ pub fn calculate_extractable_yield<'a>(
     msg!("total_extractable_yield: {}", total_extractable_yield);
 
     Ok(total_extractable_yield)
+}
+
+// Used in calculating recoverable yield
+#[allow(dead_code)]
+pub fn bsol_value_in_lamports<'a>(
+    blaze_stake_pool: &AccountInfo,
+    bsol_token_account: &Account<'a, TokenAccount>,
+) -> Result<u64> {
+    let stake_pool =
+        spl_stake_pool::state::StakePool::try_from_slice(&blaze_stake_pool.data.borrow())?;
+    let bsol_balance = bsol_token_account.amount;
+
+    proportional(
+        bsol_balance,
+        stake_pool.total_lamports,
+        stake_pool.pool_token_supply,
+    )
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -816,4 +857,15 @@ pub fn calculate_pool_balance_amounts(
         amount_to_order_delayed_unstake,
     });
     Ok(amounts)
+}
+
+pub fn get_delegated_stake_amount(stake_account: &AccountInfo) -> Result<u64> {
+    // Gets the active stake amount of the stake account. We need this to determine how much gSol to mint.
+    let stake_account_state =
+        StakeState::try_from_slice(&stake_account.to_account_info().data.borrow())?;
+
+    match stake_account_state.delegation() {
+        Some(delegation) => Ok(delegation.stake),
+        None => Err(crate::ErrorCode::NotDelegated.into()),
+    }
 }

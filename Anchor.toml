@@ -54,3 +54,7 @@ filename = "packages/tests/fixtures/lp_mint_address.json"
 [[test.validator.account]]
 address = "Du3Ysj1wKbxPKkuPPnvzQLQh8oMSVifs3jGZjJWXFmHN"
 filename = "packages/tests/fixtures/reserve_pda.json"
+
+[[test.validator.account]]
+address = "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"
+filename = "packages/tests/fixtures/b_sol_mint_address.json"
