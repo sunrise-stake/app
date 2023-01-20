@@ -6,13 +6,7 @@ import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 
 import StakeForm from "../components/StakeForm";
-import {
-  solToCarbon,
-  solToLamports,
-  toBN,
-  toFixedWithPrecision,
-  toSol,
-} from "../lib/util";
+import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
@@ -21,6 +15,7 @@ import { InfoBox } from "../components/InfoBox";
 import WithdrawTicket from "../components/WithdrawTickets";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { NotificationType, notifyTransaction } from "../utils/notifications";
+import { useCarbon } from "../hooks/useCarbon";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -32,6 +27,7 @@ export const StakeDashboard: FC = () => {
     TicketAccount[]
   >([]);
   const [isStakeSelected, setIsStakeSelected] = useState(true);
+  const { totalCarbon } = useCarbon();
 
   // TODO move to details?
   const setBalances = useCallback(async () => {
@@ -134,7 +130,7 @@ export const StakeDashboard: FC = () => {
         </h3>
       </div>
       <div className="flex">
-        <Panel className="inline-block mx-auto mb-9 p-4 rounded-lg">
+        <Panel className="flex grid-cols-1 mx-auto mb-9 p-4 rounded-lg">
           <Button
             variant={isStakeSelected ? "primary" : "secondary"}
             className="mr-5"
@@ -187,43 +183,34 @@ export const StakeDashboard: FC = () => {
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="p-2 rounded text-center">
           <span className="font-bold text-xl">
-            {details &&
+            {details !== undefined &&
               toFixedWithPrecision(
                 toSol(new BN(details.balances.gsolBalance.amount))
               )}
           </span>
           <br />
-          gSOL
+          Your stake
         </InfoBox>
         <InfoBox className="p-2 rounded text-center">
           <span className="font-bold text-xl">
             {details &&
               toFixedWithPrecision(
-                solToCarbon(toSol(details.extractableYield))
+                toSol(new BN(details.balances.gsolSupply.amount))
               )}
           </span>
           <br />
-          Accrued tCO₂E
+          Staked SOL
         </InfoBox>
         <InfoBox className="p-2 rounded text-center">
           <span className="font-bold text-xl">
-            {details &&
-              toFixedWithPrecision(
-                solToCarbon(
-                  toSol(
-                    new BN(details.balances.treasuryBalance).add(
-                      details.extractableYield
-                    )
-                  )
-                )
-              )}
+            {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}
           </span>
           <br />
-          Total tCO₂E
+          Retired tCO₂E
         </InfoBox>
       </div>
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col gap-8 mb-8 justify-center">
         {delayedUnstakeTickets.map((ticket) => {
           return (
             <WithdrawTicket

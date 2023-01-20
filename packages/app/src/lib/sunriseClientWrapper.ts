@@ -19,6 +19,12 @@ export const SUNRISE_STAKE_STATE =
       WalletAdapterNetwork.Devnet
   ].state;
 
+export const HOLDING_ACCOUNT =
+  Environment[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ].holdingAccount;
+
 export const SOLBLAZE_CONFIG =
   SolBlazeConstants[
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
@@ -29,7 +35,7 @@ export class SunriseClientWrapper {
   public debouncedUpdate = debounce(this.triggerUpdate.bind(this), 1000);
   constructor(
     private readonly client: SunriseStakeClient,
-    private readonly detailsListener: (details: Details) => void,
+    private readonly detailsListener: ((details: Details) => void) | undefined,
     readonly readonlyWallet: boolean
   ) {
     const accountsToListenTo = [
@@ -58,7 +64,7 @@ export class SunriseClientWrapper {
   static async init(
     connection: Connection,
     wallet: AnchorWallet,
-    listener: (details: Details) => void,
+    listener?: (details: Details) => void,
     readonlyWallet = false
   ): Promise<SunriseClientWrapper> {
     const provider = new AnchorProvider(

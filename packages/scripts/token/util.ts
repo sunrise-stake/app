@@ -67,12 +67,12 @@ export const uploadMetadata = async (): Promise<string> => {
   console.log("image uri: ", image);
 
   // Upload metadata and get metadata uri
-  const { uri } = await metaplex.nfts().uploadMetadata({
+  const response = await metaplex.nfts().uploadMetadata({
     ...metadata,
     image,
   });
-  console.log("metadata uri:", uri);
-  return uri;
+  console.log("metadata upload response:", response);
+  return response.uri;
 };
 
 export const metadata = {
