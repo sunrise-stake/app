@@ -23,7 +23,6 @@ import { SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
 import { ManagementAccount } from "./types/ManagementAccount";
-import { SunriseStakeClient } from ".";
 
 export const deposit = async (
   config: SunriseStakeConfig,
@@ -108,7 +107,10 @@ export const depositStakeAccount = async (
     ReturnType<typeof program.methods.depositStakeAccount>["accounts"]
   >[0];
 
-  const voterAddress = await getVoterAddress(stakeAccountAddress, marinade.provider.connection);
+  const voterAddress = await getVoterAddress(
+    stakeAccountAddress,
+    marinade.provider.connection
+  );
   const validatorSystem = marinadeState.state.validatorSystem;
   const stakeSystem = marinadeState.state.stakeSystem;
   const accounts: Accounts = {
