@@ -6,13 +6,7 @@ import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 
 import StakeForm from "../components/StakeForm";
-import {
-  solToCarbon,
-  solToLamports,
-  toBN,
-  toFixedWithPrecision,
-  toSol,
-} from "../lib/util";
+import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
@@ -189,36 +183,30 @@ export const StakeDashboard: FC = () => {
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="p-2 rounded text-center">
           <span className="font-bold text-xl">
+            {details !== undefined &&
+              toFixedWithPrecision(
+                toSol(new BN(details.balances.gsolBalance.amount))
+              )}
+          </span>
+          <br />
+          Your stake
+        </InfoBox>
+        <InfoBox className="p-2 rounded text-center">
+          <span className="font-bold text-xl">
+            {details &&
+              toFixedWithPrecision(
+                toSol(new BN(details.balances.gsolSupply.amount))
+              )}
+          </span>
+          <br />
+          Staked SOL
+        </InfoBox>
+        <InfoBox className="p-2 rounded text-center">
+          <span className="font-bold text-xl">
             {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}
           </span>
           <br />
-          gSOL
-        </InfoBox>
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {details &&
-              toFixedWithPrecision(
-                solToCarbon(toSol(details.extractableYield))
-              )}
-          </span>
-          <br />
-          Accrued tCO₂E
-        </InfoBox>
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {details &&
-              toFixedWithPrecision(
-                solToCarbon(
-                  toSol(
-                    new BN(details.balances.treasuryBalance).add(
-                      details.extractableYield
-                    )
-                  )
-                )
-              )}
-          </span>
-          <br />
-          Total tCO₂E
+          Retired tCO₂E
         </InfoBox>
       </div>
 
