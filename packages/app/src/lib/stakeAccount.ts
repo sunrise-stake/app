@@ -3,7 +3,11 @@ import { Connection, Transaction } from "@solana/web3.js";
 import { ConnectedWallet, toBN } from "./util";
 import { AnchorProvider, Wallet } from "@project-serum/anchor";
 import BN from "bn.js";
-import { Environment, MINIMUM_EXTRACTABLE_YIELD } from "./constants";
+import {
+  Environment,
+  SolBlazeConstants,
+  MINIMUM_EXTRACTABLE_YIELD,
+} from "./constants";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { TicketAccount } from "./client/types/TicketAccount";
 import { Balance } from "./client/util";
@@ -13,6 +17,12 @@ export const SUNRISE_STAKE_STATE =
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
       WalletAdapterNetwork.Devnet
   ].state;
+
+export const SOLBLAZE_CONFIG =
+  SolBlazeConstants[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ];
 
 export type BalanceInfo = Balance & {
   msolValue: BN;

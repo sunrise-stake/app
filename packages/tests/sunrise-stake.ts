@@ -82,8 +82,12 @@ describe("sunrise-stake", () => {
             32 +
             32 +
             32 +
+            32 +
             1 +
             1 +
+            1 +
+            8 +
+            8 +
             1 +
             1 +
             8 + // Base size

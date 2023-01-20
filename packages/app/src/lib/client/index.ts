@@ -15,6 +15,7 @@ import {
   confirm,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
+  findBSolTokenAccountAuthority,
   SunriseStakeConfig,
   logKeys,
   Options,
@@ -46,7 +47,13 @@ import {
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
 } from "../constants";
-import { liquidUnstake, triggerRebalance } from "./marinade";
+import {
+  deposit,
+  depositStakeAccount,
+  liquidUnstake,
+  triggerRebalance,
+} from "./marinade";
+import { SOLBLAZE_CONFIG } from "../stakeAccount";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -171,7 +178,9 @@ export class SunriseStakeClient {
       this.stakerGSolTokenAccount
     );
 
-    const { transaction } = await this.marinade.deposit(lamports);
+    // const { transaction } = await this.marinade.deposit(lamports);
+
+    const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
       const createUserTokenAccount = await this.createGSolTokenAccountIx();
@@ -179,8 +188,19 @@ export class SunriseStakeClient {
       console.log("Token account created");
     }
 
-    console.log("Depositing...");
+    const depositTx = await deposit(
+      this.config,
+      this.program,
+      this.marinade,
+      this.marinadeState,
+      this.config.stateAddress,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      lamports
+    );
 
+    console.log("Depositing...");
+    transaction.add(depositTx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
@@ -195,13 +215,15 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
+    const transaction = new Transaction();
+
     const gSolTokenAccount = await this.provider.connection.getAccountInfo(
       this.stakerGSolTokenAccount
     );
 
-    const { transaction } = await this.marinade.depositStakeAccount(
-      stakeAccountAddress
-    );
+    // const { transaction } = await this.marinade.depositStakeAccount(
+    //  stakeAccountAddress
+    // );
 
     if (!gSolTokenAccount) {
       const createUserTokenAccount = this.createGSolTokenAccountIx();
@@ -209,8 +231,18 @@ export class SunriseStakeClient {
       console.log("Token account created");
     }
 
-    console.log("Depositing Stake Account...");
+    const depositStakeIx = await depositStakeAccount(
+      this.config,
+      this.program,
+      this.marinade,
+      this.marinadeState,
+      this.provider.publicKey,
+      stakeAccountAddress,
+      this.stakerGSolTokenAccount
+    );
 
+    console.log("Depositing Stake Account...");
+    transaction.add(depositStakeIx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
@@ -643,6 +675,7 @@ export class SunriseStakeClient {
     const marinadeConfig = new MarinadeConfig({
       connection: client.provider.connection,
     });
+
     const marinadeState = await new Marinade(marinadeConfig).getMarinadeState();
 
     const [, gsolMintAuthorityBump] = findGSolMintAuthority(config);
@@ -662,6 +695,13 @@ export class SunriseStakeClient {
         owner: msolAuthority,
       });
 
+    const [bsolAuthority, bsolAuthorityBump] =
+      findBSolTokenAccountAuthority(config);
+    const bsolTokenAccountAddress = await utils.token.associatedAddress({
+      mint: SOLBLAZE_CONFIG.bsolMint,
+      owner: bsolAuthority,
+    });
+
     type Accounts = Parameters<
       ReturnType<typeof client.program.methods.registerState>["accounts"]
     >[0];
@@ -671,22 +711,28 @@ export class SunriseStakeClient {
       payer: client.provider.publicKey,
       mint: gsolMint.publicKey,
       msolMint: marinadeState.mSolMintAddress,
+      bsolMint: SOLBLAZE_CONFIG.bsolMint,
       msolTokenAccountAuthority: msolAuthority,
       msolTokenAccount: msolAssociatedTokenAccountAddress,
       liqPoolMint: marinadeState.lpMint.address,
       liqPoolTokenAccount: liqPoolAssociatedTokenAccountAddress,
+      bsolTokenAccountAuthority: bsolAuthority,
+      bsolTokenAccount: bsolTokenAccountAddress,
       systemProgram: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     };
 
     await client.program.methods
       .registerState({
         marinadeState: marinadeConfig.marinadeStateAddress,
+        blazeState: SOLBLAZE_CONFIG.pool,
         updateAuthority: client.provider.publicKey,
         treasury,
         gsolMintAuthorityBump,
         msolAuthorityBump,
+        bsolAuthorityBump,
         liqPoolProportion: DEFAULT_LP_PROPORTION,
         liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
       })
