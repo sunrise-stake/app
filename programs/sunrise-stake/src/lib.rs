@@ -353,20 +353,9 @@ pub mod sunrise_stake {
     ////////////////////////////
     // ADMIN FUNCTIONS
     ////////////////////////////
-    pub fn register_state(ctx: Context<RegisterState>, state: RegisterStateInput) -> Result<()> {
+    pub fn register_state(ctx: Context<RegisterState>, state: StateInput) -> Result<()> {
         let state_account = &mut ctx.accounts.state;
-        state_account.marinade_state = state.marinade_state;
-        state_account.blaze_state = state.blaze_state;
-        state_account.update_authority = state.update_authority;
-        state_account.gsol_mint_authority_bump = state.gsol_mint_authority_bump;
-        state_account.msol_authority_bump = state.msol_authority_bump;
-        state_account.bsol_authority_bump = state.bsol_authority_bump;
-        state_account.treasury = state.treasury;
-        state_account.gsol_mint = ctx.accounts.mint.key();
-        state_account.liq_pool_proportion = state.liq_pool_proportion;
-        state_account.liq_pool_min_proportion = state.liq_pool_min_proportion;
-        state_account.marinade_minted_gsol = 0;
-        state_account.marinade_minted_gsol = 0;
+        state_account.set_values(&state, &ctx.accounts.mint.key(), 0, 0);
 
         // create the gsol mint
         let gsol_mint_authority = Pubkey::create_program_address(
@@ -401,7 +390,7 @@ pub mod sunrise_stake {
             &ctx.accounts.associated_token_program,
         )?;
 
-        // create marinade msol/sol liqudity pool token account
+        // create marinade msol/sol liquidity pool token account
         // the same token account authority PDA is used for the
         // msol token account and the liquidity pool token account
         create_token_account(
@@ -414,18 +403,87 @@ pub mod sunrise_stake {
             &ctx.accounts.associated_token_program,
         )?;
 
+        // create bsol token account
+        // Note - the relationship between bsol_mint and blaze_state is not verified here
+        // Specifically, the blaze_state is not passed into the register function as an account.
+        // This simplifies the registration code, but if it is registered incorrectly, deposits will fail.
+        create_token_account(
+            &ctx.accounts.payer,
+            &ctx.accounts.bsol_token_account,
+            &ctx.accounts.bsol_mint,
+            &ctx.accounts.bsol_token_account_authority,
+            &ctx.accounts.system_program,
+            &ctx.accounts.token_program,
+            &ctx.accounts.associated_token_program,
+        )?;
+
         Ok(())
     }
 
-    pub fn update_state(ctx: Context<UpdateState>, state: UpdateStateInput) -> Result<()> {
+    pub fn update_state(ctx: Context<UpdateState>, state: StateInput) -> Result<()> {
         // Check the liq_pool_proportion does not exceed 100%
         require_gte!(100, state.liq_pool_proportion);
 
         let state_account = &mut ctx.accounts.state;
-        state_account.update_authority = state.update_authority;
-        state_account.treasury = state.treasury;
-        state_account.liq_pool_proportion = state.liq_pool_proportion;
-        state_account.liq_pool_min_proportion = state.liq_pool_min_proportion;
+        let gsol_mint = state_account.gsol_mint;
+
+        let marinade_minted_gsol = state_account.marinade_minted_gsol;
+        let blaze_minted_gsol = state_account.blaze_minted_gsol;
+
+        state_account.set_values(
+            &state,
+            &gsol_mint,
+            marinade_minted_gsol,
+            blaze_minted_gsol
+        );
+
+        // Create any token accounts not yet created
+        if *ctx.accounts.msol_token_account.owner != ctx.accounts.token_program.key() {
+            // create msol token account
+            // Note - the relationship between msol_mint and marinade_state is not verified here
+            // Specifically, the marinade_state is not passed into the register function as an account.
+            // This simplifies the registration code, but if it is registered incorrectly, deposits will fail.
+            create_token_account(
+                &ctx.accounts.payer,
+                &ctx.accounts.msol_token_account,
+                &ctx.accounts.msol_mint,
+                &ctx.accounts.msol_token_account_authority,
+                &ctx.accounts.system_program,
+                &ctx.accounts.token_program,
+                &ctx.accounts.associated_token_program,
+            )?;
+        }
+
+        if *ctx.accounts.liq_pool_token_account.owner != ctx.accounts.token_program.key() {
+            // create marinade msol/sol liquidity pool token account
+            // the same token account authority PDA is used for the
+            // msol token account and the liquidity pool token account
+            create_token_account(
+                &ctx.accounts.payer,
+                &ctx.accounts.liq_pool_token_account,
+                &ctx.accounts.liq_pool_mint,
+                &ctx.accounts.msol_token_account_authority,
+                &ctx.accounts.system_program,
+                &ctx.accounts.token_program,
+                &ctx.accounts.associated_token_program,
+            )?;
+        }
+
+        if *ctx.accounts.bsol_token_account.owner != ctx.accounts.token_program.key() {
+            // create bsol token account
+            // Note - the relationship between bsol_mint and blaze_state is not verified here
+            // Specifically, the blaze_state is not passed into the register function as an account.
+            // This simplifies the registration code, but if it is registered incorrectly, deposits will fail.
+            create_token_account(
+                &ctx.accounts.payer,
+                &ctx.accounts.bsol_token_account,
+                &ctx.accounts.bsol_mint,
+                &ctx.accounts.bsol_token_account_authority,
+                &ctx.accounts.system_program,
+                &ctx.accounts.token_program,
+                &ctx.accounts.associated_token_program,
+            )?;
+        }
 
         Ok(())
     }
@@ -487,6 +545,21 @@ pub struct State {
 
 impl State {
     const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 1 + 1 + 32 + 8 + 8 + 1 + 8 /* DISCRIMINATOR */ ;
+
+    pub fn set_values(&mut self, input: &StateInput, gsol_mint: &Pubkey, marinade_minted_gsol: u64, blaze_minted_gsol: u64) {
+        self.marinade_state = input.marinade_state;
+        self.blaze_state = input.blaze_state;
+        self.update_authority = input.update_authority;
+        self.gsol_mint_authority_bump = input.gsol_mint_authority_bump;
+        self.msol_authority_bump = input.msol_authority_bump;
+        self.bsol_authority_bump = input.bsol_authority_bump;
+        self.treasury = input.treasury;
+        self.gsol_mint = *gsol_mint;
+        self.liq_pool_proportion = input.liq_pool_proportion;
+        self.liq_pool_min_proportion = input.liq_pool_min_proportion;
+        self.marinade_minted_gsol = marinade_minted_gsol;
+        self.blaze_minted_gsol = blaze_minted_gsol;
+    }
 }
 
 pub fn check_mint_supply(state: &State, gsol_mint: &Account<Mint>) -> Result<()> {
@@ -543,7 +616,7 @@ impl OrderUnstakeTicketManagementAccount {
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct RegisterStateInput {
+pub struct StateInput {
     pub marinade_state: Pubkey,
     pub blaze_state: Pubkey,
     pub update_authority: Pubkey,
@@ -555,16 +628,8 @@ pub struct RegisterStateInput {
     pub liq_pool_min_proportion: u8,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct UpdateStateInput {
-    pub update_authority: Pubkey,
-    pub treasury: Pubkey,
-    pub liq_pool_proportion: u8,
-    pub liq_pool_min_proportion: u8,
-}
-
 #[derive(Accounts)]
-#[instruction(state_in: RegisterStateInput)]
+#[instruction(state_in: StateInput)]
 pub struct RegisterState<'info> {
     #[account(init, space = State::SPACE, payer = payer)]
     pub state: Account<'info, State>,
@@ -604,7 +669,7 @@ pub struct RegisterState<'info> {
 
     /// CHECK: Checked by AssociatedTokenAccount program
     #[account(mut)]
-    pub bsol_token_account: UncheckedAccount<'info>,
+    pub bsol_token_account: SystemAccount<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -613,7 +678,7 @@ pub struct RegisterState<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(state_in: UpdateStateInput)]
+#[instruction(state_in: StateInput)]
 pub struct UpdateState<'info> {
     #[account(
         mut,
@@ -625,6 +690,44 @@ pub struct UpdateState<'info> {
     pub payer: Signer<'info>,
 
     pub update_authority: Signer<'info>,
+
+    #[account()]
+    pub msol_mint: Box<Account<'info, Mint>>,
+    #[account()]
+    pub bsol_mint: Box<Account<'info, Mint>>,
+
+    /// Must be a PDA, but otherwise owned by the system account ie not initialised with data
+    #[account(
+    seeds = [state.key().as_ref(), MSOL_ACCOUNT],
+    bump = state_in.msol_authority_bump
+    )]
+    pub msol_token_account_authority: SystemAccount<'info>,
+
+    #[account(mut)]
+    /// CHECK: If owned by the system program, it is created as an ATA
+    pub msol_token_account: UncheckedAccount<'info>,
+
+    #[account()]
+    pub liq_pool_mint: Box<Account<'info, Mint>>,
+
+    #[account(mut)]
+    /// CHECK: If owned by the system program, it is created as an ATA
+    pub liq_pool_token_account: UncheckedAccount<'info>,
+
+    #[account(
+    seeds = [state.key().as_ref(), BSOL_ACCOUNT],
+    bump = state_in.bsol_authority_bump
+    )]
+    pub bsol_token_account_authority: SystemAccount<'info>,
+
+    #[account(mut)]
+    /// CHECK: If owned by the system program, it is created as an ATA
+    pub bsol_token_account: UncheckedAccount<'info>,
+
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
