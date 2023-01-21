@@ -2,9 +2,9 @@
 import "../util";
 import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
 import { getMetadataAddress, metadata, provider, uploadMetadata } from "./util";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/sunriseClientWrapper";
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import { findGSolMintAuthority } from "@sunrisestake/app/src/lib/client/util";
+import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
 
 console.log("Updating gSol metadata");
 

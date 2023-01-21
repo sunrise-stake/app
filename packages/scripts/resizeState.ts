@@ -1,5 +1,4 @@
 import "./util";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/sunriseClientWrapper";
 import { AnchorProvider, Program } from "@project-serum/anchor";
 import BN from "bn.js";
 import { SystemProgram } from "@solana/web3.js";
@@ -8,6 +7,7 @@ import {
   SunriseStake,
 } from "@sunrisestake/app/src/lib/client/types/sunrise_stake";
 import { PROGRAM_ID } from "@sunrisestake/app/src/lib/client/util";
+import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
 
 /**
  * USAGE (devnet)
