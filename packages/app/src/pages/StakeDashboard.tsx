@@ -118,7 +118,7 @@ export const StakeDashboard: FC = () => {
   );
 
   return (
-    <div style={{ maxWidth: "864px" }} className="mx-auto">
+    <div style={{ maxWidth: "564px" }} className="mx-auto">
       <div className="text-center">
         <img
           className="block sm:hidden w-auto h-16 mx-auto mb-3"
@@ -182,9 +182,9 @@ export const StakeDashboard: FC = () => {
         )}
       </Panel>
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
-        <InfoBox className="py-2 px-8 rounded text-center">
+        <InfoBox className="py-2 px-2 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <img src={`gSol.png`} className="h-12 my-auto pr-2" />
+            <img src={`gSol.png`} className="h-8 my-auto pr-2" />
             <div>
               <span className="font-bold text-xl">
                 {details !== undefined &&
@@ -198,9 +198,9 @@ export const StakeDashboard: FC = () => {
             </div>
           </div>
         </InfoBox>
-        <InfoBox className="py-2 px-8 rounded text-center">
+        <InfoBox className="py-2 px-2 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <img src={`SOL.png`} className="h-12 my-auto pr-2" />
+            <img src={`SOL.png`} className="h-8 my-auto pr-2" />
             <div>
               <span className="font-bold text-xl">
                 {details &&
@@ -214,9 +214,9 @@ export const StakeDashboard: FC = () => {
             </div>
           </div>
         </InfoBox>
-        <InfoBox className="py-2 px-8 rounded text-center">
+        <InfoBox className="py-2 px-2 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <AiFillFire color="orange" size={44} />
+            <AiFillFire color="orange" size={32} />
             <div>
               <span className="font-bold text-xl">
                 {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}
@@ -224,7 +224,7 @@ export const StakeDashboard: FC = () => {
               <span className="ml-2 text-md">tCO₂E</span>
               <br />
               <div className="flex flex-row items-center">
-                Retired Carbon
+                Offset CO₂
                 <AiOutlineInfoCircle className="ml-2" />
               </div>
             </div>
