@@ -2,9 +2,9 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import BN from "bn.js";
 import clx from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
-import { FaLeaf } from "react-icons/fa";
+import { FaLeaf, FaTree } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
-import { AiFillFire, AiOutlineInfoCircle } from "react-icons/ai";
+import { AiOutlineInfoCircle } from "react-icons/ai";
 
 import StakeForm from "../components/StakeForm";
 import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
@@ -184,15 +184,18 @@ export const StakeDashboard: FC = () => {
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="py-2 px-2 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <img src={`gSol.png`} className="h-8 my-auto pr-2" />
+            <img
+              src={`gSol.png`}
+              className="h-8 my-auto pr-2 hidden sm:block"
+            />
             <div>
-              <span className="font-bold text-xl">
+              <span className="font-bold text-sm sm:text-lg">
                 {details !== undefined &&
                   toFixedWithPrecision(
                     toSol(new BN(details.balances.gsolBalance.amount))
-                  )}
+                  )}{" "}
+                gSol
               </span>
-              <span className="ml-2 text-md">gSol</span>
               <br />
               Your stake
             </div>
@@ -200,15 +203,16 @@ export const StakeDashboard: FC = () => {
         </InfoBox>
         <InfoBox className="py-2 px-2 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <img src={`SOL.png`} className="h-8 my-auto pr-2" />
+            <img src={`SOL.png`} className="h-8 my-auto pr-2 hidden sm:block" />
             <div>
-              <span className="font-bold text-xl">
+              <span className="font-bold text-sm sm:text-lg">
                 {details &&
                   toFixedWithPrecision(
                     toSol(new BN(details.balances.gsolSupply.amount))
-                  )}
+                  )}{" "}
+                Sol
               </span>
-              <span className="ml-2 text-md">Sol</span>
+              <span className="ml-2 text-md"></span>
               <br />
               Total Stake
             </div>
@@ -216,13 +220,12 @@ export const StakeDashboard: FC = () => {
         </InfoBox>
         <InfoBox className="py-2 px-2 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <AiFillFire color="orange" size={32} />
-            <div>
-              <span className="font-bold text-xl">
-                {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}
+            <FaTree className="hidden sm:block" color="green" size={32} />
+            <div className="">
+              <span className="flex flex-row items-center font-bold text-sm sm:text-lg">
+                {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}{" "}
+                tCO₂E
               </span>
-              <span className="ml-2 text-md">tCO₂E</span>
-              <br />
               <div className="flex flex-row items-center">
                 Offset CO₂
                 <AiOutlineInfoCircle className="ml-2" />
