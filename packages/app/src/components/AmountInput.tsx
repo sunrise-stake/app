@@ -22,7 +22,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
 }) => {
   const handleIncDecBtnClick = (op: "INC" | "DEC"): void => {
     const parsedAmount = parseFloat(amount);
-    if (!amount && op === "INC") setAmount("1");
+    if (!amount && op === "INC") updateAmount("1");
     else if ((!amount && op === "DEC") || (parsedAmount <= 0 && op === "DEC"))
       updateAmount("0");
     else {
@@ -41,6 +41,13 @@ const AmountInput: React.FC<AmountInputProps> = ({
       console.log("maxValue ", max.toString());
 
       setAmount(amountStr);
+      console.log(`Min: ${min.toNumber()}`);
+      console.log(`Max: ${max.toNumber()}`);
+      console.log(
+        `Valid: ${
+          parsedValue.gt(min) && parsedValue.lte(max) ? "true" : "false"
+        }`
+      );
       setValid(parsedValue.gt(min) && parsedValue.lte(max));
     },
     [setValid, balance]
