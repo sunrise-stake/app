@@ -1,6 +1,10 @@
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { PublicKey } from "@solana/web3.js";
 
+export const STAKE_POOL_PROGRAM_ID = new PublicKey(
+  "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
+);
+
 interface EnvironmentConfig {
   state: PublicKey;
   holdingAccount: PublicKey;
@@ -91,6 +95,34 @@ export const SolBlazeConstants: Record<WalletAdapterNetwork, SolBlazeConfig> = {
     validatorInfo: PublicKey.default,
   },
 };
+
+export const SUNRISE_STAKE_STATE =
+  Environment[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ].state;
+
+export const HOLDING_ACCOUNT =
+  Environment[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ].holdingAccount;
+
+export const SOLBLAZE_CONFIG =
+  SolBlazeConstants[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ];
+
+export const [SOLBLAZE_WITHDRAW_AUTHORITY] = PublicKey.findProgramAddressSync(
+  [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("withdraw")],
+  STAKE_POOL_PROGRAM_ID
+);
+
+export const [SOLBLAZE_DEPOSIT_AUTHORITY] = PublicKey.findProgramAddressSync(
+  [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("deposit")],
+  STAKE_POOL_PROGRAM_ID
+);
 
 export const DEFAULT_LP_PROPORTION = 10;
 export const DEFAULT_LP_MIN_PROPORTION = 5;
