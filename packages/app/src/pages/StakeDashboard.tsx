@@ -16,6 +16,7 @@ import WithdrawTicket from "../components/WithdrawTickets";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { NotificationType, notifyTransaction } from "../utils/notifications";
 import { useCarbon } from "../hooks/useCarbon";
+import TweetButton from "../components/TweetButton";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -60,17 +61,27 @@ export const StakeDashboard: FC = () => {
     (amount: string) => {
       if (!client) return;
 
-      client
-        .deposit(solToLamports(amount))
-        .then((tx) =>
-          notifyTransaction({
-            type: NotificationType.success,
-            message: "Deposit successful",
-            txid: tx,
-          })
-        )
-        .then(setBalances)
-        .catch(handleError);
+      notifyTransaction({
+        type: NotificationType.success,
+        message: "Deposit successful",
+        description: "Tweet your stake",
+        txid: "lajsdfklajsdflja2342342lfjaslkfjkjsdf",
+        child: <TweetButton />,
+      });
+
+      // client
+      //   .deposit(solToLamports(amount))
+      //   .then((tx) =>
+      //     notifyTransaction({
+      //       type: NotificationType.success,
+      //       message: "Deposit successful",
+      //       description: "Tweet your stake",
+      //       txid: tx,
+      //       child: <TweetButton />,
+      //     })
+      //   )
+      //   .then(setBalances)
+      //   .catch(handleError);
     },
     [client, setBalances]
   );
