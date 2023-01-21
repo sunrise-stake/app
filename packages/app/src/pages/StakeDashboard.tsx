@@ -194,6 +194,7 @@ export const StakeDashboard: FC = () => {
               src={`gSol.png`}
               className="h-8 my-auto pr-2 hidden sm:block"
             />
+
             <div>
               <span className="font-bold text-sm sm:text-lg">
                 {details !== undefined &&
