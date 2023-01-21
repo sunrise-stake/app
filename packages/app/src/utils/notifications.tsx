@@ -5,6 +5,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
+import TweetButton from "../components/TweetButton";
 
 export enum NotificationType {
   success = "success",
@@ -91,13 +92,34 @@ export function notifyTransaction(n: {
     ),
     {
       position: "bottom-left",
+      duration: 4000,
     }
   );
 }
 
-export function notifyTweet(n: {
-  type: NotificationType;
-  message: string;
-  description?: string;
-  txid?: string;
-}): void {}
+export function notifyTweet(): void {
+  toast.custom(
+    (t) => {
+      return (
+        <div className=" bg-background p-8 rounded-md border border-green">
+          <div
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(46, 133, 85, 0) 34.82%, rgba(46, 133, 85, 0.11) 100%), #212121",
+              maxWidth: "464px",
+            }}
+            className="px-16 py-8 my-8 rounded-md text-center"
+          >
+            &quot;I just staked with Sunrise, offsetting carbon and making
+            Solana stronger&quot;{" "}
+          </div>
+          <TweetButton />
+        </div>
+      );
+    },
+    {
+      duration: 4000,
+      position: "top-center",
+    }
+  );
+}

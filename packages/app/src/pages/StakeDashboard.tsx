@@ -14,7 +14,11 @@ import UnstakeForm from "../components/UnstakeForm";
 import { InfoBox } from "../components/InfoBox";
 import WithdrawTicket from "../components/WithdrawTickets";
 import { useSunriseStake } from "../context/sunriseStakeContext";
-import { NotificationType, notifyTransaction } from "../utils/notifications";
+import {
+  NotificationType,
+  notifyTransaction,
+  notifyTweet,
+} from "../utils/notifications";
 import { useCarbon } from "../hooks/useCarbon";
 
 export const StakeDashboard: FC = () => {
@@ -62,13 +66,13 @@ export const StakeDashboard: FC = () => {
 
       client
         .deposit(solToLamports(amount))
-        .then((tx) =>
+        .then((tx) => {
           notifyTransaction({
             type: NotificationType.success,
             message: "Deposit successful",
             txid: tx,
-          })
-        )
+          });
+        })
         .then(setBalances)
         .catch(handleError);
     },
@@ -79,20 +83,22 @@ export const StakeDashboard: FC = () => {
     (amount: string) => {
       if (!client) return;
 
-      const withdraw = delayedWithdraw
-        ? client.orderWithdrawal.bind(client)
-        : client.withdraw.bind(client);
+      // const withdraw = delayedWithdraw
+      //   ? client.orderWithdrawal.bind(client)
+      //   : client.withdraw.bind(client);
 
-      withdraw(solToLamports(amount))
-        .then((tx) => {
-          notifyTransaction({
-            type: NotificationType.success,
-            message: "Withdrawal successful",
-            txid: tx,
-          });
-        })
-        .then(setBalances)
-        .catch(handleError);
+      notifyTweet();
+
+      // withdraw(solToLamports(amount))
+      //   .then((tx) => {
+      //     notifyTransaction({
+      //       type: NotificationType.success,
+      //       message: "Withdrawal successful",
+      //       txid: tx,
+      //     });
+      //   })
+      //   .then(setBalances)
+      //   .catch(handleError);
     },
     [client, setBalances, delayedWithdraw]
   );
