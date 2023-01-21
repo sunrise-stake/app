@@ -12,9 +12,7 @@ interface TweetButtonProps {
 
 const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
   const [enabled, setEnabled] = useState(false);
-  const [tweet, setTweet] = useState(
-    '"I just staked with Sunrise, offsetting carbon and making Solana stronger"'
-  );
+
   useScript("https://platform.twitter.com/widgets.js");
 
   return (
@@ -37,7 +35,7 @@ const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
         }}
         className="px-16 py-8 my-8 rounded-md text-center"
       >
-        {tweet}
+        I just staked with Sunrise, offsetting carbon and making Solana stronger
       </div>
       <div className="flex flex-row justify-between">
         <div className="flex flex-row items-center">
@@ -45,22 +43,13 @@ const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
             checked={enabled}
             onChange={(e: boolean) => {
               setEnabled(e);
-              if (e) {
-                setTweet(
-                  `"I just staked ${amount} Sol with Sunrise, offsetting carbon and making Solana stronger"`
-                );
-              } else {
-                setTweet(
-                  '"I just staked with Sunrise, offsetting carbon and making Solana stronger"'
-                );
-              }
             }}
             className={clx(
               {
                 "bg-outset": !enabled,
                 "bg-green": enabled,
               },
-              " relative inline-flex h-6 w-12 items-center rounded-full"
+              " relative inline-flex h-6 w-12 items-center rounded-full invisible disabled"
             )}
           >
             <span className="sr-only">Enable notifications</span>
@@ -74,17 +63,17 @@ const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
               )}
             />
           </Switch>
-          <div className="text-xs ml-2">Disclose Amount</div>
+          {/* <div className="text-xs ml-2">Disclose Amount</div> */}
         </div>
         <a
           href="https://twitter.com/share?ref_src=twsrc%5Etfw"
           className="twitter-share-button"
           data-size="large"
-          data-text={tweet}
-          data-url="https://www.sunrisestake.com/"
+          data-text="I just staked with Sunrise, offsetting carbon and making Solana stronger"
+          data-url="https://app.sunrisestake.com/"
           data-via="sunrisestake"
-          data-hashtags="solana"
-          data-related="sunrisestake"
+          // data-hashtags=""
+          // data-related=""
           data-show-count="false"
         >
           Tweet

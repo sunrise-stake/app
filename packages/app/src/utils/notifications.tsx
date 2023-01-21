@@ -103,7 +103,7 @@ export function notifyTweet(amount: string): void {
       return <TweetButton t={t} amount={amount} />;
     },
     {
-      duration: 4000,
+      duration: 8000,
       position: "top-center",
     }
   );
