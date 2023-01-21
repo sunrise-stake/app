@@ -191,7 +191,7 @@ export const StakeDashboard: FC = () => {
             {details !== undefined &&
               toFixedWithPrecision(
                 toSol(new BN(details.balances.gsolBalance.amount))
-              )}
+              ) + " gSOL"}
           </span>
           <br />
           Your stake
@@ -201,17 +201,18 @@ export const StakeDashboard: FC = () => {
             {details &&
               toFixedWithPrecision(
                 toSol(new BN(details.balances.gsolSupply.amount))
-              )}
+              ) + " SOL"}{" "}
           </span>
           <br />
-          Staked SOL
+          Total Stake
         </InfoBox>
         <InfoBox className="p-2 rounded text-center">
           <span className="font-bold text-xl">
-            {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}
+            {totalCarbon !== undefined &&
+              toFixedWithPrecision(totalCarbon) + " tCO₂E"}
           </span>
           <br />
-          Retired tCO₂E
+          Retired Carbon
         </InfoBox>
       </div>
 
