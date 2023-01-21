@@ -32,6 +32,14 @@ export const useCarbon = (): { totalCarbon: number | undefined } => {
 
       const totalCarbon = solToCarbon(toSol(totalLamports));
 
+      console.log({
+        extractableYield: toSol(extractableYield),
+        treasuryBalance: toSol(treasuryBalance),
+        holdingAccountBalance: toSol(holdingAccountBalance),
+        totalLamports: toSol(totalLamports),
+        totalCarbon,
+      });
+
       setTotalCarbon(totalCarbon);
     })();
   }, [details]);

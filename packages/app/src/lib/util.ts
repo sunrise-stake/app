@@ -57,8 +57,8 @@ type SparseWalletContextAdapter = Omit<SparseWallet, "publicKey"> & {
 export type ConnectedWallet = SparseWallet & { connected: true };
 
 // TODO TEMP lookup
-export const SOL_PRICE_USD_CENTS = 3300;
-export const CARBON_PRICE_USD_CENTS_PER_TONNE = 8021;
+export const SOL_PRICE_USD_CENTS = 2500;
+export const CARBON_PRICE_USD_CENTS_PER_TONNE = 173; // NCT price in USD cents
 
 export const solToCarbon = (sol: number): number =>
   (sol * SOL_PRICE_USD_CENTS) / CARBON_PRICE_USD_CENTS_PER_TONNE;
