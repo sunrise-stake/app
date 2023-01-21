@@ -2,12 +2,15 @@ import { Switch } from "@headlessui/react";
 import React, { useState } from "react";
 import useScript from "../hooks/useScript";
 import clx from "classnames";
+import { XMarkIcon } from "@heroicons/react/24/solid";
+import toast, { Toast } from "react-hot-toast";
 
 interface TweetButtonProps {
   amount: string;
+  t: Toast;
 }
 
-const TweetButton: React.FC<TweetButtonProps> = ({ amount }) => {
+const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
   const [enabled, setEnabled] = useState(false);
   const [tweet, setTweet] = useState(
     '"I just staked with Sunrise, offsetting carbon and making Solana stronger"'
@@ -16,6 +19,16 @@ const TweetButton: React.FC<TweetButtonProps> = ({ amount }) => {
 
   return (
     <div className=" bg-background p-8 rounded-md border border-green">
+      <div className={`ml-2 flex-shrink-0 flex justify-end`}>
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className={`default-transition rounded-md inline-flex text-white hover:opacity-75 focus:outline-none`}
+        >
+          <span className={`sr-only`}>Close</span>
+
+          <XMarkIcon className="h-5 w-5" />
+        </button>
+      </div>
       <div
         style={{
           background:

@@ -100,7 +100,7 @@ export function notifyTransaction(n: {
 export function notifyTweet(amount: string): void {
   toast.custom(
     (t) => {
-      return <TweetButton amount={amount} />;
+      return <TweetButton t={t} amount={amount} />;
     },
     {
       duration: 4000,
