@@ -67,6 +67,7 @@ export const StakeDashboard: FC = () => {
       client
         .deposit(solToLamports(amount))
         .then((tx) => {
+          notifyTweet(amount);
           notifyTransaction({
             type: NotificationType.success,
             message: "Deposit successful",
@@ -83,22 +84,20 @@ export const StakeDashboard: FC = () => {
     (amount: string) => {
       if (!client) return;
 
-      // const withdraw = delayedWithdraw
-      //   ? client.orderWithdrawal.bind(client)
-      //   : client.withdraw.bind(client);
+      const withdraw = delayedWithdraw
+        ? client.orderWithdrawal.bind(client)
+        : client.withdraw.bind(client);
 
-      notifyTweet(amount);
-
-      // withdraw(solToLamports(amount))
-      //   .then((tx) => {
-      //     notifyTransaction({
-      //       type: NotificationType.success,
-      //       message: "Withdrawal successful",
-      //       txid: tx,
-      //     });
-      //   })
-      //   .then(setBalances)
-      //   .catch(handleError);
+      withdraw(solToLamports(amount))
+        .then((tx) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: "Withdrawal successful",
+            txid: tx,
+          });
+        })
+        .then(setBalances)
+        .catch(handleError);
     },
     [client, setBalances, delayedWithdraw]
   );
