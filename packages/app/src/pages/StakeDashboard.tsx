@@ -117,7 +117,7 @@ export const StakeDashboard: FC = () => {
   );
 
   return (
-    <div style={{ maxWidth: "864px" }} className="mx-auto">
+    <div style={{ maxWidth: "564px" }} className="mx-auto">
       <div className="text-center">
         <img
           className="block sm:hidden w-auto h-16 mx-auto mb-3"
