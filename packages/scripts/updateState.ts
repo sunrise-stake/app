@@ -12,6 +12,6 @@ import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
   const provider = AnchorProvider.env();
   const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE);
   await client.update({
-    newTreasury: new PublicKey("7aYixZPfCbYpFGpRxx1knLpaVHJgmszXDpSp3f4abodg"),
+    newTreasury: new PublicKey("F7P4qYbVKFiiD4dQpwwVS6ao22DLr2sAF7Z3cCHneC8w"),
   });
 })().catch(console.error);

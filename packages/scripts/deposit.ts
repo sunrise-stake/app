@@ -13,7 +13,6 @@ const [stateAddress, amountStr] = process.argv.slice(2);
     provider,
     new PublicKey(stateAddress)
   );
-  await client.createGSolTokenAccount();
   const txSig = await client.deposit(new BN(amountStr));
 
   console.log("Deposit tx sig: ", txSig);

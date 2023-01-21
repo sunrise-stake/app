@@ -13,8 +13,8 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
   "mainnet-beta": {
     state: new PublicKey("43m66crxGfXSJpmx5wXRoFuHubhHA1GCvtHgmHW6cM1P"),
     holdingAccount: new PublicKey(
-      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
-    ), // TODO incorrect
+      "shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn"
+    ),
   },
   testnet: {
     state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"), // Warning obsolete
