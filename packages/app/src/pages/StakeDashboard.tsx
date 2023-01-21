@@ -4,6 +4,7 @@ import clx from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
+import { AiFillFire, AiOutlineInfoCircle } from "react-icons/ai";
 
 import StakeForm from "../components/StakeForm";
 import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
@@ -181,36 +182,55 @@ export const StakeDashboard: FC = () => {
         )}
       </Panel>
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {details !== undefined &&
-              toFixedWithPrecision(
-                toSol(new BN(details.balances.gsolBalance.amount))
-              ) + " gSOL"}
-          </span>
-          <br />
-          Your stake
+        <InfoBox className="py-2 px-8 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <img src={`gSol.png`} className="h-12 my-auto pr-2" />
+            <div>
+              <span className="font-bold text-xl">
+                {details !== undefined &&
+                  toFixedWithPrecision(
+                    toSol(new BN(details.balances.gsolBalance.amount))
+                  )}
+              </span>
+              <span className="ml-2 text-md">gSol</span>
+              <br />
+              Your stake
+            </div>
+          </div>
         </InfoBox>
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {details &&
-              toFixedWithPrecision(
-                toSol(new BN(details.balances.gsolSupply.amount))
-              ) + " SOL"}{" "}
-          </span>
-          <br />
-          Total Stake
+        <InfoBox className="py-2 px-8 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <img src={`SOL.png`} className="h-12 my-auto pr-2" />
+            <div>
+              <span className="font-bold text-xl">
+                {details &&
+                  toFixedWithPrecision(
+                    toSol(new BN(details.balances.gsolSupply.amount))
+                  )}
+              </span>
+              <span className="ml-2 text-md">Sol</span>
+              <br />
+              Total Stake
+            </div>
+          </div>
         </InfoBox>
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {totalCarbon !== undefined &&
-              toFixedWithPrecision(totalCarbon) + " tCO₂E"}
-          </span>
-          <br />
-          Retired Carbon
+        <InfoBox className="py-2 px-8 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <AiFillFire color="orange" size={44} />
+            <div>
+              <span className="font-bold text-xl">
+                {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}
+              </span>
+              <span className="ml-2 text-md">tCO₂E</span>
+              <br />
+              <div className="flex flex-row items-center">
+                Retired Carbon
+                <AiOutlineInfoCircle className="ml-2" />
+              </div>
+            </div>
+          </div>
         </InfoBox>
       </div>
-
       <div className="flex flex-col gap-8 mb-8 justify-center">
         {delayedUnstakeTickets.map((ticket) => {
           return (
