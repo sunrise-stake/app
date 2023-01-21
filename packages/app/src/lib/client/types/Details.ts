@@ -2,6 +2,12 @@ import BN from "bn.js";
 import { Balance } from "../util";
 import { EpochInfo } from "@solana/web3.js";
 
+export interface InflightDetails {
+  epoch: bigint;
+  tickets: number;
+  totalOrderedLamports: BN;
+}
+
 export interface Details {
   // TODO Standardise on number/bigint/BigDecimal
   staker: string;
@@ -34,4 +40,6 @@ export interface Details {
     lpSolValue: BN;
     msolLeg: string;
   };
+
+  inflight: InflightDetails[];
 }

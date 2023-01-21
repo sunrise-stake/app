@@ -30,17 +30,20 @@ export const useCarbon = (): { totalCarbon: number | undefined } => {
         .add(treasuryBalance)
         .add(holdingAccountBalance);
 
-      const totalCarbon = solToCarbon(toSol(totalLamports));
+      const carbon = solToCarbon(toSol(totalLamports));
 
       console.log({
         extractableYield: toSol(extractableYield),
         treasuryBalance: toSol(treasuryBalance),
         holdingAccountBalance: toSol(holdingAccountBalance),
         totalLamports: toSol(totalLamports),
-        totalCarbon,
+        totalCarbon: carbon,
       });
 
-      setTotalCarbon(totalCarbon);
+      // due to fees, at low values, the total can be negative
+      const normalizedCarbon = carbon < 0 ? 0 : carbon;
+
+      setTotalCarbon(normalizedCarbon);
     })();
   }, [details]);
 

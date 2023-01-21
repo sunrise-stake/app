@@ -143,7 +143,7 @@ export const depositStakeAccount = async (
 const getOrderUnstakeTicketManagementAccount = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
-  epoch: number
+  epoch: bigint
 ): Promise<{
   address: PublicKey;
   bump: number;
@@ -151,7 +151,7 @@ const getOrderUnstakeTicketManagementAccount = async (
 }> => {
   const [address, bump] = findOrderUnstakeTicketManagementAccount(
     config,
-    BigInt(epoch)
+    epoch
   );
   const account =
     await program.account.orderUnstakeTicketManagementAccount.fetchNullable(
@@ -236,6 +236,39 @@ export const liquidUnstake = async (
     .transaction();
 };
 
+export const orders = async (
+  config: SunriseStakeConfig,
+  program: Program<SunriseStake>,
+  epoch: bigint
+): Promise<{
+  managementAccount: {
+    address: PublicKey;
+    bump: number;
+    account: ManagementAccount | null;
+  };
+  tickets: PublicKey[];
+}> => {
+  const managementAccount = await getOrderUnstakeTicketManagementAccount(
+    config,
+    program,
+    epoch
+  );
+
+  const tickets = managementAccount.account
+    ? await findAllTickets(
+        program.provider.connection,
+        config,
+        managementAccount.account,
+        epoch
+      )
+    : [];
+
+  return {
+    managementAccount,
+    tickets,
+  };
+};
+
 export interface TriggerRebalanceResult {
   instruction: TransactionInstruction;
   orderUnstakeTicketAccount: PublicKey;
@@ -264,28 +297,19 @@ export const triggerRebalance = async (
       mint: marinadeState.lpMint.address,
       owner: msolTokenAccountAuthority,
     });
-  const epochInfo = await program.provider.connection.getEpochInfo();
-  const managementAccount = await getOrderUnstakeTicketManagementAccount(
-    config,
-    program,
-    epochInfo.epoch
-  );
-  const previousManagementAccount =
-    await getOrderUnstakeTicketManagementAccount(
-      config,
-      program,
-      epochInfo.epoch - 1
-    );
 
   // TODO Add instruction to close an arbitrary ticket, in case an epoch gets missed
+  const epochInfo = await program.provider.connection.getEpochInfo();
+  const { managementAccount } = await orders(
+    config,
+    program,
+    BigInt(epochInfo.epoch)
+  );
+  const {
+    managementAccount: previousManagementAccount,
+    tickets: previousEpochTickets,
+  } = await orders(config, program, BigInt(epochInfo.epoch - 1));
 
-  const previousEpochTickets = previousManagementAccount.account
-    ? await findAllTickets(
-        program.provider.connection,
-        config,
-        previousManagementAccount.account
-      )
-    : [];
   const previousEpochTicketAccountMetas = previousEpochTickets.map(
     (ticket) => ({
       pubkey: ticket,
