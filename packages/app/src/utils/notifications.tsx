@@ -17,7 +17,6 @@ export function notifyTransaction(n: {
   message: string;
   description?: string;
   txid?: string;
-  child?: React.ReactNode;
 }): void {
   toast.custom(
     (t) => (
@@ -75,7 +74,6 @@ export function notifyTransaction(n: {
                   </a>
                 </div>
               ) : null}
-              {n.child}
             </div>
             <div className={`ml-4 flex-shrink-0 self-start flex`}>
               <button
@@ -96,3 +94,10 @@ export function notifyTransaction(n: {
     }
   );
 }
+
+export function notifyTweet(n: {
+  type: NotificationType;
+  message: string;
+  description?: string;
+  txid?: string;
+}): void {}
