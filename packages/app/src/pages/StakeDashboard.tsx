@@ -2,9 +2,10 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import BN from "bn.js";
 import clx from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
-import { FaLeaf, FaTree } from "react-icons/fa";
+import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 import { AiOutlineInfoCircle } from "react-icons/ai";
+import { GiCircleForest } from "react-icons/gi";
 
 import StakeForm from "../components/StakeForm";
 import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
@@ -220,7 +221,11 @@ export const StakeDashboard: FC = () => {
         </InfoBox>
         <InfoBox className="py-2 px-2 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <FaTree className="hidden sm:block" color="green" size={32} />
+            <GiCircleForest
+              className="hidden sm:block"
+              color="#52dc90"
+              size={32}
+            />
             <div className="">
               <span className="flex flex-row items-center font-bold text-sm sm:text-lg">
                 {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}{" "}
