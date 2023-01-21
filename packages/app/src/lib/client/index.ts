@@ -46,6 +46,7 @@ import {
   DEFAULT_LP_PROPORTION,
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
+  SOLBLAZE_CONFIG,
 } from "../constants";
 import {
   deposit,
@@ -54,7 +55,6 @@ import {
   triggerRebalance,
 } from "./marinade";
 import { ZERO } from "../util";
-import { SOLBLAZE_CONFIG } from "../sunriseClientWrapper";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;

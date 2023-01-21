@@ -1,9 +1,9 @@
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { useEffect, useState } from "react";
 import BN from "bn.js";
-import { HOLDING_ACCOUNT } from "../lib/sunriseClientWrapper";
 import { solToCarbon, toSol } from "../lib/util";
 import { useConnection } from "@solana/wallet-adapter-react";
+import { HOLDING_ACCOUNT } from "../lib/constants";
 
 export const useCarbon = (): { totalCarbon: number | undefined } => {
   const { connection } = useConnection();
@@ -31,6 +31,14 @@ export const useCarbon = (): { totalCarbon: number | undefined } => {
         .add(holdingAccountBalance);
 
       const totalCarbon = solToCarbon(toSol(totalLamports));
+
+      console.log({
+        extractableYield: toSol(extractableYield),
+        treasuryBalance: toSol(treasuryBalance),
+        holdingAccountBalance: toSol(holdingAccountBalance),
+        totalLamports: toSol(totalLamports),
+        totalCarbon,
+      });
 
       setTotalCarbon(totalCarbon);
     })();
