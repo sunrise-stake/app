@@ -211,11 +211,10 @@ describe("sunrise-stake", () => {
     await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
   });
 
-  it("registers negative extractable yield while a rebalance is in-flight", async () => {
-    // since we do not count the in-flight SOL that is being used to rebalance the LP
-    // we expect the extractable yield to be negative after a large liquid unstake that
-    // triggers a rebalance
+  it("registers zero extractable yield while a rebalance is in-flight", async () => {
+    // ensure in-flight SOL is counted as part of the total staked SOL when calculating extractable yield
     const { extractableYield } = await client.details();
+    expectAmount(0, extractableYield, 10);
     expect(extractableYield.toNumber()).to.be.lessThan(0);
   });
 

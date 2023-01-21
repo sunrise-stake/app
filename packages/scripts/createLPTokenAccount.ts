@@ -4,7 +4,7 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import "./util";
 import { AnchorProvider } from "@project-serum/anchor";
 import { createAssociatedTokenAccountIdempotentInstruction } from "@solana/spl-token";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/sunriseClientWrapper";
+import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
 
 // Used to create the LP token account for a given sunrise instance
 // Only needed to upgrade legacy instances created before this was added in register_state
