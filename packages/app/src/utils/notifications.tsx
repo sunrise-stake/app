@@ -97,25 +97,10 @@ export function notifyTransaction(n: {
   );
 }
 
-export function notifyTweet(): void {
+export function notifyTweet(amount: string): void {
   toast.custom(
     (t) => {
-      return (
-        <div className=" bg-background p-8 rounded-md border border-green">
-          <div
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(46, 133, 85, 0) 34.82%, rgba(46, 133, 85, 0.11) 100%), #212121",
-              maxWidth: "464px",
-            }}
-            className="px-16 py-8 my-8 rounded-md text-center"
-          >
-            &quot;I just staked with Sunrise, offsetting carbon and making
-            Solana stronger&quot;{" "}
-          </div>
-          <TweetButton />
-        </div>
-      );
+      return <TweetButton amount={amount} />;
     },
     {
       duration: 4000,

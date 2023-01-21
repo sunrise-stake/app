@@ -87,7 +87,7 @@ export const StakeDashboard: FC = () => {
       //   ? client.orderWithdrawal.bind(client)
       //   : client.withdraw.bind(client);
 
-      notifyTweet();
+      notifyTweet(amount);
 
       // withdraw(solToLamports(amount))
       //   .then((tx) => {
