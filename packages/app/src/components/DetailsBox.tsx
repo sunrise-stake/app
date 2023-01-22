@@ -11,9 +11,12 @@ interface DetailEntryProps {
 }
 const DetailEntry: FC<DetailEntryProps> = ({ label, value, share }) => (
   <div className="flex flex-row justify-between">
-    <div className="text-gray-400">{label}</div>
-    <div className="font-bold text-xl">
-      {value} {share !== undefined && <span>({share}%)</span>}
+    <div className="text-gray-100 text-sm sm:text-lg">{label}</div>
+    <div className="font-bold text-sm sm:text-lg">
+      {value} <span className="text-bold text-xs">SOL</span>{" "}
+      {share !== undefined && (
+        <span className="hidden sm:inline">({share}%)</span>
+      )}
     </div>
   </div>
 );
@@ -45,12 +48,12 @@ const DetailsBox: FC<Props> = ({ className }) => {
     inflightTotal.muln(10_000).div(totalValue).toNumber() / 100;
 
   const lamportsToDisplay = (lamports: BN): string =>
-    toFixedWithPrecision(toSol(lamports));
+    toFixedWithPrecision(toSol(lamports), 2);
 
   return (
     <>
       <div
-        className="text-outset -mb-5"
+        className="text-gray-400 -mb-5 cursor-pointer hover:text-gray-300 w-fit"
         onClick={() => setShow((prevState) => !prevState)}
       >
         Details
@@ -58,22 +61,22 @@ const DetailsBox: FC<Props> = ({ className }) => {
       {show && (
         <div
           className={clx(
-            "bg-green-light/30 border border-green-light backdrop-blur-md p-2 rounded text-center",
+            "bg-green-light/30 border border-green-light backdrop-blur-md py-2 px-4 rounded text-center",
             className
           )}
         >
           <DetailEntry
-            label="Marinade Stake Pool value"
+            label="Marinade Stake Pool Value"
             value={lamportsToDisplay(details.spDetails.msolValue)}
             share={spShare}
           />
           <DetailEntry
-            label="Marinade Liquidity Pool value"
+            label="Marinade Liquidity Pool Value"
             value={lamportsToDisplay(details.lpDetails.lpSolValue)}
             share={lpShare}
           />
           <DetailEntry
-            label="In flight value"
+            label="In Flight Value"
             value={lamportsToDisplay(inflightTotal)}
             share={inflightShare}
           />
