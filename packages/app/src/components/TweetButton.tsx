@@ -8,7 +8,7 @@ interface TweetButtonProps {
   t: Toast;
 }
 
-const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
+const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
   useScript("https://platform.twitter.com/widgets.js");
 
   return (
@@ -54,7 +54,7 @@ const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
           href="https://twitter.com/share?ref_src=twsrc%5Etfw"
           className="twitter-share-button"
           data-size="large"
-          data-text="I just staked with Sunrise, offsetting carbon and making Solana stronger"
+          data-text="I just staked with Sunrise, offsetting carbon and making Solana stronger."
           data-url="https://app.sunrisestake.com/"
           data-via="sunrisestake"
           // data-hashtags=""
