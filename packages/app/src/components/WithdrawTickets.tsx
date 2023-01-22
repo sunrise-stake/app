@@ -36,7 +36,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
         variant={ticket.ticketDue ? "primary" : "ticket"}
-        className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem]"
+        className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem] items-center"
         onClick={() => {
           if (ticket.ticketDue === undefined || !ticket.ticketDue) {
             console.log("Ticket is not due yet");
@@ -47,12 +47,13 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
         }}
       >
         <div className="flex flex-row items-center">
-          <TicketIcon
-            width={44}
-            className="-ml-6 sm:ml-0 sm:mr-4 py-1 px-2 rounded"
-          />
+          <TicketIcon width={44} className="sm:ml-0 sm:mr-4 px-2 rounded" />
           <div className="text-lg ml-2 -mr-2 sm:mr-0 ">
-            {toFixedWithPrecision(toSol(ticket.lamportsAmount))} SOL
+            <span className="font-bold text-sm sm:text-lg">
+              {" "}
+              {toFixedWithPrecision(toSol(ticket.lamportsAmount))}
+            </span>{" "}
+            <span className="text-xs font-bold">SOL</span>
           </div>
         </div>
       </Button>
