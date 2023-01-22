@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import clx from "classnames";
 import { Button } from "./Button";
 import { TicketIcon } from "@heroicons/react/24/solid";
-// import { MdOutlineLockClock, MdOutlineLockOpen } from "react-icons/md";
 import { AiOutlineClockCircle } from "react-icons/ai";
 import { TicketAccount } from "../lib/client/types/TicketAccount";
 import { toFixedWithPrecision, toSol } from "../lib/util";
@@ -52,13 +51,6 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
             width={44}
             className="-ml-6 sm:ml-0 sm:mr-4 py-1 px-2 rounded"
           />
-          {/* {ticket.ticketDue ? (
-            <MdOutlineLockOpen width={36} className="text-outset" />
-          ) : (
-            <MdOutlineLockClock width={36} className="text-danger" />
-          )} */}
-
-          {/* <div className="ml-2">1 Ticket</div> */}
           <div className="text-lg ml-2 -mr-2 sm:mr-0 ">
             {toFixedWithPrecision(toSol(ticket.lamportsAmount))} SOL
           </div>
@@ -76,8 +68,8 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
           }
         )}
       >
-        <div className="flex flex-row items-center truncate overflow-hidden">
-          <AiOutlineClockCircle className="mr-2" />
+        <div className="flex flex-row items-center truncate overflow-hidden -mx-4">
+          <AiOutlineClockCircle className="hidden sm:block mr-2" />
           Due {dayjs(ticket.ticketDueDate).fromNow()}
         </div>
       </Button>
