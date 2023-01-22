@@ -4,6 +4,7 @@ import clx from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
+import { GiCircleForest } from "react-icons/gi";
 
 import StakeForm from "../components/StakeForm";
 import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
@@ -123,7 +124,7 @@ export const StakeDashboard: FC = () => {
   );
 
   return (
-    <div style={{ maxWidth: "564px" }} className="mx-auto">
+    <div style={{ maxWidth: "620px" }} className="mx-auto">
       <div className="text-center">
         <img
           className="block sm:hidden w-auto h-16 mx-auto mb-3"
@@ -136,10 +137,11 @@ export const StakeDashboard: FC = () => {
         </h3>
       </div>
       <div className="flex">
-        <Panel className="flex grid-cols-1 mx-auto mb-9 p-4 rounded-lg">
+        <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
           <Button
             variant={isStakeSelected ? "primary" : "secondary"}
-            className="mr-5"
+            size={"sm"}
+            className="mr-3 sm:mr-5"
             onClick={() => setIsStakeSelected(true)}
           >
             Stake
@@ -153,6 +155,7 @@ export const StakeDashboard: FC = () => {
           </Button>
           <Button
             variant={isStakeSelected ? "secondary" : "danger"}
+            size={"sm"}
             onClick={() => setIsStakeSelected(false)}
           >
             Unstake
@@ -187,36 +190,63 @@ export const StakeDashboard: FC = () => {
         )}
       </Panel>
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {details !== undefined &&
-              toFixedWithPrecision(
-                toSol(new BN(details.balances.gsolBalance.amount))
-              ) + " gSOL"}
-          </span>
-          <br />
-          Your stake
+        <InfoBox className="py-2 px-4 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <img
+              src={`gSOL.png`}
+              className="h-8 my-auto pr-2 hidden sm:block"
+            />
+
+            <div className="mx-auto sm:mx-0 items-center">
+              <span className="font-bold text-sm sm:text-lg">
+                {details !== undefined &&
+                  toFixedWithPrecision(
+                    toSol(new BN(details.balances.gsolBalance.amount)),
+                    2
+                  )}{" "}
+              </span>
+              <span className="text-xs font-bold">gSOL</span>
+              <br />
+              <div className="mt-1 text-xs sm:text-sm">Your Stake</div>
+            </div>
+          </div>
         </InfoBox>
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {details &&
-              toFixedWithPrecision(
-                toSol(new BN(details.balances.gsolSupply.amount))
-              ) + " SOL"}{" "}
-          </span>
-          <br />
-          Total Stake
+        <InfoBox className="py-2 px-4 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <img src={`SOL.png`} className="h-8 my-auto pr-2 hidden sm:block" />
+            <div className="mx-auto sm:mx-0 items-center">
+              <span className="font-bold text-sm sm:text-lg">
+                {details &&
+                  toFixedWithPrecision(
+                    toSol(new BN(details.balances.gsolSupply.amount)),
+                    2
+                  )}{" "}
+              </span>
+              <span className="text-xs font-bold">SOL</span>
+
+              <br />
+              <div className="mt-1 text-xs sm:text-sm">Total Stake</div>
+            </div>
+          </div>
         </InfoBox>
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {totalCarbon !== undefined &&
-              toFixedWithPrecision(totalCarbon) + " tCO₂E"}
-          </span>
-          <br />
-          Retired Carbon
+        <InfoBox className="py-2 px-4 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <GiCircleForest
+              className="hidden sm:block"
+              color="#52dc90"
+              size={32}
+            />
+            <div className="mx-auto sm:mx-0 items-center">
+              <span className="font-bold text-sm sm:text-lg">
+                {totalCarbon !== undefined &&
+                  toFixedWithPrecision(totalCarbon, 2)}{" "}
+              </span>
+              <span className="text-xs font-bold">tCO₂E</span>
+              <div className="mt-1 text-xs sm:text-sm">Offset CO₂</div>
+            </div>
+          </div>
         </InfoBox>
       </div>
-
       <div className="flex flex-col gap-8 mb-8 justify-center">
         {delayedUnstakeTickets.map((ticket) => {
           return (
