@@ -107,7 +107,10 @@ export const depositStakeAccount = async (
     ReturnType<typeof program.methods.depositStakeAccount>["accounts"]
   >[0];
 
-  const voterAddress = await getVoterAddress(stakeAccountAddress, marinade);
+  const voterAddress = await getVoterAddress(
+    stakeAccountAddress,
+    marinade.provider.connection
+  );
   const validatorSystem = marinadeState.state.validatorSystem;
   const stakeSystem = marinadeState.state.stakeSystem;
   const accounts: Accounts = {

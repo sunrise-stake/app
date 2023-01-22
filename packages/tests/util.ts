@@ -1,8 +1,22 @@
 import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
-import { Transaction } from "@solana/web3.js";
+import {
+  Keypair,
+  Transaction,
+  SystemProgram,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
-import { createBurnInstruction } from "@solana/spl-token";
+import { SOLBLAZE_CONFIG } from "../app/src/lib/constants";
+import { findGSolMintAuthority } from "@sunrisestake/app/src/lib/client/util";
+import {
+  createBurnInstruction,
+  getMinimumBalanceForRentExemptMint,
+  MINT_SIZE,
+  TOKEN_PROGRAM_ID,
+  createInitializeMint2Instruction,
+} from "@solana/spl-token";
+import { getStakePoolAccount } from "../app/src/lib/client/decode_stake_pool";
 
 // Set in anchor.toml
 const SLOTS_IN_EPOCH = 32;
@@ -14,6 +28,7 @@ export const burnGSol = async (amount: BN, client: SunriseStakeClient) => {
     client.staker,
     amount.toNumber()
   );
+
   const transaction = new Transaction().add(burnInstruction);
   return client.provider.sendAndConfirm(transaction, []);
 };
@@ -96,6 +111,20 @@ export const expectMSolTokenBalance = async (
   expectAmount(new BN(msolBalance.value.amount), expectedAmount, tolerance);
 };
 
+export const expectBSolTokenBalance = async (
+  client: SunriseStakeClient,
+  expectedAmount: number | BN,
+  tolerance = 0
+) => {
+  const bsolBalance = await client.provider.connection.getTokenAccountBalance(
+    client.bsolTokenAccount!
+  );
+  console.log("ExpectedBsolTokenBalance: ");
+  console.log("   ", bsolBalance.value.amount);
+  console.log("   ", expectedAmount);
+  expectAmount(new BN(bsolBalance.value.amount), expectedAmount, tolerance);
+};
+
 export const expectLiqPoolTokenBalance = async (
   client: SunriseStakeClient,
   expectedAmount: number | BN,
@@ -137,6 +166,9 @@ export const expectTreasurySolBalance = async (
     client.config!.treasury
   );
   log("Treasury SOL balance", treasuryBalance);
+  console.log("**Expected treasury sol balance:**");
+  console.log("   ", treasuryBalance.toString());
+  console.log("   ", expectedAmount.toString());
   expectAmount(treasuryBalance, expectedAmount, tolerance);
 };
 
@@ -181,4 +213,50 @@ export const waitForNextEpoch = async (client: SunriseStakeClient) => {
   });
 
   await client.provider.connection.removeSlotChangeListener(subscriptionId);
+};
+
+export const getBsolPrice = async (
+  client: SunriseStakeClient
+): Promise<number> => {
+  const accountInfo = await getStakePoolAccount(
+    client.provider.connection,
+    SOLBLAZE_CONFIG.pool
+  );
+
+  const price = Math.floor(
+    Number(accountInfo.totalLamports) / Number(accountInfo.poolTokenSupply)
+  );
+  log("BSol price: ", price);
+  return price;
+};
+
+export const initializeMint = async (
+  client: SunriseStakeClient,
+  mint: Keypair
+) => {
+  const [mintAuthority] = findGSolMintAuthority(client.config!);
+
+  const lamports = await getMinimumBalanceForRentExemptMint(
+    client.provider.connection
+  );
+  const transaction = new Transaction().add(
+    SystemProgram.createAccount({
+      fromPubkey: client.provider.publicKey,
+      newAccountPubkey: mint.publicKey,
+      space: MINT_SIZE,
+      lamports,
+      programId: TOKEN_PROGRAM_ID,
+    }),
+    createInitializeMint2Instruction(
+      mint.publicKey,
+      9,
+      mintAuthority,
+      mintAuthority,
+      TOKEN_PROGRAM_ID
+    )
+  );
+
+  await sendAndConfirmTransaction(client.provider.connection, transaction, [
+    mint,
+  ]);
 };

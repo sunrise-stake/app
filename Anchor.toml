@@ -14,8 +14,8 @@ url = "https://api.apr.dev"
 cluster = "localnet"
 wallet = "packages/tests/fixtures/id.json"
 
-#[test]
-#startup_wait = 30000
+[test]
+startup_wait = 60000
 
 [scripts]
 test = "yarn test:anchor"
@@ -23,6 +23,10 @@ test = "yarn test:anchor"
 [[test.genesis]]
 address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
 program = "packages/tests/fixtures/marinade_finance.so"
+
+[[test.genesis]]
+address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
+program = "packages/tests/fixtures/blaze/spl_stake_pool.so"
 
 [test.validator]
 slots_per_epoch = "32"
@@ -57,4 +61,28 @@ filename = "packages/tests/fixtures/reserve_pda.json"
 
 [[test.validator.account]]
 address = "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"
-filename = "packages/tests/fixtures/b_sol_mint_address.json"
+filename = "packages/tests/fixtures/blaze/b_sol_mint_address.json"
+
+[[test.validator.account]]
+address = "azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"
+filename = "packages/tests/fixtures/blaze/pool.json"
+
+[[test.validator.account]]
+address = "aEP3DRe8ssFXDFokXiNMo4UXLhpL7LEPVbneUsfqeaJ"
+filename = "packages/tests/fixtures/blaze/validator_list.json"
+
+[[test.validator.account]]
+address = "aRkys1kVHeysrcn9bJFat9FkvoyyYD8M1kK286X3Aro"
+filename = "packages/tests/fixtures/blaze/reserve_account.json"
+
+[[test.validator.account]]
+address = "upd7dui9VYY9JbYLgpFy4rh9WAMjcm8YxiUBnENy69j"
+filename = "packages/tests/fixtures/blaze/updater_account.json"
+
+[[test.validator.account]]
+address = "b1azeTfpBiKN6AhEGVd1iPBsX3vmZqnFmS7Kqau7a2w"
+filename = "packages/tests/fixtures/blaze/manager_account.json"
+
+[[test.validator.account]]
+address = "Dpo148tVGewDPyh2FkGV18gouWctbdX2fHJopJGe9xv1"
+filename = "packages/tests/fixtures/blaze/fees_depot.json"

@@ -30,6 +30,7 @@ pub struct SplDepositSol<'info> {
         constraint = state.blaze_state == *stake_pool.key
     )]
     pub state: Box<Account<'info, State>>,
+    #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
     #[account(
         seeds = [state.key().as_ref(), seeds::GSOL_MINT_AUTHORITY],
@@ -69,7 +70,6 @@ pub struct SplDepositSol<'info> {
     #[account(mut)]
     /// CHECK: Checked by CPI to Spl Stake Program
     pub stake_pool_token_mint: AccountInfo<'info>,
-    #[account(mut)]
     /// CHECK:
     pub stake_pool_program: AccountInfo<'info>,
 
@@ -85,6 +85,7 @@ impl<'info> SplDepositSol<'info> {
 
     pub fn deposit_sol(&mut self, amount: u64) -> Result<()> {
         self.check_stake_pool_program()?;
+        check_mint_supply(&self.state, &self.gsol_mint)?;
 
         invoke(
             &spl_stake_pool::instruction::deposit_sol(
@@ -126,6 +127,6 @@ impl<'info> SplDepositSol<'info> {
         let state = &mut self.state;
         self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(amount).unwrap();
 
-        check_mint_supply(&self.state, &self.gsol_mint)
+        Ok(())
     }
 }

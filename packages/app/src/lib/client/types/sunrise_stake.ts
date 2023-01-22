@@ -649,12 +649,22 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "blazeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "msolMint",
           "isMut": true,
           "isSigner": false
         },
         {
           "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bsolMint",
           "isMut": false,
           "isSigner": false
         },
@@ -694,6 +704,16 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "getBsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "treasury",
           "isMut": true,
           "isSigner": false
@@ -726,7 +746,7 @@ export type SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -781,7 +801,7 @@ export type SunriseStake = {
         },
         {
           "name": "stakePoolProgram",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -812,7 +832,7 @@ export type SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -923,7 +943,7 @@ export type SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1019,7 +1039,7 @@ export type SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2317,12 +2337,22 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "blazeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "msolMint",
           "isMut": true,
           "isSigner": false
         },
         {
           "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bsolMint",
           "isMut": false,
           "isSigner": false
         },
@@ -2362,6 +2392,16 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "getBsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "treasury",
           "isMut": true,
           "isSigner": false
@@ -2394,7 +2434,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2449,7 +2489,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "stakePoolProgram",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2480,7 +2520,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2591,7 +2631,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2687,7 +2727,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
