@@ -45,5 +45,5 @@ export interface Details {
     bsolPrice: number;
     bsolValue: BN;
   };
-  inflight: InflightDetails[]
+  inflight: InflightDetails[];
 }
