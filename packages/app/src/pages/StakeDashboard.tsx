@@ -22,6 +22,7 @@ import {
 } from "../utils/notifications";
 import { useCarbon } from "../hooks/useCarbon";
 import TooltipPopover from "../components/TooltipPopover";
+import { DetailsBox } from "../components/DetailsBox";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -287,6 +288,9 @@ export const StakeDashboard: FC = () => {
             />
           );
         })}
+      </div>
+      <div className="flex flex-col gap-8 mb-8 justify-center">
+        <DetailsBox />
       </div>
     </div>
   );
