@@ -33,13 +33,15 @@ export const solToLamports = (sol: number | string): BN => {
 
 // Get the number of decimal places to show in a formatted number
 // Min = 0, Max = MAX_NUM_PRECISION
-const formatPrecision = (n: number): number =>
+const formatPrecision = (n: number, precision = MAX_NUM_PRECISION): number =>
   Math.min(
     Math.abs(Math.min(0, Math.ceil(Math.log(n) / Math.log(10)))) + 1,
-    MAX_NUM_PRECISION
+    precision
   );
-export const toFixedWithPrecision = (n: number): string =>
-  n.toFixed(formatPrecision(n));
+export const toFixedWithPrecision = (
+  n: number,
+  precision = MAX_NUM_PRECISION
+): string => n.toFixed(formatPrecision(n, precision));
 
 interface SparseWallet {
   publicKey: PublicKey;
