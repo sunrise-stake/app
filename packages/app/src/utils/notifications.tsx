@@ -5,6 +5,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
+import TweetButton from "../components/TweetButton";
 
 export enum NotificationType {
   success = "success",
@@ -91,6 +92,19 @@ export function notifyTransaction(n: {
     ),
     {
       position: "bottom-left",
+      duration: 4000,
+    }
+  );
+}
+
+export function notifyTweet(amount: string): void {
+  toast.custom(
+    (t) => {
+      return <TweetButton t={t} amount={amount} />;
+    },
+    {
+      duration: 8000,
+      position: "top-center",
     }
   );
 }
