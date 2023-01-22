@@ -132,6 +132,7 @@ export interface Balance {
   msolPrice: number;
   liqPoolBalance: TokenAmount;
   treasuryBalance: number;
+  bsolBalance: TokenAmount;
 }
 
 export const PROGRAM_ID = new PublicKey(

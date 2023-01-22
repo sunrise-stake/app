@@ -57,6 +57,7 @@ import {
 } from "./marinade";
 import { blazeDeposit, blazeDepositStake } from "./blaze";
 import { ZERO } from "../util";
+import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -72,6 +73,11 @@ export class SunriseStakeClient {
 
   msolTokenAccountAuthority: PublicKey | undefined;
   msolTokenAccount: PublicKey | undefined;
+
+  bsolTokenAccountAuthority: PublicKey | undefined;
+  bsolTokenAccount: PublicKey | undefined;
+
+  blazePool: PublicKey | undefined;
 
   liqPoolTokenAccount: PublicKey | undefined;
 
@@ -118,6 +124,9 @@ export class SunriseStakeClient {
     this.msolTokenAccountAuthority = findMSolTokenAccountAuthority(
       this.config
     )[0];
+    this.bsolTokenAccountAuthority = findBSolTokenAccountAuthority(
+      this.config
+    )[0];
 
     const marinadeConfig = new MarinadeConfig({
       connection: this.provider.connection,
@@ -138,6 +147,11 @@ export class SunriseStakeClient {
       mint: this.marinadeState.lpMint.address,
       owner: this.msolTokenAccountAuthority,
     });
+    this.bsolTokenAccount = await utils.token.associatedAddress({
+      mint: SOLBLAZE_CONFIG.bsolMint,
+      owner: this.bsolTokenAccountAuthority,
+    });
+    this.blazePool = SOLBLAZE_CONFIG.pool;
   }
 
   private async sendAndConfirmTransaction(
@@ -186,7 +200,6 @@ export class SunriseStakeClient {
     if (!gsolTokenAccount) {
       const createUserTokenAccount = await this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
-      console.log("Token account created");
     }
 
     const depositTx = await deposit(
@@ -200,7 +213,6 @@ export class SunriseStakeClient {
       lamports
     );
 
-    console.log("Depositing...");
     transaction.add(depositTx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
@@ -218,7 +230,6 @@ export class SunriseStakeClient {
     if (!gsolTokenAccount) {
       const createUserTokenAccount = await this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
-      console.log("Token account created");
     }
 
     const depositTx = await blazeDeposit(
@@ -229,7 +240,6 @@ export class SunriseStakeClient {
       lamports
     );
 
-    console.log("Depositing...");
     transaction.add(depositTx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
@@ -249,7 +259,6 @@ export class SunriseStakeClient {
     if (!gsolTokenAccount) {
       const createUserTokenAccount = await this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
-      console.log("Token account created");
     }
 
     const depositTx = await blazeDepositStake(
@@ -260,7 +269,6 @@ export class SunriseStakeClient {
       this.stakerGSolTokenAccount
     );
 
-    console.log("Depositing...");
     transaction.add(depositTx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
@@ -285,7 +293,6 @@ export class SunriseStakeClient {
     if (!gSolTokenAccount) {
       const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
-      console.log("Token account created");
     }
 
     const depositStakeIx = await depositStakeAccount(
@@ -497,8 +504,10 @@ export class SunriseStakeClient {
     const accounts: Accounts = {
       state: this.stateAddress,
       marinadeState: this.marinadeState.marinadeStateAddress,
+      blazeState: this.blazePool,
       msolMint: this.marinadeState.mSolMintAddress,
       gsolMint: this.config.gsolMint,
+      bsolMint: SOLBLAZE_CONFIG.bsolMint,
       liqPoolMint: this.marinadeState.lpMint.address,
       liqPoolSolLegPda,
       liqPoolMsolLeg: this.marinadeState.mSolLeg,
@@ -506,6 +515,8 @@ export class SunriseStakeClient {
       treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
       getMsolFrom: this.msolTokenAccount,
       getMsolFromAuthority: this.msolTokenAccountAuthority,
+      getBsolFrom: this.bsolTokenAccount,
+      getBsolFromAuthority: this.bsolTokenAccountAuthority,
       treasury: this.config.treasury,
       systemProgram: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -617,7 +628,7 @@ export class SunriseStakeClient {
       this.marinadeState
     );
 
-    const spDetails = {
+    const mpDetails = {
       msolPrice: this.marinadeState.mSolPrice,
       msolValue: solValueOfMSol,
       stakeDelta: this.marinadeState.stakeDelta().toNumber(),
@@ -648,6 +659,21 @@ export class SunriseStakeClient {
       )
     );
 
+    const stakePoolInfo = await getStakePoolAccount(
+      this.provider.connection,
+      SOLBLAZE_CONFIG.pool
+    );
+    const [bsolPrice, bsolValue] = this.computeLamportsFromBSol(
+      new BN(balances.bsolBalance.amount),
+      stakePoolInfo
+    );
+
+    const bpDetails = {
+      pool: SOLBLAZE_CONFIG.pool.toString(),
+      bsolPrice,
+      bsolValue,
+    };
+
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
       balances,
@@ -664,8 +690,9 @@ export class SunriseStakeClient {
       marinadeFinanceProgramId:
         this.marinadeState.marinadeFinanceProgramId.toBase58(),
       marinadeStateAddress: this.marinadeState.marinadeStateAddress.toBase58(),
-      spDetails,
+      mpDetails,
       lpDetails,
+      bpDetails,
       inflight,
     };
 
@@ -699,6 +726,20 @@ export class SunriseStakeClient {
       totalVirtualStakedLamports,
       marinadeState.state.msolSupply
     );
+  }
+
+  private computeLamportsFromBSol(
+    bsolAmount: BN,
+    stakePoolInfo: StakePool
+  ): [number, BN] {
+    const price =
+      BigInt(stakePoolInfo.totalLamports.toString()) /
+      BigInt(stakePoolInfo.poolTokenSupply.toNumber());
+    const bsolPrice = new BN(price.toString());
+
+    const solValue = proportionalBN(bsolAmount, bsolPrice, new BN(1));
+
+    return [bsolPrice.toNumber(), solValue];
   }
 
   private readonly getRegisterStateAccounts = async (
@@ -787,23 +828,28 @@ export class SunriseStakeClient {
   private calculateExtractableYield({
     epochInfo,
     balances,
-    spDetails,
+    mpDetails,
     lpDetails,
     inflight,
+    bpDetails,
   }: Omit<Details, "extractableYield">): BN {
     if (!this.marinadeState || !this.msolTokenAccount)
       throw new Error("init not called");
 
     // deposited in Stake Pool
     const msolBalance = new BN(balances.msolBalance.amount);
-    const solValueOfMSol = spDetails.msolValue;
+    const solValueOfMSol = mpDetails.msolValue;
+    const solValueOfBSol = bpDetails.bsolValue;
 
     // deposited in Liquidity Pool
     const solValueOfLP = lpDetails.lpSolValue;
 
     const gsolSupply = new BN(balances.gsolSupply.amount);
 
-    const totalSolValueStaked = solValueOfMSol.add(solValueOfLP);
+    const totalSolValueStaked = solValueOfMSol
+      .add(solValueOfLP)
+      .add(solValueOfBSol);
+
     const inflightTotal = inflight.reduce(
       (acc, { totalOrderedLamports }) => acc.add(totalOrderedLamports),
       ZERO
@@ -821,6 +867,7 @@ export class SunriseStakeClient {
       epoch: epochInfo.epoch,
       msolBalance: msolBalance.toString(),
       solValueOfMSol: solValueOfMSol.toString(),
+      solValueOfBsol: solValueOfBSol.toString(),
       solValueOfLP: solValueOfLP.toString(),
       totalSolValueStaked: totalSolValueStaked.toString(),
       gsolSupply: gsolSupply.toString(),
@@ -925,6 +972,19 @@ export class SunriseStakeClient {
         msolAssociatedTokenAccountAddress
       );
 
+    const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(
+      this.config
+    )[0];
+    const bsolAssociatedTokenAccountAddress =
+      await utils.token.associatedAddress({
+        mint: SOLBLAZE_CONFIG.bsolMint,
+        owner: bsolTokenAccountAuthority,
+      });
+    const bsolLamportsBalancePromise =
+      this.provider.connection.getTokenAccountBalance(
+        bsolAssociatedTokenAccountAddress
+      );
+
     // use the same token authority PDA for the msol token account
     // and the liquidity pool token account for convenience
     const liqPoolAssociatedTokenAccountAddress =
@@ -948,12 +1008,14 @@ export class SunriseStakeClient {
       msolLamportsBalance,
       lpBalance,
       treasuryBalance,
+      bsolLamportsBalance,
     ] = await Promise.all([
       gsolBalancePromise,
       gsolSupplyPromise,
       msolLamportsBalancePromise,
       liqPoolBalancePromise,
       treasuryBalancePromise,
+      bsolLamportsBalancePromise,
     ]);
 
     return {
@@ -963,6 +1025,7 @@ export class SunriseStakeClient {
       msolPrice: this.marinadeState.mSolPrice,
       liqPoolBalance: lpBalance.value,
       treasuryBalance,
+      bsolBalance: bsolLamportsBalance.value,
     };
   }
 

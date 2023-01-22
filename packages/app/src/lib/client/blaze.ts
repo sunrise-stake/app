@@ -13,9 +13,9 @@ import {
   SunriseStakeConfig,
   getVoterAddress,
 } from "./util";
-import { SOLBLAZE_CONFIG } from "../sunriseClientWrapper";
 import {
   STAKE_POOL_PROGRAM_ID,
+  SOLBLAZE_CONFIG,
   SOLBLAZE_DEPOSIT_AUTHORITY,
   SOLBLAZE_WITHDRAW_AUTHORITY,
 } from "../constants";
@@ -50,9 +50,9 @@ export const blazeDeposit = async (
     bsolTokenAccount: bsolAssociatedTokenAddress,
     bsolAccountAuthority: bsolTokenAccountAuthority,
     stakePool: SOLBLAZE_CONFIG.pool,
-    stakePoolWithdrawAuthority: SOLBLAZE_CONFIG.stakeAuthority,
+    stakePoolWithdrawAuthority: SOLBLAZE_WITHDRAW_AUTHORITY,
     reserveStakeAccount: SOLBLAZE_CONFIG.reserveAccount,
-    managerFeeAccount: SOLBLAZE_CONFIG.managerAccount,
+    managerFeeAccount: SOLBLAZE_CONFIG.feesDepot,
     stakePoolTokenMint: SOLBLAZE_CONFIG.bsolMint,
     stakePoolProgram: STAKE_POOL_PROGRAM_ID,
     systemProgram: SystemProgram.programId,
@@ -102,7 +102,7 @@ export const blazeDepositStake = async (
     stakePoolWithdrawAuthority: SOLBLAZE_WITHDRAW_AUTHORITY,
     validatorStakeAccount: validatorAccount,
     reserveStakeAccount: SOLBLAZE_CONFIG.reserveAccount,
-    managerFeeAccount: SOLBLAZE_CONFIG.managerAccount,
+    managerFeeAccount: SOLBLAZE_CONFIG.feesDepot,
     stakePoolTokenMint: SOLBLAZE_CONFIG.bsolMint,
     sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
     sysvarClock: SYSVAR_CLOCK_PUBKEY,

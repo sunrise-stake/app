@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@solana/spl-token": "^0.3.6",
     "@solana/web3.js": "^1.66.2",
     "@types/chai-as-promised": "^7.1.5",
     "bn.js": "^5.2.1",
