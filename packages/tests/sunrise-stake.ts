@@ -50,8 +50,6 @@ describe("sunrise-stake", () => {
     });
 
     log(await client.details());
-
-    await initializeMint(client, mint);
   });
 
   it("can update the state", async () => {
@@ -146,17 +144,13 @@ describe("sunrise-stake", () => {
     await expectStakerGSolTokenBalance(client, depositLamports.toNumber());
   });
 
-  it("can depositToBlaze", async () => {
+  it("can deposit to blaze", async () => {
     const depositAmount = new BN(100 * LAMPORTS_PER_SOL);
     await getBalance(client);
     const bsolPrice = await getBsolPrice(client);
-    const expectedBSol = Math.floor(depositAmount.toNumber() * bsolPrice);
+    const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
 
-    try {
-      await client.blazeDeposit(depositAmount);
-    } catch (err) {
-      console.log(err);
-    }
+    await client.blazeDeposit(depositAmount);
 
     // Displays about 48.56 bsol rather than 50
     // This could be due to either fees or my assumption about bsol's price being

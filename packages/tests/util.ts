@@ -223,9 +223,9 @@ export const getBsolPrice = async (
     SOLBLAZE_CONFIG.pool
   );
 
-  const price = Math.floor(
-    Number(accountInfo.totalLamports) / Number(accountInfo.poolTokenSupply)
-  );
+  const price =
+    Number(accountInfo.totalLamports) / Number(accountInfo.poolTokenSupply);
+
   log("BSol price: ", price);
   return price;
 };
