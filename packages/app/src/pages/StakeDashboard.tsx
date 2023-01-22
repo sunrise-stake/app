@@ -278,6 +278,9 @@ export const StakeDashboard: FC = () => {
           </div>
         </InfoBox>
       </div>
+      <div className="flex flex-col gap-8 mb-8 -mt-4 justify-center">
+        <DetailsBox />
+      </div>
       <div className="flex flex-col gap-8 mb-8 justify-center">
         {delayedUnstakeTickets.map((ticket) => {
           return (
@@ -288,9 +291,6 @@ export const StakeDashboard: FC = () => {
             />
           );
         })}
-      </div>
-      <div className="flex flex-col gap-8 mb-8 justify-center">
-        <DetailsBox />
       </div>
     </div>
   );

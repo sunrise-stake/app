@@ -1,5 +1,5 @@
 import clx from "classnames";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { toFixedWithPrecision, toSol, ZERO } from "../lib/util";
 import BN from "bn.js";
@@ -13,8 +13,7 @@ const DetailEntry: FC<DetailEntryProps> = ({ label, value, share }) => (
   <div className="flex flex-row justify-between">
     <div className="text-gray-400">{label}</div>
     <div className="font-bold text-xl">
-      {value}
-      {share !== undefined && <span>({share}%)</span>}
+      {value} {share !== undefined && <span>({share}%)</span>}
     </div>
   </div>
 );
@@ -23,6 +22,8 @@ interface Props {
   className?: string;
 }
 const DetailsBox: FC<Props> = ({ className }) => {
+  const [show, setShow] = useState(false);
+
   const { details } = useSunriseStake();
 
   if (!details) return <>Loading...</>;
@@ -47,28 +48,38 @@ const DetailsBox: FC<Props> = ({ className }) => {
     toFixedWithPrecision(toSol(lamports));
 
   return (
-    <div
-      className={clx(
-        "bg-green-light/30 border border-green-light backdrop-blur-md p-2 rounded text-center",
-        className
+    <>
+      <div
+        className="text-outset -mb-5"
+        onClick={() => setShow((prevState) => !prevState)}
+      >
+        Details
+      </div>
+      {show && (
+        <div
+          className={clx(
+            "bg-green-light/30 border border-green-light backdrop-blur-md p-2 rounded text-center",
+            className
+          )}
+        >
+          <DetailEntry
+            label="Marinade Stake Pool value"
+            value={lamportsToDisplay(details.spDetails.msolValue)}
+            share={spShare}
+          />
+          <DetailEntry
+            label="Marinade Liquidity Pool value"
+            value={lamportsToDisplay(details.lpDetails.lpSolValue)}
+            share={lpShare}
+          />
+          <DetailEntry
+            label="In flight value"
+            value={lamportsToDisplay(inflightTotal)}
+            share={inflightShare}
+          />
+        </div>
       )}
-    >
-      <DetailEntry
-        label="Marinade Stake Pool value"
-        value={lamportsToDisplay(details.spDetails.msolValue)}
-        share={spShare}
-      />
-      <DetailEntry
-        label="Marinade Liquidity Pool value"
-        value={lamportsToDisplay(details.lpDetails.lpSolValue)}
-        share={lpShare}
-      />
-      <DetailEntry
-        label="In flight value"
-        value={lamportsToDisplay(inflightTotal)}
-        share={inflightShare}
-      />
-    </div>
+    </>
   );
 };
 
