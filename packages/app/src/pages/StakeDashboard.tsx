@@ -14,7 +14,11 @@ import UnstakeForm from "../components/UnstakeForm";
 import { InfoBox } from "../components/InfoBox";
 import WithdrawTicket from "../components/WithdrawTickets";
 import { useSunriseStake } from "../context/sunriseStakeContext";
-import { NotificationType, notifyTransaction } from "../utils/notifications";
+import {
+  NotificationType,
+  notifyTransaction,
+  notifyTweet,
+} from "../utils/notifications";
 import { useCarbon } from "../hooks/useCarbon";
 
 export const StakeDashboard: FC = () => {
@@ -62,13 +66,14 @@ export const StakeDashboard: FC = () => {
 
       client
         .deposit(solToLamports(amount))
-        .then((tx) =>
+        .then((tx) => {
+          notifyTweet(amount);
           notifyTransaction({
             type: NotificationType.success,
             message: "Deposit successful",
             txid: tx,
-          })
-        )
+          });
+        })
         .then(setBalances)
         .catch(handleError);
     },
@@ -117,7 +122,7 @@ export const StakeDashboard: FC = () => {
   );
 
   return (
-    <div style={{ maxWidth: "864px" }} className="mx-auto">
+    <div style={{ maxWidth: "564px" }} className="mx-auto">
       <div className="text-center">
         <img
           className="block sm:hidden w-auto h-16 mx-auto mb-3"
@@ -186,7 +191,7 @@ export const StakeDashboard: FC = () => {
             {details !== undefined &&
               toFixedWithPrecision(
                 toSol(new BN(details.balances.gsolBalance.amount))
-              )}
+              ) + " gSOL"}
           </span>
           <br />
           Your stake
@@ -196,17 +201,18 @@ export const StakeDashboard: FC = () => {
             {details &&
               toFixedWithPrecision(
                 toSol(new BN(details.balances.gsolSupply.amount))
-              )}
+              ) + " SOL"}{" "}
           </span>
           <br />
-          Staked SOL
+          Total Stake
         </InfoBox>
         <InfoBox className="p-2 rounded text-center">
           <span className="font-bold text-xl">
-            {totalCarbon !== undefined && toFixedWithPrecision(totalCarbon)}
+            {totalCarbon !== undefined &&
+              toFixedWithPrecision(totalCarbon) + " tCO₂E"}
           </span>
           <br />
-          Retired tCO₂E
+          Retired Carbon
         </InfoBox>
       </div>
 

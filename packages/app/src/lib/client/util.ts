@@ -78,7 +78,7 @@ export const findOrderUnstakeTicketManagementAccount = (
   epoch: bigint
 ): [PublicKey, number] => {
   const epochBuf = Buffer.allocUnsafe(8);
-  epochBuf.writeBigInt64BE(epoch, 0);
+  epochBuf.writeBigInt64BE(epoch);
   return findProgramDerivedAddress(
     config,
     ProgramDerivedAddressSeed.ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT,
@@ -154,17 +154,15 @@ export interface Options {
 export const findAllTickets = async (
   connection: Connection,
   config: SunriseStakeConfig,
-  managementAccount: ManagementAccount
+  managementAccount: ManagementAccount,
+  epoch: bigint
 ): Promise<PublicKey[]> => {
-  const epochInfo = await connection.getEpochInfo();
-  const lastEpoch = BigInt(epochInfo.epoch - 1);
-
   // find all tickets for the last epoch in reverse order, this allows us to better paginate later
   const tickets: PublicKey[] = [];
-  for (let i = managementAccount.tickets.toNumber(); i > 0; i--) {
+  for (let i = managementAccount.tickets.toNumber(); i >= 0; i--) {
     const [orderUnstakeTicketAccount] = findOrderUnstakeTicketAccount(
       config,
-      lastEpoch,
+      epoch,
       BigInt(i)
     );
 
@@ -182,7 +180,7 @@ export const findAllTickets = async (
       (element): element is [PublicKey, AccountInfo<Buffer>] =>
         element[1] !== null
     )
-    .map(([ticket, accountInfo]) => ticket);
+    .map(([ticket]) => ticket);
 };
 
 export const proportionalBN = (
@@ -241,10 +239,7 @@ export const getValidatorIndex = async (
   const validatorLookupIndex = validatorRecords.findIndex(
     ({ validatorAccount }) => validatorAccount.equals(voterAddress)
   );
-  const validatorIndex =
-    validatorLookupIndex === -1
-      ? marinadeState.state.validatorSystem.validatorList.count
-      : validatorLookupIndex;
-
-  return validatorIndex;
+  return validatorLookupIndex === -1
+    ? marinadeState.state.validatorSystem.validatorList.count
+    : validatorLookupIndex;
 };

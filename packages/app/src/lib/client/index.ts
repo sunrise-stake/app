@@ -46,16 +46,17 @@ import {
   DEFAULT_LP_PROPORTION,
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
+  SOLBLAZE_CONFIG,
 } from "../constants";
 import {
   deposit,
   depositStakeAccount,
   liquidUnstake,
+  orders,
   triggerRebalance,
 } from "./marinade";
 import { blazeDeposit, blazeDepositStake } from "./blaze";
 import { ZERO } from "../util";
-import { SOLBLAZE_CONFIG } from "../sunriseClientWrapper";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -632,6 +633,21 @@ export class SunriseStakeClient {
       msolLeg: this.marinadeState.mSolLeg.toBase58(),
     };
 
+    // find all inflight unstake tickets (WARNING: for the current and previous epoch only)
+    const config = this.config;
+    const inflight = await Promise.all(
+      [epochInfo.epoch, epochInfo.epoch - 1].map(async (epoch) =>
+        orders(config, this.program, BigInt(epoch)).then(
+          ({ managementAccount, tickets }) => ({
+            epoch: BigInt(epoch),
+            tickets: tickets.length,
+            totalOrderedLamports:
+              managementAccount.account?.totalOrderedLamports ?? ZERO,
+          })
+        )
+      )
+    );
+
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
       balances,
@@ -650,6 +666,7 @@ export class SunriseStakeClient {
       marinadeStateAddress: this.marinadeState.marinadeStateAddress.toBase58(),
       spDetails,
       lpDetails,
+      inflight,
     };
 
     const extractableYield =
@@ -772,6 +789,7 @@ export class SunriseStakeClient {
     balances,
     spDetails,
     lpDetails,
+    inflight,
   }: Omit<Details, "extractableYield">): BN {
     if (!this.marinadeState || !this.msolTokenAccount)
       throw new Error("init not called");
@@ -786,7 +804,14 @@ export class SunriseStakeClient {
     const gsolSupply = new BN(balances.gsolSupply.amount);
 
     const totalSolValueStaked = solValueOfMSol.add(solValueOfLP);
-    const extractableSOLGross = totalSolValueStaked.sub(gsolSupply);
+    const inflightTotal = inflight.reduce(
+      (acc, { totalOrderedLamports }) => acc.add(totalOrderedLamports),
+      ZERO
+    );
+
+    const extractableSOLGross = totalSolValueStaked
+      .add(inflightTotal)
+      .sub(gsolSupply);
 
     const fee = extractableSOLGross.muln(3).divn(1000);
 

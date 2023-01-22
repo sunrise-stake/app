@@ -1,6 +1,5 @@
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { PublicKey } from "@solana/web3.js";
-import { SOLBLAZE_CONFIG } from "./sunriseClientWrapper";
 
 export const STAKE_POOL_PROGRAM_ID = new PublicKey(
   "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
@@ -14,8 +13,8 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
   "mainnet-beta": {
     state: new PublicKey("43m66crxGfXSJpmx5wXRoFuHubhHA1GCvtHgmHW6cM1P"),
     holdingAccount: new PublicKey(
-      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
-    ), // TODO incorrect
+      "shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn"
+    ),
   },
   testnet: {
     state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"), // Warning obsolete
@@ -96,6 +95,24 @@ export const SolBlazeConstants: Record<WalletAdapterNetwork, SolBlazeConfig> = {
     validatorInfo: PublicKey.default,
   },
 };
+
+export const SUNRISE_STAKE_STATE =
+  Environment[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ].state;
+
+export const HOLDING_ACCOUNT =
+  Environment[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ].holdingAccount;
+
+export const SOLBLAZE_CONFIG =
+  SolBlazeConstants[
+    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+      WalletAdapterNetwork.Devnet
+  ];
 
 export const [SOLBLAZE_WITHDRAW_AUTHORITY] = PublicKey.findProgramAddressSync(
   [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("withdraw")],
