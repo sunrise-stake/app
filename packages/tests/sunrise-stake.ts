@@ -154,7 +154,6 @@ describe("sunrise-stake", () => {
       client.provider.connection,
       client.blazeState!.pool
     );
-    // console.log(poolInfo);
 
     const solDepositFee =
       Number(poolInfo.solDepositFee.numerator) /
@@ -172,6 +171,29 @@ describe("sunrise-stake", () => {
     );
   });
 
+  // At present (TODO change) a Solblaze deposit does not
+  // send 10% to the liquidity pool
+  // the above deposit added 100SOL to the pool, bringing the pool to 200,
+  // but left the amount in the LP at 10Sol
+  // So after the previous deposit, the liquidity pool is at its minimum (5%)
+  // Any subsequent liquid unstakes will trigger a rebalance
+  // So to avoid this (in order to test feeless unstake)
+  // we deposit 10 more here, which shoudl go straight into the LP, bringing it back up to its maximum (10%)
+  it("deposits into the liquidity pool to rebalance the pools", async () => {
+    await getBalance(client); // print balance before deposit
+
+    // figure out what balances we expect before we make the deposit
+    // since this is the first deposit, 10% will go into the liquidity pool
+    // so the sunrise liquidity pool token balance should go up,
+    // and the sunrise msol balance should be at 90% of the value of the deposit
+    const lpPrice = await getLPPrice(client); // TODO should this be inverse price?
+    const expectedLiqPool = Math.floor((20 * LAMPORTS_PER_SOL) / lpPrice);
+
+    await client.deposit(new BN(10 * LAMPORTS_PER_SOL));
+
+    await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
+  });
+
   it("no yield to extract yet", async () => {
     const { extractableYield } = await client.details();
     console.log("extractableYield: ", extractableYield.toString());
@@ -179,7 +201,7 @@ describe("sunrise-stake", () => {
     expectAmount(extractableYield, 0, 100);
   });
 
-  it("can feelessly unstake sol when under the level of the LP", async () => {
+  it("can feelessly unstake sol when under the level of the LP but above the min level that triggers a rebalance", async () => {
     const stakerPreSolBalance = await getBalance(client);
 
     await client.unstake(unstakeLamportsUnderLPBalance);
@@ -383,9 +405,9 @@ describe("sunrise-stake", () => {
     await expectTreasurySolBalance(client, expectedTreasuryBalance, 10);
   });
 
-  /**
-   * This test generates a situation where the liquidity pool balance is overfull, by adding fees to the pool.
-   */
+  //
+  // This test generates a situation where the liquidity pool balance is overfull, by adding fees to the pool.
+  //
   it("can deposit sol after fees are sent to the liquidity pool, increasing the value of the liquidity pool tokens", async () => {
     if (!client.marinade) {
       throw new Error("Marinade state not initialized");
