@@ -26,7 +26,7 @@ export interface Details {
   marinadeStateAddress: string;
   extractableYield: BN;
 
-  spDetails: {
+  mpDetails: {
     msolPrice: number;
     stakeDelta: number;
     msolValue: BN;
@@ -40,6 +40,10 @@ export interface Details {
     lpSolValue: BN;
     msolLeg: string;
   };
-
+  bpDetails: {
+    pool: string;
+    bsolPrice: number;
+    bsolValue: BN;
+  };
   inflight: InflightDetails[];
 }

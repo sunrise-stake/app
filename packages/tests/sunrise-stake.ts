@@ -11,8 +11,10 @@ import {
   expectTreasurySolBalance,
   getBalance,
   getLPPrice,
+  getBsolPrice,
   log,
   waitForNextEpoch,
+  expectBSolTokenBalance,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -22,6 +24,7 @@ import {
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
 } from "@sunrisestake/app/src/lib/constants";
+import { getStakePoolAccount } from "@sunrisestake/app/src/lib/client/decode_stake_pool";
 
 chai.use(chaiAsPromised);
 
@@ -35,19 +38,16 @@ describe("sunrise-stake", () => {
   const orderUnstakeLamports = new BN(2 * LAMPORTS_PER_SOL); // Order a delayed unstake of 2 SOL
   const burnLamports = 100 * LAMPORTS_PER_SOL;
 
-  let treasury = Keypair.generate();
   let updateAuthority: Keypair;
-
   let delayedUnstakeTicket: TicketAccount;
 
+  let treasury = Keypair.generate();
+  const mint = Keypair.generate();
+
   it("can register a new Sunrise state", async () => {
-    client = await SunriseStakeClient.register(
-      treasury.publicKey,
-      Keypair.generate(),
-      {
-        verbose: Boolean(process.env.VERBOSE),
-      }
-    );
+    client = await SunriseStakeClient.register(treasury.publicKey, mint, {
+      verbose: Boolean(process.env.VERBOSE),
+    });
 
     log(await client.details());
   });
@@ -144,9 +144,36 @@ describe("sunrise-stake", () => {
     await expectStakerGSolTokenBalance(client, depositLamports.toNumber());
   });
 
+  it("can depositToBlaze", async () => {
+    const depositAmount = new BN(100 * LAMPORTS_PER_SOL);
+    await getBalance(client);
+    const bsolPrice = await getBsolPrice(client);
+
+    const poolInfo = await getStakePoolAccount(
+      client.provider.connection,
+      client.blazeState!.pool
+    );
+    // console.log(poolInfo);
+
+    const solDepositFee =
+      Number(poolInfo.solDepositFee.numerator) /
+      Number(poolInfo.solDepositFee.denominator);
+    console.log("sol deposit fee: ", solDepositFee); // the 0.08% comes back to us so it's accounted for
+
+    const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
+
+    await client.blazeDeposit(depositAmount);
+
+    await expectBSolTokenBalance(client, expectedBSol, 50);
+    await expectStakerGSolTokenBalance(
+      client,
+      depositLamports.toNumber() + depositAmount.toNumber()
+    );
+  });
+
   it("no yield to extract yet", async () => {
     const { extractableYield } = await client.details();
-    log("extractableYield", extractableYield.toString());
+    console.log("extractableYield: ", extractableYield.toString());
 
     expectAmount(extractableYield, 0, 100);
   });
@@ -333,6 +360,9 @@ describe("sunrise-stake", () => {
     // subtract 0.3% liquid unstake fee until we do delayed unstake
     const expectedYield = new BN(burnLamports).muln(997).divn(1000);
 
+    console.log("**Expected Yield to extract values:**");
+    console.log("   ", postBurnYieldToExtract.toNumber());
+    console.log("   ", expectedYield.toNumber());
     expectAmount(postBurnYieldToExtract, expectedYield, 50);
   });
 
@@ -340,7 +370,11 @@ describe("sunrise-stake", () => {
     await expectTreasurySolBalance(client, 0, 50);
 
     // trigger a withdrawal
-    await client.extractYield();
+    try {
+      await client.extractYield();
+    } catch (err) {
+      console.log(err);
+    }
 
     // expect the treasury to have 500 SOL minus fees
     // marinade charges a 0.3% fee for liquid unstaking

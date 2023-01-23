@@ -13,19 +13,16 @@ import {
   SunriseStakeConfig,
   getVoterAddress,
 } from "./util";
-import { SOLBLAZE_CONFIG } from "../sunriseClientWrapper";
-import {
-  STAKE_POOL_PROGRAM_ID,
-  SOLBLAZE_DEPOSIT_AUTHORITY,
-  SOLBLAZE_WITHDRAW_AUTHORITY,
-} from "../constants";
+import { STAKE_POOL_PROGRAM_ID } from "../constants";
 import { AnchorProvider, Program, utils } from "@project-serum/anchor";
 import { SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { BlazeState } from "./types/Solblaze";
 
 export const blazeDeposit = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
+  blaze: BlazeState,
   depositor: PublicKey,
   depositorGsolTokenAccount: PublicKey,
   lamports: BN
@@ -33,7 +30,7 @@ export const blazeDeposit = async (
   const [gsolMintAuthority] = findGSolMintAuthority(config);
   const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
   const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
-    mint: SOLBLAZE_CONFIG.bsolMint,
+    mint: blaze.bsolMint,
     owner: bsolTokenAccountAuthority,
   });
 
@@ -49,11 +46,11 @@ export const blazeDeposit = async (
     depositorGsolTokenAccount,
     bsolTokenAccount: bsolAssociatedTokenAddress,
     bsolAccountAuthority: bsolTokenAccountAuthority,
-    stakePool: SOLBLAZE_CONFIG.pool,
-    stakePoolWithdrawAuthority: SOLBLAZE_CONFIG.stakeAuthority,
-    reserveStakeAccount: SOLBLAZE_CONFIG.reserveAccount,
-    managerFeeAccount: SOLBLAZE_CONFIG.managerAccount,
-    stakePoolTokenMint: SOLBLAZE_CONFIG.bsolMint,
+    stakePool: blaze.pool,
+    stakePoolWithdrawAuthority: blaze.withdrawAuthority,
+    reserveStakeAccount: blaze.reserveAccount,
+    managerFeeAccount: blaze.feesDepot,
+    stakePoolTokenMint: blaze.bsolMint,
     stakePoolProgram: STAKE_POOL_PROGRAM_ID,
     systemProgram: SystemProgram.programId,
     tokenProgram: TOKEN_PROGRAM_ID,
@@ -67,15 +64,16 @@ export const blazeDeposit = async (
 
 export const blazeDepositStake = async (
   config: SunriseStakeConfig,
-  provider: AnchorProvider,
   program: Program<SunriseStake>,
+  blaze: BlazeState,
+  depositor: PublicKey,
   stakeAccount: PublicKey,
   depositorGsolTokenAccount: PublicKey
 ): Promise<Transaction> => {
   const [gsolMintAuthority] = findGSolMintAuthority(config);
   const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
   const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
-    mint: SOLBLAZE_CONFIG.bsolMint,
+    mint: blaze.bsolMint,
     owner: bsolTokenAccountAuthority,
   });
 
@@ -85,25 +83,25 @@ export const blazeDepositStake = async (
 
   const validatorAccount = await getVoterAddress(
     stakeAccount,
-    provider.connection
+    program.provider.connection
   );
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
     gsolMintAuthority,
-    stakeAccountDepositor: provider.publicKey,
+    stakeAccountDepositor: depositor,
     stakeAccount,
     depositorGsolTokenAccount,
     bsolTokenAccount: bsolAssociatedTokenAddress,
     bsolAccountAuthority: bsolTokenAccountAuthority,
-    stakePool: SOLBLAZE_CONFIG.pool,
-    validatorList: SOLBLAZE_CONFIG.validatorList,
-    stakePoolDepositAuthority: SOLBLAZE_DEPOSIT_AUTHORITY,
-    stakePoolWithdrawAuthority: SOLBLAZE_WITHDRAW_AUTHORITY,
+    stakePool: blaze.pool,
+    validatorList: blaze.validatorList,
+    stakePoolDepositAuthority: blaze.depositAuthority,
+    stakePoolWithdrawAuthority: blaze.withdrawAuthority,
     validatorStakeAccount: validatorAccount,
-    reserveStakeAccount: SOLBLAZE_CONFIG.reserveAccount,
-    managerFeeAccount: SOLBLAZE_CONFIG.managerAccount,
-    stakePoolTokenMint: SOLBLAZE_CONFIG.bsolMint,
+    reserveStakeAccount: blaze.reserveAccount,
+    managerFeeAccount: blaze.feesDepot,
+    stakePoolTokenMint: blaze.bsolMint,
     sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
     sysvarClock: SYSVAR_CLOCK_PUBKEY,
     nativeStakeProgram: StakeProgram.programId,
@@ -112,4 +110,90 @@ export const blazeDepositStake = async (
   };
 
   return program.methods.splDepositStake().accounts(accounts).transaction();
+};
+
+export const blazeWithdrawSol = async (
+  config: SunriseStakeConfig,
+  program: Program<SunriseStake>,
+  blaze: BlazeState,
+  user: PublicKey,
+  userGsolTokenAccount: PublicKey,
+  amount: BN
+): Promise<Transaction> => {
+  const [gsolMintAuthority] = findGSolMintAuthority(config);
+  const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
+  const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
+    mint: blaze.bsolMint,
+    owner: bsolTokenAccountAuthority,
+  });
+
+  type Accounts = Parameters<
+    ReturnType<typeof program.methods.splWithdrawSol>["accounts"]
+  >[0];
+
+  const accounts: Accounts = {
+    state: config.stateAddress,
+    gsolMint: config.gsolMint,
+    gsolMintAuthority,
+    user,
+    userGsolTokenAccount,
+    bsolTokenAccount: bsolAssociatedTokenAddress,
+    bsolAccountAuthority: bsolTokenAccountAuthority,
+    stakePool: blaze.pool,
+    stakePoolWithdrawAuthority: blaze.withdrawAuthority,
+    reserveStakeAccount: blaze.reserveAccount,
+    managerFeeAccount: blaze.feesDepot,
+    stakePoolTokenMint: blaze.bsolMint,
+    sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
+    sysvarClock: SYSVAR_CLOCK_PUBKEY,
+    nativeStakeProgram: StakeProgram.programId,
+    stakePoolProgram: STAKE_POOL_PROGRAM_ID,
+    tokenProgram: TOKEN_PROGRAM_ID,
+  };
+
+  return program.methods.splWithdrawSol(amount).accounts(accounts).transaction();
+};
+
+export const blazeWithdrawStake = async (
+  config: SunriseStakeConfig,
+  program: Program<SunriseStake>,
+  blaze: BlazeState,
+  newStakeAccount: PublicKey,
+  user: PublicKey,
+  userGsolTokenAccount: PublicKey,
+  amount: BN,
+): Promise<Transaction> => {
+  const [gsolMintAuthority] = findGSolMintAuthority(config);
+  const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
+  const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
+    mint: blaze.bsolMint,
+    owner: bsolTokenAccountAuthority,
+  });
+
+  type Accounts = Parameters<
+    ReturnType<typeof program.methods.splWithdrawStake>["accounts"]
+  >[0];
+
+  const accounts: Accounts = {
+    state: config.stateAddress,
+    gsolMint: config.gsolMint,
+    gsolMintAuthority,
+    user,
+    userGsolTokenAccount,
+    userNewStakeAccount: newStakeAccount,
+    bsolTokenAccount: bsolAssociatedTokenAddress,
+    bsolAccountAuthority: bsolTokenAccountAuthority,
+    stakePool: blaze.pool,
+    validatorStakeList: blaze.validatorList,
+    stakePoolWithdrawAuthority: blaze.withdrawAuthority,
+    stakeAccountToSplit: blaze.reserveAccount,
+    managerFeeAccount: blaze.feesDepot,
+    stakePoolTokenMint: blaze.bsolMint,
+    sysvarClock: SYSVAR_CLOCK_PUBKEY,
+    nativeStakeProgram: StakeProgram.programId,
+    stakePoolProgram: STAKE_POOL_PROGRAM_ID,
+    tokenProgram: TOKEN_PROGRAM_ID,
+  };
+
+  return program.methods.splWithdrawStake(amount).accounts(accounts).transaction();
 };
