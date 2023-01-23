@@ -213,12 +213,15 @@ export class SunriseStakeClient {
     return createATAInstruction;
   }
 
-  public async deposit(lamports: BN): Promise<string> {
+  public async makeDeposit(lamports: BN): Promise<string> {
     let details = await this.details();
     if (marinadeTargetReached(details, 75)) {
-      return this.depositToBlaze(lamports);
+      return this.depositToBlaze(lamports)
     }
+    return this.deposit(lamports);
+  }
 
+  public async deposit(lamports: BN): Promise<string> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -518,7 +521,7 @@ export class SunriseStakeClient {
     return this.claimUnstakeTicket(account);
   }
 
-  public async blazeWithdrawal(amount: BN): Promise<string> {
+  public async withdrawFromBlaze(amount: BN): Promise<string> {
     if (
       !this.blazeState ||
       !this.config ||

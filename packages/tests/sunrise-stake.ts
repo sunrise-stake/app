@@ -162,7 +162,7 @@ describe("sunrise-stake", () => {
 
     const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
 
-    await client.blazeDeposit(depositAmount);
+    await client.depositToBlaze(depositAmount);
 
     await expectBSolTokenBalance(client, expectedBSol, 50);
     await expectStakerGSolTokenBalance(
