@@ -15,7 +15,7 @@ import { WelcomePage } from "./WelcomePage";
 export const WalletConnectionWrapper: FC = () => {
   const wallet = useWallet();
   return (
-    <div className="min-h-full w-full flex flex-col items-center">
+    <div className="min-h-screen w-full flex flex-col items-center">
       <header className="container flex mt-12 mb-4 px-8">
         <div className="grow text-3xl">
           <img
@@ -32,7 +32,7 @@ export const WalletConnectionWrapper: FC = () => {
           </WalletMultiButton>
         </div>
       </header>
-      <main className="container mx-auto px-8">
+      <main className="container grow mx-auto px-8">
         <>{wallet.connected ? <StakeDashboard /> : <WelcomePage />}</>
       </main>
       <footer>
