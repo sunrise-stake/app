@@ -1,4 +1,4 @@
-// @solana/spl-stake-pool provides a simple function call for this but couldn't
+// @solana/spl-stake-pool provides a simple function call for this but I couldn't
 // get it to work because it uses version 0.1.8 of @solana/spl-token which causes
 // clashes. The following code is directly from src
 

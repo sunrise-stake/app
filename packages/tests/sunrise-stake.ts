@@ -15,7 +15,6 @@ import {
   log,
   waitForNextEpoch,
   expectBSolTokenBalance,
-  initializeMint,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -25,6 +24,7 @@ import {
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
 } from "@sunrisestake/app/src/lib/constants";
+import { getStakePoolAccount } from "@sunrisestake/app/src/lib/client/decode_stake_pool";
 
 chai.use(chaiAsPromised);
 
@@ -148,13 +148,22 @@ describe("sunrise-stake", () => {
     const depositAmount = new BN(100 * LAMPORTS_PER_SOL);
     await getBalance(client);
     const bsolPrice = await getBsolPrice(client);
+
+    const poolInfo = await getStakePoolAccount(
+      client.provider.connection,
+      client.blazeState!.pool
+    );
+    // console.log(poolInfo);
+
+    const solDepositFee =
+      Number(poolInfo.solDepositFee.numerator) /
+      Number(poolInfo.solDepositFee.denominator);
+    console.log("sol deposit fee: ", solDepositFee); // the 0.08% comes back to us so it's accounted for
+
     const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
 
     await client.blazeDeposit(depositAmount);
 
-    // Displays about 48.56 bsol rather than 50
-    // This could be due to either fees or my assumption about bsol's price being
-    // off my a wide margin
     await expectBSolTokenBalance(client, expectedBSol, 50);
     await expectStakerGSolTokenBalance(
       client,
@@ -164,7 +173,7 @@ describe("sunrise-stake", () => {
 
   it("no yield to extract yet", async () => {
     const { extractableYield } = await client.details();
-    console.log("extractableYield", extractableYield.toString());
+    console.log("extractableYield: ", extractableYield.toString());
 
     expectAmount(extractableYield, 0, 100);
   });

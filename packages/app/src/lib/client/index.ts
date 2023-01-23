@@ -47,6 +47,7 @@ import {
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
   SOLBLAZE_CONFIG,
+  STAKE_POOL_PROGRAM_ID,
 } from "../constants";
 import {
   deposit,
@@ -55,8 +56,9 @@ import {
   orders,
   triggerRebalance,
 } from "./marinade";
-import { blazeDeposit, blazeDepositStake } from "./blaze";
+import { blazeDeposit, blazeDepositStake, blazeWithdrawSol, blazeWithdrawStake } from "./blaze";
 import { ZERO } from "../util";
+import { BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
 
 export class SunriseStakeClient {
@@ -77,7 +79,7 @@ export class SunriseStakeClient {
   bsolTokenAccountAuthority: PublicKey | undefined;
   bsolTokenAccount: PublicKey | undefined;
 
-  blazePool: PublicKey | undefined;
+  blazeState: BlazeState | undefined;
 
   liqPoolTokenAccount: PublicKey | undefined;
 
@@ -109,8 +111,6 @@ export class SunriseStakeClient {
       liqPoolMinProportion: sunriseStakeState.liqPoolMinProportion,
       options: this.options,
     };
-
-    this.log("Config", this.config);
 
     this.stakerGSolTokenAccount = PublicKey.findProgramAddressSync(
       [
@@ -147,11 +147,36 @@ export class SunriseStakeClient {
       mint: this.marinadeState.lpMint.address,
       owner: this.msolTokenAccountAuthority,
     });
+
+    const stakePoolInfo = await getStakePoolAccount(
+      this.provider.connection,
+      SOLBLAZE_CONFIG.pool
+    );
+    const [withdrawAuthority] = PublicKey.findProgramAddressSync(
+      [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("withdraw")],
+      STAKE_POOL_PROGRAM_ID
+    );
+
+    const [depositAuthority] = PublicKey.findProgramAddressSync(
+      [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("deposit")],
+      STAKE_POOL_PROGRAM_ID
+    );
+
+    this.blazeState = {
+      pool: SOLBLAZE_CONFIG.pool,
+      bsolMint: stakePoolInfo.poolMint,
+      validatorList: stakePoolInfo.validatorList,
+      reserveAccount: stakePoolInfo.reserveStake,
+      managerAccount: stakePoolInfo.manager,
+      feesDepot: stakePoolInfo.managerFeeAccount,
+      withdrawAuthority,
+      depositAuthority,
+    };
+
     this.bsolTokenAccount = await utils.token.associatedAddress({
-      mint: SOLBLAZE_CONFIG.bsolMint,
+      mint: stakePoolInfo.poolMint,
       owner: this.bsolTokenAccountAuthority,
     });
-    this.blazePool = SOLBLAZE_CONFIG.pool;
   }
 
   private async sendAndConfirmTransaction(
@@ -218,7 +243,7 @@ export class SunriseStakeClient {
   }
 
   public async blazeDeposit(lamports: BN): Promise<string> {
-    if (!this.config || !this.stakerGSolTokenAccount)
+    if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
@@ -235,6 +260,7 @@ export class SunriseStakeClient {
     const depositTx = await blazeDeposit(
       this.config,
       this.program,
+      this.blazeState,
       this.provider.publicKey,
       this.stakerGSolTokenAccount,
       lamports
@@ -247,7 +273,7 @@ export class SunriseStakeClient {
   public async blazeDepositStakeAccount(
     stakeAccountAddress: PublicKey
   ): Promise<string> {
-    if (!this.config || !this.stakerGSolTokenAccount)
+    if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
@@ -263,8 +289,9 @@ export class SunriseStakeClient {
 
     const depositTx = await blazeDepositStake(
       this.config,
-      this.provider,
       this.program,
+      this.blazeState,
+      this.provider.publicKey,
       stakeAccountAddress,
       this.stakerGSolTokenAccount
     );
@@ -481,9 +508,60 @@ export class SunriseStakeClient {
     return this.claimUnstakeTicket(account);
   }
 
+  public async blazeWithdrawal(
+    amount: BN,
+  ): Promise<string> {
+    if (
+      !this.blazeState ||
+      !this.config ||
+      !this.stakerGSolTokenAccount ||
+      !this.bsolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const withdrawIx = await blazeWithdrawSol(
+      this.config,
+      this.program,
+      this.blazeState,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      amount
+    );
+
+    let transaction = new Transaction().add(withdrawIx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+
+  public async blazeStakeWithdrawal(
+    newStakeAccount: PublicKey,
+    amount: BN,
+  ): Promise<string> {
+    if (
+      !this.blazeState ||
+      !this.config ||
+      !this.stakerGSolTokenAccount ||
+      !this.bsolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const withdrawStakeIx = await blazeWithdrawStake(
+      this.config,
+      this.program,
+      this.blazeState,
+      newStakeAccount,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      amount
+    );
+
+    let transaction = new Transaction().add(withdrawStakeIx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
   public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
       !this.marinadeState ||
+      !this.blazeState ||
       !this.marinade ||
       !this.config ||
       !this.msolTokenAccount ||
@@ -504,10 +582,10 @@ export class SunriseStakeClient {
     const accounts: Accounts = {
       state: this.stateAddress,
       marinadeState: this.marinadeState.marinadeStateAddress,
-      blazeState: this.blazePool,
+      blazeState: this.blazeState.pool,
       msolMint: this.marinadeState.mSolMintAddress,
       gsolMint: this.config.gsolMint,
-      bsolMint: SOLBLAZE_CONFIG.bsolMint,
+      bsolMint: this.blazeState.bsolMint,
       liqPoolMint: this.marinadeState.lpMint.address,
       liqPoolSolLegPda,
       liqPoolMsolLeg: this.marinadeState.mSolLeg,
@@ -732,14 +810,12 @@ export class SunriseStakeClient {
     bsolAmount: BN,
     stakePoolInfo: StakePool
   ): [number, BN] {
-    const price =
-      BigInt(stakePoolInfo.totalLamports.toString()) /
-      BigInt(stakePoolInfo.poolTokenSupply.toNumber());
-    const bsolPrice = new BN(price.toString());
+    const bsolPrice =
+      Number(stakePoolInfo.totalLamports) /
+      Number(stakePoolInfo.poolTokenSupply);
+    const solValue = Math.floor(Number(bsolAmount) * bsolPrice);
 
-    const solValue = proportionalBN(bsolAmount, bsolPrice, new BN(1));
-
-    return [bsolPrice.toNumber(), solValue];
+    return [bsolPrice, new BN(solValue)];
   }
 
   private readonly getRegisterStateAccounts = async (
@@ -838,17 +914,23 @@ export class SunriseStakeClient {
 
     // deposited in Stake Pool
     const msolBalance = new BN(balances.msolBalance.amount);
+    console.log("msolBalance: ", msolBalance.toString());
     const solValueOfMSol = mpDetails.msolValue;
+    console.log("msolValue: ", solValueOfMSol.toString());
     const solValueOfBSol = bpDetails.bsolValue;
+    console.log("bsolValue: ", solValueOfBSol.toString());
 
     // deposited in Liquidity Pool
     const solValueOfLP = lpDetails.lpSolValue;
+    console.log("liquidity pool value: ", solValueOfLP.toString());
 
     const gsolSupply = new BN(balances.gsolSupply.amount);
 
     const totalSolValueStaked = solValueOfMSol
       .add(solValueOfLP)
       .add(solValueOfBSol);
+
+    console.log("totalValueStaked:", totalSolValueStaked.toString());
 
     const inflightTotal = inflight.reduce(
       (acc, { totalOrderedLamports }) => acc.add(totalOrderedLamports),

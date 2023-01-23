@@ -492,16 +492,13 @@ pub fn calculate_extractable_yield<'a>(
     let lp_value = liquidity_pool_balance.sol_value(&accounts.marinade_state);
     let msol_value =
         calc_lamports_from_msol_amount(&accounts.marinade_state, msol_token_account.amount)?;
-    msg!("calculated msol_value");
     let bsol_value =
         calc_lamports_from_bsol_amount(&accounts.blaze_state, bsol_token_account.amount)?;
-    msg!("calculated bsol value??");
     let total_staked_value = lp_value
         .checked_add(msol_value)
         .unwrap()
         .checked_add(bsol_value)
         .expect("total_staked_value");
-    msg!("calculated total_staked_value");
 
     let gsol_supply = gsol_mint.supply;
     let total_extractable_yield = total_staked_value
@@ -524,17 +521,11 @@ pub fn calc_lamports_from_bsol_amount<'a>(
     blaze_stake_pool: &AccountInfo,
     bsol_balance: u64,
 ) -> Result<u64> {
-    msg!("Started deserializing");
     let stake_pool = try_from_slice_unchecked::<spl_stake_pool::state::StakePool>(
         &blaze_stake_pool.data.borrow(),
     )?;
-    msg!("Failed deserializing");
 
-    proportional(
-        bsol_balance,
-        stake_pool.total_lamports,
-        stake_pool.pool_token_supply,
-    )
+    Ok(stake_pool.calc_lamports_withdraw_amount(bsol_balance).unwrap())
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

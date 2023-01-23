@@ -1,21 +1,9 @@
 import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
-import {
-  Keypair,
-  Transaction,
-  SystemProgram,
-  sendAndConfirmTransaction,
-} from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
 import { SOLBLAZE_CONFIG } from "../app/src/lib/constants";
-import { findGSolMintAuthority } from "@sunrisestake/app/src/lib/client/util";
-import {
-  createBurnInstruction,
-  getMinimumBalanceForRentExemptMint,
-  MINT_SIZE,
-  TOKEN_PROGRAM_ID,
-  createInitializeMint2Instruction,
-} from "@solana/spl-token";
+import { createBurnInstruction } from "@solana/spl-token";
 import { getStakePoolAccount } from "../app/src/lib/client/decode_stake_pool";
 
 // Set in anchor.toml
@@ -119,9 +107,6 @@ export const expectBSolTokenBalance = async (
   const bsolBalance = await client.provider.connection.getTokenAccountBalance(
     client.bsolTokenAccount!
   );
-  console.log("ExpectedBsolTokenBalance: ");
-  console.log("   ", bsolBalance.value.amount);
-  console.log("   ", expectedAmount);
   expectAmount(new BN(bsolBalance.value.amount), expectedAmount, tolerance);
 };
 
@@ -166,9 +151,6 @@ export const expectTreasurySolBalance = async (
     client.config!.treasury
   );
   log("Treasury SOL balance", treasuryBalance);
-  console.log("**Expected treasury sol balance:**");
-  console.log("   ", treasuryBalance.toString());
-  console.log("   ", expectedAmount.toString());
   expectAmount(treasuryBalance, expectedAmount, tolerance);
 };
 
@@ -225,38 +207,6 @@ export const getBsolPrice = async (
 
   const price =
     Number(accountInfo.totalLamports) / Number(accountInfo.poolTokenSupply);
-
   log("BSol price: ", price);
   return price;
-};
-
-export const initializeMint = async (
-  client: SunriseStakeClient,
-  mint: Keypair
-) => {
-  const [mintAuthority] = findGSolMintAuthority(client.config!);
-
-  const lamports = await getMinimumBalanceForRentExemptMint(
-    client.provider.connection
-  );
-  const transaction = new Transaction().add(
-    SystemProgram.createAccount({
-      fromPubkey: client.provider.publicKey,
-      newAccountPubkey: mint.publicKey,
-      space: MINT_SIZE,
-      lamports,
-      programId: TOKEN_PROGRAM_ID,
-    }),
-    createInitializeMint2Instruction(
-      mint.publicKey,
-      9,
-      mintAuthority,
-      mintAuthority,
-      TOKEN_PROGRAM_ID
-    )
-  );
-
-  await sendAndConfirmTransaction(client.provider.connection, transaction, [
-    mint,
-  ]);
 };
