@@ -517,7 +517,7 @@ pub fn calculate_extractable_yield<'a>(
 }
 
 // Used in calculating recoverable yield
-pub fn calc_lamports_from_bsol_amount<'a>(
+pub fn calc_lamports_from_bsol_amount(
     blaze_stake_pool: &AccountInfo,
     bsol_balance: u64,
 ) -> Result<u64> {
