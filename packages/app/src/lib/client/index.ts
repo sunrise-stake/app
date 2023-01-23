@@ -24,7 +24,7 @@ import {
   ZERO_BALANCE,
   Balance,
   proportionalBN,
-  marinadeTargetReached
+  marinadeTargetReached,
 } from "./util";
 import {
   Marinade,
@@ -214,9 +214,9 @@ export class SunriseStakeClient {
   }
 
   public async makeDeposit(lamports: BN): Promise<string> {
-    let details = await this.details();
+    const details = await this.details();
     if (marinadeTargetReached(details, 75)) {
-      return this.depositToBlaze(lamports)
+      return this.depositToBlaze(lamports);
     }
     return this.deposit(lamports);
   }
@@ -369,7 +369,8 @@ export class SunriseStakeClient {
       this.stateAddress,
       this.staker,
       this.stakerGSolTokenAccount,
-      lamports    );
+      lamports
+    );
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
