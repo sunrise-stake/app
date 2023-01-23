@@ -2093,6 +2093,17 @@
   resolved "https://registry.yarnpkg.com/@leichtgewicht/ip-codec/-/ip-codec-2.0.4.tgz#b2ac626d6cb9c8718ab459166d4bb405b8ffa78b"
   integrity sha512-Hcv+nVC0kZnQ3tD9GVu5xSMR4VVYOteQIr/hwFPVEvPdlXqgGEuRjiheChHgdM+JyqdgNcmzZOX/tnl0JOiI7A==
 
+"@marinade.finance/marinade-ts-sdk@^4.0.4":
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/@marinade.finance/marinade-ts-sdk/-/marinade-ts-sdk-4.0.4.tgz#f17fd8c89fb2eba9b801d0ae925ef978e4280ac0"
+  integrity sha512-JTqK1p+MLXWR5+jj/YWviylrBQDGUlSzcOATW+J/GLHeAtMGDqdw52scvcooq0dOl3J222PAQico9D3CUD2Wag==
+  dependencies:
+    "@project-serum/anchor" "^0.18.2"
+    "@solana/spl-token" "^0.3.6"
+    bignumber.js "^9.1.0"
+    borsh "^0.6.0"
+    bs58 "^5.0.0"
+
 "@metaplex-foundation/beet-solana@^0.3.0", "@metaplex-foundation/beet-solana@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@metaplex-foundation/beet-solana/-/beet-solana-0.3.1.tgz#4b37cda5c7f32ffd2bdd8b3164edc05c6463ab35"

@@ -56,7 +56,12 @@ import {
   orders,
   triggerRebalance,
 } from "./marinade";
-import { blazeDeposit, blazeDepositStake, blazeWithdrawSol, blazeWithdrawStake } from "./blaze";
+import {
+  blazeDeposit,
+  blazeDepositStake,
+  blazeWithdrawSol,
+  blazeWithdrawStake,
+} from "./blaze";
 import { ZERO } from "../util";
 import { BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
@@ -508,9 +513,7 @@ export class SunriseStakeClient {
     return this.claimUnstakeTicket(account);
   }
 
-  public async blazeWithdrawal(
-    amount: BN,
-  ): Promise<string> {
+  public async blazeWithdrawal(amount: BN): Promise<string> {
     if (
       !this.blazeState ||
       !this.config ||
@@ -528,14 +531,13 @@ export class SunriseStakeClient {
       amount
     );
 
-    let transaction = new Transaction().add(withdrawIx);
+    const transaction = new Transaction().add(withdrawIx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-
   public async blazeStakeWithdrawal(
     newStakeAccount: PublicKey,
-    amount: BN,
+    amount: BN
   ): Promise<string> {
     if (
       !this.blazeState ||
@@ -555,9 +557,10 @@ export class SunriseStakeClient {
       amount
     );
 
-    let transaction = new Transaction().add(withdrawStakeIx);
+    const transaction = new Transaction().add(withdrawStakeIx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
+
   public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
       !this.marinadeState ||

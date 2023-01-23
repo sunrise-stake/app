@@ -24,6 +24,7 @@ import {
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
 } from "@sunrisestake/app/src/lib/constants";
+import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
 import { getStakePoolAccount } from "@sunrisestake/app/src/lib/client/decode_stake_pool";
 
 chai.use(chaiAsPromised);
@@ -380,5 +381,53 @@ describe("sunrise-stake", () => {
     // marinade charges a 0.3% fee for liquid unstaking
     const expectedTreasuryBalance = new BN(burnLamports).muln(997).divn(1000);
     await expectTreasurySolBalance(client, expectedTreasuryBalance, 10);
+  });
+
+  /**
+   * This test generates a situation where the liquidity pool balance is overfull, by adding fees to the pool.
+   */
+  it("can deposit sol after fees are sent to the liquidity pool, increasing the value of the liquidity pool tokens", async () => {
+    if (!client.marinade) {
+      throw new Error("Marinade state not initialized");
+    }
+
+    let details = await client.details();
+
+    // deposit directly into marinade, and withdrawing again, in order to add fees to the pool
+    // raising its value above the preferred amount.
+    const marinadeConfig = new MarinadeConfig({
+      connection: client.provider.connection,
+      publicKey: client.provider.publicKey,
+    });
+    const marinade = new Marinade(marinadeConfig);
+
+    log("LP Sol Value: ", details.lpDetails.lpSolValue.toNumber());
+    // Simulate fees being sent to the liquidity pool
+    log("Depositing directly into marinade");
+    let { transaction } = await marinade.deposit(
+      new BN(100000 * LAMPORTS_PER_SOL)
+    );
+    await client.provider.sendAndConfirm(transaction);
+    log("Liquid unstaking from marinade, sending fees into the liquidity pool");
+    ({ transaction } = await marinade.liquidUnstake(
+      new BN(90000 * LAMPORTS_PER_SOL)
+    ));
+    await client.provider.sendAndConfirm(transaction);
+    details = await client.details();
+    log("LP Sol Value: ", details.lpDetails.lpSolValue.toNumber());
+    log("preferred lp value", Number(details.balances.gsolSupply.amount) * 0.1);
+
+    const liqPoolBalance =
+      await client.provider.connection.getTokenAccountBalance(
+        client.liqPoolTokenAccount!
+      );
+
+    await client.deposit(new BN(0.01 * LAMPORTS_PER_SOL));
+
+    // the deposit should not increase the balance of the liquidity pool tokens
+    await expectLiqPoolTokenBalance(
+      client,
+      new BN(liqPoolBalance.value.amount)
+    );
   });
 });

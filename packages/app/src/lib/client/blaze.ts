@@ -14,7 +14,7 @@ import {
   getVoterAddress,
 } from "./util";
 import { STAKE_POOL_PROGRAM_ID } from "../constants";
-import { AnchorProvider, Program, utils } from "@project-serum/anchor";
+import { Program, utils } from "@project-serum/anchor";
 import { SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { BlazeState } from "./types/Solblaze";
@@ -151,7 +151,10 @@ export const blazeWithdrawSol = async (
     tokenProgram: TOKEN_PROGRAM_ID,
   };
 
-  return program.methods.splWithdrawSol(amount).accounts(accounts).transaction();
+  return program.methods
+    .splWithdrawSol(amount)
+    .accounts(accounts)
+    .transaction();
 };
 
 export const blazeWithdrawStake = async (
@@ -161,7 +164,7 @@ export const blazeWithdrawStake = async (
   newStakeAccount: PublicKey,
   user: PublicKey,
   userGsolTokenAccount: PublicKey,
-  amount: BN,
+  amount: BN
 ): Promise<Transaction> => {
   const [gsolMintAuthority] = findGSolMintAuthority(config);
   const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
@@ -195,5 +198,8 @@ export const blazeWithdrawStake = async (
     tokenProgram: TOKEN_PROGRAM_ID,
   };
 
-  return program.methods.splWithdrawStake(amount).accounts(accounts).transaction();
+  return program.methods
+    .splWithdrawStake(amount)
+    .accounts(accounts)
+    .transaction();
 };
