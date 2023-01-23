@@ -56,7 +56,7 @@ import {
   orders,
   triggerRebalance,
 } from "./marinade";
-import { blazeDeposit, blazeDepositStake } from "./blaze";
+import { blazeDeposit, blazeDepositStake, blazeWithdrawSol, blazeWithdrawStake } from "./blaze";
 import { ZERO } from "../util";
 import { BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
@@ -289,9 +289,9 @@ export class SunriseStakeClient {
 
     const depositTx = await blazeDepositStake(
       this.config,
-      this.provider,
       this.program,
       this.blazeState,
+      this.provider.publicKey,
       stakeAccountAddress,
       this.stakerGSolTokenAccount
     );
@@ -508,6 +508,56 @@ export class SunriseStakeClient {
     return this.claimUnstakeTicket(account);
   }
 
+  public async blazeWithdrawal(
+    amount: BN,
+  ): Promise<string> {
+    if (
+      !this.blazeState ||
+      !this.config ||
+      !this.stakerGSolTokenAccount ||
+      !this.bsolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const withdrawIx = await blazeWithdrawSol(
+      this.config,
+      this.program,
+      this.blazeState,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      amount
+    );
+
+    let transaction = new Transaction().add(withdrawIx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+
+  public async blazeStakeWithdrawal(
+    newStakeAccount: PublicKey,
+    amount: BN,
+  ): Promise<string> {
+    if (
+      !this.blazeState ||
+      !this.config ||
+      !this.stakerGSolTokenAccount ||
+      !this.bsolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const withdrawStakeIx = await blazeWithdrawStake(
+      this.config,
+      this.program,
+      this.blazeState,
+      newStakeAccount,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      amount
+    );
+
+    let transaction = new Transaction().add(withdrawStakeIx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
   public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
       !this.marinadeState ||
