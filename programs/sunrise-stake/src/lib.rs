@@ -844,7 +844,7 @@ pub struct DepositStakeAccount<'info> {
     #[account(mut, has_one = marinade_state)]
     pub state: Box<Account<'info, State>>,
 
-    #[account()]
+    #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     #[account(

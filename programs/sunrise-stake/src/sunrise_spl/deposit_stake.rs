@@ -35,6 +35,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 #[derive(Accounts)]
 pub struct SplDepositStake<'info> {
     #[account(
+        mut,
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
