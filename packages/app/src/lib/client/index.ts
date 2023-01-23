@@ -24,6 +24,7 @@ import {
   ZERO_BALANCE,
   Balance,
   proportionalBN,
+  marinadeTargetReached
 } from "./util";
 import {
   Marinade,
@@ -213,6 +214,11 @@ export class SunriseStakeClient {
   }
 
   public async deposit(lamports: BN): Promise<string> {
+    let details = await this.details();
+    if (marinadeTargetReached(details, 75)) {
+      return this.depositToBlaze(lamports);
+    }
+
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -247,7 +253,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  public async blazeDeposit(lamports: BN): Promise<string> {
+  public async depositToBlaze(lamports: BN): Promise<string> {
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
@@ -275,7 +281,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  public async blazeDepositStakeAccount(
+  public async depositStakeToBlaze(
     stakeAccountAddress: PublicKey
   ): Promise<string> {
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
@@ -360,8 +366,7 @@ export class SunriseStakeClient {
       this.stateAddress,
       this.staker,
       this.stakerGSolTokenAccount,
-      lamports
-    );
+      lamports    );
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
@@ -535,7 +540,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  public async blazeStakeWithdrawal(
+  public async withdrawStakeFromBlaze(
     newStakeAccount: PublicKey,
     amount: BN
   ): Promise<string> {

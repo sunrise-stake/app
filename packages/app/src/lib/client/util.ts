@@ -11,6 +11,8 @@ import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
 import { ManagementAccount } from "./types/ManagementAccount";
 import { MarinadeState } from "@sunrisestake/marinade-ts-sdk";
+import { SunriseStakeClient } from "./index";
+import {Details} from "./types/Details";
 
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
@@ -244,3 +246,14 @@ export const getValidatorIndex = async (
     ? marinadeState.state.validatorSystem.validatorList.count
     : validatorLookupIndex;
 };
+
+export const marinadeTargetReached = (
+  details: Details,
+  percentage: number,
+): Boolean => {
+  const msolValue = details.mpDetails.msolValue;
+  const gsolSupply = new BN(details.balances.gsolSupply.amount);
+  const limit = proportionalBN(gsolSupply, new BN(percentage), new BN(100));
+
+  return msolValue > limit ? true : false
+}
