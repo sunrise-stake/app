@@ -22,7 +22,7 @@ test = "yarn test:anchor"
 
 [[test.genesis]]
 address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
-program = "packages/tests/fixtures/m_finance_logged.so"
+program = "packages/tests/fixtures/marinade_finance.so"
 
 [[test.genesis]]
 address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
@@ -59,17 +59,6 @@ filename = "packages/tests/fixtures/lp_mint_address.json"
 address = "Du3Ysj1wKbxPKkuPPnvzQLQh8oMSVifs3jGZjJWXFmHN"
 filename = "packages/tests/fixtures/reserve_pda.json"
 
-[[test.validator.account]]
-address = "DwFYJNnhLmw19FBTrVaLWZ8SZJpxdPoSYVSJaio9tjbY"
-filename = "packages/tests/fixtures/marinade_validator_list.json"
-
-[[test.validator.account]]
-address = "Anv3XE7e5saNdm16MU6bniYS59Mpv7DzQXHAhxJUmAKW"
-filename = "packages/tests/fixtures/stake_list.json"
-
-#[[test.validator.account]]
-#address = "Abqk8qzYTxVjN1J9kCSbRKoKcqxfm3VoA2GG3vqVTgwD"
-#filename = "packages/tests/fixtures/duplication_flag.json"
 
 # Solblaze fixtures
 [[test.validator.account]]
@@ -91,15 +80,3 @@ filename = "packages/tests/fixtures/blaze/reserve_account.json"
 [[test.validator.account]]
 address = "Dpo148tVGewDPyh2FkGV18gouWctbdX2fHJopJGe9xv1"
 filename = "packages/tests/fixtures/blaze/fees_depot.json"
-
-[[test.validator.account]]
-address = "E9W5kU2fnha9yp4RmFZgNNsRUvy6oKnB9ZyR9LC81WaE"
-filename = "packages/tests/fixtures/validator.json"
-
-[[test.validator.account]]
-address = "upd7dui9VYY9JbYLgpFy4rh9WAMjcm8YxiUBnENy69j"
-filename = "packages/tests/fixtures/blaze/updater_account.json"
-
-[[test.validator.account]]
-address = "b1azeTfpBiKN6AhEGVd1iPBsX3vmZqnFmS7Kqau7a2w"
-filename = "packages/tests/fixtures/blaze/manager_account.json"
