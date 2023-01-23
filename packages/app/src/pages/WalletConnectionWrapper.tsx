@@ -1,7 +1,14 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import React, { FC } from "react";
-import { FaWallet } from "react-icons/fa";
+import {
+  FaBookOpen,
+  FaGithub,
+  FaGlobeAmericas,
+  FaTwitter,
+  FaWallet,
+} from "react-icons/fa";
+import { Panel } from "../components/Panel";
 
 import { StakeDashboard } from "./StakeDashboard";
 import { WelcomePage } from "./WelcomePage";
@@ -29,6 +36,32 @@ export const WalletConnectionWrapper: FC = () => {
       <main className="container mx-auto px-8">
         <>{wallet.connected ? <StakeDashboard /> : <WelcomePage />}</>
       </main>
+      <footer>
+        <Panel className="container flex my-4 px-8 py-2 rounded-lg">
+          {/* <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4"> */}
+          <a className="inline-block mr-4" href="https://www.sunrisestake.com/">
+            <FaGlobeAmericas size={32} title="Website" />
+          </a>
+          <a
+            className="inline-block mr-4"
+            href="https://docs.sunrisestake.com/"
+          >
+            <FaBookOpen size={32} title="Docs" />
+          </a>
+          <a
+            className="inline-block mr-4"
+            href="https://github.com/sunrise-stake"
+          >
+            <FaTwitter size={32} title="Twitter" />
+          </a>
+          <a
+            className="inline-block mr-4"
+            href="https://github.com/sunrise-stake"
+          >
+            <FaGithub size={32} title="Github" />
+          </a>
+        </Panel>
+      </footer>
     </div>
   );
 };

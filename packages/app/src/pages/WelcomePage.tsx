@@ -46,7 +46,6 @@ export const WelcomePage: FC = () => {
             src={"./logo.png"}
             alt="Sunrise"
           />
-
           <CarbonRecovered />
         </div>
       )}
