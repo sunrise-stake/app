@@ -123,7 +123,7 @@ export type SunriseStake = {
         },
         {
           "name": "marinadeState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -741,7 +741,7 @@ export type SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -827,7 +827,7 @@ export type SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -938,7 +938,7 @@ export type SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1034,7 +1034,7 @@ export type SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1811,7 +1811,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "marinadeState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2429,7 +2429,7 @@ export const IDL: SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2515,7 +2515,7 @@ export const IDL: SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2626,7 +2626,7 @@ export const IDL: SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2722,7 +2722,7 @@ export const IDL: SunriseStake = {
       "accounts": [
         {
           "name": "state",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

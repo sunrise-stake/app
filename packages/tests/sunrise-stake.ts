@@ -15,6 +15,7 @@ import {
   log,
   waitForNextEpoch,
   expectBSolTokenBalance,
+  initializeStakeAccount,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -143,6 +144,35 @@ describe("sunrise-stake", () => {
     await expectMSolTokenBalance(client, expectedMsol, 50);
     await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
     await expectStakerGSolTokenBalance(client, depositLamports.toNumber());
+  });
+
+  it("can deposit a stake account to marinade", async () => {
+    const deposit = new BN(100 * LAMPORTS_PER_SOL);
+    // await getBalance(client); // print balance before deposit
+    const stakeAccount = Keypair.generate();
+    await initializeStakeAccount(client, stakeAccount, deposit);
+    // Wait for cooling down period
+    // console.log("waiting for 15s");
+    // await waitForNextEpoch(client);
+    // await waitForNextEpoch(client);
+    const info = await client.provider.connection.getAccountInfo(
+      stakeAccount.publicKey
+    );
+    const balance = info?.lamports.toString();
+    console.log("stake account balance: ", balance);
+
+    const expectedMsol = Math.floor(
+      deposit.toNumber() / client.marinadeState!.mSolPrice
+    );
+
+    try {
+      await client.depositStakeAccount(stakeAccount.publicKey);
+    } catch (err) {
+      console.log(err);
+    }
+
+    await expectMSolTokenBalance(client, expectedMsol, 50);
+    await expectStakerGSolTokenBalance(client, deposit.toNumber());
   });
 
   it("can deposit to blaze", async () => {

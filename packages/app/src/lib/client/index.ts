@@ -215,9 +215,11 @@ export class SunriseStakeClient {
 
   public async makeDeposit(lamports: BN): Promise<string> {
     const details = await this.details();
-    if (marinadeTargetReached(details, 75)) {
+    if (marinadeTargetReached(details, 75) === true) {
+      console.log("Routing deposit to Solblaze");
       return this.depositToBlaze(lamports);
     }
+    console.log("Depositing to marinade");
     return this.deposit(lamports);
   }
 
@@ -304,6 +306,7 @@ export class SunriseStakeClient {
     const depositTx = await blazeDepositStake(
       this.config,
       this.program,
+      this.provider,
       this.blazeState,
       this.provider.publicKey,
       stakeAccountAddress,

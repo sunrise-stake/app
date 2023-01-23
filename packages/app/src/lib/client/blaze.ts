@@ -11,13 +11,13 @@ import {
   findBSolTokenAccountAuthority,
   findGSolMintAuthority,
   SunriseStakeConfig,
-  getVoterAddress,
 } from "./util";
 import { STAKE_POOL_PROGRAM_ID } from "../constants";
-import { Program, utils } from "@project-serum/anchor";
+import { AnchorProvider, Program, utils } from "@project-serum/anchor";
 import { SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { BlazeState } from "./types/Solblaze";
+import { MarinadeUtils, Provider, Wallet } from "@sunrisestake/marinade-ts-sdk";
 
 export const blazeDeposit = async (
   config: SunriseStakeConfig,
@@ -65,6 +65,7 @@ export const blazeDeposit = async (
 export const blazeDepositStake = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
+  provider: AnchorProvider,
   blaze: BlazeState,
   depositor: PublicKey,
   stakeAccount: PublicKey,
@@ -81,10 +82,23 @@ export const blazeDepositStake = async (
     ReturnType<typeof program.methods.splDepositStake>["accounts"]
   >[0];
 
-  const validatorAccount = await getVoterAddress(
-    stakeAccount,
-    program.provider.connection
+  const newProvider = new Provider(
+    provider.connection,
+    provider.wallet as Wallet,
+    {}
   );
+  const stakeAccountInfo = await MarinadeUtils.getParsedStakeAccountInfo(
+    newProvider,
+    stakeAccount
+  );
+  const validatorAccount = stakeAccountInfo.voterAddress;
+  if (!validatorAccount) {
+    throw new Error(`Invalid validator account`);
+  }
+
+  // const validatorAccount = await getVoterAddress(
+  //  stakeAccount, provider);
+
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,

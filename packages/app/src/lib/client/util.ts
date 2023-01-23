@@ -5,12 +5,16 @@ import {
   PublicKey,
   TokenAmount,
   Transaction,
-  StakeProgram,
 } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
 import { ManagementAccount } from "./types/ManagementAccount";
-import { MarinadeState } from "@sunrisestake/marinade-ts-sdk";
+import {
+  MarinadeState,
+  MarinadeUtils,
+  Provider,
+  Wallet,
+} from "@sunrisestake/marinade-ts-sdk";
 import { Details } from "./types/Details";
 
 export const enum ProgramDerivedAddressSeed {
@@ -199,38 +203,35 @@ export const proportionalBN = (
   return new BN(result.toString());
 };
 
-export const getVoterAddress = async (
-  stakeAccountAddress: PublicKey,
-  connection: Connection
-): Promise<PublicKey> => {
-  const { value: stakeAccountInfo } = await connection.getParsedAccountInfo(
-    stakeAccountAddress
+export const getStakeAccountInfo = async (
+  stakeAccount: PublicKey,
+  anchorProvider: AnchorProvider
+  // program: anchor.Program<SunriseStake>,
+): Promise<MarinadeUtils.ParsedStakeAccountInfo> => {
+  const provider = new Provider(
+    anchorProvider.connection,
+    anchorProvider.wallet as Wallet,
+    {}
   );
 
-  if (!stakeAccountInfo) {
-    throw new Error(
-      `Failed getting info for ${stakeAccountAddress.toBase58()}`
-    );
+  const parsedData = MarinadeUtils.getParsedStakeAccountInfo(
+    provider,
+    stakeAccount
+  );
+  console.log("parsedData: ", parsedData);
+  return parsedData;
+};
+
+export const getVoterAddress = async (
+  stakeAccount: PublicKey,
+  provider: AnchorProvider
+  // program: Program<SunriseStake>,
+): Promise<PublicKey> => {
+  const info = await getStakeAccountInfo(stakeAccount, provider);
+  if (!info.voterAddress) {
+    throw new Error(`Stake account must be delegated`);
   }
-
-  if (!stakeAccountInfo.owner.equals(StakeProgram.programId)) {
-    throw new Error(`${stakeAccountAddress.toBase58()} is not a stake account`);
-  }
-
-  if (stakeAccountInfo.data instanceof Buffer) {
-    throw new Error(`Invalid parsed account data`);
-  }
-
-  const { parsed: data } = stakeAccountInfo.data;
-
-  const voterAddress =
-    data.voterAddress === null ? null : new PublicKey(data.voterAddress);
-
-  if (!voterAddress) {
-    throw new Error(`The stake account is not delegated`);
-  }
-
-  return voterAddress;
+  return info.voterAddress;
 };
 
 export const getValidatorIndex = async (
@@ -241,9 +242,11 @@ export const getValidatorIndex = async (
   const validatorLookupIndex = validatorRecords.findIndex(
     ({ validatorAccount }) => validatorAccount.equals(voterAddress)
   );
-  return validatorLookupIndex === -1
-    ? marinadeState.state.validatorSystem.validatorList.count
-    : validatorLookupIndex;
+  const validatorIndex =
+    validatorLookupIndex === -1
+      ? marinadeState.state.validatorSystem.validatorList.count
+      : validatorLookupIndex;
+  return validatorIndex;
 };
 
 export const marinadeTargetReached = (

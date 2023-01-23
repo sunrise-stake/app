@@ -1,5 +1,5 @@
 import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
-import { Transaction } from "@solana/web3.js";
+import { Keypair, PublicKey, StakeProgram, Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
 import { SOLBLAZE_CONFIG } from "../app/src/lib/constants";
@@ -209,4 +209,50 @@ export const getBsolPrice = async (
     Number(accountInfo.totalLamports) / Number(accountInfo.poolTokenSupply);
   log("BSol price: ", price);
   return price;
+};
+
+export const initializeStakeAccount = async (
+  client: SunriseStakeClient,
+  stakeAccount: Keypair,
+  lamports: BN
+) => {
+  /* let lockup =  {
+    unixTimestamp: 0,
+    epoch: 0,
+    custodian: client.provider.publicKey
+  }; */
+  const authorized = {
+    staker: client.provider.publicKey,
+    withdrawer: client.provider.publicKey,
+  };
+
+  const createParams = {
+    fromPubkey: client.provider.publicKey,
+    stakePubkey: stakeAccount.publicKey,
+    authorized,
+    // lockup,
+    lamports: lamports.toNumber(),
+  };
+  const createIx = StakeProgram.createAccount(createParams);
+
+  await client.provider.sendAndConfirm(new Transaction().add(createIx), [
+    stakeAccount,
+  ]);
+  /*
+  export type DelegateStakeParams = {
+  stakePubkey: PublicKey;
+  authorizedPubkey: PublicKey;
+  votePubkey: PublicKey;
+  */
+  const validatorAddress = new PublicKey(
+    "E9W5kU2fnha9yp4RmFZgNNsRUvy6oKnB9ZyR9LC81WaE"
+  );
+  const delegateParams = {
+    stakePubkey: stakeAccount.publicKey,
+    authorizedPubkey: client.provider.publicKey,
+    votePubkey: validatorAddress,
+  };
+
+  const delegateIx = StakeProgram.delegate(delegateParams);
+  await client.provider.sendAndConfirm(new Transaction().add(delegateIx), []);
 };
