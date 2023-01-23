@@ -8,7 +8,6 @@ import {
   FaTwitter,
   FaWallet,
 } from "react-icons/fa";
-import { Panel } from "../components/Panel";
 
 import { StakeDashboard } from "./StakeDashboard";
 import { WelcomePage } from "./WelcomePage";
@@ -37,9 +36,9 @@ export const WalletConnectionWrapper: FC = () => {
         <>{wallet.connected ? <StakeDashboard /> : <WelcomePage />}</>
       </main>
       <footer>
-        <Panel className="container flex my-4 px-8 py-2 rounded-lg">
+        <div className="container flex my-4 px-8 py-2 rounded-lg">
           <a
-            className="inline-block mr-4"
+            className="inline-block mr-4 text-[#AAA]"
             href="https://www.sunrisestake.com/"
             target="_blank"
             rel="noreferrer"
@@ -47,7 +46,7 @@ export const WalletConnectionWrapper: FC = () => {
             <FaGlobeAmericas size={32} title="Website" />
           </a>
           <a
-            className="inline-block mr-4"
+            className="inline-block mr-4 text-[#AAA]"
             href="https://docs.sunrisestake.com/"
             target="_blank"
             rel="noreferrer"
@@ -55,7 +54,7 @@ export const WalletConnectionWrapper: FC = () => {
             <FaBookOpen size={32} title="Docs" />
           </a>
           <a
-            className="inline-block mr-4"
+            className="inline-block mr-4 text-[#AAA]"
             href="https://twitter.com/sunrisestake"
             target="_blank"
             rel="noreferrer"
@@ -63,14 +62,14 @@ export const WalletConnectionWrapper: FC = () => {
             <FaTwitter size={32} title="Twitter" />
           </a>
           <a
-            className="inline-block mr-4"
+            className="inline-block text-[#AAA]"
             href="https://github.com/sunrise-stake"
             target="_blank"
             rel="noreferrer"
           >
             <FaGithub size={32} title="Github" />
           </a>
-        </Panel>
+        </div>
       </footer>
     </div>
   );
