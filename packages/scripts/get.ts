@@ -17,12 +17,12 @@ import BN from "bn.js";
     ZERO
   );
 
-  const totalValue = details.spDetails.msolValue
+  const totalValue = details.mpDetails.msolValue
     .add(details.lpDetails.lpSolValue)
     .add(inflightTotal);
 
   const spShare =
-    details.spDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
   const lpShare =
     details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() / 100;
   const inflightShare =
@@ -37,7 +37,7 @@ import BN from "bn.js";
   const report: Record<string, string> = {
     "gSOL Supply": details.balances.gsolSupply.uiAmountString ?? "-",
     "Stake Pool Value": `${toSol(
-      details.spDetails.msolValue
+      details.mpDetails.msolValue
     )} (${spShare.toString()}%)`,
     "Liquidity Pool Value": `${toSol(
       details.lpDetails.lpSolValue

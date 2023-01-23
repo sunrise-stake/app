@@ -315,6 +315,7 @@ pub mod sunrise_stake {
         let extractable_yield = calculate_extractable_yield(
             ctx.accounts,
             &ctx.accounts.get_msol_from,
+            &ctx.accounts.get_bsol_from,
             &ctx.accounts.gsol_mint,
         )?;
 
@@ -562,12 +563,17 @@ impl State {
     }
 }
 
+#[allow(dead_code)]
 pub fn check_mint_supply(state: &State, gsol_mint: &Account<Mint>) -> Result<()> {
     require_keys_eq!(state.gsol_mint, gsol_mint.key());
     let expected_total = state
         .blaze_minted_gsol
         .checked_add(state.marinade_minted_gsol)
         .unwrap();
+    msg!("blaze_minted_gsol: {}", state.blaze_minted_gsol);
+    msg!("marinade_minted_gsol: {}", state.marinade_minted_gsol);
+    msg!("expected total: {}", expected_total);
+    msg!("actual supply: {}", gsol_mint.supply);
 
     // Should be impossible but still
     require_eq!(
@@ -839,7 +845,7 @@ pub struct DepositStakeAccount<'info> {
     #[account(mut, has_one = marinade_state)]
     pub state: Box<Account<'info, State>>,
 
-    #[account()]
+    #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     #[account(
@@ -1229,17 +1235,23 @@ pub struct ExtractToTreasury<'info> {
     #[account(
     has_one = treasury,
     has_one = marinade_state,
+    has_one = blaze_state,
     )]
     pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
+    /// CHECK: Checked
+    pub blaze_state: AccountInfo<'info>,
+
     #[account(mut)]
     pub msol_mint: Box<Account<'info, Mint>>,
 
     #[account()]
     pub gsol_mint: Box<Account<'info, Mint>>,
+
+    pub bsol_mint: Box<Account<'info, Mint>>,
 
     #[account()]
     pub liq_pool_mint: Box<Account<'info, Mint>>,
@@ -1276,6 +1288,19 @@ pub struct ExtractToTreasury<'info> {
     bump = state.msol_authority_bump
     )]
     pub get_msol_from_authority: SystemAccount<'info>, // sunrise-stake PDA
+
+    #[account(
+    mut,
+    token::mint = bsol_mint,
+    token::authority = get_bsol_from_authority,
+    )]
+    pub get_bsol_from: Box<Account<'info, TokenAccount>>,
+
+    #[account(
+    seeds = [state.key().as_ref(), BSOL_ACCOUNT],
+    bump = state.bsol_authority_bump
+    )]
+    pub get_bsol_from_authority: SystemAccount<'info>, // sunrise-stake PDA
 
     #[account(mut)]
     /// CHECK: Matches state.treasury

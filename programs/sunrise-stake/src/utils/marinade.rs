@@ -3,7 +3,11 @@ use crate::{
     ClaimUnstakeTicket, Deposit, DepositStakeAccount, ExtractToTreasury, LiquidUnstake,
     OrderUnstake, OrderUnstakeTicketManagementAccount, State, TriggerPoolRebalance,
 };
-use anchor_lang::{context::CpiContext, prelude::*, solana_program::stake::state::StakeState};
+use anchor_lang::{
+    context::CpiContext,
+    prelude::*,
+    solana_program::{borsh::try_from_slice_unchecked, stake::state::StakeState},
+};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::{
     cpi::{
@@ -474,6 +478,7 @@ pub fn calc_lamports_from_msol_amount(
 pub fn calculate_extractable_yield<'a>(
     accounts: &ExtractToTreasury,
     msol_token_account: &Account<'a, TokenAccount>,
+    bsol_token_account: &Account<'a, TokenAccount>,
     gsol_mint: &Account<'a, Mint>,
 ) -> Result<u64> {
     let liquidity_pool_balance = current_liq_pool_balance(
@@ -487,8 +492,12 @@ pub fn calculate_extractable_yield<'a>(
     let lp_value = liquidity_pool_balance.sol_value(&accounts.marinade_state);
     let msol_value =
         calc_lamports_from_msol_amount(&accounts.marinade_state, msol_token_account.amount)?;
+    let bsol_value =
+        calc_lamports_from_bsol_amount(&accounts.blaze_state, bsol_token_account.amount)?;
     let total_staked_value = lp_value
         .checked_add(msol_value)
+        .unwrap()
+        .checked_add(bsol_value)
         .expect("total_staked_value");
 
     let gsol_supply = gsol_mint.supply;
@@ -499,6 +508,7 @@ pub fn calculate_extractable_yield<'a>(
     // TODO Remove when no longer debugging
     msg!("lp_value: {}", lp_value);
     msg!("msol_value: {}", msol_value);
+    msg!("bsol_value: {}", bsol_value);
     msg!("total_staked_value: {}", total_staked_value);
     msg!("gsol_supply: {}", gsol_supply);
     msg!("total_extractable_yield: {}", total_extractable_yield);
@@ -507,20 +517,17 @@ pub fn calculate_extractable_yield<'a>(
 }
 
 // Used in calculating recoverable yield
-#[allow(dead_code)]
-pub fn bsol_value_in_lamports<'a>(
+pub fn calc_lamports_from_bsol_amount(
     blaze_stake_pool: &AccountInfo,
-    bsol_token_account: &Account<'a, TokenAccount>,
+    bsol_balance: u64,
 ) -> Result<u64> {
-    let stake_pool =
-        spl_stake_pool::state::StakePool::try_from_slice(&blaze_stake_pool.data.borrow())?;
-    let bsol_balance = bsol_token_account.amount;
+    let stake_pool = try_from_slice_unchecked::<spl_stake_pool::state::StakePool>(
+        &blaze_stake_pool.data.borrow(),
+    )?;
 
-    proportional(
-        bsol_balance,
-        stake_pool.total_lamports,
-        stake_pool.pool_token_supply,
-    )
+    Ok(stake_pool
+        .calc_lamports_withdraw_amount(bsol_balance)
+        .unwrap())
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -874,10 +881,9 @@ pub fn calculate_pool_balance_amounts(
 
 pub fn get_delegated_stake_amount(stake_account: &AccountInfo) -> Result<u64> {
     // Gets the active stake amount of the stake account. We need this to determine how much gSol to mint.
-    let stake_account_state =
-        StakeState::try_from_slice(&stake_account.to_account_info().data.borrow())?;
+    let stake_state = try_from_slice_unchecked::<StakeState>(&stake_account.data.borrow())?;
 
-    match stake_account_state.delegation() {
+    match stake_state.delegation() {
         Some(delegation) => Ok(delegation.stake),
         None => Err(crate::ErrorCode::NotDelegated.into()),
     }
