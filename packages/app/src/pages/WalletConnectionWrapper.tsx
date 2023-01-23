@@ -38,7 +38,7 @@ export const WalletConnectionWrapper: FC = () => {
       <footer>
         <div className="container flex my-4 px-8 py-2 rounded-lg">
           <a
-            className="inline-block mr-4 text-[#AAA]"
+            className="inline-block mr-4 text-[#AAA] active:text-white focus:text-white hover:text-white"
             href="https://www.sunrisestake.com/"
             target="_blank"
             rel="noreferrer"
@@ -46,7 +46,7 @@ export const WalletConnectionWrapper: FC = () => {
             <FaGlobeAmericas size={32} title="Website" />
           </a>
           <a
-            className="inline-block mr-4 text-[#AAA]"
+            className="inline-block mr-4 text-[#AAA] active:text-white focus:text-white hover:text-white"
             href="https://docs.sunrisestake.com/"
             target="_blank"
             rel="noreferrer"
@@ -54,7 +54,7 @@ export const WalletConnectionWrapper: FC = () => {
             <FaBookOpen size={32} title="Docs" />
           </a>
           <a
-            className="inline-block mr-4 text-[#AAA]"
+            className="inline-block mr-4 text-[#AAA] active:text-white focus:text-white hover:text-white"
             href="https://twitter.com/sunrisestake"
             target="_blank"
             rel="noreferrer"
@@ -62,7 +62,7 @@ export const WalletConnectionWrapper: FC = () => {
             <FaTwitter size={32} title="Twitter" />
           </a>
           <a
-            className="inline-block text-[#AAA]"
+            className="inline-block text-[#AAA] active:text-white focus:text-white hover:text-white"
             href="https://github.com/sunrise-stake"
             target="_blank"
             rel="noreferrer"
