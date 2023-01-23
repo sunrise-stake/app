@@ -8,6 +8,7 @@ import {
   FaTwitter,
   FaWallet,
 } from "react-icons/fa";
+import { Panel } from "../components/Panel";
 
 import { StakeDashboard } from "./StakeDashboard";
 import { WelcomePage } from "./WelcomePage";
@@ -36,9 +37,9 @@ export const WalletConnectionWrapper: FC = () => {
         <>{wallet.connected ? <StakeDashboard /> : <WelcomePage />}</>
       </main>
       <footer>
-        <div className="container flex my-4 px-8 py-2 rounded-lg">
+        <Panel className="container flex my-4 px-8 py-2 rounded-lg backdrop-blur-sm">
           <a
-            className="inline-block mr-4 text-[#AAA] active:text-white focus:text-white hover:text-white"
+            className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
             href="https://www.sunrisestake.com/"
             target="_blank"
             rel="noreferrer"
@@ -46,7 +47,7 @@ export const WalletConnectionWrapper: FC = () => {
             <FaGlobeAmericas size={32} title="Website" />
           </a>
           <a
-            className="inline-block mr-4 text-[#AAA] active:text-white focus:text-white hover:text-white"
+            className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
             href="https://docs.sunrisestake.com/"
             target="_blank"
             rel="noreferrer"
@@ -54,7 +55,7 @@ export const WalletConnectionWrapper: FC = () => {
             <FaBookOpen size={32} title="Docs" />
           </a>
           <a
-            className="inline-block mr-4 text-[#AAA] active:text-white focus:text-white hover:text-white"
+            className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
             href="https://twitter.com/sunrisestake"
             target="_blank"
             rel="noreferrer"
@@ -62,14 +63,14 @@ export const WalletConnectionWrapper: FC = () => {
             <FaTwitter size={32} title="Twitter" />
           </a>
           <a
-            className="inline-block text-[#AAA] active:text-white focus:text-white hover:text-white"
+            className="inline-block text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
             href="https://github.com/sunrise-stake"
             target="_blank"
             rel="noreferrer"
           >
             <FaGithub size={32} title="Github" />
           </a>
-        </div>
+        </Panel>
       </footer>
     </div>
   );
