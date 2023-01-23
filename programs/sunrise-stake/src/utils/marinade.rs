@@ -613,6 +613,14 @@ pub fn current_liq_pool_balance<'a>(
 
     msg!("Total LP: {:?}", total_balance);
     msg!("Sunrise LP: {:?}", sunrise_liq_pool_balance);
+    msg!(
+        "Total LP value: {:?}",
+        total_balance.sol_value(marinade_state)
+    );
+    msg!(
+        "Sunrise LP value: {:?}",
+        sunrise_liq_pool_balance.sol_value(marinade_state)
+    );
 
     Ok(sunrise_liq_pool_balance)
 }
@@ -683,13 +691,16 @@ pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> 
     )?;
     let preferred_balance =
         preferred_liq_pool_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
-    let missing_balance = preferred_balance
-        .checked_sub(liq_pool_balance.lamports)
-        .expect("missing_balance");
+
+    // if the preferred balance is less than the actual current balance, then we don't need to deposit
+    // any more. Return 0.
+    // This can happen if the value of the liquidity pool rises, via yield accrued through fees.
+    let liq_pool_value = liq_pool_balance.sol_value(&accounts.marinade_state);
+    let missing_balance = preferred_balance.saturating_sub(liq_pool_value);
     let amount_to_be_deposited = lamports.min(missing_balance);
     msg!(
-        "liq_pool_balance:{:?}, preferred_liq_pool_balance:{}, missing_balance:{}, amount_to_be_deposited:{}",
-        liq_pool_balance,
+        "liq_pool_balance value:{:?}, preferred_liq_pool_balance value:{}, missing_balance:{}, amount_to_be_deposited:{}",
+        liq_pool_value,
         preferred_balance,
         missing_balance,
         amount_to_be_deposited
@@ -807,6 +818,7 @@ pub fn calculate_pool_balance_amounts(
         requested_withdrawal_lamports.saturating_sub(amount_to_withdraw_from_liq_pool.lamports);
 
     // The amount that remains in the liquidity pool after the unstake
+    // checked_sub is safe as it cannot be more than the current balance
     let actual_pool_balance_after_unstake = liq_pool_balance
         .checked_sub_lamports(amount_to_withdraw_from_liq_pool.lamports)
         .expect("actual_pool_balance_after_unstake");
@@ -821,6 +833,7 @@ pub fn calculate_pool_balance_amounts(
 
     // This amount should be ordered for delayed unstake to rebalance the liquidity pool to its preferred minimum
     let amount_to_order_delayed_unstake = preferred_min_liq_pool_after_unstake
+        // checked_sub is appropriate, we use unwrap_or(0) to avoid a panic
         .checked_sub(actual_pool_balance_after_unstake.sol_value(&accounts.marinade_state))
         // the msol withdrawn from the liquidity pool will be sent into the msol pot, so should be discounted here
         .and_then(|pool_balance_shortfall_after_unstake| {
