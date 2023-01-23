@@ -64,24 +64,16 @@ address = "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"
 filename = "packages/tests/fixtures/blaze/b_sol_mint_address.json"
 
 [[test.validator.account]]
-address = "azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"
+address = "stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"
 filename = "packages/tests/fixtures/blaze/pool.json"
 
 [[test.validator.account]]
-address = "aEP3DRe8ssFXDFokXiNMo4UXLhpL7LEPVbneUsfqeaJ"
+address = "1istpXjy8BM7Vd5vPfA485frrV7SRJhgq5vs3sskWmc"
 filename = "packages/tests/fixtures/blaze/validator_list.json"
 
 [[test.validator.account]]
-address = "aRkys1kVHeysrcn9bJFat9FkvoyyYD8M1kK286X3Aro"
+address = "rsrxDvYUXjH1RQj2Ke36LNZEVqGztATxFkqNukERqFT"
 filename = "packages/tests/fixtures/blaze/reserve_account.json"
-
-[[test.validator.account]]
-address = "upd7dui9VYY9JbYLgpFy4rh9WAMjcm8YxiUBnENy69j"
-filename = "packages/tests/fixtures/blaze/updater_account.json"
-
-[[test.validator.account]]
-address = "b1azeTfpBiKN6AhEGVd1iPBsX3vmZqnFmS7Kqau7a2w"
-filename = "packages/tests/fixtures/blaze/manager_account.json"
 
 [[test.validator.account]]
 address = "Dpo148tVGewDPyh2FkGV18gouWctbdX2fHJopJGe9xv1"
