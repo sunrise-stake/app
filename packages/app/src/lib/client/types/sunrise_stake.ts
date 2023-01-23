@@ -756,7 +756,7 @@ export type SunriseStake = {
         },
         {
           "name": "depositor",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -2444,7 +2444,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "depositor",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
