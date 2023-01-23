@@ -1,5 +1,4 @@
 use crate::{
-    check_mint_supply,
     utils::{seeds, token as TokenUtils},
     State,
 };
@@ -39,6 +38,7 @@ pub struct SplDepositSol<'info> {
     )]
     pub gsol_mint_authority: SystemAccount<'info>,
 
+    #[account(mut)]
     pub depositor: Signer<'info>,
     #[account(
         mut,
@@ -86,7 +86,6 @@ impl<'info> SplDepositSol<'info> {
 
     pub fn deposit_sol(&mut self, amount: u64) -> Result<()> {
         self.check_stake_pool_program()?;
-        check_mint_supply(&self.state, &self.gsol_mint)?;
 
         invoke(
             &spl_stake_pool::instruction::deposit_sol(

@@ -563,6 +563,7 @@ impl State {
     }
 }
 
+#[allow(dead_code)]
 pub fn check_mint_supply(state: &State, gsol_mint: &Account<Mint>) -> Result<()> {
     require_keys_eq!(state.gsol_mint, gsol_mint.key());
     let expected_total = state

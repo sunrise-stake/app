@@ -1,5 +1,4 @@
 use crate::{
-    check_mint_supply,
     utils::{calc, seeds, token as TokenUtils},
     State,
 };
@@ -105,7 +104,6 @@ impl<'info> SplWithdrawSol<'info> {
 
     pub fn withdraw_sol(&mut self, lamports: u64) -> Result<()> {
         self.check_stake_pool_program()?;
-        check_mint_supply(&self.state, &self.gsol_mint)?;
 
         let bump = self.state.bsol_authority_bump;
         let state_key = self.state.to_account_info().key;
