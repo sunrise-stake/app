@@ -36,8 +36,9 @@ export interface Details {
     supply: bigint;
     mintAuthority?: string;
     decimals: number;
-    lpSolShare: BN;
-    lpSolValue: BN;
+    lpSolShare: BN; // The amount of lamports in the pool owned by sunrise
+    lpMsolShare: BN; // The amount of msol in the pool owned by sunrise
+    lpSolValue: BN; // The sum of the lpSolBalance and the sol value of lpMsolBalance - the total value of the pool owned by sunrise
     msolLeg: string;
   };
   bpDetails: {

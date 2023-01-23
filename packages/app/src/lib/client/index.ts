@@ -721,6 +721,7 @@ export class SunriseStakeClient {
       mintAuthority: lpMintInfo.mintAuthority?.toBase58(),
       decimals: lpMintInfo.decimals,
       lpSolShare, // proportion of SOL deposited in the LP
+      lpMsolShare,
       lpSolValue, // total SOL value of the LP tokens held by the sunrise instance
       msolLeg: this.marinadeState.mSolLeg.toBase58(),
     };

@@ -525,7 +525,9 @@ pub fn calc_lamports_from_bsol_amount<'a>(
         &blaze_stake_pool.data.borrow(),
     )?;
 
-    Ok(stake_pool.calc_lamports_withdraw_amount(bsol_balance).unwrap())
+    Ok(stake_pool
+        .calc_lamports_withdraw_amount(bsol_balance)
+        .unwrap())
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

@@ -223,8 +223,17 @@ describe("sunrise-stake", () => {
       details
     );
 
-    // calculated through experimentation
-    expectAmount(36835869, liquidUnstakeFee, 100);
+    // The LP balance is ~18 SOL at this point
+    // The amount being unstaked is 20 SOL
+    // However, the LP balance is made up of SOL and mSOL, so only the SOL share is available (~17.4 SOL)
+    // So 17.4 SOL will be unstaked feelessly
+    // the remaining 2.6 SOL is charged 0.3%
+    // in addition, a rebalance will be triggered, which incurs the rent cost of the delayed unstake ticket
+    // So the total fee will be roughly:
+    // 2.6e9 * 0.003 + 1503360 + 5000 = 9.1e6
+    // Actual values: ((20000000000-17448456901)* 0,003) + 1503360 + 5000 = 9162989.297
+    // Tolerance to allow for rounding issues
+    expectAmount(9162989, liquidUnstakeFee, 100);
   });
 
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
