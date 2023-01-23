@@ -107,6 +107,11 @@ export class SunriseStakeClient {
       this.stateAddress
     );
 
+    const stakePoolInfo = await getStakePoolAccount(
+      this.provider.connection,
+      SOLBLAZE_CONFIG.pool
+    );
+
     this.config = {
       gsolMint: sunriseStakeState.gsolMint,
       treasury: sunriseStakeState.treasury,
@@ -154,10 +159,6 @@ export class SunriseStakeClient {
       owner: this.msolTokenAccountAuthority,
     });
 
-    const stakePoolInfo = await getStakePoolAccount(
-      this.provider.connection,
-      SOLBLAZE_CONFIG.pool
-    );
     const [withdrawAuthority] = PublicKey.findProgramAddressSync(
       [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("withdraw")],
       STAKE_POOL_PROGRAM_ID
@@ -215,7 +216,7 @@ export class SunriseStakeClient {
 
   public async makeDeposit(lamports: BN): Promise<string> {
     const details = await this.details();
-    if (marinadeTargetReached(details, 75) === true) {
+    if (marinadeTargetReached(details, 75)) {
       console.log("Routing deposit to Solblaze");
       return this.depositToBlaze(lamports);
     }

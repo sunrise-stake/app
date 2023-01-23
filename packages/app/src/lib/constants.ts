@@ -53,7 +53,7 @@ export const SolBlazeEnvironment: Record<WalletAdapterNetwork, BlazeConfig> = {
 export const SOLBLAZE_CONFIG =
   SolBlazeEnvironment[
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
-      WalletAdapterNetwork.Mainnet // make default mainnet
+      WalletAdapterNetwork.Devnet
   ];
 
 export const SUNRISE_STAKE_STATE =

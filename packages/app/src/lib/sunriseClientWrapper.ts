@@ -64,7 +64,7 @@ export class SunriseClientWrapper {
   async deposit(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
-      .makeDeposit(amount)
+      .depositToBlaze(amount)
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
