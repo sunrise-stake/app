@@ -15,6 +15,7 @@ interface AmountInputProps {
   amount: string;
   setAmount: Function;
   setValid: (valid: boolean) => void;
+  mode: "STAKE" | "UNSTAKE";
 }
 
 const AmountInput: React.FC<AmountInputProps> = ({
@@ -24,6 +25,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
   setAmount,
   token = "SOL",
   setValid,
+  mode,
 }) => {
   const handleIncDecBtnClick = (op: "INC" | "DEC"): void => {
     const parsedAmount = parseFloat(amount);
@@ -84,7 +86,9 @@ const AmountInput: React.FC<AmountInputProps> = ({
               onClick={() => {
                 if (balance) {
                   updateAmount(
-                    toFixedWithPrecision(toSol(balance) - 0.1).toString()
+                    toFixedWithPrecision(
+                      mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
+                    ).toString()
                   );
                 }
               }}
