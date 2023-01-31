@@ -1,4 +1,4 @@
-export declare interface SunriseStake {
+export interface SunriseStake {
   version: "0.1.0";
   name: "sunrise_stake";
   instructions: [

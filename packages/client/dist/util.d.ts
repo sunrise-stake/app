@@ -1,8 +1,17 @@
-import { ConfirmOptions, PublicKey, TokenAmount } from "@solana/web3.js";
+/// <reference types="bn.js" />
+import {
+  ConfirmOptions,
+  Connection,
+  PublicKey,
+  TokenAmount,
+  Transaction,
+} from "@solana/web3.js";
+import * as anchor from "@project-serum/anchor";
+import { AnchorProvider, BN } from "@project-serum/anchor";
 import { ManagementAccount } from "./types/ManagementAccount";
-import { MarinadeUtils } from "@sunrisestake/marinade-ts-sdk";
+import { MarinadeState, MarinadeUtils } from "@sunrisestake/marinade-ts-sdk";
 import { Details } from "./types/Details";
-export declare const ZERO: any;
+export declare const ZERO: anchor.BN;
 export declare const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
   M_SOL_ACCOUNT = "msol_account",
@@ -38,11 +47,13 @@ export declare const findOrderUnstakeTicketAccount: (
   epoch: bigint,
   index: bigint
 ) => [PublicKey, number];
-export declare const logKeys: (transaction: any) => void;
+export declare const logKeys: (transaction: Transaction) => void;
 export declare const confirm: (
-  connection: any
-) => (txSig: string) => Promise<any>;
-export declare const setUpAnchor: () => any;
+  connection: Connection
+) => (
+  txSig: string
+) => Promise<anchor.web3.RpcResponseAndContext<anchor.web3.SignatureResult>>;
+export declare const setUpAnchor: () => anchor.AnchorProvider;
 export interface Balance {
   gsolBalance: TokenAmount;
   gsolSupply: TokenAmount;
@@ -52,7 +63,7 @@ export interface Balance {
   treasuryBalance: number;
   bsolBalance: TokenAmount;
 }
-export declare const PROGRAM_ID: any;
+export declare const PROGRAM_ID: PublicKey;
 export declare const ZERO_BALANCE: {
   value: {
     amount: string;
@@ -66,27 +77,27 @@ export interface Options {
   verbose?: boolean;
 }
 export declare const findAllTickets: (
-  connection: any,
+  connection: Connection,
   config: SunriseStakeConfig,
   managementAccount: ManagementAccount,
   epoch: bigint
 ) => Promise<PublicKey[]>;
 export declare const proportionalBN: (
-  amount: any,
-  numerator: any,
-  denominator: any
-) => any;
+  amount: BN,
+  numerator: BN,
+  denominator: BN
+) => BN;
 export declare const getStakeAccountInfo: (
-  stakeAccount: any,
-  anchorProvider: any
+  stakeAccount: PublicKey,
+  anchorProvider: AnchorProvider
 ) => Promise<MarinadeUtils.ParsedStakeAccountInfo>;
 export declare const getVoterAddress: (
-  stakeAccount: any,
-  provider: any
+  stakeAccount: PublicKey,
+  provider: AnchorProvider
 ) => Promise<PublicKey>;
 export declare const getValidatorIndex: (
-  marinadeState: any,
-  voterAddress: any
+  marinadeState: MarinadeState,
+  voterAddress: PublicKey
 ) => Promise<number>;
 export declare const marinadeTargetReached: (
   details: Details,

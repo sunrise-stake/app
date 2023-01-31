@@ -7,6 +7,8 @@ import BN from "bn.js";
 import { Details } from "./types/Details";
 import { TicketAccount } from "./types/TicketAccount";
 import { BlazeState } from "./types/Solblaze";
+import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
+export { getStakePoolAccount, StakePool };
 export * from "./types/SunriseStake";
 export * from "./types/Details";
 export * from "./types/TicketAccount";

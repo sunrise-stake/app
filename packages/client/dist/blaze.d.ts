@@ -1,37 +1,40 @@
-import { Transaction } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
+import BN from "bn.js";
 import { SunriseStakeConfig } from "./util";
+import { AnchorProvider, Program } from "@project-serum/anchor";
+import { SunriseStake } from "./types/SunriseStake";
 import { BlazeState } from "./types/Solblaze";
 export declare const blazeDeposit: (
   config: SunriseStakeConfig,
-  program: any,
+  program: Program<SunriseStake>,
   blaze: BlazeState,
-  depositor: any,
-  depositorGsolTokenAccount: any,
-  lamports: any
+  depositor: PublicKey,
+  depositorGsolTokenAccount: PublicKey,
+  lamports: BN
 ) => Promise<Transaction>;
 export declare const blazeDepositStake: (
   config: SunriseStakeConfig,
-  program: any,
-  provider: any,
+  program: Program<SunriseStake>,
+  provider: AnchorProvider,
   blaze: BlazeState,
-  depositor: any,
-  stakeAccount: any,
-  depositorGsolTokenAccount: any
+  depositor: PublicKey,
+  stakeAccount: PublicKey,
+  depositorGsolTokenAccount: PublicKey
 ) => Promise<Transaction>;
 export declare const blazeWithdrawSol: (
   config: SunriseStakeConfig,
-  program: any,
+  program: Program<SunriseStake>,
   blaze: BlazeState,
-  user: any,
-  userGsolTokenAccount: any,
-  amount: any
+  user: PublicKey,
+  userGsolTokenAccount: PublicKey,
+  amount: BN
 ) => Promise<Transaction>;
 export declare const blazeWithdrawStake: (
   config: SunriseStakeConfig,
-  program: any,
+  program: Program<SunriseStake>,
   blaze: BlazeState,
-  newStakeAccount: any,
-  user: any,
-  userGsolTokenAccount: any,
-  amount: any
+  newStakeAccount: PublicKey,
+  user: PublicKey,
+  userGsolTokenAccount: PublicKey,
+  amount: BN
 ) => Promise<Transaction>;

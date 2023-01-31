@@ -67,6 +67,9 @@ import {
 import { BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
 
+// export getSakePoolAccount
+export { getStakePoolAccount, StakePool };
+
 // export all types
 export * from "./types/SunriseStake";
 export * from "./types/Details";

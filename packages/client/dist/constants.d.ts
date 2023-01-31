@@ -1,6 +1,6 @@
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { PublicKey } from "@solana/web3.js";
-export declare const STAKE_POOL_PROGRAM_ID: any;
+export declare const STAKE_POOL_PROGRAM_ID: PublicKey;
 interface EnvironmentConfig {
   state: PublicKey;
   holdingAccount: PublicKey;
@@ -18,8 +18,8 @@ export declare const SolBlazeEnvironment: Record<
   BlazeConfig
 >;
 export declare const SOLBLAZE_CONFIG: BlazeConfig;
-export declare const SUNRISE_STAKE_STATE: any;
-export declare const HOLDING_ACCOUNT: any;
+export declare const SUNRISE_STAKE_STATE: PublicKey;
+export declare const HOLDING_ACCOUNT: PublicKey;
 export declare const DEFAULT_LP_PROPORTION = 10;
 export declare const DEFAULT_LP_MIN_PROPORTION = 5;
 export declare const MARINADE_TICKET_RENT = 1503360;

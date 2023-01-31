@@ -4,39 +4,43 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { SunriseStakeConfig } from "./util";
+import { Marinade, MarinadeState } from "@sunrisestake/marinade-ts-sdk";
+import { Program } from "@project-serum/anchor";
+import { SunriseStake } from "./types/SunriseStake";
+import BN from "bn.js";
 import { ManagementAccount } from "./types/ManagementAccount";
 export declare const deposit: (
   config: SunriseStakeConfig,
-  program: any,
-  marinade: any,
-  marinadeState: any,
-  stateAddress: any,
-  staker: any,
-  stakerGsolTokenAccount: any,
-  lamports: any
+  program: Program<SunriseStake>,
+  marinade: Marinade,
+  marinadeState: MarinadeState,
+  stateAddress: PublicKey,
+  staker: PublicKey,
+  stakerGsolTokenAccount: PublicKey,
+  lamports: BN
 ) => Promise<Transaction>;
 export declare const depositStakeAccount: (
   config: SunriseStakeConfig,
-  program: any,
-  marinade: any,
-  marinadeState: any,
-  staker: any,
-  stakeAccountAddress: any,
-  stakerGsolTokenAccount: any
+  program: Program<SunriseStake>,
+  marinade: Marinade,
+  marinadeState: MarinadeState,
+  staker: PublicKey,
+  stakeAccountAddress: PublicKey,
+  stakerGsolTokenAccount: PublicKey
 ) => Promise<Transaction>;
 export declare const liquidUnstake: (
   config: SunriseStakeConfig,
-  marinade: any,
-  marinadeState: any,
-  program: any,
-  stateAddress: any,
-  staker: any,
-  stakerGsolTokenAccount: any,
-  lamports: any
+  marinade: Marinade,
+  marinadeState: MarinadeState,
+  program: Program<SunriseStake>,
+  stateAddress: PublicKey,
+  staker: PublicKey,
+  stakerGsolTokenAccount: PublicKey,
+  lamports: BN
 ) => Promise<Transaction>;
 export declare const orders: (
   config: SunriseStakeConfig,
-  program: any,
+  program: Program<SunriseStake>,
   epoch: bigint
 ) => Promise<{
   managementAccount: {
@@ -54,9 +58,9 @@ export interface TriggerRebalanceResult {
 }
 export declare const triggerRebalance: (
   config: SunriseStakeConfig,
-  marinade: any,
-  marinadeState: any,
-  program: any,
-  stateAddress: any,
-  payer: any
+  marinade: Marinade,
+  marinadeState: MarinadeState,
+  program: Program<SunriseStake>,
+  stateAddress: PublicKey,
+  payer: PublicKey
 ) => Promise<TriggerRebalanceResult>;

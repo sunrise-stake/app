@@ -5,7 +5,7 @@ export interface SunriseTicketAccountFields {
   marinadeTicketAccount: PublicKey;
   beneficiary: PublicKey;
 }
-export declare type TicketAccount = {
+export type TicketAccount = {
   address: PublicKey;
   stateAddress: PublicKey;
   marinadeTicketAccount: PublicKey;

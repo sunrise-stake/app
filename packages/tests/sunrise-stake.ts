@@ -1,6 +1,13 @@
 import BN from "bn.js";
 import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
-import { SunriseStakeClient } from "../app/src/lib/client";
+import {
+  SunriseStakeClient,
+  TicketAccount,
+  getStakePoolAccount,
+  DEFAULT_LP_MIN_PROPORTION,
+  DEFAULT_LP_PROPORTION,
+  NETWORK_FEE,
+} from "@sunrisestake/client";
 import {
   burnGSol,
   expectAmount,
@@ -19,14 +26,7 @@ import {
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { TicketAccount } from "@sunrisestake/app/src/lib/client/types/TicketAccount";
-import {
-  DEFAULT_LP_MIN_PROPORTION,
-  DEFAULT_LP_PROPORTION,
-  NETWORK_FEE,
-} from "@sunrisestake/app/src/lib/constants";
 import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
-import { getStakePoolAccount } from "@sunrisestake/app/src/lib/client/decode_stake_pool";
 
 chai.use(chaiAsPromised);
 
