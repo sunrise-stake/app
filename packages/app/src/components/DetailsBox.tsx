@@ -58,7 +58,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
             className={clx(
               "flex w-full justify-between rounded-t-md bg-green-light/30 backdrop-blur-md px-4 py-1 text-left text-sm font-medium text-white hover:brightness-150",
               {
-                "rounded-t-md  border border-green-light": open,
+                "rounded-t-md border border-green-light": open,
                 "rounded-md": !open,
               }
             )}
@@ -81,7 +81,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
             <Disclosure.Panel>
               <div
                 className={clx(
-                  "bg-green-light/30 border border-green-light backdrop-blur-md py-2 px-4 rounded-b-md text-center",
+                  "bg-green-light/30 border-x border-b border-green-light backdrop-blur-md py-2 px-4 rounded-b-md text-center",
                   className
                 )}
               >
