@@ -1,6 +1,11 @@
 import React, { useCallback } from "react";
 import BN from "bn.js";
-import { solToLamports, toFixedWithPrecision, toSol } from "../lib/util";
+import {
+  getDigits,
+  solToLamports,
+  toFixedWithPrecision,
+  toSol,
+} from "../lib/util";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 
 interface AmountInputProps {
@@ -10,6 +15,7 @@ interface AmountInputProps {
   amount: string;
   setAmount: Function;
   setValid: (valid: boolean) => void;
+  mode: "STAKE" | "UNSTAKE";
 }
 
 const AmountInput: React.FC<AmountInputProps> = ({
@@ -19,15 +25,26 @@ const AmountInput: React.FC<AmountInputProps> = ({
   setAmount,
   token = "SOL",
   setValid,
+  mode,
 }) => {
   const handleIncDecBtnClick = (op: "INC" | "DEC"): void => {
     const parsedAmount = parseFloat(amount);
-    if (!amount && op === "INC") updateAmount("1");
-    else if ((!amount && op === "DEC") || (parsedAmount <= 0 && op === "DEC"))
-      updateAmount("0");
+    let newAmount;
+
+    if (!amount && op === "INC") newAmount = "1";
+    else if (
+      (op === "DEC" && !amount) ||
+      (op === "DEC" && parsedAmount - 1 <= 0)
+    )
+      newAmount = "0";
     else {
-      updateAmount(String(op === "INC" ? parsedAmount + 1 : parsedAmount - 1));
+      newAmount = String(op === "INC" ? parsedAmount + 1 : parsedAmount - 1);
     }
+
+    if (getDigits(newAmount) !== getDigits(amount))
+      newAmount = "" + parseFloat(newAmount).toFixed(getDigits(amount));
+
+    updateAmount(newAmount);
   };
 
   const updateAmount = useCallback(
@@ -68,7 +85,11 @@ const AmountInput: React.FC<AmountInputProps> = ({
               className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md"
               onClick={() => {
                 if (balance) {
-                  updateAmount(toFixedWithPrecision(toSol(balance)).toString());
+                  updateAmount(
+                    toFixedWithPrecision(
+                      mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
+                    ).toString()
+                  );
                 }
               }}
             >

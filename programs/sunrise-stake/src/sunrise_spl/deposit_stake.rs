@@ -1,11 +1,13 @@
 use crate::{
-    check_mint_supply,
     utils::{seeds, token as TokenUtils},
     State,
 };
 use anchor_lang::{
     prelude::*,
-    solana_program::{instruction::Instruction, program::invoke, stake::state::StakeState},
+    solana_program::{
+        borsh::try_from_slice_unchecked, instruction::Instruction, program::invoke,
+        stake::state::StakeState,
+    },
 };
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
@@ -32,10 +34,12 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 #[derive(Accounts)]
 pub struct SplDepositStake<'info> {
     #[account(
+        mut,
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
     pub state: Box<Account<'info, State>>,
+    #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
     #[account(
         seeds = [state.key().as_ref(), seeds::GSOL_MINT_AUTHORITY],
@@ -124,7 +128,8 @@ impl<'info> SplDepositStake<'info> {
     pub fn deposit_stake(&mut self) -> Result<()> {
         self.check_stake_pool_program()?;
 
-        let stake_account_info = StakeState::try_from_slice(&self.stake_account.data.borrow())?;
+        let stake_account_info =
+            try_from_slice_unchecked::<StakeState>(&self.stake_account.data.borrow())?;
         let stake_amount = match stake_account_info.delegation() {
             Some(delegation) => delegation.stake,
             None => return Err(crate::ErrorCode::NotDelegated.into()),
@@ -183,6 +188,6 @@ impl<'info> SplDepositStake<'info> {
         let state = &mut self.state;
         self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(stake_amount).unwrap();
 
-        check_mint_supply(&self.state, &self.gsol_mint)
+        Ok(())
     }
 }

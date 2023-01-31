@@ -71,5 +71,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@marinade.finance/marinade-ts-sdk": "^4.0.4"
   }
 }

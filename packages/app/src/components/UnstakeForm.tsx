@@ -65,6 +65,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         amount={amount}
         setAmount={setAmount}
         setValid={setValid}
+        mode="UNSTAKE"
       />
       <div className="flex flex-col-reverse gap-4 sm:flex-row justify-between">
         <UnstakeOption

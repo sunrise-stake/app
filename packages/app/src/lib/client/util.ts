@@ -10,10 +10,12 @@ import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
 import { ManagementAccount } from "./types/ManagementAccount";
 import {
-  Marinade,
   MarinadeState,
   MarinadeUtils,
+  Provider,
+  Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
+import { Details } from "./types/Details";
 
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
@@ -135,6 +137,7 @@ export interface Balance {
   msolPrice: number;
   liqPoolBalance: TokenAmount;
   treasuryBalance: number;
+  bsolBalance: TokenAmount;
 }
 
 export const PROGRAM_ID = new PublicKey(
@@ -200,21 +203,35 @@ export const proportionalBN = (
   return new BN(result.toString());
 };
 
-export const getVoterAddress = async (
-  stakeAccountAddress: PublicKey,
-  marinade: Marinade
-): Promise<PublicKey> => {
-  const stakeAccountInfo = await MarinadeUtils.getParsedStakeAccountInfo(
-    marinade.provider,
-    stakeAccountAddress
+export const getStakeAccountInfo = async (
+  stakeAccount: PublicKey,
+  anchorProvider: AnchorProvider
+  // program: anchor.Program<SunriseStake>,
+): Promise<MarinadeUtils.ParsedStakeAccountInfo> => {
+  const provider = new Provider(
+    anchorProvider.connection,
+    anchorProvider.wallet as Wallet,
+    {}
   );
-  const voterAddress = stakeAccountInfo.voterAddress;
 
-  if (!voterAddress) {
-    throw new Error("The stake account is not delegated");
+  const parsedData = MarinadeUtils.getParsedStakeAccountInfo(
+    provider,
+    stakeAccount
+  );
+  console.log("parsedData: ", parsedData);
+  return parsedData;
+};
+
+export const getVoterAddress = async (
+  stakeAccount: PublicKey,
+  provider: AnchorProvider
+  // program: Program<SunriseStake>,
+): Promise<PublicKey> => {
+  const info = await getStakeAccountInfo(stakeAccount, provider);
+  if (!info.voterAddress) {
+    throw new Error(`Stake account must be delegated`);
   }
-
-  return voterAddress;
+  return info.voterAddress;
 };
 
 export const getValidatorIndex = async (
@@ -225,7 +242,20 @@ export const getValidatorIndex = async (
   const validatorLookupIndex = validatorRecords.findIndex(
     ({ validatorAccount }) => validatorAccount.equals(voterAddress)
   );
-  return validatorLookupIndex === -1
-    ? marinadeState.state.validatorSystem.validatorList.count
-    : validatorLookupIndex;
+  const validatorIndex =
+    validatorLookupIndex === -1
+      ? marinadeState.state.validatorSystem.validatorList.count
+      : validatorLookupIndex;
+  return validatorIndex;
+};
+
+export const marinadeTargetReached = (
+  details: Details,
+  percentage: number
+): boolean => {
+  const msolValue = details.mpDetails.msolValue;
+  const gsolSupply = new BN(details.balances.gsolSupply.amount);
+  const limit = proportionalBN(gsolSupply, new BN(percentage), new BN(100));
+
+  return msolValue > limit;
 };

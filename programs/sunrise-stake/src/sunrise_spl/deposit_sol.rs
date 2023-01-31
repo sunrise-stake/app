@@ -1,5 +1,4 @@
 use crate::{
-    check_mint_supply,
     utils::{seeds, token as TokenUtils},
     State,
 };
@@ -26,10 +25,12 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 #[derive(Accounts)]
 pub struct SplDepositSol<'info> {
     #[account(
+        mut,
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
     pub state: Box<Account<'info, State>>,
+    #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
     #[account(
         seeds = [state.key().as_ref(), seeds::GSOL_MINT_AUTHORITY],
@@ -37,6 +38,7 @@ pub struct SplDepositSol<'info> {
     )]
     pub gsol_mint_authority: SystemAccount<'info>,
 
+    #[account(mut)]
     pub depositor: Signer<'info>,
     #[account(
         mut,
@@ -69,7 +71,6 @@ pub struct SplDepositSol<'info> {
     #[account(mut)]
     /// CHECK: Checked by CPI to Spl Stake Program
     pub stake_pool_token_mint: AccountInfo<'info>,
-    #[account(mut)]
     /// CHECK:
     pub stake_pool_program: AccountInfo<'info>,
 
@@ -126,6 +127,6 @@ impl<'info> SplDepositSol<'info> {
         let state = &mut self.state;
         self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(amount).unwrap();
 
-        check_mint_supply(&self.state, &self.gsol_mint)
+        Ok(())
     }
 }

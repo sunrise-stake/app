@@ -1,8 +1,10 @@
 import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
-import { Transaction } from "@solana/web3.js";
+import { Keypair, PublicKey, StakeProgram, Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
+import { SOLBLAZE_CONFIG } from "../app/src/lib/constants";
 import { createBurnInstruction } from "@solana/spl-token";
+import { getStakePoolAccount } from "../app/src/lib/client/decode_stake_pool";
 
 // Set in anchor.toml
 const SLOTS_IN_EPOCH = 32;
@@ -14,6 +16,7 @@ export const burnGSol = async (amount: BN, client: SunriseStakeClient) => {
     client.staker,
     amount.toNumber()
   );
+
   const transaction = new Transaction().add(burnInstruction);
   return client.provider.sendAndConfirm(transaction, []);
 };
@@ -94,6 +97,17 @@ export const expectMSolTokenBalance = async (
   );
   log("mSOL balance", msolBalance.value.amount);
   expectAmount(new BN(msolBalance.value.amount), expectedAmount, tolerance);
+};
+
+export const expectBSolTokenBalance = async (
+  client: SunriseStakeClient,
+  expectedAmount: number | BN,
+  tolerance = 0
+) => {
+  const bsolBalance = await client.provider.connection.getTokenAccountBalance(
+    client.bsolTokenAccount!
+  );
+  expectAmount(new BN(bsolBalance.value.amount), expectedAmount, tolerance);
 };
 
 export const expectLiqPoolTokenBalance = async (
@@ -181,4 +195,64 @@ export const waitForNextEpoch = async (client: SunriseStakeClient) => {
   });
 
   await client.provider.connection.removeSlotChangeListener(subscriptionId);
+};
+
+export const getBsolPrice = async (
+  client: SunriseStakeClient
+): Promise<number> => {
+  const accountInfo = await getStakePoolAccount(
+    client.provider.connection,
+    SOLBLAZE_CONFIG.pool
+  );
+
+  const price =
+    Number(accountInfo.totalLamports) / Number(accountInfo.poolTokenSupply);
+  log("BSol price: ", price);
+  return price;
+};
+
+export const initializeStakeAccount = async (
+  client: SunriseStakeClient,
+  stakeAccount: Keypair,
+  lamports: BN
+) => {
+  /* let lockup =  {
+    unixTimestamp: 0,
+    epoch: 0,
+    custodian: client.provider.publicKey
+  }; */
+  const authorized = {
+    staker: client.provider.publicKey,
+    withdrawer: client.provider.publicKey,
+  };
+
+  const createParams = {
+    fromPubkey: client.provider.publicKey,
+    stakePubkey: stakeAccount.publicKey,
+    authorized,
+    // lockup,
+    lamports: lamports.toNumber(),
+  };
+  const createIx = StakeProgram.createAccount(createParams);
+
+  await client.provider.sendAndConfirm(new Transaction().add(createIx), [
+    stakeAccount,
+  ]);
+  /*
+  export type DelegateStakeParams = {
+  stakePubkey: PublicKey;
+  authorizedPubkey: PublicKey;
+  votePubkey: PublicKey;
+  */
+  const validatorAddress = new PublicKey(
+    "E9W5kU2fnha9yp4RmFZgNNsRUvy6oKnB9ZyR9LC81WaE"
+  );
+  const delegateParams = {
+    stakePubkey: stakeAccount.publicKey,
+    authorizedPubkey: client.provider.publicKey,
+    votePubkey: validatorAddress,
+  };
+
+  const delegateIx = StakeProgram.delegate(delegateParams);
+  await client.provider.sendAndConfirm(new Transaction().add(delegateIx), []);
 };
