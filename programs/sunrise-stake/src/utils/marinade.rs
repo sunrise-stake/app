@@ -652,9 +652,9 @@ fn total_liq_pool(
 
 /// The preferred liquidity pool balance is a proportion of the total issued gsol
 /// (after accounting for the deposit)
-pub fn preferred_liq_pool_balance<'a>(
+pub fn preferred_liq_pool_balance(
     state: &State,
-    gsol_mint: &Account<'a, Mint>,
+    gsol_mint: &Account<'_, Mint>,
     lamports_being_staked: u64,
 ) -> Result<u64> {
     let gsol_supply_after_deposit = gsol_mint
@@ -672,9 +672,9 @@ pub fn preferred_liq_pool_balance<'a>(
 // is:
 //      the total gsol supply (after removing the stake that is being removed)
 //      * the minimum liquidity pool proportion
-pub fn preferred_liq_pool_min_balance<'a>(
+pub fn preferred_liq_pool_min_balance(
     state: &State,
-    gsol_mint: &Account<'a, Mint>,
+    gsol_mint: &Account<'_, Mint>,
     lamports_being_unstaked: u64,
 ) -> Result<u64> {
     let gsol_supply_after_unstake = gsol_mint
