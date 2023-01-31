@@ -1,4 +1,4 @@
-import { SunriseStake, IDL } from "./types/sunrise_stake";
+import { IDL, SunriseStake } from "./types/sunrise_stake";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
@@ -12,19 +12,19 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import {
+  Balance,
   confirm,
+  findBSolTokenAccountAuthority,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
-  findBSolTokenAccountAuthority,
-  SunriseStakeConfig,
   logKeys,
+  marinadeTargetReached,
   Options,
   PROGRAM_ID,
-  setUpAnchor,
-  ZERO_BALANCE,
-  Balance,
   proportionalBN,
-  marinadeTargetReached,
+  setUpAnchor,
+  SunriseStakeConfig,
+  ZERO_BALANCE,
 } from "./util";
 import {
   Marinade,
@@ -47,6 +47,7 @@ import {
   DEFAULT_LP_PROPORTION,
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
+  PERCENTAGE_STAKE_TO_MARINADE,
   SOLBLAZE_CONFIG,
   STAKE_POOL_PROGRAM_ID,
 } from "../constants";
@@ -203,20 +204,17 @@ export class SunriseStakeClient {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
 
-    const createATAInstruction =
-      createAssociatedTokenAccountIdempotentInstruction(
-        this.provider.publicKey,
-        this.stakerGSolTokenAccount,
-        this.staker,
-        this.config.gsolMint
-      );
-
-    return createATAInstruction;
+    return createAssociatedTokenAccountIdempotentInstruction(
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      this.staker,
+      this.config.gsolMint
+    );
   }
 
   public async makeDeposit(lamports: BN): Promise<string> {
     const details = await this.details();
-    if (marinadeTargetReached(details, 75)) {
+    if (marinadeTargetReached(details, PERCENTAGE_STAKE_TO_MARINADE)) {
       console.log("Routing deposit to Solblaze");
       return this.depositToBlaze(lamports);
     }
@@ -650,12 +648,6 @@ export class SunriseStakeClient {
       ? MARINADE_TICKET_RENT
       : 0;
 
-    console.log({
-      amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
-      rentForOrderUnstakeTicket: rentForOrderUnstakeTicket.toString(),
-      networkFee: NETWORK_FEE.toString(),
-    });
-
     if (amountBeingLiquidUnstaked.lte(ZERO)) return ZERO;
 
     // Calculate the fee
@@ -919,7 +911,6 @@ export class SunriseStakeClient {
   };
 
   private calculateExtractableYield({
-    epochInfo,
     balances,
     mpDetails,
     lpDetails,
@@ -929,25 +920,18 @@ export class SunriseStakeClient {
     if (!this.marinadeState || !this.msolTokenAccount)
       throw new Error("init not called");
 
-    // deposited in Stake Pool
-    const msolBalance = new BN(balances.msolBalance.amount);
-    console.log("msolBalance: ", msolBalance.toString());
+    // deposited in Stake Pools
     const solValueOfMSol = mpDetails.msolValue;
-    console.log("msolValue: ", solValueOfMSol.toString());
     const solValueOfBSol = bpDetails.bsolValue;
-    console.log("bsolValue: ", solValueOfBSol.toString());
 
     // deposited in Liquidity Pool
     const solValueOfLP = lpDetails.lpSolValue;
-    console.log("liquidity pool value: ", solValueOfLP.toString());
 
     const gsolSupply = new BN(balances.gsolSupply.amount);
 
     const totalSolValueStaked = solValueOfMSol
       .add(solValueOfLP)
       .add(solValueOfBSol);
-
-    console.log("totalValueStaked:", totalSolValueStaked.toString());
 
     const inflightTotal = inflight.reduce(
       (acc, { totalOrderedLamports }) => acc.add(totalOrderedLamports),
@@ -960,22 +944,7 @@ export class SunriseStakeClient {
 
     const fee = extractableSOLGross.muln(3).divn(1000);
 
-    const extractableSOLEffective = extractableSOLGross.sub(fee);
-
-    console.log({
-      epoch: epochInfo.epoch,
-      msolBalance: msolBalance.toString(),
-      solValueOfMSol: solValueOfMSol.toString(),
-      solValueOfBsol: solValueOfBSol.toString(),
-      solValueOfLP: solValueOfLP.toString(),
-      totalSolValueStaked: totalSolValueStaked.toString(),
-      gsolSupply: gsolSupply.toString(),
-      extractableSOLGross: extractableSOLGross.toString(),
-      fee: fee.toString(),
-      extractableSOLEffective: extractableSOLEffective.toString(),
-    });
-
-    return extractableSOLEffective;
+    return extractableSOLGross.sub(fee);
   }
 
   public static async register(

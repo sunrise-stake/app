@@ -39,9 +39,17 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
       console.log("setting client: readonly", clientToUpdate.readonlyWallet);
       setClient(clientToUpdate);
       setDetails(await clientToUpdate.getDetails());
+
+      window.client = clientToUpdate;
     },
     [setClient]
   );
+
+  // Use this to initialise the details if it is not already set
+  // this prevents the details from being overwritten by the readonly client
+  const initDetails = (newDetails: Details): void => {
+    setDetails((existingDetails) => existingDetails ?? newDetails);
+  };
 
   useEffect(() => {
     console.log("wallet changed", wallet);
@@ -65,7 +73,7 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
           console.log("getting details");
           return client.getDetails();
         })
-        .then(setDetails)
+        .then(initDetails)
         .catch(console.error);
     }
   }, [connection, wallet?.publicKey?.toBase58()]);
