@@ -22,7 +22,7 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     holdingAccount: new PublicKey(
       "shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn"
     ),
-    percentageStakeToMarinade: 100,
+    percentageStakeToMarinade: 200, // TODO TEMP fix
     blaze: {
       pool: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
