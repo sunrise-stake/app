@@ -36,12 +36,12 @@ const DetailsBox: FC<Props> = ({ className }) => {
     ZERO
   );
 
-  const totalValue = details.spDetails.msolValue
+  const totalValue = details.mpDetails.msolValue
     .add(details.lpDetails.lpSolValue)
     .add(inflightTotal);
 
   const spShare =
-    details.spDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
   const lpShare =
     details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() / 100;
   const inflightShare =
@@ -67,7 +67,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
         >
           <DetailEntry
             label="Marinade Stake Pool Value"
-            value={lamportsToDisplay(details.spDetails.msolValue)}
+            value={lamportsToDisplay(details.mpDetails.msolValue)}
             share={spShare}
           />
           <DetailEntry
