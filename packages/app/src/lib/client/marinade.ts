@@ -14,10 +14,13 @@ import {
   findOrderUnstakeTicketAccount,
   findOrderUnstakeTicketManagementAccount,
   SunriseStakeConfig,
-  getVoterAddress,
   getValidatorIndex,
 } from "./util";
-import { Marinade, MarinadeState } from "@sunrisestake/marinade-ts-sdk";
+import {
+  Marinade,
+  MarinadeState,
+  MarinadeUtils,
+} from "@sunrisestake/marinade-ts-sdk";
 import { Program, utils } from "@project-serum/anchor";
 import { SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -107,7 +110,31 @@ export const depositStakeAccount = async (
     ReturnType<typeof program.methods.depositStakeAccount>["accounts"]
   >[0];
 
-  const voterAddress = await getVoterAddress(stakeAccountAddress, marinade);
+  const stakeAccountInfo = await MarinadeUtils.getParsedStakeAccountInfo(
+    marinade.provider,
+    stakeAccountAddress
+  );
+  const voterAddress = stakeAccountInfo.voterAddress;
+  if (!voterAddress) {
+    throw new Error("The stake account must be delegated");
+  }
+  console.log("voterAddress: ", voterAddress);
+
+  console.log(
+    "validator list: ",
+    marinadeState.state.validatorSystem.validatorList.account.toString()
+  );
+  console.log(
+    "stake list: ",
+    marinadeState.state.stakeSystem.stakeList.account.toString()
+  );
+  console.log(
+    "duplication flag: ",
+    await (
+      await marinadeState.validatorDuplicationFlag(voterAddress)
+    ).toString()
+  );
+
   const validatorSystem = marinadeState.state.validatorSystem;
   const stakeSystem = marinadeState.state.stakeSystem;
   const accounts: Accounts = {
@@ -132,7 +159,9 @@ export const depositStakeAccount = async (
     tokenProgram: TOKEN_PROGRAM_ID,
     marinadeProgram,
   };
+  console.log("accounts: ", accounts);
 
+  console.log("Getting validator index");
   const validatorIndex = await getValidatorIndex(marinadeState, voterAddress);
   return program.methods
     .depositStakeAccount(validatorIndex)

@@ -38,10 +38,16 @@ const formatPrecision = (n: number, precision = MAX_NUM_PRECISION): number =>
     Math.abs(Math.min(0, Math.ceil(Math.log(n) / Math.log(10)))) + 1,
     precision
   );
+
 export const toFixedWithPrecision = (
   n: number,
   precision = MAX_NUM_PRECISION
 ): string => n.toFixed(formatPrecision(n, precision));
+
+export const getDigits = (strNo: string): number | undefined => {
+  const match = strNo.match(/^\d*\.(\d+)$/);
+  if (match?.[1] != null) return match[1].length;
+};
 
 interface SparseWallet {
   publicKey: PublicKey;

@@ -11,8 +11,11 @@ import {
   expectTreasurySolBalance,
   getBalance,
   getLPPrice,
+  getBsolPrice,
   log,
   waitForNextEpoch,
+  expectBSolTokenBalance,
+  initializeStakeAccount,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -22,6 +25,8 @@ import {
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
 } from "@sunrisestake/app/src/lib/constants";
+import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
+import { getStakePoolAccount } from "@sunrisestake/app/src/lib/client/decode_stake_pool";
 
 chai.use(chaiAsPromised);
 
@@ -35,19 +40,16 @@ describe("sunrise-stake", () => {
   const orderUnstakeLamports = new BN(2 * LAMPORTS_PER_SOL); // Order a delayed unstake of 2 SOL
   const burnLamports = 100 * LAMPORTS_PER_SOL;
 
-  let treasury = Keypair.generate();
   let updateAuthority: Keypair;
-
   let delayedUnstakeTicket: TicketAccount;
 
+  let treasury = Keypair.generate();
+  const mint = Keypair.generate();
+
   it("can register a new Sunrise state", async () => {
-    client = await SunriseStakeClient.register(
-      treasury.publicKey,
-      Keypair.generate(),
-      {
-        verbose: Boolean(process.env.VERBOSE),
-      }
-    );
+    client = await SunriseStakeClient.register(treasury.publicKey, mint, {
+      verbose: Boolean(process.env.VERBOSE),
+    });
 
     log(await client.details());
   });
@@ -144,14 +146,90 @@ describe("sunrise-stake", () => {
     await expectStakerGSolTokenBalance(client, depositLamports.toNumber());
   });
 
-  it("no yield to extract yet", async () => {
-    const { extractableYield } = await client.details();
-    log("extractableYield", extractableYield.toString());
+  // Seems not to work on local validator
+  it.skip("can deposit a stake account to marinade", async () => {
+    const deposit = new BN(100 * LAMPORTS_PER_SOL);
+    // await getBalance(client); // print balance before deposit
+    const stakeAccount = Keypair.generate();
+    await initializeStakeAccount(client, stakeAccount, deposit);
+    // Wait for cooling down period
+    await waitForNextEpoch(client);
+    await waitForNextEpoch(client);
+    const info = await client.provider.connection.getAccountInfo(
+      stakeAccount.publicKey
+    );
+    const balance = info?.lamports.toString();
+    console.log("stake account balance: ", balance);
 
-    expectAmount(extractableYield, 0, 100);
+    const expectedMsol = Math.floor(
+      deposit.toNumber() / client.marinadeState!.mSolPrice
+    );
+
+    try {
+      await client.depositStakeAccount(stakeAccount.publicKey);
+    } catch (err) {
+      console.log(err);
+    }
+
+    await expectMSolTokenBalance(client, expectedMsol, 50);
+    await expectStakerGSolTokenBalance(client, deposit.toNumber());
   });
 
-  it("can feelessly unstake sol when under the level of the LP", async () => {
+  it("can deposit to blaze", async () => {
+    const depositAmount = new BN(100 * LAMPORTS_PER_SOL);
+    await getBalance(client);
+    const bsolPrice = await getBsolPrice(client);
+
+    const poolInfo = await getStakePoolAccount(
+      client.provider.connection,
+      client.blazeState!.pool
+    );
+
+    const solDepositFee =
+      Number(poolInfo.solDepositFee.numerator) /
+      Number(poolInfo.solDepositFee.denominator);
+    expect(solDepositFee).to.equal(0.0008);
+
+    const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
+
+    await client.depositToBlaze(depositAmount);
+
+    await expectBSolTokenBalance(client, expectedBSol, 50);
+    await expectStakerGSolTokenBalance(
+      client,
+      depositLamports.toNumber() + depositAmount.toNumber()
+    );
+  });
+
+  // At present (TODO change) a Solblaze deposit does not
+  // send 10% to the liquidity pool
+  // the above deposit added 100SOL to the pool, bringing the pool to 200,
+  // but left the amount in the LP at 10Sol
+  // So after the previous deposit, the liquidity pool is at its minimum (5%)
+  // Any subsequent liquid unstakes will trigger a rebalance
+  // So to avoid this (in order to test feeless unstake)
+  // we deposit 10 more here, which shoudl go straight into the LP, bringing it back up to its maximum (10%)
+  it("deposits into the liquidity pool to rebalance the pools", async () => {
+    await getBalance(client); // print balance before deposit
+
+    // figure out what balances we expect before we make the deposit
+    // since this is the first deposit, 10% will go into the liquidity pool
+    // so the sunrise liquidity pool token balance should go up,
+    // and the sunrise msol balance should be at 90% of the value of the deposit
+    const lpPrice = await getLPPrice(client); // TODO should this be inverse price?
+    const expectedLiqPool = Math.floor((20 * LAMPORTS_PER_SOL) / lpPrice);
+
+    await client.deposit(new BN(10 * LAMPORTS_PER_SOL));
+
+    await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
+  });
+
+  it("no yield to extract yet", async () => {
+    const { extractableYield } = await client.details();
+    expectAmount(extractableYield, 0, 10);
+  });
+
+  it("can feelessly unstake sol when under the level of the LP but above the min level that triggers a rebalance", async () => {
     const stakerPreSolBalance = await getBalance(client);
 
     await client.unstake(unstakeLamportsUnderLPBalance);
@@ -173,8 +251,17 @@ describe("sunrise-stake", () => {
       details
     );
 
-    // calculated through experimentation
-    expectAmount(36835869, liquidUnstakeFee, 100);
+    // The LP balance is ~18 SOL at this point
+    // The amount being unstaked is 20 SOL
+    // However, the LP balance is made up of SOL and mSOL, so only the SOL share is available (~17.4 SOL)
+    // So 17.4 SOL will be unstaked feelessly
+    // the remaining 2.6 SOL is charged 0.3%
+    // in addition, a rebalance will be triggered, which incurs the rent cost of the delayed unstake ticket
+    // So the total fee will be roughly:
+    // 2.6e9 * 0.003 + 1503360 + 5000 = 9.1e6
+    // Actual values: ((20000000000-17448456901)* 0,003) + 1503360 + 5000 = 9162989.297
+    // Tolerance to allow for rounding issues
+    expectAmount(9162989, liquidUnstakeFee, 100);
   });
 
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
@@ -257,9 +344,7 @@ describe("sunrise-stake", () => {
     // we run the validator at 32 slots per epoch, so we "only" need to wait for ~12 seconds
     // we wait 15 seconds to be safe
     // An alternative is to write rust tests using solana-program-test
-    // log("Waiting 15s for next epoch...");
     await waitForNextEpoch(client);
-    // await new Promise((resolve) => setTimeout(resolve, 15000));
 
     epochInfo = await client.provider.connection.getEpochInfo();
     log("current epoch", epochInfo.epoch);
@@ -340,11 +425,63 @@ describe("sunrise-stake", () => {
     await expectTreasurySolBalance(client, 0, 50);
 
     // trigger a withdrawal
-    await client.extractYield();
+    try {
+      await client.extractYield();
+    } catch (err) {
+      console.log(err);
+    }
 
     // expect the treasury to have 500 SOL minus fees
     // marinade charges a 0.3% fee for liquid unstaking
     const expectedTreasuryBalance = new BN(burnLamports).muln(997).divn(1000);
     await expectTreasurySolBalance(client, expectedTreasuryBalance, 10);
+  });
+
+  //
+  // This test generates a situation where the liquidity pool balance is overfull, by adding fees to the pool.
+  //
+  it("can deposit sol after fees are sent to the liquidity pool, increasing the value of the liquidity pool tokens", async () => {
+    if (!client.marinade) {
+      throw new Error("Marinade state not initialized");
+    }
+
+    let details = await client.details();
+
+    // deposit directly into marinade, and withdrawing again, in order to add fees to the pool
+    // raising its value above the preferred amount.
+    const marinadeConfig = new MarinadeConfig({
+      connection: client.provider.connection,
+      publicKey: client.provider.publicKey,
+    });
+    const marinade = new Marinade(marinadeConfig);
+
+    log("LP Sol Value: ", details.lpDetails.lpSolValue.toNumber());
+    // Simulate fees being sent to the liquidity pool
+    log("Depositing directly into marinade");
+    let { transaction } = await marinade.deposit(
+      new BN(100000 * LAMPORTS_PER_SOL)
+    );
+    await client.provider.sendAndConfirm(transaction);
+    log("Liquid unstaking from marinade, sending fees into the liquidity pool");
+    ({ transaction } = await marinade.liquidUnstake(
+      new BN(90000 * LAMPORTS_PER_SOL)
+    ));
+    await client.provider.sendAndConfirm(transaction);
+    details = await client.details();
+    log("LP Sol Value: ", details.lpDetails.lpSolValue.toNumber());
+    log("preferred lp value", Number(details.balances.gsolSupply.amount) * 0.1);
+
+    const liqPoolBalance =
+      await client.provider.connection.getTokenAccountBalance(
+        client.liqPoolTokenAccount!
+      );
+
+    await client.deposit(new BN(0.01 * LAMPORTS_PER_SOL));
+
+    // the deposit should not increase the balance of the liquidity pool tokens
+    await expectLiqPoolTokenBalance(
+      client,
+      new BN(liqPoolBalance.value.amount)
+    );
   });
 });

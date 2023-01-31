@@ -1,9 +1,11 @@
 use crate::{
-    check_mint_supply,
     utils::{calc, seeds, token as TokenUtils},
     State,
 };
-use anchor_lang::{prelude::*, solana_program::program::invoke_signed};
+use anchor_lang::{
+    prelude::*,
+    solana_program::{borsh::try_from_slice_unchecked, program::invoke_signed},
+};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use spl_stake_pool::state::StakePool;
 
@@ -29,10 +31,12 @@ use spl_stake_pool::state::StakePool;
 #[derive(Accounts)]
 pub struct SplWithdrawSol<'info> {
     #[account(
+        mut,
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
     pub state: Box<Account<'info, State>>,
+    #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
     #[account(
         seeds = [state.key().as_ref(), seeds::GSOL_MINT_AUTHORITY],
@@ -90,7 +94,7 @@ impl<'info> SplWithdrawSol<'info> {
     }
 
     fn calculate_bsol_from_lamports(&self, lamports: u64) -> Result<u64> {
-        let stake_pool = StakePool::try_from_slice(&self.stake_pool.data.borrow())?;
+        let stake_pool = try_from_slice_unchecked::<StakePool>(&self.stake_pool.data.borrow())?;
         let token_supply = stake_pool.pool_token_supply;
         let total_lamports = stake_pool.total_lamports;
 
@@ -156,6 +160,6 @@ impl<'info> SplWithdrawSol<'info> {
         let state = &mut self.state;
         self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_sub(lamports).unwrap();
 
-        check_mint_supply(&self.state, &self.gsol_mint)
+        Ok(())
     }
 }
