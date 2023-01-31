@@ -8,7 +8,7 @@ import { GiCircleForest } from "react-icons/gi";
 
 import StakeForm from "../components/StakeForm";
 import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
-import { TicketAccount } from "../lib/client/types/TicketAccount";
+import { TicketAccount } from "@sunrisestake/client";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";

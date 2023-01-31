@@ -1,4 +1,4 @@
-import { SunriseStake, IDL } from "./types/sunrise_stake";
+import { SunriseStake, IDL } from "./types/SunriseStake";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
@@ -25,6 +25,7 @@ import {
   Balance,
   proportionalBN,
   marinadeTargetReached,
+  ZERO,
 } from "./util";
 import {
   Marinade,
@@ -49,7 +50,7 @@ import {
   NETWORK_FEE,
   SOLBLAZE_CONFIG,
   STAKE_POOL_PROGRAM_ID,
-} from "../constants";
+} from "./constants";
 import {
   deposit,
   depositStakeAccount,
@@ -63,9 +64,18 @@ import {
   blazeWithdrawSol,
   blazeWithdrawStake,
 } from "./blaze";
-import { ZERO } from "../util";
 import { BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
+
+// export all types
+export * from "./types/SunriseStake";
+export * from "./types/Details";
+export * from "./types/TicketAccount";
+export * from "./types/ManagementAccount";
+export * from "./types/Solblaze";
+
+// export all constants
+export * from "./constants";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;

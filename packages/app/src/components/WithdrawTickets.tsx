@@ -3,7 +3,7 @@ import clx from "classnames";
 import { Button } from "./Button";
 import { TicketIcon } from "@heroicons/react/24/solid";
 import { AiOutlineClockCircle } from "react-icons/ai";
-import { TicketAccount } from "../lib/client/types/TicketAccount";
+import { TicketAccount } from "@sunrisestake/client";
 import { toFixedWithPrecision, toSol } from "../lib/util";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";

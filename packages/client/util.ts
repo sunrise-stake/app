@@ -17,6 +17,9 @@ import {
 } from "@sunrisestake/marinade-ts-sdk";
 import { Details } from "./types/Details";
 
+// zero bn number
+export const ZERO = new BN(0);
+
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
   M_SOL_ACCOUNT = "msol_account",

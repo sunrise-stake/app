@@ -22,7 +22,7 @@ import {
   MarinadeUtils,
 } from "@sunrisestake/marinade-ts-sdk";
 import { Program, utils } from "@project-serum/anchor";
-import { SunriseStake } from "./types/sunrise_stake";
+import { SunriseStake } from "./types/SunriseStake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
 import { ManagementAccount } from "./types/ManagementAccount";

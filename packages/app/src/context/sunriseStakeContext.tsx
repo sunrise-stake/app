@@ -10,7 +10,7 @@ import {
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { SunriseClientWrapper } from "../lib/sunriseClientWrapper";
 import { Keypair } from "@solana/web3.js";
-import { Details } from "../lib/client/types/Details";
+import { Details } from "@sunrisestake/client";
 
 interface SunriseContextProps {
   client: SunriseClientWrapper | undefined;

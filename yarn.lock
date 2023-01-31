@@ -3179,7 +3179,7 @@
     eventemitter3 "^4.0.7"
     uuid "^8.3.2"
 
-"@sunrisestake/marinade-ts-sdk@4.0.4-alpha.18":
+"@sunrisestake/marinade-ts-sdk@4.0.4-alpha.18", "@sunrisestake/marinade-ts-sdk@^4.0.4-alpha.18":
   version "4.0.4-alpha.18"
   resolved "https://registry.yarnpkg.com/@sunrisestake/marinade-ts-sdk/-/marinade-ts-sdk-4.0.4-alpha.18.tgz#bb8963de65ea7b237edefcef9ffcd6af6a6d6020"
   integrity sha512-vNIPxjFC+wBq/mCWqYPxfrJuGdrYP/TBvwAwRr+44OzKQHUVO9ZFKbGOMoVDQ5XvA+uT22BhZjDRrqor3dPwfg==

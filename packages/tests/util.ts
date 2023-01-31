@@ -163,7 +163,7 @@ export const networkFeeForConfirmedTransaction = async (
     txSig,
     "confirmed"
   );
-  return tx!.meta!.fee;
+  return tx.meta!.fee;
 };
 
 export const log = (...args: any[]) => {

@@ -12,9 +12,9 @@ import {
   findGSolMintAuthority,
   SunriseStakeConfig,
 } from "./util";
-import { STAKE_POOL_PROGRAM_ID } from "../constants";
+import { STAKE_POOL_PROGRAM_ID } from "./constants";
 import { AnchorProvider, Program, utils } from "@project-serum/anchor";
-import { SunriseStake } from "./types/sunrise_stake";
+import { SunriseStake } from "./types/SunriseStake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { BlazeState } from "./types/Solblaze";
 import { MarinadeUtils, Provider, Wallet } from "@sunrisestake/marinade-ts-sdk";
