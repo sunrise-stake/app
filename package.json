@@ -35,9 +35,11 @@
         "eslint-plugin-prettier": "^4.2.1",
         "eslint-plugin-promise": "^6.0.0",
         "eslint-plugin-react": "^7.31.10",
+        "lerna": "^6.4.1",
         "mocha": "^10.2.0",
         "prettier": "^2.7.1",
         "ts-mocha": "^10.0.0",
         "typescript": "*"
-    }
+    },
+    "name": "app"
 }
