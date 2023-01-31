@@ -242,11 +242,9 @@ export const getValidatorIndex = async (
   const validatorLookupIndex = validatorRecords.findIndex(
     ({ validatorAccount }) => validatorAccount.equals(voterAddress)
   );
-  const validatorIndex =
-    validatorLookupIndex === -1
-      ? marinadeState.state.validatorSystem.validatorList.count
-      : validatorLookupIndex;
-  return validatorIndex;
+  return validatorLookupIndex === -1
+    ? marinadeState.state.validatorSystem.validatorList.count
+    : validatorLookupIndex;
 };
 
 export const marinadeTargetReached = (
@@ -254,8 +252,17 @@ export const marinadeTargetReached = (
   percentage: number
 ): boolean => {
   const msolValue = details.mpDetails.msolValue;
+  const lpValue = details.lpDetails.lpSolValue;
+  const totalMarinade = msolValue.add(lpValue);
+
   const gsolSupply = new BN(details.balances.gsolSupply.amount);
   const limit = proportionalBN(gsolSupply, new BN(percentage), new BN(100));
 
-  return msolValue > limit;
+  console.log("totalMarinade: ", totalMarinade.toString());
+  console.log("limit: ", limit.toString());
+  console.log("percentage: ", percentage);
+  console.log("gsolSupply: ", gsolSupply.toString());
+  console.log("totalMarinade.gt(limit): ", totalMarinade.gt(limit));
+
+  return totalMarinade.gt(limit);
 };
