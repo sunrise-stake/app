@@ -190,9 +190,7 @@ export const StakeDashboard: FC = () => {
           />
         )}
       </Panel>
-      <div className="flex flex-col gap-8 mb-8 mt-2 justify-center">
-        <DetailsBox />
-      </div>
+
       <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="py-2 px-4 rounded text-center">
           <div className="flex flex-row justify-between items-center">
@@ -280,6 +278,9 @@ export const StakeDashboard: FC = () => {
             </div>
           </div>
         </InfoBox>
+      </div>
+      <div className="mb-8 mt-2">
+        <DetailsBox />
       </div>
 
       <div className="flex flex-col gap-8 mb-8 justify-center">

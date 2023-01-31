@@ -1,8 +1,10 @@
 import clx from "classnames";
-import { FC, useState } from "react";
+import { FC } from "react";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { toFixedWithPrecision, toSol, ZERO } from "../lib/util";
 import BN from "bn.js";
+import { Disclosure, Transition } from "@headlessui/react";
+import { ChevronUpIcon } from "@heroicons/react/20/solid";
 
 interface DetailEntryProps {
   label: string;
@@ -25,8 +27,6 @@ interface Props {
   className?: string;
 }
 const DetailsBox: FC<Props> = ({ className }) => {
-  const [show, setShow] = useState(false);
-
   const { details } = useSunriseStake();
 
   if (!details) return <>Loading...</>;
@@ -51,38 +51,61 @@ const DetailsBox: FC<Props> = ({ className }) => {
     toFixedWithPrecision(toSol(lamports), 2);
 
   return (
-    <>
-      <div
-        className="text-gray-400 -mb-5 cursor-pointer hover:text-gray-300 w-fit"
-        onClick={() => setShow((prevState) => !prevState)}
-      >
-        Details
-      </div>
-      {show && (
-        <div
-          className={clx(
-            "bg-green-light/30 border border-green-light backdrop-blur-md py-2 px-4 rounded text-center",
-            className
-          )}
-        >
-          <DetailEntry
-            label="Marinade Stake Pool Value"
-            value={lamportsToDisplay(details.mpDetails.msolValue)}
-            share={spShare}
-          />
-          <DetailEntry
-            label="Marinade Liquidity Pool Value"
-            value={lamportsToDisplay(details.lpDetails.lpSolValue)}
-            share={lpShare}
-          />
-          <DetailEntry
-            label="In Flight Value"
-            value={lamportsToDisplay(inflightTotal)}
-            share={inflightShare}
-          />
-        </div>
+    <Disclosure>
+      {({ open }) => (
+        <>
+          <Disclosure.Button
+            className={clx(
+              "flex w-full justify-between rounded-t-md bg-green-light/30 backdrop-blur-md px-4 py-1 text-left text-sm font-medium text-white hover:brightness-150",
+              {
+                "rounded-t-md  border border-green-light": open,
+                "rounded-md": !open,
+              }
+            )}
+          >
+            <span>Details</span>
+            <ChevronUpIcon
+              className={clx("h-5 w-5 text-white", {
+                "rotate-180 transform": open,
+              })}
+            />
+          </Disclosure.Button>
+          <Transition
+            enter="transition duration-100 ease-out"
+            enterFrom="transform scale-95 opacity-0"
+            enterTo="transform scale-100 opacity-100"
+            leave="transition duration-75 ease-out"
+            leaveFrom="transform scale-100 opacity-100"
+            leaveTo="transform scale-95 opacity-0"
+          >
+            <Disclosure.Panel>
+              <div
+                className={clx(
+                  "bg-green-light/30 border border-green-light backdrop-blur-md py-2 px-4 rounded-b-md text-center",
+                  className
+                )}
+              >
+                <DetailEntry
+                  label="Marinade Stake Pool Value"
+                  value={lamportsToDisplay(details.mpDetails.msolValue)}
+                  share={spShare}
+                />
+                <DetailEntry
+                  label="Marinade Liquidity Pool Value"
+                  value={lamportsToDisplay(details.lpDetails.lpSolValue)}
+                  share={lpShare}
+                />
+                <DetailEntry
+                  label="In Flight Value"
+                  value={lamportsToDisplay(inflightTotal)}
+                  share={inflightShare}
+                />
+              </div>
+            </Disclosure.Panel>
+          </Transition>{" "}
+        </>
       )}
-    </>
+    </Disclosure>
   );
 };
 
