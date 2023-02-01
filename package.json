@@ -14,7 +14,9 @@
         "program:build": "anchor build",
         "program:deploy": "solana program deploy target/deploy/sunrise_stake.so --program-id sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6",
         "app:build": "yarn workspace @sunrisestake/app build",
-        "app:start": "yarn workspace @sunrisestake/app start"
+        "app:start": "yarn workspace @sunrisestake/app start",
+        "report:mainnet": "REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node packages/scripts/get.ts",
+        "report:devnet": "REACT_APP_SOLANA_NETWORK=devnet yarn ts-node packages/scripts/get.ts"
     },
     "dependencies": {
         "@project-serum/anchor": "^0.26.0"

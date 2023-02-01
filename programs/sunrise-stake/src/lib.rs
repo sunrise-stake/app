@@ -191,8 +191,8 @@ pub mod sunrise_stake {
         Ok(())
     }
 
-    pub fn trigger_pool_rebalance<'a, 'b, 'c, 'info>(
-        ctx: Context<'a, 'b, 'c, 'info, TriggerPoolRebalance<'info>>,
+    pub fn trigger_pool_rebalance<'info>(
+        ctx: Context<'_, '_, '_, 'info, TriggerPoolRebalance<'info>>,
         epoch: u64,
         index: u64,
         order_unstake_ticket_account_bump: u8,

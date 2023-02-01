@@ -5,9 +5,16 @@ export const STAKE_POOL_PROGRAM_ID = new PublicKey(
   "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 );
 
+interface BlazeConfig {
+  pool: PublicKey;
+  bsolMint: PublicKey;
+}
+
 interface EnvironmentConfig {
   state: PublicKey;
   holdingAccount: PublicKey;
+  percentageStakeToMarinade: number;
+  blaze: BlazeConfig;
 }
 export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
   "mainnet-beta": {
@@ -15,58 +22,46 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     holdingAccount: new PublicKey(
       "shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn"
     ),
+    percentageStakeToMarinade: 200, // TODO TEMP fix
+    blaze: {
+      pool: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
+      bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
+    },
   },
+  // TODO placeholders
   testnet: {
     state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"), // Warning obsolete
-    holdingAccount: new PublicKey(
-      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
-    ), // TODO incorrect
+    holdingAccount: PublicKey.default,
+    percentageStakeToMarinade: 75,
+    blaze: {
+      pool: PublicKey.default,
+      bsolMint: PublicKey.default,
+    },
   },
   devnet: {
     state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
     holdingAccount: new PublicKey(
       "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
     ),
+    percentageStakeToMarinade: 75,
+    blaze: {
+      pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
+      bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
+    },
   },
 };
 
-interface BlazeConfig {
-  pool: PublicKey;
-  bsolMint: PublicKey;
-}
-
-export const SolBlazeEnvironment: Record<WalletAdapterNetwork, BlazeConfig> = {
-  "mainnet-beta": {
-    pool: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
-    bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
-  },
-  devnet: {
-    pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
-    bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
-  },
-  testnet: {
-    pool: PublicKey.default,
-    bsolMint: PublicKey.default,
-  },
-};
-
-export const SOLBLAZE_CONFIG =
-  SolBlazeEnvironment[
+const ActiveEnvironment =
+  Environment[
     (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
       WalletAdapterNetwork.Devnet
   ];
 
-export const SUNRISE_STAKE_STATE =
-  Environment[
-    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
-      WalletAdapterNetwork.Devnet
-  ].state;
+export const SOLBLAZE_CONFIG = ActiveEnvironment.blaze;
 
-export const HOLDING_ACCOUNT =
-  Environment[
-    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
-      WalletAdapterNetwork.Devnet
-  ].holdingAccount;
+export const SUNRISE_STAKE_STATE = ActiveEnvironment.state;
+
+export const HOLDING_ACCOUNT = ActiveEnvironment.holdingAccount;
 
 export const DEFAULT_LP_PROPORTION = 10;
 export const DEFAULT_LP_MIN_PROPORTION = 5;
@@ -76,3 +71,7 @@ export const MARINADE_TICKET_RENT = 1503360;
 export const NETWORK_FEE = 5000;
 
 export const MINIMUM_EXTRACTABLE_YIELD = 100_000_000; // 0.1 SOL
+
+// Excluding the liquidity pool, what percentage of the stake should be sent to marinade
+export const PERCENTAGE_STAKE_TO_MARINADE =
+  ActiveEnvironment.percentageStakeToMarinade;

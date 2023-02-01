@@ -188,7 +188,7 @@ describe("sunrise-stake", () => {
     const solDepositFee =
       Number(poolInfo.solDepositFee.numerator) /
       Number(poolInfo.solDepositFee.denominator);
-    console.log("sol deposit fee: ", solDepositFee); // the 0.08% comes back to us so it's accounted for
+    expect(solDepositFee).to.equal(0.0008);
 
     const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
 
@@ -226,9 +226,7 @@ describe("sunrise-stake", () => {
 
   it("no yield to extract yet", async () => {
     const { extractableYield } = await client.details();
-    console.log("extractableYield: ", extractableYield.toString());
-
-    expectAmount(extractableYield, 0, 100);
+    expectAmount(extractableYield, 0, 10);
   });
 
   it("can feelessly unstake sol when under the level of the LP but above the min level that triggers a rebalance", async () => {
@@ -420,9 +418,6 @@ describe("sunrise-stake", () => {
     // subtract 0.3% liquid unstake fee until we do delayed unstake
     const expectedYield = new BN(burnLamports).muln(997).divn(1000);
 
-    console.log("**Expected Yield to extract values:**");
-    console.log("   ", postBurnYieldToExtract.toNumber());
-    console.log("   ", expectedYield.toNumber());
     expectAmount(postBurnYieldToExtract, expectedYield, 50);
   });
 
