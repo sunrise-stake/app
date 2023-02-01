@@ -83,10 +83,10 @@ const DetailsBox: FC<Props> = ({ className }) => {
             />
           </Disclosure.Button>
           <Transition
-            enter="transition duration-100 ease-out"
+            enter="transition duration-700 ease-out"
             enterFrom="transform scale-95 opacity-0"
-            enterTo="transform scale-100 opacity-100"
-            leave="transition duration-75 ease-out"
+            enterTo="transform backdrop-blur-sm scale-100 opacity-100"
+            leave="transition duration-400 ease-out"
             leaveFrom="transform scale-100 opacity-100"
             leaveTo="transform scale-95 opacity-0"
           >
@@ -130,7 +130,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
                 />
               </div>
             </Disclosure.Panel>
-          </Transition>{" "}
+          </Transition>
         </>
       )}
     </Disclosure>
