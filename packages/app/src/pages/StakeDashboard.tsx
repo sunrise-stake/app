@@ -235,6 +235,7 @@ export const StakeDashboard: FC = () => {
               color="#52dc90"
               size={32}
             />
+
             <div className="mx-auto sm:mx-0 items-center">
               <span className="font-bold text-sm sm:text-lg">
                 {totalCarbon !== undefined &&

@@ -4,6 +4,7 @@ import { FiChevronDown } from "react-icons/fi";
 import { Listbox, Transition } from "@headlessui/react";
 import Spinner from "./Spinner";
 import { toFixedWithPrecision } from "../lib/util";
+import TooltipPopover from "./TooltipPopover";
 
 enum WithdrawOption {
   Delayed = "Delayed",
@@ -36,6 +37,14 @@ const UnstakeOption: FC<UnstakeOptionProps> = ({
         Fee: {toFixedWithPrecision(withdrawalFee)}%
       </span>
     )}
+    <div className="w-8">
+      <TooltipPopover>
+        Delayed withdrawal is always free. You will receive a ticket and at the
+        end of the epoch you can withdraw your SOL. Immediate withdrawal is
+        usually also free, but if the unstake amount is too large, a small fee
+        can be charged.
+      </TooltipPopover>
+    </div>
   </div>
 );
 
