@@ -68,10 +68,10 @@ const DetailsBox: FC<Props> = ({ className }) => {
         <>
           <Disclosure.Button
             className={clx(
-              "flex w-full justify-between rounded-t-md bg-green-light/30 backdrop-blur-md px-4 py-1 text-left text-sm font-medium text-white hover:brightness-150",
+              "flex w-full justify-between rounded-t-md px-4 py-1 text-left text-sm font-medium text-white ",
               {
-                "rounded-t-md border border-green-light": open,
-                "rounded-md": !open,
+                "rounded-t-md backdrop-blur-sm": open,
+                "rounded-md bg-inset": !open,
               }
             )}
           >
@@ -93,10 +93,11 @@ const DetailsBox: FC<Props> = ({ className }) => {
             <Disclosure.Panel>
               <div
                 className={clx(
-                  "bg-green-light/30 border-x border-b border-green-light backdrop-blur-md py-2 px-4 rounded-b-md text-center",
+                  "backdrop-blur-sm py-2 px-4 rounded-b-md text-center",
                   className
                 )}
               >
+                <hr className="-mt-1 mb-2 h-{0.5px} w-full bg-white"></hr>
                 <DetailEntry
                   label="Total gSOL"
                   value={lamportsToDisplay(gSolSupply)}
