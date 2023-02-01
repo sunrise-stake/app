@@ -38,14 +38,24 @@ const DetailsBox: FC<Props> = ({ className }) => {
 
   const totalValue = details.mpDetails.msolValue
     .add(details.lpDetails.lpSolValue)
+    .add(details.bpDetails.bsolValue)
     .add(inflightTotal);
 
-  const spShare =
+  const mpShare =
     details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+  const bpShare =
+    details.bpDetails.bsolValue.muln(10_000).div(totalValue).toNumber() / 100;
   const lpShare =
     details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() / 100;
   const inflightShare =
     inflightTotal.muln(10_000).div(totalValue).toNumber() / 100;
+
+  const extractableYield = new BN(
+    Math.max(details.extractableYield.toNumber(), 0)
+  );
+  const yieldShare =
+    extractableYield.muln(10_000).div(totalValue).toNumber() / 100;
+  const gSolSupply = new BN(details.balances.gsolBalance.amount);
 
   const lamportsToDisplay = (lamports: BN): string =>
     toFixedWithPrecision(toSol(lamports), 2);
@@ -88,7 +98,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
                 <DetailEntry
                   label="Marinade Stake Pool Value"
                   value={lamportsToDisplay(details.mpDetails.msolValue)}
-                  share={spShare}
+                  share={mpShare}
                 />
                 <DetailEntry
                   label="Marinade Liquidity Pool Value"
@@ -96,9 +106,24 @@ const DetailsBox: FC<Props> = ({ className }) => {
                   share={lpShare}
                 />
                 <DetailEntry
+                  label="Solblaze Stake Pool Value"
+                  value={lamportsToDisplay(details.bpDetails.bsolValue)}
+                  share={bpShare}
+                />
+                <DetailEntry
                   label="In Flight Value"
                   value={lamportsToDisplay(inflightTotal)}
                   share={inflightShare}
+                />
+                <DetailEntry
+                  label="Extractable Yield"
+                  value={lamportsToDisplay(extractableYield)}
+                  share={yieldShare}
+                />
+                <DetailEntry
+                  label="gSOL Supply"
+                  value={lamportsToDisplay(gSolSupply)}
+                  share={100}
                 />
               </div>
             </Disclosure.Panel>
