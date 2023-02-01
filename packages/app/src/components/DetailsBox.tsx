@@ -55,7 +55,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
   );
   const yieldShare =
     extractableYield.muln(10_000).div(totalValue).toNumber() / 100;
-  const gSolSupply = new BN(details.balances.gsolBalance.amount);
+  const gSolSupply = new BN(details.balances.gsolSupply.amount);
 
   const lamportsToDisplay = (lamports: BN): string =>
     toFixedWithPrecision(toSol(lamports), 2);
