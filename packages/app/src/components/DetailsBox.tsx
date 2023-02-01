@@ -17,7 +17,9 @@ const DetailEntry: FC<DetailEntryProps> = ({ label, value, share }) => (
     <div className="font-bold text-sm sm:text-lg">
       {value} <span className="text-bold text-xs">SOL</span>{" "}
       {share !== undefined && (
-        <span className="hidden sm:inline">({share}%)</span>
+        <span className="hidden sm:inline text-gray-300 font-normal text-sm">
+          ({share}%)
+        </span>
       )}
     </div>
   </div>
@@ -96,6 +98,11 @@ const DetailsBox: FC<Props> = ({ className }) => {
                 )}
               >
                 <DetailEntry
+                  label="Total gSOL"
+                  value={lamportsToDisplay(gSolSupply)}
+                  share={100}
+                />
+                <DetailEntry
                   label="Marinade Stake Pool Value"
                   value={lamportsToDisplay(details.mpDetails.msolValue)}
                   share={mpShare}
@@ -106,12 +113,12 @@ const DetailsBox: FC<Props> = ({ className }) => {
                   share={lpShare}
                 />
                 <DetailEntry
-                  label="Solblaze Stake Pool Value"
+                  label="SolBlaze Stake Pool Value"
                   value={lamportsToDisplay(details.bpDetails.bsolValue)}
                   share={bpShare}
                 />
                 <DetailEntry
-                  label="In Flight Value"
+                  label="In-flight Value"
                   value={lamportsToDisplay(inflightTotal)}
                   share={inflightShare}
                 />
@@ -119,11 +126,6 @@ const DetailsBox: FC<Props> = ({ className }) => {
                   label="Extractable Yield"
                   value={lamportsToDisplay(extractableYield)}
                   share={yieldShare}
-                />
-                <DetailEntry
-                  label="gSOL Supply"
-                  value={lamportsToDisplay(gSolSupply)}
-                  share={100}
                 />
               </div>
             </Disclosure.Panel>
