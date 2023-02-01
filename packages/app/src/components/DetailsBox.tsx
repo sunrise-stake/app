@@ -44,19 +44,19 @@ const DetailsBox: FC<Props> = ({ className }) => {
     .add(inflightTotal);
 
   const mpShare =
-    details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    details.mpDetails.msolValue.muln(1_000).div(totalValue).toNumber() / 10;
   const bpShare =
-    details.bpDetails.bsolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    details.bpDetails.bsolValue.muln(1_000).div(totalValue).toNumber() / 10;
   const lpShare =
-    details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    details.lpDetails.lpSolValue.muln(1_000).div(totalValue).toNumber() / 10;
   const inflightShare =
-    inflightTotal.muln(10_000).div(totalValue).toNumber() / 100;
+    inflightTotal.muln(1_000).div(totalValue).toNumber() / 10;
 
   const extractableYield = new BN(
     Math.max(details.extractableYield.toNumber(), 0)
   );
   const yieldShare =
-    extractableYield.muln(10_000).div(totalValue).toNumber() / 100;
+    extractableYield.muln(1_000).div(totalValue).toNumber() / 10;
   const gSolSupply = new BN(details.balances.gsolSupply.amount);
 
   const lamportsToDisplay = (lamports: BN): string =>
