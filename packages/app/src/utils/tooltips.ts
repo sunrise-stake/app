@@ -19,7 +19,7 @@ export const tooltips = {
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
 
-  marinadeStakePool: `Delayed withdrawal is always free. You will receive a ticket and at the
+  marinadeStakePool: `The proportion of funds staked in the Marinade Stake Pool.`
   end of the epoch you can withdraw your SOL. Immediate withdrawal is
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
