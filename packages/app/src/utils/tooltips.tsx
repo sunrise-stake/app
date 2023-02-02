@@ -14,7 +14,7 @@ export const tooltips = {
       immediate and delayed withdrawal. Immediate withdrawal draws funds from
       the Marinade liquidity pool. If the pool is low, it may incur a fee.
       Delayed withdrawal is always free. You will receive a ticket which can be
-      redeemed at the end of the Solana Epoch to receive your SOL.,
+      redeemed at the end of the Solana Epoch to receive your SOL.
     </>
   ),
   marinadeStakePool: (
