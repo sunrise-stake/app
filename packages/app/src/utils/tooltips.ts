@@ -14,7 +14,7 @@ export const tooltips = {
   voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita 
   kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`,
 
-  withdraw: `Delayed withdrawal is always free. You will receive a ticket and at the
+  withdraw: `Withdraw your funds by converting gSOL back to SOL. You can choose between immediate and delayed withdrawal. Immediate withdrawal draws funds from the Marinade liquidity pool. If the pool is low, it may incur a fee. Delayed withdrawal is always free. You will receive a ticket which can be redeemed at the end of the Solana Epoch to receive your SOL.
   end of the epoch you can withdraw your SOL. Immediate withdrawal is
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
