@@ -4,15 +4,26 @@ import { useSunriseStake } from "../context/sunriseStakeContext";
 import { toFixedWithPrecision, toSol, ZERO } from "../lib/util";
 import BN from "bn.js";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import TooltipPopover from "./TooltipPopover";
+import { tooltips } from "../utils/tooltips";
 
 interface DetailEntryProps {
   label: string;
   value: string;
+  tooltip: string;
   share?: number;
 }
-const DetailEntry: FC<DetailEntryProps> = ({ label, value, share }) => (
+const DetailEntry: FC<DetailEntryProps> = ({
+  label,
+  value,
+  share,
+  tooltip,
+}) => (
   <div className="flex flex-row justify-between">
-    <div className="text-gray-100 text-sm sm:text-lg">{label}</div>
+    <div className="flex flex-row gap-2">
+      <div className="text-gray-100 text-sm sm:text-lg">{label}</div>
+      <TooltipPopover>{tooltip}</TooltipPopover>
+    </div>
     <div className="font-bold text-sm sm:text-lg">
       {value} <span className="text-bold text-xs">SOL</span>{" "}
       {share !== undefined && (
@@ -105,31 +116,37 @@ const DetailsBox: FC<Props> = ({ className }) => {
           label="Total gSOL"
           value={lamportsToDisplay(gSolSupply)}
           share={100}
+          tooltip={tooltips.totalStatke}
         />
         <DetailEntry
           label="Marinade Stake Pool Value"
           value={lamportsToDisplay(details.mpDetails.msolValue)}
           share={mpShare}
+          tooltip={tooltips.marinadeStakePool}
         />
         <DetailEntry
           label="Marinade Liquidity Pool Value"
           value={lamportsToDisplay(details.lpDetails.lpSolValue)}
           share={lpShare}
+          tooltip={tooltips.marinadeLiquidityPool}
         />
         <DetailEntry
           label="SolBlaze Stake Pool Value"
           value={lamportsToDisplay(details.bpDetails.bsolValue)}
           share={bpShare}
+          tooltip={tooltips.solblazeStakePool}
         />
         <DetailEntry
           label="In-flight Value"
           value={lamportsToDisplay(inflightTotal)}
           share={inflightShare}
+          tooltip={tooltips.inflight}
         />
         <DetailEntry
           label="Extractable Yield"
           value={lamportsToDisplay(extractableYield)}
           share={yieldShare}
+          tooltip={tooltips.extractableYield}
         />
       </div>
     </>

@@ -5,6 +5,7 @@ import { Listbox, Transition } from "@headlessui/react";
 import Spinner from "./Spinner";
 import { toFixedWithPrecision } from "../lib/util";
 import TooltipPopover from "./TooltipPopover";
+import { tooltips } from "../utils/tooltips";
 
 enum WithdrawOption {
   Delayed = "Delayed",
@@ -38,12 +39,7 @@ const UnstakeOption: FC<UnstakeOptionProps> = ({
       </span>
     )}
     <div className="w-8">
-      <TooltipPopover>
-        Delayed withdrawal is always free. You will receive a ticket and at the
-        end of the epoch you can withdraw your SOL. Immediate withdrawal is
-        usually also free, but if the unstake amount is too large, a small fee
-        can be charged.
-      </TooltipPopover>
+      <TooltipPopover>{tooltips.withdraw}</TooltipPopover>
     </div>
   </div>
 );
