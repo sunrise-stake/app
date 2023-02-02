@@ -3,7 +3,7 @@ import { FC, useState } from "react";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { toFixedWithPrecision, toSol, ZERO } from "../lib/util";
 import BN from "bn.js";
-import { ChevronUpIcon } from "@heroicons/react/20/solid";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
 interface DetailEntryProps {
   label: string;
@@ -75,7 +75,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
         )}
       >
         <span>Details</span>
-        <ChevronUpIcon
+        <ChevronDownIcon
           className={clx("transition duration-700 h-5 w-5 text-white", {
             "rotate-180 transform": isShowing,
           })}
