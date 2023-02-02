@@ -23,8 +23,7 @@ import {
 import { useCarbon } from "../hooks/useCarbon";
 import { DetailsBox } from "../components/DetailsBox";
 import TooltipPopover from "../components/TooltipPopover";
-import { DetailsBox } from "../components/DetailsBox";
-import TooltipPopover from "../components/TooltipPopover";
+import { tooltips } from "../utils/tooltips";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -214,12 +213,7 @@ export const StakeDashboard: FC = () => {
 
               {/* <br /> */}
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
-                <TooltipPopover>
-                  jasdfj asdflakj flassjflasjfl ajlfdsajf asljflaskjfa;lsk faj
-                  djasasdfj asdflakj flassjflasjfl ajlfdsajf asljflaskjfa;lsk
-                  faj djas asdflakj flassjflas asdflakj flassjflasjfl ajlfdsajf
-                  asljflaskjfa;lsk faj djasasdfj asdflakj flassjfla
-                </TooltipPopover>
+                <TooltipPopover>{tooltips.yourStake}</TooltipPopover>
                 <div className="text-xs sm:text-sm">Your Stake</div>
               </div>
             </div>
@@ -241,12 +235,7 @@ export const StakeDashboard: FC = () => {
               </div>
 
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
-                <TooltipPopover>
-                  jasdfj asdflakj flassjflasjfl ajlfdsajf asljflaskjfa;lsk faj
-                  djasasdfj asdflakj flassjflasjfl ajlfdsajf asljflaskjfa;lsk
-                  faj djas asdflakj flassjflas asdflakj flassjflasjfl ajlfdsajf
-                  asljflaskjfa;lsk faj djasasdfj asdflakj flassjfla
-                </TooltipPopover>
+                <TooltipPopover>{tooltips.totalStatke}</TooltipPopover>
                 <div className="text-xs sm:text-sm">Total Stake</div>
               </div>
             </div>
@@ -269,12 +258,7 @@ export const StakeDashboard: FC = () => {
                 <span className="text-xs font-bold">tCO₂E</span>
               </div>
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
-                <TooltipPopover>
-                  jasdfj asdflakj flassjflasjfl ajlfdsajf asljflaskjfa;lsk faj
-                  djasasdfj asdflakj flassjflasjfl ajlfdsajf asljflaskjfa;lsk
-                  faj djas asdflakj flassjflas asdflakj flassjflasjfl ajlfdsajf
-                  asljflaskjfa;lsk faj djasasdfj asdflakj flassjfla
-                </TooltipPopover>
+                <TooltipPopover>{tooltips.offsetCO2}</TooltipPopover>
                 <div className="text-xs sm:text-sm">Offset CO₂</div>
               </div>
             </div>

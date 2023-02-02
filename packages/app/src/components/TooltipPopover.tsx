@@ -27,7 +27,7 @@ const TooltipPopover: FC<TooltipProps> = ({ children }) => {
   return (
     <Popover className="flex">
       <Popover.Button ref={setReferenceElement}>
-        <BsInfoCircle />
+        <BsInfoCircle size={14} />
       </Popover.Button>
 
       <Popover.Panel
