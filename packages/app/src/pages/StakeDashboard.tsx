@@ -192,7 +192,7 @@ export const StakeDashboard: FC = () => {
         )}
       </Panel>
 
-      <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
+      <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base relative z-40">
         <InfoBox className="py-2 px-4 rounded text-center">
           <div className="flex flex-row justify-between items-center">
             <img
