@@ -24,7 +24,7 @@ export const tooltips = {
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
 
-  marinadeLiquidityPool: `Delayed withdrawal is always free. You will receive a ticket and at the
+  marinadeLiquidityPool: `The proportion of funds staked in the Marinade [Liquid Unstake Pool](https://docs.marinade.finance/marinade-protocol/system-overview/unstake-liquidity-pool). Sunrise keeps a balance in this pool in order to enable [fee-less liquid withdrawals](https://docs.sunrisestake.com/#step-3-unstaking).
   end of the epoch you can withdraw your SOL. Immediate withdrawal is
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
