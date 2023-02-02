@@ -7,6 +7,7 @@ import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import TooltipPopover from "./TooltipPopover";
 import { tooltips } from "../utils/tooltips";
 
+
 interface DetailEntryProps {
   label: string;
   value: string;
@@ -41,9 +42,11 @@ interface Props {
 const DetailsBox: FC<Props> = ({ className }) => {
   const { details } = useSunriseStake();
   const [isShowing, setIsShowing] = useState(false);
+
   const [isVisible, setIsVisible] = useState(false);
 
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
 
   if (!details) return <>Loading...</>;
 
@@ -92,6 +95,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
             return !isShowing;
           })
         }
+
         className={clx(
           "transition duration-700 flex w-full justify-between rounded-t-md px-4 py-1 text-left text-sm font-medium text-white ",
           {
@@ -139,6 +143,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
           value={lamportsToDisplay(details.mpDetails.msolValue)}
           share={mpShare}
           tooltip={tooltips.marinadeStakePool}
+
         />
         <DetailEntry
           label="Marinade Liquidity Pool Value"
