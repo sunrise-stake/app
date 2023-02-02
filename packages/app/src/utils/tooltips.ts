@@ -4,7 +4,7 @@ export const tooltips = {
   At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, 
   no sea takimata sanctus est Lorem ipsum dolor sit amet.`,
 
-  totalStatke: `Lorem ipsum dolor sit amet, consetetur sadipscing elitr, 
+  totalStatke: `The sum of everyone's staked SOL`
   sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam 
   erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea 
   rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`,
