@@ -39,7 +39,7 @@ export const tooltips = {
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
 
-  extractableYield: `Delayed withdrawal is always free. You will receive a ticket and at the
+  extractableYield: `The proportion of funds that have been accrued by Sunrise and are ready to be spent on retiring carbon credits. Once this balance reaches a limit, it will be extracted by the [Yield Controller](https://docs.sunrisestake.com/#sunrise-stake-treasury-spending) and used to purchase and burn carbon tokens.
   end of the epoch you can withdraw your SOL. Immediate withdrawal is
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
