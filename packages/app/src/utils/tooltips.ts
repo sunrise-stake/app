@@ -9,7 +9,7 @@ export const tooltips = {
   erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea 
   rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`,
 
-  offsetCO2: `Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam 
+  offsetCO2: `Tonnes of Carbon Dioxide or equivalent (tCO2e) offset by Sunrise so far. Note: This number includes yield that Sunrise has accrued, but not yet spent.`
   nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam 
   voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita 
   kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`,
