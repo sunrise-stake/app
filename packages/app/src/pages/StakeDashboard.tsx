@@ -24,6 +24,7 @@ import { useCarbon } from "../hooks/useCarbon";
 import { DetailsBox } from "../components/DetailsBox";
 import TooltipPopover from "../components/TooltipPopover";
 import { DetailsBox } from "../components/DetailsBox";
+import TooltipPopover from "../components/TooltipPopover";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
