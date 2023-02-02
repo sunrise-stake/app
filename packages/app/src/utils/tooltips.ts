@@ -29,7 +29,7 @@ export const tooltips = {
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
 
-  solblazeStakePool: `Delayed withdrawal is always free. You will receive a ticket and at the
+  solblazeStakePool: `The proportion of funds staked in the SolBlaze Stake Pool.`
   end of the epoch you can withdraw your SOL. Immediate withdrawal is
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
