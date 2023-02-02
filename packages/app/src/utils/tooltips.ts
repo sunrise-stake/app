@@ -34,7 +34,7 @@ export const tooltips = {
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
 
-  inflight: `Delayed withdrawal is always free. You will receive a ticket and at the
+  inflight: `The proportion of funds currently being moved from the stake pools to the liquidity pool, in order to [rebalance](https://docs.sunrisestake.com/#step-3-unstaking) the pools. This balance is locked until the end of the Solana epoch. 
   end of the epoch you can withdraw your SOL. Immediate withdrawal is
   usually also free, but if the unstake amount is too large, a small fee
   can be charged.`,
