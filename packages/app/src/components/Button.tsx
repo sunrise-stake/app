@@ -18,7 +18,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button
       className={clx(
-        "inline-flex rounded-lg leading-6 text-white text-xl shadow-sm disabled:brightness-75 hover:brightness-75",
+        "inline-flex items-center rounded-lg leading-6 text-white text-xl shadow-sm disabled:brightness-75 hover:brightness-75",
         {
           "bg-green": variant === "primary",
           "bg-danger": variant === "danger",
