@@ -47,7 +47,6 @@ import {
   DEFAULT_LP_PROPORTION,
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
-  PERCENTAGE_STAKE_TO_MARINADE,
   SOLBLAZE_CONFIG,
   STAKE_POOL_PROGRAM_ID,
 } from "../constants";
@@ -214,7 +213,7 @@ export class SunriseStakeClient {
 
   public async makeDeposit(lamports: BN): Promise<string> {
     const details = await this.details();
-    if (marinadeTargetReached(details, PERCENTAGE_STAKE_TO_MARINADE)) {
+    if (marinadeTargetReached(details)) {
       console.log("Routing deposit to Solblaze");
       return this.depositToBlaze(lamports);
     }
