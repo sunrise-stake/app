@@ -1,14 +1,14 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import BN from "bn.js";
 import clx from "classnames";
-import { FC, useCallback, useEffect, useState } from "react";
+import { type FC, useCallback, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 import { GiCircleForest } from "react-icons/gi";
 
 import StakeForm from "../components/StakeForm";
 import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
-import { TicketAccount } from "@sunrisestake/client";
+import { type TicketAccount } from "@sunrisestake/client";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
@@ -144,7 +144,9 @@ export const StakeDashboard: FC = () => {
             variant={isStakeSelected ? "primary" : "secondary"}
             size={"sm"}
             className="mr-3 sm:mr-5"
-            onClick={() => setIsStakeSelected(true)}
+            onClick={() => {
+              setIsStakeSelected(true);
+            }}
           >
             Stake
             <FaLeaf
@@ -158,7 +160,9 @@ export const StakeDashboard: FC = () => {
           <Button
             variant={isStakeSelected ? "secondary" : "danger"}
             size={"sm"}
-            onClick={() => setIsStakeSelected(false)}
+            onClick={() => {
+              setIsStakeSelected(false);
+            }}
           >
             Unstake
             <TbLeafOff

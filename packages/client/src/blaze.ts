@@ -1,23 +1,31 @@
 import {
-  PublicKey,
+  type PublicKey,
   StakeProgram,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_STAKE_HISTORY_PUBKEY,
-  Transaction,
+  type Transaction,
 } from "@solana/web3.js";
-import BN from "bn.js";
+import type BN from "bn.js";
 import {
   findBSolTokenAccountAuthority,
   findGSolMintAuthority,
-  SunriseStakeConfig,
+  type SunriseStakeConfig,
 } from "./util";
 import { STAKE_POOL_PROGRAM_ID } from "./constants";
-import { AnchorProvider, Program, utils } from "@project-serum/anchor";
-import { SunriseStake } from "./types/SunriseStake";
+import {
+  type AnchorProvider,
+  type Program,
+  utils,
+} from "@project-serum/anchor";
+import { type SunriseStake } from "./types/SunriseStake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { BlazeState } from "./types/Solblaze";
-import { MarinadeUtils, Provider, Wallet } from "@sunrisestake/marinade-ts-sdk";
+import { type BlazeState } from "./types/Solblaze";
+import {
+  MarinadeUtils,
+  Provider,
+  type Wallet,
+} from "@sunrisestake/marinade-ts-sdk";
 
 export const blazeDeposit = async (
   config: SunriseStakeConfig,

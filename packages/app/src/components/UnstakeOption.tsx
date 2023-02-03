@@ -1,5 +1,5 @@
 import clx from "classnames";
-import { FC, Fragment } from "react";
+import { type FC, Fragment } from "react";
 import { FiChevronDown } from "react-icons/fi";
 import { Listbox, Transition } from "@headlessui/react";
 import Spinner from "./Spinner";

@@ -26,7 +26,9 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
   const [valid, setValid] = useState(false);
   const [feeLoading, setFeeLoading] = useState(true);
 
-  const withdrawModal = useModal(() => withdraw(amount));
+  const withdrawModal = useModal(() => {
+    withdraw(amount);
+  });
 
   useEffect(() => {
     if (client && details) setFeeLoading(false);
@@ -75,7 +77,9 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
           feeLoading={feeLoading}
         />
         <Button
-          onClick={() => withdraw(amount)}
+          onClick={() => {
+            withdraw(amount);
+          }}
           disabled={!valid}
           className="mr-auto sm:mr-0"
         >

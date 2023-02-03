@@ -1,11 +1,11 @@
 import {
-  PublicKey,
+  type PublicKey,
   StakeProgram,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
-  Transaction,
-  TransactionInstruction,
+  type Transaction,
+  type TransactionInstruction,
 } from "@solana/web3.js";
 import {
   findAllTickets,
@@ -13,19 +13,19 @@ import {
   findMSolTokenAccountAuthority,
   findOrderUnstakeTicketAccount,
   findOrderUnstakeTicketManagementAccount,
-  SunriseStakeConfig,
+  type SunriseStakeConfig,
   getValidatorIndex,
 } from "./util";
 import {
-  Marinade,
-  MarinadeState,
+  type Marinade,
+  type MarinadeState,
   MarinadeUtils,
 } from "@sunrisestake/marinade-ts-sdk";
-import { Program, utils } from "@project-serum/anchor";
-import { SunriseStake } from "./types/SunriseStake";
+import { type Program, utils } from "@project-serum/anchor";
+import { type SunriseStake } from "./types/SunriseStake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
-import { ManagementAccount } from "./types/ManagementAccount";
+import { type ManagementAccount } from "./types/ManagementAccount";
 
 export const deposit = async (
   config: SunriseStakeConfig,
@@ -130,9 +130,7 @@ export const depositStakeAccount = async (
   );
   console.log(
     "duplication flag: ",
-    await (
-      await marinadeState.validatorDuplicationFlag(voterAddress)
-    ).toString()
+    (await marinadeState.validatorDuplicationFlag(voterAddress)).toString()
   );
 
   const validatorSystem = marinadeState.state.validatorSystem;

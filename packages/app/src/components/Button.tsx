@@ -1,5 +1,5 @@
 import clx from "classnames";
-import React, { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "danger" | "ticket";

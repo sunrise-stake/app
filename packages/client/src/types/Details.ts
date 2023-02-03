@@ -1,6 +1,6 @@
-import BN from "bn.js";
-import { Balance } from "../util";
-import { EpochInfo } from "@solana/web3.js";
+import type BN from "bn.js";
+import { type Balance } from "../util";
+import { type EpochInfo } from "@solana/web3.js";
 
 export interface InflightDetails {
   epoch: bigint;

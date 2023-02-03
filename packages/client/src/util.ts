@@ -1,21 +1,21 @@
 import {
-  AccountInfo,
-  ConfirmOptions,
-  Connection,
+  type AccountInfo,
+  type ConfirmOptions,
+  type Connection,
   PublicKey,
-  TokenAmount,
-  Transaction,
+  type TokenAmount,
+  type Transaction,
 } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
-import { ManagementAccount } from "./types/ManagementAccount";
+import { type ManagementAccount } from "./types/ManagementAccount";
 import {
-  MarinadeState,
+  type MarinadeState,
   MarinadeUtils,
   Provider,
-  Wallet,
+  type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
-import { Details } from "./types/Details";
+import { type Details } from "./types/Details";
 import { PERCENTAGE_STAKE_TO_MARINADE } from "./constants";
 
 // zero bn number
@@ -113,12 +113,13 @@ export const findOrderUnstakeTicketAccount = (
   );
 };
 
-export const logKeys = (transaction: Transaction): void =>
+export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
     instruction.keys.forEach((key, i) => {
       console.log(j, i, key.pubkey.toBase58());
     });
   });
+};
 
 export const confirm = (connection: Connection) => async (txSig: string) =>
   connection.confirmTransaction({

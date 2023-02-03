@@ -1,14 +1,14 @@
 import {
   SunriseStakeClient,
-  TicketAccount,
-  Details,
+  type TicketAccount,
+  type Details,
   MINIMUM_EXTRACTABLE_YIELD,
   SUNRISE_STAKE_STATE,
 } from "@sunrisestake/client";
-import { Connection, Transaction } from "@solana/web3.js";
+import { type Connection, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@project-serum/anchor";
-import BN from "bn.js";
-import { AnchorWallet } from "@solana/wallet-adapter-react";
+import type BN from "bn.js";
+import { type AnchorWallet } from "@solana/wallet-adapter-react";
 import { debounce } from "./util";
 
 export class SunriseClientWrapper {

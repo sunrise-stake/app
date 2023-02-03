@@ -2,7 +2,7 @@ import BN from "bn.js";
 import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import {
   SunriseStakeClient,
-  TicketAccount,
+  type TicketAccount,
   getStakePoolAccount,
   DEFAULT_LP_MIN_PROPORTION,
   DEFAULT_LP_PROPORTION,

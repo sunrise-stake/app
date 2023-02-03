@@ -1,4 +1,4 @@
-import BN from "bn.js";
+import type BN from "bn.js";
 import React, { useState } from "react";
 import { FiArrowUpRight } from "react-icons/fi";
 
@@ -16,7 +16,9 @@ const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
   const [amount, setAmount] = useState("");
   const [valid, setValid] = useState(false);
 
-  const depositModal = useModal(() => deposit(amount));
+  const depositModal = useModal(() => {
+    deposit(amount);
+  });
 
   return (
     <div>

@@ -1,5 +1,5 @@
 import clx from "classnames";
-import { FC, ReactNode, useRef, useState } from "react";
+import { type FC, type ReactNode, useRef, useState } from "react";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { toFixedWithPrecision, toSol, ZERO } from "../lib/util";
 import BN from "bn.js";
@@ -79,7 +79,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
   return (
     <>
       <button
-        onClick={() =>
+        onClick={() => {
           setIsShowing((isShowing) => {
             clearTimeout(timeoutRef.current);
             if (isShowing) {
@@ -90,8 +90,8 @@ const DetailsBox: FC<Props> = ({ className }) => {
               }, 700);
             }
             return !isShowing;
-          })
-        }
+          });
+        }}
         className={clx(
           "transition duration-700 flex w-full justify-between rounded-t-md px-4 py-1 text-left text-sm font-medium text-white ",
           {

@@ -1,28 +1,28 @@
-import { SunriseStake, IDL } from "./types/SunriseStake";
+import { type SunriseStake, IDL } from "./types/SunriseStake";
 import * as anchor from "@project-serum/anchor";
-import { AnchorProvider, Program, utils } from "@project-serum/anchor";
+import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
-  ConfirmOptions,
+  type ConfirmOptions,
   Keypair,
   PublicKey,
-  Signer,
+  type Signer,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   Transaction,
-  TransactionInstruction,
+  type TransactionInstruction,
 } from "@solana/web3.js";
 import {
   confirm,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   findBSolTokenAccountAuthority,
-  SunriseStakeConfig,
+  type SunriseStakeConfig,
   logKeys,
-  Options,
+  type Options,
   PROGRAM_ID,
   setUpAnchor,
   ZERO_BALANCE,
-  Balance,
+  type Balance,
   proportionalBN,
   marinadeTargetReached,
   ZERO,
@@ -30,13 +30,13 @@ import {
 import {
   Marinade,
   MarinadeConfig,
-  MarinadeState,
+  type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
-import { Details } from "./types/Details";
+import { type Details } from "./types/Details";
 import {
-  SunriseTicketAccountFields,
-  TicketAccount,
+  type SunriseTicketAccountFields,
+  type TicketAccount,
 } from "./types/TicketAccount";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -64,11 +64,11 @@ import {
   blazeWithdrawSol,
   blazeWithdrawStake,
 } from "./blaze";
-import { BlazeState } from "./types/Solblaze";
-import { getStakePoolAccount, StakePool } from "./decodeStakePool";
+import { type BlazeState } from "./types/Solblaze";
+import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 
 // export getSakePoolAccount
-export { getStakePoolAccount, StakePool };
+export { getStakePoolAccount, type StakePool };
 
 // export all types
 export * from "./types/SunriseStake";
@@ -253,7 +253,7 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 
@@ -283,7 +283,7 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 
@@ -313,7 +313,7 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 

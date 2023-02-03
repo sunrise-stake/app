@@ -1,4 +1,10 @@
-import { FC, Fragment, ReactNode, useCallback, useState } from "react";
+import {
+  type FC,
+  Fragment,
+  type ReactNode,
+  useCallback,
+  useState,
+} from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { GiCancel } from "react-icons/gi";
 import { FiArrowRight } from "react-icons/fi";

@@ -1,9 +1,14 @@
 import {
-  SunriseStakeClient,
+  type SunriseStakeClient,
   SOLBLAZE_CONFIG,
   getStakePoolAccount,
 } from "@sunrisestake/client";
-import { Keypair, PublicKey, StakeProgram, Transaction } from "@solana/web3.js";
+import {
+  type Keypair,
+  PublicKey,
+  StakeProgram,
+  Transaction,
+} from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
 import { createBurnInstruction } from "@solana/spl-token";

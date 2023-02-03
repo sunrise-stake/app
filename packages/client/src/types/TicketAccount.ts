@@ -1,5 +1,5 @@
-import { MarinadeBorsh } from "@sunrisestake/marinade-ts-sdk";
-import { PublicKey } from "@solana/web3.js";
+import { type MarinadeBorsh } from "@sunrisestake/marinade-ts-sdk";
+import { type PublicKey } from "@solana/web3.js";
 
 export interface SunriseTicketAccountFields {
   stateAddress: PublicKey;

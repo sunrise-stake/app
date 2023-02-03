@@ -1,5 +1,5 @@
-import BaseModal, { ModalProps } from "./BaseModal";
-import React, { FC } from "react";
+import BaseModal, { type ModalProps } from "./BaseModal";
+import React, { type FC } from "react";
 import { Dialog } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import useFlags from "../../hooks/useFlags";
@@ -27,9 +27,9 @@ const DepositWarningModal: FC<ModalProps> = (props) => {
           </Dialog.Title>
           <div className="mt-2">
             <WarningConfirm
-              onConfirm={(confirmed: boolean) =>
-                setFlag("audit-confirm", confirmed)
-              }
+              onConfirm={(confirmed: boolean) => {
+                setFlag("audit-confirm", confirmed);
+              }}
               idx={0}
             >
               <div className="flex flex-col gap-1 py-6 px-2">
