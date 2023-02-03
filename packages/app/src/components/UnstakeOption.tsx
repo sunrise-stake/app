@@ -4,6 +4,8 @@ import { FiChevronDown } from "react-icons/fi";
 import { Listbox, Transition } from "@headlessui/react";
 import Spinner from "./Spinner";
 import { toFixedWithPrecision } from "../lib/util";
+import TooltipPopover from "./TooltipPopover";
+import { tooltips } from "../utils/tooltips";
 
 enum WithdrawOption {
   Delayed = "Delayed",
@@ -36,6 +38,9 @@ const UnstakeOption: FC<UnstakeOptionProps> = ({
         Fee: {toFixedWithPrecision(withdrawalFee)}%
       </span>
     )}
+    <div className="w-8">
+      <TooltipPopover>{tooltips.withdraw}</TooltipPopover>
+    </div>
   </div>
 );
 

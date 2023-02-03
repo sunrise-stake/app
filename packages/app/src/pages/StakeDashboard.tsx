@@ -22,6 +22,8 @@ import {
 } from "../utils/notifications";
 import { useCarbon } from "../hooks/useCarbon";
 import { DetailsBox } from "../components/DetailsBox";
+import TooltipPopover from "../components/TooltipPopover";
+import { tooltips } from "../utils/tooltips";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -124,7 +126,7 @@ export const StakeDashboard: FC = () => {
   );
 
   return (
-    <div style={{ maxWidth: "620px" }} className="mx-auto">
+    <div style={{ maxWidth: "620px" }} className="mx-auto relative z-40">
       <div className="text-center">
         <img
           className="block sm:hidden w-auto h-16 mx-auto mb-3"
@@ -190,25 +192,30 @@ export const StakeDashboard: FC = () => {
         )}
       </Panel>
 
-      <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
+      <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base relative z-40">
         <InfoBox className="py-2 px-4 rounded text-center">
           <div className="flex flex-row justify-between items-center">
             <img
               src={`gSOL.png`}
               className="h-8 my-auto pr-2 hidden sm:block"
             />
-
             <div className="mx-auto sm:mx-0 items-center">
-              <span className="font-bold text-sm sm:text-lg">
-                {details !== undefined &&
-                  toFixedWithPrecision(
-                    toSol(new BN(details.balances.gsolBalance.amount)),
-                    2
-                  )}{" "}
-              </span>
-              <span className="text-xs font-bold">gSOL</span>
-              <br />
-              <div className="mt-1 text-xs sm:text-sm">Your Stake</div>
+              <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
+                <span className="font-bold text-sm sm:text-lg">
+                  {details !== undefined &&
+                    toFixedWithPrecision(
+                      toSol(new BN(details.balances.gsolBalance.amount)),
+                      2
+                    )}{" "}
+                </span>
+                <span className="text-xs font-bold">gSOL</span>
+              </div>
+
+              {/* <br /> */}
+              <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
+                <div className="text-xs sm:text-sm">Your Stake</div>
+                <TooltipPopover>{tooltips.yourStake}</TooltipPopover>
+              </div>
             </div>
           </div>
         </InfoBox>
@@ -216,17 +223,21 @@ export const StakeDashboard: FC = () => {
           <div className="flex flex-row justify-between items-center">
             <img src={`SOL.png`} className="h-8 my-auto pr-2 hidden sm:block" />
             <div className="mx-auto sm:mx-0 items-center">
-              <span className="font-bold text-sm sm:text-lg">
-                {details &&
-                  toFixedWithPrecision(
-                    toSol(new BN(details.balances.gsolSupply.amount)),
-                    2
-                  )}{" "}
-              </span>
-              <span className="text-xs font-bold">SOL</span>
+              <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
+                <span className="font-bold text-sm sm:text-lg">
+                  {details &&
+                    toFixedWithPrecision(
+                      toSol(new BN(details.balances.gsolSupply.amount)),
+                      2
+                    )}{" "}
+                </span>
+                <span className="text-xs font-bold">SOL</span>
+              </div>
 
-              <br />
-              <div className="mt-1 text-xs sm:text-sm">Total Stake</div>
+              <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
+                <div className="text-xs sm:text-sm">Total Stake</div>
+                <TooltipPopover>{tooltips.totalStatke}</TooltipPopover>
+              </div>
             </div>
           </div>
         </InfoBox>
@@ -237,13 +248,19 @@ export const StakeDashboard: FC = () => {
               color="#52dc90"
               size={32}
             />
+
             <div className="mx-auto sm:mx-0 items-center">
-              <span className="font-bold text-sm sm:text-lg">
-                {totalCarbon !== undefined &&
-                  toFixedWithPrecision(totalCarbon, 2)}{" "}
-              </span>
-              <span className="text-xs font-bold">tCO₂E</span>
-              <div className="mt-1 text-xs sm:text-sm">Offset CO₂</div>
+              <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
+                <span className="font-bold text-sm sm:text-lg">
+                  {totalCarbon !== undefined &&
+                    toFixedWithPrecision(totalCarbon, 2)}{" "}
+                </span>
+                <span className="text-xs font-bold">tCO₂E</span>
+              </div>
+              <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
+                <div className="text-xs sm:text-sm">Offset CO₂</div>
+                <TooltipPopover>{tooltips.offsetCO2}</TooltipPopover>
+              </div>
             </div>
           </div>
         </InfoBox>
