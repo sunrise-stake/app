@@ -2,7 +2,7 @@ import {
   type SunriseStakeClient,
   SOLBLAZE_CONFIG,
   getStakePoolAccount,
-} from "@sunrisestake/client";
+} from "../client";
 import {
   type Keypair,
   PublicKey,

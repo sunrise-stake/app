@@ -7,7 +7,7 @@ import {
   DEFAULT_LP_MIN_PROPORTION,
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
-} from "@sunrisestake/client";
+} from "../client";
 import {
   burnGSol,
   expectAmount,
@@ -35,7 +35,7 @@ describe("sunrise-stake", () => {
   let client: SunriseStakeClient;
 
   const depositLamports = new BN(100 * LAMPORTS_PER_SOL); // Deposit 100 SOL
-  const unstakeLamportsUnderLPBalance = new BN(1 * LAMPORTS_PER_SOL); // 1 SOL
+  const unstakeLamportsUnderLPBalance = new BN(LAMPORTS_PER_SOL); // 1 SOL
   const unstakeLamportsExceedLPBalance = new BN(20 * LAMPORTS_PER_SOL); // 20 SOL
   const orderUnstakeLamports = new BN(2 * LAMPORTS_PER_SOL); // Order a delayed unstake of 2 SOL
   const burnLamports = 100 * LAMPORTS_PER_SOL;
