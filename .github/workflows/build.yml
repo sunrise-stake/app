@@ -86,6 +86,10 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
+      - name: debug
+        run: |
+          yarn list
+
       - name: Run lint
         run: yarn lint
 
