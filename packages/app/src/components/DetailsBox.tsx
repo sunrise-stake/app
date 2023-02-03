@@ -34,8 +34,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
   if (!details) return <>Loading...</>;
 
   const inflightTotal = details.inflight.reduce(
-    (acc: { add: (arg0: any) => any }, x: { totalOrderedLamports: any }) =>
-      acc.add(x.totalOrderedLamports),
+    (acc, x) => acc.add(x.totalOrderedLamports),
     ZERO
   );
 

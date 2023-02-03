@@ -65,7 +65,7 @@ import {
   blazeWithdrawStake,
 } from "./blaze";
 import { BlazeState } from "./types/Solblaze";
-import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
+import { getStakePoolAccount, StakePool } from "./decodeStakePool";
 
 // export getSakePoolAccount
 export { getStakePoolAccount, StakePool };

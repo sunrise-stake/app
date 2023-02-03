@@ -16,7 +16,7 @@ import {
   Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
 import { Details } from "./types/Details";
-import { PERCENTAGE_STAKE_TO_MARINADE } from "../constants";
+import { PERCENTAGE_STAKE_TO_MARINADE } from "./constants";
 
 // zero bn number
 export const ZERO = new BN(0);
