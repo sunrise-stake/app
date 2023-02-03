@@ -80,15 +80,15 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Cache node dependencies
-        uses: actions/cache@v2
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+#      - name: Cache node dependencies
+#        uses: actions/cache@v2
+#        with:
+#          path: '**/node_modules'
+#          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: debug
+      - name: install
         run: |
-          yarn list
+          yarn --frozen-lockfile
 
       - name: Run lint
         run: yarn lint
