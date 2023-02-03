@@ -21,8 +21,8 @@ const DetailEntry: FC<DetailEntryProps> = ({
 }) => (
   <div className="flex flex-row justify-between">
     <div className="flex flex-row gap-2">
-      <TooltipPopover>{tooltip}</TooltipPopover>
       <div className="text-gray-100 text-sm sm:text-lg">{label}</div>
+      <TooltipPopover>{tooltip}</TooltipPopover>
     </div>
     <div className="font-bold text-sm sm:text-lg">
       {value} <span className="text-bold text-xs">SOL</span>{" "}

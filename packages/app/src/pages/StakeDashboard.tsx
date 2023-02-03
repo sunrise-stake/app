@@ -213,8 +213,8 @@ export const StakeDashboard: FC = () => {
 
               {/* <br /> */}
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
-                <TooltipPopover>{tooltips.yourStake}</TooltipPopover>
                 <div className="text-xs sm:text-sm">Your Stake</div>
+                <TooltipPopover>{tooltips.yourStake}</TooltipPopover>
               </div>
             </div>
           </div>
@@ -235,8 +235,8 @@ export const StakeDashboard: FC = () => {
               </div>
 
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
-                <TooltipPopover>{tooltips.totalStatke}</TooltipPopover>
                 <div className="text-xs sm:text-sm">Total Stake</div>
+                <TooltipPopover>{tooltips.totalStatke}</TooltipPopover>
               </div>
             </div>
           </div>
@@ -258,8 +258,8 @@ export const StakeDashboard: FC = () => {
                 <span className="text-xs font-bold">tCO₂E</span>
               </div>
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
-                <TooltipPopover>{tooltips.offsetCO2}</TooltipPopover>
                 <div className="text-xs sm:text-sm">Offset CO₂</div>
+                <TooltipPopover>{tooltips.offsetCO2}</TooltipPopover>
               </div>
             </div>
           </div>
