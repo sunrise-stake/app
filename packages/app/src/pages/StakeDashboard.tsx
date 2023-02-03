@@ -65,10 +65,10 @@ export const StakeDashboard: FC = () => {
   ]);
 
   const deposit = useCallback(
-    (amount: string) => {
-      if (!client) return;
+    async (amount: string) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      client
+      return client
         .deposit(solToLamports(amount))
         .then((tx) => {
           notifyTweet(amount);
@@ -85,14 +85,14 @@ export const StakeDashboard: FC = () => {
   );
 
   const withdraw = useCallback(
-    (amount: string) => {
-      if (!client) return;
+    async (amount: string) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
       const withdraw = delayedWithdraw
         ? client.orderWithdrawal.bind(client)
         : client.withdraw.bind(client);
 
-      withdraw(solToLamports(amount))
+      return withdraw(solToLamports(amount))
         .then((tx) => {
           notifyTransaction({
             type: NotificationType.success,
@@ -107,10 +107,10 @@ export const StakeDashboard: FC = () => {
   );
 
   const redeem = useCallback(
-    (ticket: TicketAccount) => {
-      if (!client) return;
+    async (ticket: TicketAccount) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      client
+      return client
         .claimUnstakeTicket(ticket)
         .then((tx) => {
           notifyTransaction({
