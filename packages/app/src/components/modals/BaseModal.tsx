@@ -27,7 +27,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" onClose={setIsOpen}>
+      <Dialog as="div" onClose={clickCancel}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -58,7 +58,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
                     disabled={!okEnabled}
                     variant="primary"
                     className={
-                      "w-full justify-center items-center" +
+                      "w-full justify-center items-center " +
                       "hover:opacity-70 " +
                       "disabled:opacity-50 disabled:cursor-not-allowed " +
                       "sm:col-start-2 sm:text-sm"
