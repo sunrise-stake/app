@@ -1,8 +1,8 @@
 {
     "workspaces": [
-        "packages/app",
+        "packages/client",
         "packages/tests",
-        "packages/client"
+        "packages/app"
     ],
     "private": true,
     "scripts": {
@@ -13,6 +13,7 @@
         "test:anchor": "yarn run ts-mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts",
         "program:build": "anchor build",
         "program:deploy": "solana program deploy target/deploy/sunrise_stake.so --program-id sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6",
+        "build": "yarn workspaces run build",
         "app:build": "yarn workspace @sunrisestake/app build",
         "app:start": "yarn workspace @sunrisestake/app start",
         "report:mainnet": "REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node packages/scripts/get.ts",

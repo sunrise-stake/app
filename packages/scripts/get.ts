@@ -1,7 +1,7 @@
-import { SunriseStakeClient, SUNRISE_STAKE_STATE } from "@sunrisestake/client";
+import { SunriseStakeClient, SUNRISE_STAKE_STATE } from "../client";
 import "./util";
 import { AnchorProvider } from "@project-serum/anchor";
-import { toSol, ZERO } from "@sunrisestake/app/src/lib/util";
+import { toSol, ZERO } from "../app/src/lib/util";
 import BN from "bn.js";
 
 (async () => {
