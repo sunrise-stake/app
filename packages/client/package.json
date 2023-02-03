@@ -6,7 +6,8 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-      "build": "rm -rf dist; tsc --declaration"
+      "build": "rm -rf dist; tsc --declaration",
+      "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx src"
     },
     "files": [
       "dist"

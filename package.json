@@ -8,7 +8,7 @@
     "scripts": {
         "program:lint": "cargo fmt --all -- --check && cargo clippy -- --deny warnings",
         "program:dylint": "cargo dylint --all --workspace",
-        "lint": "eslint . --ext .ts,.tsx",
+        "lint": "yarn workspaces run lint",
         "test": "anchor test",
         "test:anchor": "yarn run ts-mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts",
         "program:build": "anchor build",
@@ -43,6 +43,9 @@
         "prettier": "^2.7.1",
         "ts-mocha": "^10.0.0",
         "typescript": "*"
+    },
+    "resolutions": {
+        "@project-serum/anchor": "^0.26.0"
     },
     "name": "app"
 }

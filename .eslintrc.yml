@@ -3,18 +3,11 @@ env:
   es2021: true
 extends:
   - standard-with-typescript
-  - "plugin:prettier/recommended"
+  - plugin:prettier/recommended
 plugins:
   - prettier
-overrides:
-#  Exceptions for test files
-  - files:
-      - "packages/tests/**/*.ts"
-    rules:
-      "@typescript-eslint/no-non-null-assertion": "off"
-      "@typescript-eslint/explicit-function-return-type": "off"
-      "@typescript-eslint/no-unused-expressions": "off"
-      "@typescript-eslint/strict-boolean-expressions": "off"
+ignorePatterns:
+  - "**/types/SunriseStake.ts"
 parser: "@typescript-eslint/parser"
 parserOptions:
   ecmaVersion: latest
@@ -22,12 +15,8 @@ parserOptions:
   project: [./tsconfig.json]
 rules:
   "@typescript-eslint/strict-boolean-expressions":
-    - warn
+    - error
     - allowNullableObject: true
   "@typescript-eslint/return-await":
     - error
     - in-try-catch
-  "@typescript-eslint/restrict-template-expressions":
-    - warn
-  "@typescript-eslint/restrict-plus-operands":
-    - warn

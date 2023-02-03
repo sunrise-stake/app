@@ -10,6 +10,7 @@
     "chai-as-promised": "^7.1.1"
   },
   "scripts": {
-    "build": "echo \"No build\""
+    "build": "echo \"No build\"",
+    "lint": "eslint -c .eslintrc.yml --ext .ts,.tsx ."
   }
 }

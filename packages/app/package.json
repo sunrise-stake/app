@@ -52,6 +52,7 @@
   "scripts": {
     "start": "BROWSER=none react-app-rewired start",
     "build": "dotenv -e .env.${STAGE:-development} react-app-rewired build",
+    "lint": "eslint -c ./.eslintrc.yml --ext .ts,.tsx src",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
