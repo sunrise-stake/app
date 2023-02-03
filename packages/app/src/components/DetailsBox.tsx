@@ -1,18 +1,29 @@
 import clx from "classnames";
-import { FC, useState } from "react";
+import { FC, ReactNode, useRef, useState } from "react";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { toFixedWithPrecision, toSol, ZERO } from "../lib/util";
 import BN from "bn.js";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import TooltipPopover from "./TooltipPopover";
+import { tooltips } from "../utils/tooltips";
 
 interface DetailEntryProps {
   label: string;
   value: string;
+  tooltip: ReactNode;
   share?: number;
 }
-const DetailEntry: FC<DetailEntryProps> = ({ label, value, share }) => (
+const DetailEntry: FC<DetailEntryProps> = ({
+  label,
+  value,
+  share,
+  tooltip,
+}) => (
   <div className="flex flex-row justify-between">
-    <div className="text-gray-100 text-sm sm:text-lg">{label}</div>
+    <div className="flex flex-row gap-2">
+      <div className="text-gray-100 text-sm sm:text-lg">{label}</div>
+      <TooltipPopover>{tooltip}</TooltipPopover>
+    </div>
     <div className="font-bold text-sm sm:text-lg">
       {value} <span className="text-bold text-xs">SOL</span>{" "}
       {share !== undefined && (
@@ -30,6 +41,9 @@ interface Props {
 const DetailsBox: FC<Props> = ({ className }) => {
   const { details } = useSunriseStake();
   const [isShowing, setIsShowing] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   if (!details) return <>Loading...</>;
 
@@ -65,7 +79,19 @@ const DetailsBox: FC<Props> = ({ className }) => {
   return (
     <>
       <button
-        onClick={() => setIsShowing((isShowing) => !isShowing)}
+        onClick={() =>
+          setIsShowing((isShowing) => {
+            clearTimeout(timeoutRef.current);
+            if (isShowing) {
+              setIsVisible(false);
+            } else {
+              timeoutRef.current = setTimeout(() => {
+                setIsVisible(true);
+              }, 700);
+            }
+            return !isShowing;
+          })
+        }
         className={clx(
           "transition duration-700 flex w-full justify-between rounded-t-md px-4 py-1 text-left text-sm font-medium text-white ",
           {
@@ -84,10 +110,11 @@ const DetailsBox: FC<Props> = ({ className }) => {
 
       <div
         className={clx(
-          "transition-all duration-700 py-2 px-4 rounded-b-md text-center overflow-y-hidden",
+          "transition-all duration-1000 py-2 px-4 rounded-b-md text-center overflow-y-hidden",
           {
             "transform h-48 backdrop-blur-sm": isShowing,
             "transform h-0": !isShowing,
+            "overflow-y-visible": isVisible,
           },
           className
         )}
@@ -105,31 +132,37 @@ const DetailsBox: FC<Props> = ({ className }) => {
           label="Total gSOL"
           value={lamportsToDisplay(gSolSupply)}
           share={100}
+          tooltip={tooltips.totalStatke}
         />
         <DetailEntry
           label="Marinade Stake Pool Value"
           value={lamportsToDisplay(details.mpDetails.msolValue)}
           share={mpShare}
+          tooltip={tooltips.marinadeStakePool}
         />
         <DetailEntry
           label="Marinade Liquidity Pool Value"
           value={lamportsToDisplay(details.lpDetails.lpSolValue)}
           share={lpShare}
+          tooltip={tooltips.marinadeLiquidityPool}
         />
         <DetailEntry
           label="SolBlaze Stake Pool Value"
           value={lamportsToDisplay(details.bpDetails.bsolValue)}
           share={bpShare}
+          tooltip={tooltips.solblazeStakePool}
         />
         <DetailEntry
           label="In-flight Value"
           value={lamportsToDisplay(inflightTotal)}
           share={inflightShare}
+          tooltip={tooltips.inflight}
         />
         <DetailEntry
           label="Extractable Yield"
           value={lamportsToDisplay(extractableYield)}
           share={yieldShare}
+          tooltip={tooltips.extractableYield}
         />
       </div>
     </>
