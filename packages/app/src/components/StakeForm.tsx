@@ -1,4 +1,4 @@
-import BN from "bn.js";
+import type BN from "bn.js";
 import React, { useState } from "react";
 import { FiArrowUpRight } from "react-icons/fi";
 
@@ -20,7 +20,9 @@ const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
 
   const depositModal = useModal(() => {
     setIsBusy(true);
-    deposit(amount).finally(() => setIsBusy(false));
+    deposit(amount).finally(() => {
+      setIsBusy(false);
+    });
   });
 
   return (

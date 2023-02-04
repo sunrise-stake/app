@@ -1,4 +1,4 @@
-import { useState, FC, ReactNode } from "react";
+import { useState, type FC, type ReactNode } from "react";
 import { usePopper } from "react-popper";
 import { Popover } from "@headlessui/react";
 import { BsInfoCircle } from "react-icons/bs";

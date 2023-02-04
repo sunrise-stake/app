@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from "react";
+import React, { type FC, useMemo } from "react";
 import {
   ConnectionProvider,
   WalletProvider,

@@ -1,4 +1,4 @@
-import React, { FC, HTMLAttributes } from "react";
+import React, { type FC, type HTMLAttributes } from "react";
 
 interface SpinnerProps extends HTMLAttributes<HTMLBaseElement> {
   size?: string;

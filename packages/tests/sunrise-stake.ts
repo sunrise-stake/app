@@ -1,6 +1,13 @@
 import BN from "bn.js";
 import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
-import { SunriseStakeClient } from "../app/src/lib/client";
+import {
+  SunriseStakeClient,
+  type TicketAccount,
+  getStakePoolAccount,
+  DEFAULT_LP_MIN_PROPORTION,
+  DEFAULT_LP_PROPORTION,
+  NETWORK_FEE,
+} from "../client/src";
 import {
   burnGSol,
   expectAmount,
@@ -19,14 +26,7 @@ import {
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { TicketAccount } from "@sunrisestake/app/src/lib/client/types/TicketAccount";
-import {
-  DEFAULT_LP_MIN_PROPORTION,
-  DEFAULT_LP_PROPORTION,
-  NETWORK_FEE,
-} from "@sunrisestake/app/src/lib/constants";
 import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
-import { getStakePoolAccount } from "@sunrisestake/app/src/lib/client/decode_stake_pool";
 
 chai.use(chaiAsPromised);
 
@@ -35,7 +35,7 @@ describe("sunrise-stake", () => {
   let client: SunriseStakeClient;
 
   const depositLamports = new BN(100 * LAMPORTS_PER_SOL); // Deposit 100 SOL
-  const unstakeLamportsUnderLPBalance = new BN(1 * LAMPORTS_PER_SOL); // 1 SOL
+  const unstakeLamportsUnderLPBalance = new BN(LAMPORTS_PER_SOL); // 1 SOL
   const unstakeLamportsExceedLPBalance = new BN(20 * LAMPORTS_PER_SOL); // 20 SOL
   const orderUnstakeLamports = new BN(2 * LAMPORTS_PER_SOL); // Order a delayed unstake of 2 SOL
   const burnLamports = 100 * LAMPORTS_PER_SOL;

@@ -1,4 +1,4 @@
-import React, { FC, ReactNode } from "react";
+import React, { type FC, type ReactNode } from "react";
 
 const WarningConfirm: FC<{
   onConfirm: (confirmed: boolean) => void;
@@ -16,7 +16,9 @@ const WarningConfirm: FC<{
           aria-describedby={`checkbox-description-${idx}`}
           name={`checkbox-${idx}`}
           type="checkbox"
-          onChange={(e) => onConfirm(e.target.checked)}
+          onChange={(e) => {
+            onConfirm(e.target.checked);
+          }}
           className="h-4 w-4 rounded-full text-green"
         />
       </div>

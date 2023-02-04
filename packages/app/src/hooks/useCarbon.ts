@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import BN from "bn.js";
 import { solToCarbon, toSol } from "../lib/util";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { HOLDING_ACCOUNT } from "../lib/constants";
+import { HOLDING_ACCOUNT } from "@sunrisestake/client";
 
 export const useCarbon = (): { totalCarbon: number | undefined } => {
   const { connection } = useConnection();

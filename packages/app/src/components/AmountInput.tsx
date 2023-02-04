@@ -13,7 +13,7 @@ interface AmountInputProps {
   token?: string;
   balance: BN | undefined;
   amount: string;
-  setAmount: Function;
+  setAmount: (amountStr: string) => void;
   setValid: (valid: boolean) => void;
   mode: "STAKE" | "UNSTAKE";
 }
@@ -110,13 +110,17 @@ const AmountInput: React.FC<AmountInputProps> = ({
             <div>
               <button
                 className="block"
-                onClick={() => handleIncDecBtnClick("INC")}
+                onClick={() => {
+                  handleIncDecBtnClick("INC");
+                }}
               >
                 <MdArrowDropUp className="text-green-light" size={28} />
               </button>
               <button
                 className="block"
-                onClick={() => handleIncDecBtnClick("DEC")}
+                onClick={() => {
+                  handleIncDecBtnClick("DEC");
+                }}
               >
                 <MdArrowDropDown className="text-green-light" size={28} />
               </button>

@@ -4,4 +4,5 @@ target
 config-overrides.js
 tailwind.config.js
 postcss.config.js
-**/types/sunrise_stake.ts
+**/types/SunriseStake.ts
+dist

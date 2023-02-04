@@ -1,10 +1,17 @@
-import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
-import { Keypair, PublicKey, StakeProgram, Transaction } from "@solana/web3.js";
+import {
+  type SunriseStakeClient,
+  SOLBLAZE_CONFIG,
+  getStakePoolAccount,
+} from "../client/src";
+import {
+  type Keypair,
+  PublicKey,
+  StakeProgram,
+  Transaction,
+} from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
-import { SOLBLAZE_CONFIG } from "../app/src/lib/constants";
 import { createBurnInstruction } from "@solana/spl-token";
-import { getStakePoolAccount } from "../app/src/lib/client/decode_stake_pool";
 
 // Set in anchor.toml
 const SLOTS_IN_EPOCH = 32;
