@@ -7,7 +7,7 @@ import {
   DEFAULT_LP_MIN_PROPORTION,
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
-} from "../client";
+} from "../client/src";
 import {
   burnGSol,
   expectAmount,

@@ -1,4 +1,4 @@
-import { SunriseStakeClient, SUNRISE_STAKE_STATE } from "../client";
+import { SunriseStakeClient, SUNRISE_STAKE_STATE } from "../client/src";
 import "./util";
 import { AnchorProvider } from "@project-serum/anchor";
 import { toSol, ZERO } from "../app/src/lib/util";
