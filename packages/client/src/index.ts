@@ -1,4 +1,4 @@
-import { IDL, type SunriseStake } from "./types/SunriseStake";
+import { IDL, type SunriseStake } from "./types/sunrise_stake";
 import * as anchor from "@project-serum/anchor";
 import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
@@ -71,7 +71,7 @@ import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 export { getStakePoolAccount, type StakePool };
 
 // export all types
-export * from "./types/SunriseStake";
+export * from "./types/sunrise_stake";
 export * from "./types/Details";
 export * from "./types/TicketAccount";
 export * from "./types/ManagementAccount";
@@ -199,7 +199,7 @@ export class SunriseStakeClient {
     });
   }
 
-  private async sendAndConfirmTransaction(
+  public async sendAndConfirmTransaction(
     transaction: Transaction,
     signers?: Signer[],
     opts?: ConfirmOptions
@@ -224,7 +224,7 @@ export class SunriseStakeClient {
     );
   }
 
-  public async makeDeposit(lamports: BN): Promise<string> {
+  public async makeBalancedDeposit(lamports: BN): Promise<Transaction> {
     const details = await this.details();
     if (marinadeTargetReached(details)) {
       console.log("Routing deposit to Solblaze");
@@ -234,7 +234,7 @@ export class SunriseStakeClient {
     return this.deposit(lamports);
   }
 
-  public async deposit(lamports: BN): Promise<string> {
+  public async deposit(lamports: BN): Promise<Transaction> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -266,10 +266,11 @@ export class SunriseStakeClient {
     );
 
     transaction.add(depositTx);
-    return this.sendAndConfirmTransaction(transaction, []);
+
+    return transaction;
   }
 
-  public async depositToBlaze(lamports: BN): Promise<string> {
+  public async depositToBlaze(lamports: BN): Promise<Transaction> {
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
@@ -294,12 +295,13 @@ export class SunriseStakeClient {
     );
 
     transaction.add(depositTx);
-    return this.sendAndConfirmTransaction(transaction, []);
+
+    return transaction;
   }
 
   public async depositStakeToBlaze(
     stakeAccountAddress: PublicKey
-  ): Promise<string> {
+  ): Promise<Transaction> {
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
@@ -325,7 +327,7 @@ export class SunriseStakeClient {
     );
 
     transaction.add(depositTx);
-    return this.sendAndConfirmTransaction(transaction, []);
+    return transaction;
   }
 
   public async depositStakeAccount(
@@ -365,7 +367,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  public async unstake(lamports: BN): Promise<string> {
+  public async unstake(lamports: BN): Promise<Transaction> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -388,7 +390,7 @@ export class SunriseStakeClient {
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
-    return this.sendAndConfirmTransaction(transaction, []);
+    return transaction;
   }
 
   /**
@@ -417,7 +419,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  public async orderUnstake(lamports: BN): Promise<[string, PublicKey]> {
+  public async orderUnstake(lamports: BN): Promise<[Transaction, Keypair[]]> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -431,11 +433,7 @@ export class SunriseStakeClient {
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
-    const txSig = await this.sendAndConfirmTransaction(transaction, [
-      newTicketAccount,
-      proxyTicketAccount,
-    ]);
-    return [txSig, proxyTicketAccount.publicKey];
+    return [transaction, [newTicketAccount, proxyTicketAccount]];
   }
 
   private async toTicketAccount(
@@ -483,7 +481,7 @@ export class SunriseStakeClient {
 
   public async claimUnstakeTicket(
     ticketAccount: TicketAccount
-  ): Promise<string> {
+  ): Promise<Transaction> {
     if (!this.marinade || !this.marinadeState)
       throw new Error("init not called");
 
@@ -514,26 +512,7 @@ export class SunriseStakeClient {
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
-    return this.sendAndConfirmTransaction(transaction, []);
-  }
-
-  public async claimUnstakeTicketFromAddress(
-    ticketAccountAddress: PublicKey
-  ): Promise<string> {
-    if (!this.marinade || !this.marinadeState)
-      throw new Error("init not called");
-
-    const sunriseTicketAccount =
-      await this.program.account.sunriseTicketAccount.fetch(
-        ticketAccountAddress
-      );
-
-    const account = await this.toTicketAccount(
-      sunriseTicketAccount,
-      ticketAccountAddress
-    );
-
-    return this.claimUnstakeTicket(account);
+    return transaction;
   }
 
   public async withdrawFromBlaze(amount: BN): Promise<string> {

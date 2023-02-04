@@ -67,7 +67,8 @@ export class SunriseClientWrapper {
   async deposit(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
-      .makeDeposit(amount)
+      .makeBalancedDeposit(amount)
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -75,6 +76,7 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .unstake(amount)
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -82,7 +84,9 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .orderUnstake(amount)
-      .then(([txSig]) => txSig)
+      .then(async ([tx, keypairs]) =>
+        this.client.sendAndConfirmTransaction(tx, keypairs)
+      )
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -98,6 +102,7 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .claimUnstakeTicket(ticket)
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 

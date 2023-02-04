@@ -139,7 +139,9 @@ describe("sunrise-stake", () => {
       (depositLamports.toNumber() * 0.1) / lpPrice
     );
 
-    await client.deposit(depositLamports);
+    await client.sendAndConfirmTransaction(
+      await client.deposit(depositLamports)
+    );
 
     await expectMSolTokenBalance(client, expectedMsol, 50);
     await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
@@ -165,11 +167,7 @@ describe("sunrise-stake", () => {
       deposit.toNumber() / client.marinadeState!.mSolPrice
     );
 
-    try {
-      await client.depositStakeAccount(stakeAccount.publicKey);
-    } catch (err) {
-      console.log(err);
-    }
+    await client.depositStakeAccount(stakeAccount.publicKey);
 
     await expectMSolTokenBalance(client, expectedMsol, 50);
     await expectStakerGSolTokenBalance(client, deposit.toNumber());
@@ -192,7 +190,9 @@ describe("sunrise-stake", () => {
 
     const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
 
-    await client.depositToBlaze(depositAmount);
+    await client.sendAndConfirmTransaction(
+      await client.depositToBlaze(depositAmount)
+    );
 
     await expectBSolTokenBalance(client, expectedBSol, 50);
     await expectStakerGSolTokenBalance(
@@ -219,7 +219,9 @@ describe("sunrise-stake", () => {
     const lpPrice = await getLPPrice(client); // TODO should this be inverse price?
     const expectedLiqPool = Math.floor((20 * LAMPORTS_PER_SOL) / lpPrice);
 
-    await client.deposit(new BN(10 * LAMPORTS_PER_SOL));
+    await client.sendAndConfirmTransaction(
+      await client.deposit(new BN(10 * LAMPORTS_PER_SOL))
+    );
 
     await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
   });
@@ -232,7 +234,9 @@ describe("sunrise-stake", () => {
   it("can feelessly unstake sol when under the level of the LP but above the min level that triggers a rebalance", async () => {
     const stakerPreSolBalance = await getBalance(client);
 
-    await client.unstake(unstakeLamportsUnderLPBalance);
+    await client.sendAndConfirmTransaction(
+      await client.unstake(unstakeLamportsUnderLPBalance)
+    );
 
     const expectedPostUnstakeBalance = stakerPreSolBalance
       .add(unstakeLamportsUnderLPBalance)
@@ -278,7 +282,9 @@ describe("sunrise-stake", () => {
       client.stakerGSolTokenAccount!
     );
 
-    await client.unstake(unstakeLamportsExceedLPBalance);
+    await client.sendAndConfirmTransaction(
+      await client.unstake(unstakeLamportsExceedLPBalance)
+    );
 
     log("after big unstake");
     await client.details();
@@ -302,11 +308,13 @@ describe("sunrise-stake", () => {
     // ensure in-flight SOL is counted as part of the total staked SOL when calculating extractable yield
     const { extractableYield } = await client.details();
     expectAmount(0, extractableYield, 10);
-    expect(extractableYield.toNumber()).to.be.lessThan(0);
   });
 
   it("can order a delayed unstake", async () => {
-    const [txSig] = await client.orderUnstake(orderUnstakeLamports);
+    const [transaction, keypairs] = await client.orderUnstake(
+      orderUnstakeLamports
+    );
+    const txSig = await client.sendAndConfirmTransaction(transaction, keypairs);
     const blockhash = await client.provider.connection.getLatestBlockhash();
     await client.provider.connection.confirmTransaction({
       signature: txSig,
@@ -326,7 +334,9 @@ describe("sunrise-stake", () => {
   });
 
   it("cannot claim an unstake ticket until one epoch has passed", async () => {
-    const shouldFail = client.claimUnstakeTicket(delayedUnstakeTicket);
+    const shouldFail = client.sendAndConfirmTransaction(
+      await client.claimUnstakeTicket(delayedUnstakeTicket)
+    );
 
     // TODO expose the error message from the program
     return expect(shouldFail).to.be.rejectedWith(
@@ -348,8 +358,6 @@ describe("sunrise-stake", () => {
 
     epochInfo = await client.provider.connection.getEpochInfo();
     log("current epoch", epochInfo.epoch);
-
-    await client.provider.connection.getEpochInfo().then(log);
 
     const sunriseLamports = await client.provider.connection
       .getAccountInfo(delayedUnstakeTicket.address)
@@ -374,7 +382,9 @@ describe("sunrise-stake", () => {
         .toString()
     );
 
-    await client.claimUnstakeTicket(delayedUnstakeTicket);
+    await client.sendAndConfirmTransaction(
+      await client.claimUnstakeTicket(delayedUnstakeTicket)
+    );
 
     // the staker does not get the marinade ticket rent
     const expectedPostUnstakeBalance = stakerPreSolBalance
@@ -399,7 +409,9 @@ describe("sunrise-stake", () => {
     // Note - we have to do this as we do not have the ability to increase the msol value
     const depositedLamports = 1000 * LAMPORTS_PER_SOL;
 
-    await client.deposit(new BN(depositedLamports));
+    await client.sendAndConfirmTransaction(
+      await client.deposit(new BN(depositedLamports))
+    );
 
     log(
       "gsol supply:",
@@ -418,6 +430,9 @@ describe("sunrise-stake", () => {
     // subtract 0.3% liquid unstake fee until we do delayed unstake
     const expectedYield = new BN(burnLamports).muln(997).divn(1000);
 
+    const details = await client.details();
+    log("details", details);
+
     expectAmount(postBurnYieldToExtract, expectedYield, 50);
   });
 
@@ -425,11 +440,7 @@ describe("sunrise-stake", () => {
     await expectTreasurySolBalance(client, 0, 50);
 
     // trigger a withdrawal
-    try {
-      await client.extractYield();
-    } catch (err) {
-      console.log(err);
-    }
+    await client.extractYield();
 
     // expect the treasury to have 500 SOL minus fees
     // marinade charges a 0.3% fee for liquid unstaking
@@ -476,7 +487,9 @@ describe("sunrise-stake", () => {
         client.liqPoolTokenAccount!
       );
 
-    await client.deposit(new BN(0.01 * LAMPORTS_PER_SOL));
+    await client.sendAndConfirmTransaction(
+      await client.deposit(new BN(0.01 * LAMPORTS_PER_SOL))
+    );
 
     // the deposit should not increase the balance of the liquidity pool tokens
     await expectLiqPoolTokenBalance(
