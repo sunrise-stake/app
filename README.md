@@ -16,6 +16,8 @@ while simultaneously strengthening the Solana blockchain.
 
 For more details, visit the [docs](https://docs.sunrisestake.com).
 
+![stake.gif](/doc/stake.gif)
+
 ## Quick Start
 
 ```shell
