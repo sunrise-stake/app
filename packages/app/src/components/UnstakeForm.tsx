@@ -9,9 +9,10 @@ import AmountInput from "./AmountInput";
 import UnstakeOption from "./UnstakeOption";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { solToLamports, ZERO } from "../lib/util";
+import Spinner from "./Spinner";
 
 interface UnstakeFormProps {
-  withdraw: (amount: string) => void;
+  withdraw: (amount: string) => Promise<any>;
   delayedWithdraw: boolean;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
 }
@@ -25,9 +26,11 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
   const [amount, setAmount] = useState("");
   const [valid, setValid] = useState(false);
   const [feeLoading, setFeeLoading] = useState(true);
+  const [isBusy, setIsBusy] = useState(false);
 
   const withdrawModal = useModal(() => {
-    withdraw(amount);
+    setIsBusy(true);
+    withdraw(amount).finally(() => setIsBusy(false));
   });
 
   useEffect(() => {
@@ -78,11 +81,13 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         />
         <Button
           onClick={() => {
-            withdraw(amount);
+            setIsBusy(true);
+            withdraw(amount).finally(() => setIsBusy(false));
           }}
-          disabled={!valid}
+          disabled={!valid || isBusy}
           className="mr-auto sm:mr-0"
         >
+          {isBusy ? <Spinner size="1rem" className="mr-1" /> : null}
           Withdraw <FiArrowDownLeft className="inline" size={24} />
         </Button>
       </div>

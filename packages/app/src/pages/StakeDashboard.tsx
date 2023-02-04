@@ -65,10 +65,10 @@ export const StakeDashboard: FC = () => {
   ]);
 
   const deposit = useCallback(
-    (amount: string) => {
-      if (!client) return;
+    async (amount: string) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      client
+      return client
         .deposit(solToLamports(amount))
         .then((tx) => {
           notifyTweet(amount);
@@ -85,14 +85,14 @@ export const StakeDashboard: FC = () => {
   );
 
   const withdraw = useCallback(
-    (amount: string) => {
-      if (!client) return;
+    async (amount: string) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
       const withdraw = delayedWithdraw
         ? client.orderWithdrawal.bind(client)
         : client.withdraw.bind(client);
 
-      withdraw(solToLamports(amount))
+      return withdraw(solToLamports(amount))
         .then((tx) => {
           notifyTransaction({
             type: NotificationType.success,
@@ -107,10 +107,10 @@ export const StakeDashboard: FC = () => {
   );
 
   const redeem = useCallback(
-    (ticket: TicketAccount) => {
-      if (!client) return;
+    async (ticket: TicketAccount) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      client
+      return client
         .claimUnstakeTicket(ticket)
         .then((tx) => {
           notifyTransaction({
@@ -126,7 +126,7 @@ export const StakeDashboard: FC = () => {
   );
 
   return (
-    <div style={{ maxWidth: "620px" }} className="mx-auto relative z-40">
+    <div style={{ maxWidth: "620px" }} className="mx-auto relative">
       <div className="text-center">
         <img
           className="block sm:hidden w-auto h-16 mx-auto mb-3"
@@ -196,7 +196,7 @@ export const StakeDashboard: FC = () => {
         )}
       </Panel>
 
-      <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base relative z-40">
+      <div className="relative z-30 grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
         <InfoBox className="py-2 px-4 rounded text-center">
           <div className="flex flex-row justify-between items-center">
             <img
@@ -240,7 +240,7 @@ export const StakeDashboard: FC = () => {
 
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
                 <div className="text-xs sm:text-sm">Total Stake</div>
-                <TooltipPopover>{tooltips.totalStatke}</TooltipPopover>
+                <TooltipPopover>{tooltips.totalStake}</TooltipPopover>
               </div>
             </div>
           </div>
@@ -269,11 +269,11 @@ export const StakeDashboard: FC = () => {
           </div>
         </InfoBox>
       </div>
-      <div className="mb-8 mt-2">
+      <div className="relative z-20 mb-8 mt-2">
         <DetailsBox />
       </div>
 
-      <div className="flex flex-col gap-8 mb-8 justify-center">
+      <div className="relative z-10 flex flex-col gap-8 mb-8 justify-center">
         {delayedUnstakeTickets.map((ticket) => {
           return (
             <WithdrawTicket

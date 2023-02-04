@@ -37,7 +37,7 @@ export const WalletConnectionWrapper: FC = () => {
         <>{wallet.connected ? <StakeDashboard /> : <WelcomePage />}</>
       </main>
       <footer>
-        <Panel className="container flex my-4 px-8 py-2 rounded-lg backdrop-blur-sm relative z-30">
+        <Panel className="container flex my-4 px-8 py-2 rounded-lg backdrop-blur-sm">
           <a
             className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
             href="https://www.sunrisestake.com/"

@@ -7,16 +7,18 @@ import { type TicketAccount } from "@sunrisestake/client";
 import { toFixedWithPrecision, toSol } from "../lib/util";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import Spinner from "./Spinner";
 
 dayjs.extend(relativeTime);
 
 interface WithdrawTicketProps {
   ticket: TicketAccount;
-  redeem: (ticket: TicketAccount) => void;
+  redeem: (ticket: TicketAccount) => Promise<any>;
 }
 
 const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
   const [isClicked, setIsClicked] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
 
   useEffect(() => {
     if (isClicked) {
@@ -45,11 +47,16 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
             setIsClicked((prevState) => !prevState);
             return;
           }
-          redeem(ticket);
+          setIsBusy(true);
+          redeem(ticket).finally(() => setIsBusy(false));
         }}
       >
         <div className="flex flex-row items-center">
-          <TicketIcon width={44} className="sm:ml-0 sm:mr-4 px-2 rounded" />
+          {!isBusy ? (
+            <TicketIcon width={44} className="sm:ml-0 sm:mr-4 px-2 rounded" />
+          ) : (
+            <Spinner className="sm:ml-0 sm:mr-5 px-2 rounded" />
+          )}
           <div className="text-lg ml-2 -mr-2 sm:mr-0 ">
             <span className="font-bold text-sm sm:text-lg">
               {" "}

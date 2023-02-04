@@ -6,18 +6,21 @@ import DepositWarningModal from "./modals/DepositWarningModal";
 import useModal from "../hooks/useModal";
 import { Button } from "./Button";
 import AmountInput from "./AmountInput";
+import Spinner from "./Spinner";
 
 interface StakeFormProps {
-  deposit: (amount: string) => void;
+  deposit: (amount: string) => Promise<any>;
   solBalance: BN | undefined;
 }
 
 const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
   const [amount, setAmount] = useState("");
   const [valid, setValid] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
 
   const depositModal = useModal(() => {
-    deposit(amount);
+    setIsBusy(true);
+    deposit(amount).finally(() => setIsBusy(false));
   });
 
   return (
@@ -38,7 +41,8 @@ const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
         mode="STAKE"
       />
       <div className="flex items-center justify-start sm:justify-end">
-        <Button onClick={depositModal.trigger} disabled={!valid}>
+        <Button onClick={depositModal.trigger} disabled={!valid || isBusy}>
+          {isBusy ? <Spinner size="1rem" className="mr-1" /> : null}
           Deposit <FiArrowUpRight className="inline" size={24} />
         </Button>
       </div>

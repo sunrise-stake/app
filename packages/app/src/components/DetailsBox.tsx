@@ -132,7 +132,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
           label="Total gSOL"
           value={lamportsToDisplay(gSolSupply)}
           share={100}
-          tooltip={tooltips.totalStatke}
+          tooltip={tooltips.totalStake}
         />
         <DetailEntry
           label="Marinade Stake Pool Value"
