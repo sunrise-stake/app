@@ -20,7 +20,9 @@ const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
 
   const depositModal = useModal(() => {
     setIsBusy(true);
-    deposit(amount).finally(() => setIsBusy(false));
+    deposit(amount).finally(() => {
+      setIsBusy(false);
+    });
   });
 
   return (

@@ -30,7 +30,9 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
 
   const withdrawModal = useModal(() => {
     setIsBusy(true);
-    withdraw(amount).finally(() => setIsBusy(false));
+    withdraw(amount).finally(() => {
+      setIsBusy(false);
+    });
   });
 
   useEffect(() => {
@@ -82,7 +84,9 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         <Button
           onClick={() => {
             setIsBusy(true);
-            withdraw(amount).finally(() => setIsBusy(false));
+            withdraw(amount).finally(() => {
+              setIsBusy(false);
+            });
           }}
           disabled={!valid || isBusy}
           className="mr-auto sm:mr-0"

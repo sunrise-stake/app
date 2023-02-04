@@ -48,7 +48,9 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
             return;
           }
           setIsBusy(true);
-          redeem(ticket).finally(() => setIsBusy(false));
+          redeem(ticket).finally(() => {
+            setIsBusy(false);
+          });
         }}
       >
         <div className="flex flex-row items-center">
