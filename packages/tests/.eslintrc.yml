@@ -3,7 +3,7 @@ extends:
 parserOptions:
   ecmaVersion: latest
   sourceType: module
-  project: ../../tsconfig.json
+  project: ./tsconfig.json
 #  Exceptions for test files
 rules:
   "@typescript-eslint/no-non-null-assertion": "off"

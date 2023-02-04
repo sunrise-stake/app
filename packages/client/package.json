@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "description": "Sunrise Stake Client",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf dist; tsc --declaration",
@@ -15,7 +16,7 @@
   "dependencies": {
     "@project-serum/anchor": "^0.26.0",
     "@project-serum/borsh": "^0.2.5",
-    "@solana/web3.js": "^1.66.2",
+    "@solana/web3.js": "^1.73.2",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
     "bn.js": "^5.2.1"
   }

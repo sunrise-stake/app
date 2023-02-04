@@ -1,4 +1,4 @@
-import { type SunriseStake, IDL } from "./types/SunriseStake";
+import { IDL, type SunriseStake } from "./types/SunriseStake";
 import * as anchor from "@project-serum/anchor";
 import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
@@ -12,20 +12,20 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import {
+  type Balance,
   confirm,
+  findBSolTokenAccountAuthority,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
-  findBSolTokenAccountAuthority,
-  type SunriseStakeConfig,
   logKeys,
+  marinadeTargetReached,
   type Options,
   PROGRAM_ID,
-  setUpAnchor,
-  ZERO_BALANCE,
-  type Balance,
   proportionalBN,
-  marinadeTargetReached,
+  setUpAnchor,
+  type SunriseStakeConfig,
   ZERO,
+  ZERO_BALANCE,
 } from "./util";
 import {
   Marinade,
@@ -216,15 +216,12 @@ export class SunriseStakeClient {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
 
-    const createATAInstruction =
-      createAssociatedTokenAccountIdempotentInstruction(
-        this.provider.publicKey,
-        this.stakerGSolTokenAccount,
-        this.staker,
-        this.config.gsolMint
-      );
-
-    return createATAInstruction;
+    return createAssociatedTokenAccountIdempotentInstruction(
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      this.staker,
+      this.config.gsolMint
+    );
   }
 
   public async makeDeposit(lamports: BN): Promise<string> {
@@ -663,12 +660,6 @@ export class SunriseStakeClient {
       ? MARINADE_TICKET_RENT
       : 0;
 
-    console.log({
-      amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
-      rentForOrderUnstakeTicket: rentForOrderUnstakeTicket.toString(),
-      networkFee: NETWORK_FEE.toString(),
-    });
-
     if (amountBeingLiquidUnstaked.lte(ZERO)) return ZERO;
 
     // Calculate the fee
@@ -932,7 +923,6 @@ export class SunriseStakeClient {
   };
 
   private calculateExtractableYield({
-    epochInfo,
     balances,
     mpDetails,
     lpDetails,
@@ -943,24 +933,17 @@ export class SunriseStakeClient {
       throw new Error("init not called");
 
     // deposited in Stake Pool
-    const msolBalance = new BN(balances.msolBalance.amount);
-    console.log("msolBalance: ", msolBalance.toString());
     const solValueOfMSol = mpDetails.msolValue;
-    console.log("msolValue: ", solValueOfMSol.toString());
     const solValueOfBSol = bpDetails.bsolValue;
-    console.log("bsolValue: ", solValueOfBSol.toString());
 
     // deposited in Liquidity Pool
     const solValueOfLP = lpDetails.lpSolValue;
-    console.log("liquidity pool value: ", solValueOfLP.toString());
 
     const gsolSupply = new BN(balances.gsolSupply.amount);
 
     const totalSolValueStaked = solValueOfMSol
       .add(solValueOfLP)
       .add(solValueOfBSol);
-
-    console.log("totalValueStaked:", totalSolValueStaked.toString());
 
     const inflightTotal = inflight.reduce(
       (acc, { totalOrderedLamports }) => acc.add(totalOrderedLamports),
@@ -973,22 +956,7 @@ export class SunriseStakeClient {
 
     const fee = extractableSOLGross.muln(3).divn(1000);
 
-    const extractableSOLEffective = extractableSOLGross.sub(fee);
-
-    console.log({
-      epoch: epochInfo.epoch,
-      msolBalance: msolBalance.toString(),
-      solValueOfMSol: solValueOfMSol.toString(),
-      solValueOfBsol: solValueOfBSol.toString(),
-      solValueOfLP: solValueOfLP.toString(),
-      totalSolValueStaked: totalSolValueStaked.toString(),
-      gsolSupply: gsolSupply.toString(),
-      extractableSOLGross: extractableSOLGross.toString(),
-      fee: fee.toString(),
-      extractableSOLEffective: extractableSOLEffective.toString(),
-    });
-
-    return extractableSOLEffective;
+    return extractableSOLGross.sub(fee);
   }
 
   public static async register(

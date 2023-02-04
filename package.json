@@ -20,7 +20,8 @@
         "report:devnet": "REACT_APP_SOLANA_NETWORK=devnet yarn ts-node packages/scripts/get.ts"
     },
     "dependencies": {
-        "@project-serum/anchor": "^0.26.0"
+        "@project-serum/anchor": "^0.26.0",
+        "@solana/web3.js": "^1.73.2"
     },
     "devDependencies": {
         "@project-serum/anchor-cli": "^0.26.0",
@@ -43,9 +44,6 @@
         "prettier": "^2.7.1",
         "ts-mocha": "^10.0.0",
         "typescript": "*"
-    },
-    "resolutions": {
-        "@project-serum/anchor": "^0.26.0"
     },
     "name": "app"
 }
