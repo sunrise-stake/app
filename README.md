@@ -40,7 +40,7 @@ Note, for more details, visit the [docs](https://docs.sunrisestake.com).
 
 #### Step 1: Depositing SOL with Sunrise Stake
 
-![staking_white_without_comments.png](/img/staking_white_without_comments.png)
+![staking_white_without_comments.png](/doc/staking_white_without_comments.png)
 
 The staking process begins with you depositing your SOL via Sunrise Stake’s app.
 
@@ -58,7 +58,7 @@ gSOL can be used in the same way as SOL, by protocols or recipients that support
 
 #### Step 2: Accruing yield
 
-![accruing_yield_white.png](/img/accruing_yield_white.png)
+![accruing_yield_white.png](/doc/accruing_yield_white.png)
 
 ###### Stake Pools
 At the end of each epoch (every 2 or 3 days), yield gets paid out into stake accounts,
@@ -79,7 +79,7 @@ The total value of the holdings of the Sunrise protocol are therefore:
 
 ### Step 3: Unstaking
 
-![unstaking_white_without_comments.png](/img/unstaking_white_without_comments.png)
+![unstaking_white_without_comments.png](/doc/unstaking_white_without_comments.png)
 
 If you unstake your SOL, Sunrise calculates how much of its share of the underlying stake and liquidity pools to sell, in order to receive your SOL.
 
@@ -91,13 +91,13 @@ Sunrise will withdraw 90 from the liquidity pool, and the remaining 10 from the 
 Sunrise will also trigger a "rebalancing" transaction, that moves SOL from the stake pools into the liquidity pool,
 in order to maintain a 10% liquidity pool balance.
 
-![rebalancing_white.png](/img/rebalancing_white.png)
+![rebalancing_white.png](/doc/rebalancing_white.png)
 
 ## Sunrise Stake treasury spending
 
 Thanks to the yield earned in the staking process, Sunrise can purchase carbon tokens and burn them to offset carbon emissions.
 
-![yield_controller_white_without_comments.png](/img/yield_controller_white_without_comments.png)
+![yield_controller_white_without_comments.png](/doc/yield_controller_white_without_comments.png)
 
 #### 1. Yield transfer to the treasury account
 
@@ -111,12 +111,10 @@ It can trigger a state change to buy or burn carbon tokens, thus retiring underl
 
 #### 2. Purchasing carbon tokens
 
-The carbon token used by Sunrise Stake is the Toucan Nature Carbon Tonne token.
+The carbon token used by Sunrise Stake is the [Toucan Nature Carbon Tonne token](https://blog.toucan.earth/announcing-nct-nature-carbon-tonne/).
 
 NCT represents a tonne of CO2 or equivalent greenhouse gas removed from the atmosphere in various nature-based projects.
 It is issued on the Polygon and Celo blockchains and has been bridged to Solana via [Wormhole](https://wormhole.com/).
-
-More on the NCT can be found on Toucan’s [blog](https://blog.toucan.earth/announcing-nct-nature-carbon-tonne/) or [GitHub](https://github.com/ToucanProtocol/contracts) repository.
 
 The Solana bridged token mint address is [7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT](https://solscan.io/token/7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT).
 
