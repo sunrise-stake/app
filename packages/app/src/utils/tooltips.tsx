@@ -1,6 +1,6 @@
 export const tooltips = {
   yourStake: <>Your total staked SOL</>,
-  totalStatke: <>The sum of everyones staked SOL</>,
+  totalStake: <>The sum of everyones staked SOL</>,
   offsetCO2: (
     <>
       Tonnes of Carbon Dioxide or equivalent (tCO2e) offset by Sunrise so far.
