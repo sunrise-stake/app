@@ -47,7 +47,7 @@ The staking process begins with you depositing your SOL via Sunrise Stake’s ap
 Your SOL will be deposited into the underlying pools.
 
 The majority of the SOL is deposited into a set of [Stake Pools](https://solana.org/stake-pools).
-At present, Sunrise Stake deposits into the [Marinade Finance](https://docs.marinade.finance/) and [SolBlaze] (https://stake-docs.solblaze.org/) pools.
+At present, Sunrise Stake deposits into the [Marinade Finance](https://docs.marinade.finance/) and [SolBlaze](https://stake-docs.solblaze.org/) pools.
 The stake pool tokens (mSOL and bSOL) are held by the protocol in a [Program Derived Address (PDA)](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses).
 
 A proportion of the deposited SOL is also deposited into the [Marinade Unstake Pool](https://docs.marinade.finance/marinade-protocol/system-overview/unstake-liquidity-pool).
