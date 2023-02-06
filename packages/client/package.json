@@ -1,13 +1,12 @@
 {
   "name": "@sunrisestake/client",
   "version": "0.1.0",
-  "private": true,
   "description": "Sunrise Stake Client",
   "main": "src/index.ts",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist; tsc --declaration",
+    "build": "rm -rf dist; tsc",
     "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx src"
   },
   "files": [
