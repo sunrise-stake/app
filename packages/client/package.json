@@ -1,6 +1,6 @@
 {
   "name": "@sunrisestake/client",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sunrise Stake Client",
   "main": "dist/index.ts",
   "module": "dist/index.js",
