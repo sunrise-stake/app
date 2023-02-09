@@ -3,27 +3,31 @@ import clx from "classnames";
 import { Button } from "./Button";
 import { TicketIcon } from "@heroicons/react/24/solid";
 import { AiOutlineClockCircle } from "react-icons/ai";
-import { TicketAccount } from "../lib/client/types/TicketAccount";
+import { type TicketAccount } from "@sunrisestake/client";
 import { toFixedWithPrecision, toSol } from "../lib/util";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import Spinner from "./Spinner";
 
 dayjs.extend(relativeTime);
 
 interface WithdrawTicketProps {
   ticket: TicketAccount;
-  redeem: (ticket: TicketAccount) => void;
+  redeem: (ticket: TicketAccount) => Promise<any>;
 }
 
 const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
   const [isClicked, setIsClicked] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
 
   useEffect(() => {
     if (isClicked) {
       const timeout = setTimeout(() => {
         setIsClicked(false);
       }, 5000);
-      return () => clearTimeout(timeout);
+      return () => {
+        clearTimeout(timeout);
+      };
     }
   }, [isClicked]);
 
@@ -43,11 +47,18 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
             setIsClicked((prevState) => !prevState);
             return;
           }
-          redeem(ticket);
+          setIsBusy(true);
+          redeem(ticket).finally(() => {
+            setIsBusy(false);
+          });
         }}
       >
         <div className="flex flex-row items-center">
-          <TicketIcon width={44} className="sm:ml-0 sm:mr-4 px-2 rounded" />
+          {!isBusy ? (
+            <TicketIcon width={44} className="sm:ml-0 sm:mr-4 px-2 rounded" />
+          ) : (
+            <Spinner className="sm:ml-0 sm:mr-5 px-2 rounded" />
+          )}
           <div className="text-lg ml-2 -mr-2 sm:mr-0 ">
             <span className="font-bold text-sm sm:text-lg">
               {" "}
@@ -59,7 +70,9 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
       </Button>
 
       <Button
-        onClick={() => setIsClicked(false)}
+        onClick={() => {
+          setIsClicked(false);
+        }}
         variant="secondary"
         className={clx(
           "text-danger border border-danger text-sm absolute items-center rounded-md transition-transform duration-500 z-0 h-16 max-w-[10rem] sm:max-w-[12rem]",

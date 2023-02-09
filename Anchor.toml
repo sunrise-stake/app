@@ -1,5 +1,5 @@
 [workspace]
-types = "packages/app/src/lib/client/types"
+types = "packages/client/types"
 
 [features]
 seeds = false

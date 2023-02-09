@@ -1,4 +1,4 @@
-import BN from "bn.js";
+import type BN from "bn.js";
 
 export interface ManagementAccount {
   epoch: BN;

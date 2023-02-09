@@ -1,5 +1,5 @@
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
+import { LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
+import { type SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
 import BN from "bn.js";
 
 export const ZERO = new BN(0);
@@ -51,10 +51,8 @@ export const getDigits = (strNo: string): number | undefined => {
 
 interface SparseWallet {
   publicKey: PublicKey;
-  signTransaction: SignerWalletAdapterProps["signTransaction"] | undefined;
-  signAllTransactions:
-    | SignerWalletAdapterProps["signAllTransactions"]
-    | undefined;
+  signTransaction?: SignerWalletAdapterProps["signTransaction"];
+  signAllTransactions?: SignerWalletAdapterProps["signAllTransactions"];
 }
 
 type SparseWalletContextAdapter = Omit<SparseWallet, "publicKey"> & {

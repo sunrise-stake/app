@@ -1,43 +1,49 @@
 {
     "workspaces": [
-        "packages/app",
-        "packages/tests"
+        "packages/client",
+        "packages/tests",
+        "packages/app"
     ],
     "private": true,
     "scripts": {
         "program:lint": "cargo fmt --all -- --check && cargo clippy -- --deny warnings",
         "program:dylint": "cargo dylint --all --workspace",
-        "lint": "eslint .",
+        "lint": "yarn workspaces run lint",
         "test": "anchor test",
         "test:anchor": "yarn run ts-mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts",
         "program:build": "anchor build",
         "program:deploy": "solana program deploy target/deploy/sunrise_stake.so --program-id sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6",
+        "build": "yarn workspaces run build",
         "app:build": "yarn workspace @sunrisestake/app build",
+        "app:start": "yarn workspace @sunrisestake/app start",
         "report:mainnet": "REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node packages/scripts/get.ts",
         "report:devnet": "REACT_APP_SOLANA_NETWORK=devnet yarn ts-node packages/scripts/get.ts"
     },
     "dependencies": {
-        "@project-serum/anchor": "^0.26.0"
+        "@project-serum/anchor": "^0.26.0",
+        "@solana/web3.js": "^1.73.2"
     },
     "devDependencies": {
         "@project-serum/anchor-cli": "^0.26.0",
         "@types/bn.js": "^5.1.0",
         "@types/chai": "^4.3.0",
         "@types/mocha": "^9.0.0",
-        "@typescript-eslint/eslint-plugin": "^5.0.0",
-        "@typescript-eslint/parser": "^5.42.1",
+        "@typescript-eslint/eslint-plugin": "^5.50.0",
+        "@typescript-eslint/parser": "^5.50.0",
         "chai": "^4.3.4",
-        "eslint": "^8.0.1",
-        "eslint-config-prettier": "^8.5.0",
-        "eslint-config-standard-with-typescript": "^23.0.0",
-        "eslint-plugin-import": "^2.25.2",
-        "eslint-plugin-n": "^15.0.0",
+        "eslint": "^8.33.0",
+        "eslint-config-prettier": "^8.6.0",
+        "eslint-config-standard-with-typescript": "^34.0.0",
+        "eslint-plugin-import": "^2.25.3",
+        "eslint-plugin-n": "^15.6.1",
         "eslint-plugin-prettier": "^4.2.1",
-        "eslint-plugin-promise": "^6.0.0",
-        "eslint-plugin-react": "^7.31.10",
+        "eslint-plugin-promise": "6.1.1",
+        "eslint-plugin-react": "^7.32.2",
+        "lerna": "^6.4.1",
         "mocha": "^10.2.0",
         "prettier": "^2.7.1",
         "ts-mocha": "^10.0.0",
         "typescript": "*"
-    }
+    },
+    "name": "app"
 }

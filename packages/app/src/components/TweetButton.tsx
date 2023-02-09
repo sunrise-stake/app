@@ -1,7 +1,7 @@
 import React from "react";
 import useScript from "../hooks/useScript";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-import toast, { Toast } from "react-hot-toast";
+import toast, { type Toast } from "react-hot-toast";
 
 interface TweetButtonProps {
   amount: string;
@@ -15,7 +15,9 @@ const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
     <div className=" bg-background p-8 rounded-md border border-green">
       <div className={`ml-2 flex-shrink-0 flex justify-end`}>
         <button
-          onClick={() => toast.dismiss(t.id)}
+          onClick={() => {
+            toast.dismiss(t.id);
+          }}
           className={`default-transition rounded-md inline-flex text-white hover:opacity-75 focus:outline-none`}
         >
           <span className={`sr-only`}>Close</span>

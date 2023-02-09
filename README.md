@@ -1,17 +1,119 @@
 # Sunrise Stake
 
-SunriseStake provides sustainable funding to climate projects on Solana,
-by routing yield earned through staking SOL.
+- [What is Sunrise Stake?](#what-is-sunrise-stake-)
+- [How it works](#how-it-works)
+- [Treasury spending](#treasury-spending)
+- [Quick Start](#quick-start)
+- [Deployed Addresses:](#deployed-addresses-)
 
-Stakers receive gSOL, a synthetic derivative token that is 1:1 redeemable for SOL.
+## What is Sunrise Stake?
 
-Each gSOL represents a staked SOL that is earning yield for a climate project.
+Sunrise Stake is a ReFi staking protocol that directs staking yield to climate-positive projects.
 
-Protocols, dApps, NFT projects, and other builders on Solana can accept gSOL
-as an alternative to SOL, and by doing so, they can help fund climate projects,
-as well as strengthen the Solana ecosystem through staking.
+At Sunrise Stake we believe in the power of Regenerative Finance to create positive outcomes
+for people and the planet. So we’ve created a non-custodial and permissionless protocol
+to send the yield earned through staking SOL towards retiring carbon tokens and other
+climate-positive projects.
+
+Sunrise Stake is one of the first ReFi projects on the Solana blockchain;
+we provide a seamless way for holders of SOL to participate in the ReFi movement,
+while simultaneously strengthening the Solana blockchain.
 
 For more details, visit the [docs](https://docs.sunrisestake.com).
+
+![stake.gif](/doc/stake.gif)
+
+## How it works
+
+Note, for more details, visit the [docs](https://docs.sunrisestake.com).
+
+### Step 1: Depositing SOL with Sunrise Stake
+
+![staking_white_without_comments.png](/doc/staking_white_without_comments.png)
+
+The staking process begins with you depositing your SOL via Sunrise Stake’s app.
+
+Your SOL will be deposited into the underlying pools.
+
+The majority of the SOL is deposited into a set of [Stake Pools](https://solana.org/stake-pools).
+At present, Sunrise Stake deposits into the [Marinade Finance](https://docs.marinade.finance/) and [SolBlaze](https://stake-docs.solblaze.org/) pools.
+The stake pool tokens (mSOL and bSOL) are held by the protocol in a [Program Derived Address (PDA)](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses).
+
+A proportion of the deposited SOL is also deposited into the [Marinade Unstake Pool](https://docs.marinade.finance/marinade-protocol/system-overview/unstake-liquidity-pool).
+This pool is used during the unstaking process to provide fee-less unstaking, ensuring that users can withdraw their SOL at any time without incurring a fee.
+
+When you deposit your SOL, you will receive an equivalent amount of gSOL in your wallet.
+gSOL can be used in the same way as SOL, by protocols or recipients that support it.
+
+### Step 2: Accruing yield
+
+![accruing_yield_white.png](/doc/accruing_yield_white.png)
+
+#### Stake Pools
+At the end of each epoch (every 2 or 3 days), yield gets paid out into stake accounts,
+and the value of the overall stake pool increases.
+
+As mSOL and bSOL represent a share of their respective stake pools, the value of mSOL and bSOL also increases.
+
+The yield accrued on the staked SOL is equal to the value of mSOL and bSOL held by Sunrise
+minus the value of SOL staked (calculated as the circulating supply of gSOL).
+
+#### Liquidity Pool
+
+The Marinade Unstake Pool also accrues yield through fees from the marinade liquid unstaking feature.
+The total value of the holdings of the Sunrise protocol are therefore:
+
+- The value of mSOL and bSOL held by Sunrise
+- The value of the liquidity pool tokens held by Sunrise
+
+### Step 3: Unstaking
+
+![unstaking_white_without_comments.png](/doc/unstaking_white_without_comments.png)
+
+If you unstake your SOL, Sunrise calculates how much of its share of the underlying stake and liquidity pools to sell, in order to receive your SOL.
+
+Unstaking draws from the liquidity pool balance first, and then from the stake pools as needed.
+
+For example, if you decide to unstake 100 SOL, and the value of the Sunrise-held liquidity pool tokens are currently at 90,
+Sunrise will withdraw 90 from the liquidity pool, and the remaining 10 from the stake pools.
+
+Sunrise will also trigger a "rebalancing" transaction, that moves SOL from the stake pools into the liquidity pool,
+in order to maintain a 10% liquidity pool balance.
+
+![rebalancing_white.png](/doc/rebalancing_white.png)
+
+## Ttreasury spending
+
+Sunrise spends the yield earned through staking on purchasing
+and burning carbon tokens to offset carbon emissions for its users.
+
+![yield_controller_white_without_comments.png](/doc/yield_controller_white_without_comments.png)
+
+### 1. Yield transfer to the treasury account
+
+The yield earned from staking SOL is transferred to the __treasury account__.
+
+It is a Program Derived Address ([PDA](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses))
+meaning that it is owned and controlled by a smart contract, not a private key.
+
+This smart contract is known as the [treasury controller](https://github.com/sunrise-stake/treasury-controller).
+It can trigger a state change to buy or burn carbon tokens, thus retiring underlying carbon credits.
+
+### 2. Purchasing carbon tokens
+
+The carbon token used by Sunrise Stake is the [Toucan Nature Carbon Tonne token](https://blog.toucan.earth/announcing-nct-nature-carbon-tonne/).
+
+NCT represents a tonne of CO2 or equivalent greenhouse gas removed from the atmosphere in various nature-based projects.
+It is issued on the Polygon and Celo blockchains and has been bridged to Solana via [Wormhole](https://wormhole.com/).
+
+The Solana bridged token mint address is [7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT](https://solscan.io/token/7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT).
+
+### 3. Burning the Carbon Tokens
+
+The Sunrise [treasury controller](https://github.com/sunrise-stake/treasury-controller) purchases NCT from a DEX, and burns them.
+
+_NOTE_:
+Until sufficient liquidity is present on Solana for NCT, Sunrise is maintaining a reserve of bridged NCT, and is automatically burning from this pot at a fixed price.
 
 ## Quick Start
 
@@ -28,7 +130,7 @@ $ yarn start
 
 To run the tests, __close__ the validator in the first shell and run
 ```shell
-anchor test
+yarn test
 ```
 
 ## Deployed Addresses:
@@ -47,40 +149,3 @@ anchor test
 | NCT Mint                            | [7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT](https://explorer.solana.com/address/7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT) | [tnct1RC5jg94CJLpiTZc2A2d98MP1Civjh7o6ShmTP6](https://explorer.solana.com/address/tnct1RC5jg94CJLpiTZc2A2d98MP1Civjh7o6ShmTP6?cluster=devnet)   | Carbon token bought and burned by the treasury controller: [Toucan NCT](https://blog.toucan.earth/announcing-nct-nature-carbon-tonne/) - bridged via Wormhole from Polygon.         |       |
 | Holding Account SOL                 | [shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn](https://explorer.solana.com/address/shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn)   | [dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD](https://explorer.solana.com/address/dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD?cluster=devnet)   | Recipient account for SOL used to purchase NCT. (Temporary, until a liquid market for NCT exists on Solana)                                                                         |       |
 | Holding Account NCT                 | [9tGKhW8WGkmx1tkxLoMwanb3XgQ9yJFDPnNggYjb1KUR](https://explorer.solana.com/address/9tGKhW8WGkmx1tkxLoMwanb3XgQ9yJFDPnNggYjb1KUR) | [8JGR8UdjLxduLpkn57H3MuoNapFovefXvMZ7k4dNM2a2](https://explorer.solana.com/address/8JGR8UdjLxduLpkn57H3MuoNapFovefXvMZ7k4dNM2a2?cluster=devnet) | NCT account made available to the Treasury Controller to purchase from. TreasuryController state account is a delegate. (Temporary, until a liquid market for NCT exists on Solana) |       |
-
-## FAQ
-
-Note, for more details, visit the [docs](https://docs.sunrisestake.com).
-
-## How it works
-
-### Synthetic gSOL and Common mSOL
-
-For each Sol that a user deposits, the receive exactly 1 gSOL in return. This gSOL can be burned to redeem the initial Sol from the pool.
-
-The Sol is passed to Marinade, and the equivalent mSOL is minted at the current mSOL price.
-
-This mSOL is stored in a token account owned by the pool. This is a common token account owned by the pool - users do no have their own mSOL token account.
-
-When the user withdraws their Sol, the protocol calculates the appropriate amount of mSOL to withdraw with Marinade to retrieve 1 Sol back.
-The yield is the difference between the mSOL minted during deposit and the mSOL withdrawn during withdrawal. This yield remains staked in the pool.
-
-### Cranking
-
-If the yield remains staked in the pool, it can never be funnelled to the funding recipients.
-
-Therefore, the protocol includes a "crank" mechanism - a permissionless instruction that triggers the withdrawal of Sol from the pool
-and its transfer to the funding strategy (see below).
-
-The crank is attempted on each deposit and withdrawal.
-The parameters of the pool determine how frequently a crank may be turned, and what happens to the withdrawn funds.
-
-For example, a pool may be configured to transfer 100% of its accrued yield on each epoch.
-Conversely, it may transfer only 10% of its yield, and keep the remaining 90% staked to avail of compounding.
-
-### The Funding Strategy
-
-Each pool is associated with a funding strategy. This is a program which is responsible for receiving the yield from the pool and executing a
-preconfigured task, such as swapping for a carbon token, or investing in a DAO treasury.
-
-The default funding strategy is one which swaps into a carbon token which it then subsequently burns. 

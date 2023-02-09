@@ -78,7 +78,9 @@ export function notifyTransaction(n: {
             </div>
             <div className={`ml-4 flex-shrink-0 self-start flex`}>
               <button
-                onClick={() => toast.dismiss(t.id)}
+                onClick={() => {
+                  toast.dismiss(t.id);
+                }}
                 className={`default-transition rounded-md inline-flex text-outset hover:opacity-75 focus:outline-none`}
               >
                 <span className={`sr-only`}>Close</span>

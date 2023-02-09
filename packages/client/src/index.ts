@@ -1,41 +1,42 @@
-import { IDL, SunriseStake } from "./types/sunrise_stake";
+import { IDL, type SunriseStake } from "./types/SunriseStake";
 import * as anchor from "@project-serum/anchor";
-import { AnchorProvider, Program, utils } from "@project-serum/anchor";
+import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
-  ConfirmOptions,
+  type ConfirmOptions,
   Keypair,
   PublicKey,
-  Signer,
+  type Signer,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   Transaction,
-  TransactionInstruction,
+  type TransactionInstruction,
 } from "@solana/web3.js";
 import {
-  Balance,
+  type Balance,
   confirm,
   findBSolTokenAccountAuthority,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   logKeys,
   marinadeTargetReached,
-  Options,
+  type Options,
   PROGRAM_ID,
   proportionalBN,
   setUpAnchor,
-  SunriseStakeConfig,
+  type SunriseStakeConfig,
+  ZERO,
   ZERO_BALANCE,
 } from "./util";
 import {
   Marinade,
   MarinadeConfig,
-  MarinadeState,
+  type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
-import { Details } from "./types/Details";
+import { type Details } from "./types/Details";
 import {
-  SunriseTicketAccountFields,
-  TicketAccount,
+  type SunriseTicketAccountFields,
+  type TicketAccount,
 } from "./types/TicketAccount";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -47,10 +48,9 @@ import {
   DEFAULT_LP_PROPORTION,
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
-  PERCENTAGE_STAKE_TO_MARINADE,
   SOLBLAZE_CONFIG,
   STAKE_POOL_PROGRAM_ID,
-} from "../constants";
+} from "./constants";
 import {
   deposit,
   depositStakeAccount,
@@ -64,9 +64,21 @@ import {
   blazeWithdrawSol,
   blazeWithdrawStake,
 } from "./blaze";
-import { ZERO } from "../util";
-import { BlazeState } from "./types/Solblaze";
-import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
+import { type BlazeState } from "./types/Solblaze";
+import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
+
+// export getSakePoolAccount
+export { getStakePoolAccount, type StakePool };
+
+// export all types
+export * from "./types/SunriseStake";
+export * from "./types/Details";
+export * from "./types/TicketAccount";
+export * from "./types/ManagementAccount";
+export * from "./types/Solblaze";
+
+// export all constants
+export * from "./constants";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -214,7 +226,7 @@ export class SunriseStakeClient {
 
   public async makeDeposit(lamports: BN): Promise<string> {
     const details = await this.details();
-    if (marinadeTargetReached(details, PERCENTAGE_STAKE_TO_MARINADE)) {
+    if (marinadeTargetReached(details)) {
       console.log("Routing deposit to Solblaze");
       return this.depositToBlaze(lamports);
     }
@@ -238,7 +250,7 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 
@@ -268,7 +280,7 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 
@@ -298,7 +310,7 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 
@@ -920,7 +932,7 @@ export class SunriseStakeClient {
     if (!this.marinadeState || !this.msolTokenAccount)
       throw new Error("init not called");
 
-    // deposited in Stake Pools
+    // deposited in Stake Pool
     const solValueOfMSol = mpDetails.msolValue;
     const solValueOfBSol = bpDetails.bsolValue;
 

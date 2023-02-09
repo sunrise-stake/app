@@ -3,7 +3,6 @@ env:
   es2021: true
 extends:
   - plugin:react/recommended
-  - standard-with-typescript
   - ../../.eslintrc.yml
 overrides: []
 parserOptions:
@@ -16,4 +15,4 @@ settings:
 plugins:
   - react
 rules:
-  react/react-in-jsx-scope: "off"
+  react/react-in-jsx-scope: "off"  

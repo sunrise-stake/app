@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@solana/web3.js": "^1.66.2",
+    "@solana/web3.js": "^1.73.2",
     "@types/chai-as-promised": "^7.1.5",
     "bn.js": "^5.2.1",
     "chai-as-promised": "^7.1.1"
+  },
+  "scripts": {
+    "build": "echo \"No build\"",
+    "lint": "eslint -c .eslintrc.yml --ext .ts,.tsx ."
   }
 }

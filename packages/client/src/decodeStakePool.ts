@@ -3,8 +3,8 @@
 // clashes. The following code is directly from src
 
 import { publicKey, struct, u64, u8, option } from "@project-serum/borsh";
-import { Lockup, PublicKey, Connection } from "@solana/web3.js";
-import BN from "bn.js";
+import { type Lockup, type PublicKey, type Connection } from "@solana/web3.js";
+import type BN from "bn.js";
 
 export interface Fee {
   denominator: BN;

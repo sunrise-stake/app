@@ -1,21 +1,25 @@
 import {
-  AccountInfo,
-  ConfirmOptions,
-  Connection,
+  type AccountInfo,
+  type ConfirmOptions,
+  type Connection,
   PublicKey,
-  TokenAmount,
-  Transaction,
+  type TokenAmount,
+  type Transaction,
 } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
-import { ManagementAccount } from "./types/ManagementAccount";
+import { type ManagementAccount } from "./types/ManagementAccount";
 import {
-  MarinadeState,
+  type MarinadeState,
   MarinadeUtils,
   Provider,
-  Wallet,
+  type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
-import { Details } from "./types/Details";
+import { type Details } from "./types/Details";
+import { PERCENTAGE_STAKE_TO_MARINADE } from "./constants";
+
+// zero bn number
+export const ZERO = new BN(0);
 
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
@@ -109,12 +113,13 @@ export const findOrderUnstakeTicketAccount = (
   );
 };
 
-export const logKeys = (transaction: Transaction): void =>
+export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
     instruction.keys.forEach((key, i) => {
       console.log(j, i, key.pubkey.toBase58());
     });
   });
+};
 
 export const confirm = (connection: Connection) => async (txSig: string) =>
   connection.confirmTransaction({
@@ -247,22 +252,17 @@ export const getValidatorIndex = async (
     : validatorLookupIndex;
 };
 
-export const marinadeTargetReached = (
-  details: Details,
-  percentage: number
-): boolean => {
+export const marinadeTargetReached = (details: Details): boolean => {
   const msolValue = details.mpDetails.msolValue;
   const lpValue = details.lpDetails.lpSolValue;
   const totalMarinade = msolValue.add(lpValue);
+  const totalValue = totalMarinade.add(details.bpDetails.bsolValue);
 
-  const gsolSupply = new BN(details.balances.gsolSupply.amount);
-  const limit = proportionalBN(gsolSupply, new BN(percentage), new BN(100));
-
-  console.log("totalMarinade: ", totalMarinade.toString());
-  console.log("limit: ", limit.toString());
-  console.log("percentage: ", percentage);
-  console.log("gsolSupply: ", gsolSupply.toString());
-  console.log("totalMarinade.gt(limit): ", totalMarinade.gt(limit));
+  const limit = proportionalBN(
+    totalValue,
+    new BN(PERCENTAGE_STAKE_TO_MARINADE),
+    new BN(100)
+  );
 
   return totalMarinade.gt(limit);
 };
