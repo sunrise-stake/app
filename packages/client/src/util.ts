@@ -251,7 +251,10 @@ export const getValidatorIndex = async (
     : validatorLookupIndex;
 };
 
-export const marinadeTargetReached = (details: Details, percentageStakeToMarinade: number): boolean => {
+export const marinadeTargetReached = (
+  details: Details,
+  percentageStakeToMarinade: number
+): boolean => {
   const msolValue = details.mpDetails.msolValue;
   const lpValue = details.lpDetails.lpSolValue;
   const totalMarinade = msolValue.add(lpValue);

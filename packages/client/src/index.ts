@@ -45,7 +45,9 @@ import {
 } from "@solana/spl-token";
 import {
   DEFAULT_LP_MIN_PROPORTION,
-  DEFAULT_LP_PROPORTION, Environment, EnvironmentConfig,
+  DEFAULT_LP_PROPORTION,
+  Environment,
+  type EnvironmentConfig,
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
   STAKE_POOL_PROGRAM_ID,
@@ -940,17 +942,17 @@ export class SunriseStakeClient {
   public static async register(
     treasury: PublicKey,
     gsolMint: Keypair,
-    env: Omit<EnvironmentConfig, 'state'>,
+    env: Omit<EnvironmentConfig, "state">,
     options: Options = {}
   ): Promise<SunriseStakeClient> {
     const sunriseStakeState = Keypair.generate();
     const client = new SunriseStakeClient(
-        setUpAnchor(),
-        {
-          ...env,
-          state: sunriseStakeState.publicKey,
-        },
-        options
+      setUpAnchor(),
+      {
+        ...env,
+        state: sunriseStakeState.publicKey,
+      },
+      options
     );
 
     const { accounts, parameters } = await client.getRegisterStateAccounts(
@@ -1096,7 +1098,11 @@ export class SunriseStakeClient {
     stage: keyof typeof Environment,
     options: Options = {}
   ): Promise<SunriseStakeClient> {
-    const client = new SunriseStakeClient(provider, Environment[stage], options);
+    const client = new SunriseStakeClient(
+      provider,
+      Environment[stage],
+      options
+    );
     await client.init();
     return client;
   }

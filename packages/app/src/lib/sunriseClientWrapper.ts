@@ -3,13 +3,17 @@ import {
   type TicketAccount,
   type Details,
   MINIMUM_EXTRACTABLE_YIELD,
-  SUNRISE_STAKE_STATE,
 } from "@sunrisestake/client";
-import { type Connection, Transaction } from "@solana/web3.js";
+import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@project-serum/anchor";
 import type BN from "bn.js";
 import { type AnchorWallet } from "@solana/wallet-adapter-react";
 import { debounce } from "./util";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+
+const stage =
+  (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+  WalletAdapterNetwork.Devnet;
 
 export class SunriseClientWrapper {
   public debouncedUpdate = debounce(this.triggerUpdate.bind(this), 1000);
@@ -52,7 +56,7 @@ export class SunriseClientWrapper {
       wallet as unknown as AnchorWallet,
       {}
     );
-    const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE, {
+    const client = await SunriseStakeClient.get(provider, stage, {
       verbose: Boolean(process.env.REACT_APP_VERBOSE),
     });
 
@@ -128,5 +132,9 @@ export class SunriseClientWrapper {
     return this.client.provider
       .sendAndConfirm(tx, [])
       .then(this.triggerUpdateAndReturn.bind(this));
+  }
+
+  get holdingAccount(): PublicKey {
+    return this.client.env.holdingAccount;
   }
 }

@@ -1,4 +1,4 @@
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { type WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { PublicKey } from "@solana/web3.js";
 
 export const STAKE_POOL_PROGRAM_ID = new PublicKey(
@@ -50,7 +50,6 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     },
   },
 };
-
 
 export const DEFAULT_LP_PROPORTION = 10;
 export const DEFAULT_LP_MIN_PROPORTION = 5;

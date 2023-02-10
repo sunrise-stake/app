@@ -1,7 +1,4 @@
-import {
-  type SunriseStakeClient,
-  getStakePoolAccount,
-} from "../client/src";
+import { type SunriseStakeClient, getStakePoolAccount } from "../client/src";
 import {
   type Keypair,
   PublicKey,
