@@ -45,10 +45,9 @@ import {
 } from "@solana/spl-token";
 import {
   DEFAULT_LP_MIN_PROPORTION,
-  DEFAULT_LP_PROPORTION,
+  DEFAULT_LP_PROPORTION, Environment, EnvironmentConfig,
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
-  SOLBLAZE_CONFIG,
   STAKE_POOL_PROGRAM_ID,
 } from "./constants";
 import {
@@ -104,7 +103,7 @@ export class SunriseStakeClient {
 
   private constructor(
     readonly provider: AnchorProvider,
-    readonly stateAddress: PublicKey,
+    readonly env: EnvironmentConfig,
     readonly options: Options = {}
   ) {
     this.program = new Program<SunriseStake>(IDL, PROGRAM_ID, provider);
@@ -117,19 +116,19 @@ export class SunriseStakeClient {
 
   private async init(): Promise<void> {
     const sunriseStakeState = await this.program.account.state.fetch(
-      this.stateAddress
+      this.env.state
     );
 
     const stakePoolInfo = await getStakePoolAccount(
       this.provider.connection,
-      SOLBLAZE_CONFIG.pool
+      this.env.blaze.pool
     );
 
     this.config = {
       gsolMint: sunriseStakeState.gsolMint,
       treasury: sunriseStakeState.treasury,
       programId: this.program.programId,
-      stateAddress: this.stateAddress,
+      stateAddress: this.env.state,
       updateAuthority: sunriseStakeState.updateAuthority,
       liqPoolProportion: sunriseStakeState.liqPoolProportion,
       liqPoolMinProportion: sunriseStakeState.liqPoolMinProportion,
@@ -155,7 +154,7 @@ export class SunriseStakeClient {
     const marinadeConfig = new MarinadeConfig({
       connection: this.provider.connection,
       publicKey: this.provider.publicKey,
-      proxyStateAddress: this.stateAddress,
+      proxyStateAddress: this.env.state,
       proxySolMintAuthority: gsolMintAuthority,
       proxySolMintAddress: this.config.gsolMint,
       msolTokenAccountAuthority: this.msolTokenAccountAuthority,
@@ -173,17 +172,17 @@ export class SunriseStakeClient {
     });
 
     const [withdrawAuthority] = PublicKey.findProgramAddressSync(
-      [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("withdraw")],
+      [this.env.blaze.pool.toBuffer(), Buffer.from("withdraw")],
       STAKE_POOL_PROGRAM_ID
     );
 
     const [depositAuthority] = PublicKey.findProgramAddressSync(
-      [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("deposit")],
+      [this.env.blaze.pool.toBuffer(), Buffer.from("deposit")],
       STAKE_POOL_PROGRAM_ID
     );
 
     this.blazeState = {
-      pool: SOLBLAZE_CONFIG.pool,
+      pool: this.env.blaze.pool,
       bsolMint: stakePoolInfo.poolMint,
       validatorList: stakePoolInfo.validatorList,
       reserveAccount: stakePoolInfo.reserveStake,
@@ -226,7 +225,7 @@ export class SunriseStakeClient {
 
   public async makeBalancedDeposit(lamports: BN): Promise<Transaction> {
     const details = await this.details();
-    if (marinadeTargetReached(details)) {
+    if (marinadeTargetReached(details, this.env.percentageStakeToMarinade)) {
       console.log("Routing deposit to Solblaze");
       return this.depositToBlaze(lamports);
     }
@@ -382,7 +381,7 @@ export class SunriseStakeClient {
       this.marinade,
       this.marinadeState,
       this.program,
-      this.stateAddress,
+      this.env.state,
       this.staker,
       this.stakerGSolTokenAccount,
       lamports
@@ -411,7 +410,7 @@ export class SunriseStakeClient {
       this.marinade,
       this.marinadeState,
       this.program,
-      this.stateAddress,
+      this.env.state,
       this.provider.publicKey
     );
 
@@ -493,7 +492,7 @@ export class SunriseStakeClient {
     >[0];
 
     const accounts: Accounts = {
-      state: this.stateAddress,
+      state: this.env.state,
       marinadeState: this.marinadeState.marinadeStateAddress,
       reservePda,
       marinadeTicketAccount: ticketAccount.marinadeTicketAccount,
@@ -585,7 +584,7 @@ export class SunriseStakeClient {
     const liqPoolSolLegPda = await this.marinadeState.solLeg();
 
     const accounts: Accounts = {
-      state: this.stateAddress,
+      state: this.env.state,
       marinadeState: this.marinadeState.marinadeStateAddress,
       blazeState: this.blazeState.pool,
       msolMint: this.marinadeState.mSolMintAddress,
@@ -739,7 +738,7 @@ export class SunriseStakeClient {
 
     const stakePoolInfo = await getStakePoolAccount(
       this.provider.connection,
-      SOLBLAZE_CONFIG.pool
+      this.env.blaze.pool
     );
     const [bsolPrice, bsolValue] = this.computeLamportsFromBSol(
       new BN(balances.bsolBalance.amount),
@@ -747,7 +746,7 @@ export class SunriseStakeClient {
     );
 
     const bpDetails = {
-      pool: SOLBLAZE_CONFIG.pool.toString(),
+      pool: this.env.blaze.pool.toString(),
       bsolPrice,
       bsolValue,
     };
@@ -827,7 +826,7 @@ export class SunriseStakeClient {
     const config = {
       gsolMint,
       programId: this.program.programId,
-      stateAddress: this.stateAddress,
+      stateAddress: this.env.state,
       updateAuthority: this.provider.publicKey,
       treasury,
       liqPoolProportion: DEFAULT_LP_PROPORTION,
@@ -860,7 +859,7 @@ export class SunriseStakeClient {
     const [bsolAuthority, bsolAuthorityBump] =
       findBSolTokenAccountAuthority(config);
     const bsolTokenAccountAddress = await utils.token.associatedAddress({
-      mint: SOLBLAZE_CONFIG.bsolMint,
+      mint: this.env.blaze.bsolMint,
       owner: bsolAuthority,
     });
 
@@ -869,11 +868,11 @@ export class SunriseStakeClient {
     >[0];
 
     const accounts: Accounts = {
-      state: this.stateAddress,
+      state: this.env.state,
       payer: this.provider.publicKey,
       mint: gsolMint,
       msolMint: marinadeState.mSolMintAddress,
-      bsolMint: SOLBLAZE_CONFIG.bsolMint,
+      bsolMint: this.env.blaze.bsolMint,
       msolTokenAccountAuthority: msolAuthority,
       msolTokenAccount: msolAssociatedTokenAccountAddress,
       liqPoolMint: marinadeState.lpMint.address,
@@ -888,7 +887,7 @@ export class SunriseStakeClient {
 
     const parameters = {
       marinadeState: marinadeConfig.marinadeStateAddress,
-      blazeState: SOLBLAZE_CONFIG.pool,
+      blazeState: this.env.blaze.pool,
       updateAuthority: this.provider.publicKey,
       treasury,
       gsolMintAuthorityBump,
@@ -941,13 +940,17 @@ export class SunriseStakeClient {
   public static async register(
     treasury: PublicKey,
     gsolMint: Keypair,
+    env: Omit<EnvironmentConfig, 'state'>,
     options: Options = {}
   ): Promise<SunriseStakeClient> {
     const sunriseStakeState = Keypair.generate();
     const client = new SunriseStakeClient(
-      setUpAnchor(),
-      sunriseStakeState.publicKey,
-      options
+        setUpAnchor(),
+        {
+          ...env,
+          state: sunriseStakeState.publicKey,
+        },
+        options
     );
 
     const { accounts, parameters } = await client.getRegisterStateAccounts(
@@ -1036,7 +1039,7 @@ export class SunriseStakeClient {
     )[0];
     const bsolAssociatedTokenAccountAddress =
       await utils.token.associatedAddress({
-        mint: SOLBLAZE_CONFIG.bsolMint,
+        mint: this.env.blaze.bsolMint,
         owner: bsolTokenAccountAuthority,
       });
     const bsolLamportsBalancePromise =
@@ -1090,10 +1093,10 @@ export class SunriseStakeClient {
 
   public static async get(
     provider: AnchorProvider,
-    stateAddress: PublicKey,
+    stage: keyof typeof Environment,
     options: Options = {}
   ): Promise<SunriseStakeClient> {
-    const client = new SunriseStakeClient(provider, stateAddress, options);
+    const client = new SunriseStakeClient(provider, Environment[stage], options);
     await client.init();
     return client;
   }

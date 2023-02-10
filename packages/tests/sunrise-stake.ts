@@ -6,7 +6,7 @@ import {
   getStakePoolAccount,
   DEFAULT_LP_MIN_PROPORTION,
   DEFAULT_LP_PROPORTION,
-  NETWORK_FEE,
+  NETWORK_FEE, Environment,
 } from "../client/src";
 import {
   burnGSol,
@@ -47,7 +47,7 @@ describe("sunrise-stake", () => {
   const mint = Keypair.generate();
 
   it("can register a new Sunrise state", async () => {
-    client = await SunriseStakeClient.register(treasury.publicKey, mint, {
+    client = await SunriseStakeClient.register(treasury.publicKey, mint, Environment.devnet,{
       verbose: Boolean(process.env.VERBOSE),
     });
 
@@ -97,7 +97,7 @@ describe("sunrise-stake", () => {
         )
       )
       .accounts({
-        state: client.stateAddress,
+        state: client.env.state,
         payer: client.provider.publicKey,
         updateAuthority: updateAuthority.publicKey,
         systemProgram: SystemProgram.programId,
