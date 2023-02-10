@@ -1,4 +1,4 @@
-import { IDL, type SunriseStake } from "./types/SunriseStake";
+import { IDL, type SunriseStake } from "../types/sunrise_stake";
 import * as anchor from "@project-serum/anchor";
 import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
@@ -33,7 +33,7 @@ import {
   type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
-import { type Details } from "./types/Details";
+import { type Details, type WithdrawalDetails } from "./types/Details";
 import {
   type SunriseTicketAccountFields,
   type TicketAccount,
@@ -71,7 +71,7 @@ import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 export { getStakePoolAccount, type StakePool };
 
 // export all types
-export * from "./types/SunriseStake";
+export * from "../types/sunrise_stake";
 export * from "./types/Details";
 export * from "./types/TicketAccount";
 export * from "./types/ManagementAccount";
@@ -367,6 +367,7 @@ export class SunriseStakeClient {
 
   public async unstake(lamports: BN): Promise<string> {
     if (
+      !this.blazeState ||
       !this.marinadeState ||
       !this.marinade ||
       !this.config ||
@@ -375,8 +376,19 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const transaction = await liquidUnstake(
+    const { instruction: rebalanceInstruction } = await triggerRebalance(
       this.config,
+      this.marinade,
+      this.marinadeState,
+      this.program,
+      this.stateAddress,
+      this.staker
+    );
+    const rebalanceTransaction = new Transaction().add(rebalanceInstruction);
+
+    const unstakeTransaction = await liquidUnstake(
+      this.config,
+      this.blazeState,
       this.marinade,
       this.marinadeState,
       this.program,
@@ -386,9 +398,13 @@ export class SunriseStakeClient {
       lamports
     );
 
-    Boolean(this.config?.options.verbose) && logKeys(transaction);
+    Boolean(this.config?.options.verbose) && logKeys(unstakeTransaction);
+    Boolean(this.config?.options.verbose) && logKeys(rebalanceTransaction);
 
-    return this.sendAndConfirmTransaction(transaction, []);
+    let result = this.sendAndConfirmTransaction(unstakeTransaction, []);
+    this.sendAndConfirmTransaction(rebalanceTransaction, []);
+
+    return result;
   }
 
   /**
@@ -640,7 +656,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction);
   }
 
-  public calculateWithdrawalFee(withdrawalLamports: BN, details: Details): BN {
+  public calculateWithdrawalFee(withdrawalLamports: BN, details: Details): WithdrawalDetails {
     // Calculate how much can be withdrawn from the lp (without fee)
     const lpSolShare = details.lpDetails.lpSolShare;
     const preferredMinLiqPoolValue = new BN(
@@ -660,14 +676,69 @@ export class SunriseStakeClient {
       ? MARINADE_TICKET_RENT
       : 0;
 
-    if (amountBeingLiquidUnstaked.lte(ZERO)) return ZERO;
+    // possibly compromised due to separating the instructions
+    const processFee = rentForOrderUnstakeTicket + NETWORK_FEE;
 
-    // Calculate the fee
-    return amountBeingLiquidUnstaked
+    if (amountBeingLiquidUnstaked.lte(ZERO)) {
+      return {
+        lpWithdrawal: lpSolShare,
+        marinadeUnstake: ZERO,
+        blazeUnstake: ZERO,
+        blazeUnstakeFee: ZERO,
+        marinadeUnstakeFee: ZERO,
+        processFee,
+        totalWithdrawalFee: new BN(processFee),
+      };
+    }
+
+    let marinadeUnstake = new BN(0);
+    let blazeUnstake = new BN(0);
+    let marinadeUnstakeFee = new BN(0);
+    let blazeUnstakeFee = new BN(0);
+
+    const msolValue = details.mpDetails.msolValue;
+    const bsolValue = details.bpDetails.bsolValue;
+
+    if (msolValue >= bsolValue) {
+      marinadeUnstake = msolValue > amountBeingLiquidUnstaked ? amountBeingLiquidUnstaked :
+        msolValue;
+    } else {
+      marinadeUnstake = bsolValue > amountBeingLiquidUnstaked ? new BN(0) 
+        : amountBeingLiquidUnstaked.sub(bsolValue);
+    }
+
+    blazeUnstake = amountBeingLiquidUnstaked.sub(marinadeUnstake);
+    blazeUnstakeFee = blazeUnstake
+      .mul(details.bpDetails.solWithdrawalFee.numerator)
+      .div(details.bpDetails.solWithdrawalFee.denominator);
+
+    marinadeUnstakeFee = marinadeUnstake
       .muln(3)
-      .divn(1000)
-      .addn(rentForOrderUnstakeTicket)
-      .addn(NETWORK_FEE);
+      .divn(1000);
+
+    let totalWithdrawalFee = blazeUnstakeFee
+      .add(marinadeUnstakeFee)
+      .addn(processFee);
+
+    console.log("lpWithdrawal: ", lpSolShare.toString());
+    console.log("rentPayment: ", rentForOrderUnstakeTicket.toString());
+    console.log("blazeUnstake: ", blazeUnstake.toString());
+    console.log("blazeFee: ", blazeUnstakeFee.toString());
+    console.log("marinadeUnstake: ", marinadeUnstake.toString());
+    console.log("marinadeUnstakeFee: ", marinadeUnstakeFee.toString());
+    console.log("processFee: ", processFee.toString());
+    console.log("totalWithdrawalFee: ", totalWithdrawalFee.toString())
+
+    return {
+      lpWithdrawal: lpSolShare,
+      marinadeUnstake,
+      blazeUnstake,
+      blazeUnstakeFee,
+      marinadeUnstakeFee,
+      processFee,
+      totalWithdrawalFee,
+    };
+
   }
 
   public async details(): Promise<Details> {
@@ -771,6 +842,10 @@ export class SunriseStakeClient {
       pool: SOLBLAZE_CONFIG.pool.toString(),
       bsolPrice,
       bsolValue,
+      solWithdrawalFee: {
+        numerator: stakePoolInfo.solWithdrawalFee.numerator,
+        denominator: stakePoolInfo.solWithdrawalFee.denominator,
+      }
     };
 
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {

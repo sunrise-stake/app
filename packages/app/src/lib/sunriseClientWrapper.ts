@@ -91,7 +91,8 @@ export class SunriseClientWrapper {
   }
 
   calculateWithdrawalFee(amount: BN, details: Details): BN {
-    return this.client.calculateWithdrawalFee(amount, details);
+    let { totalWithdrawalFee } = this.client.calculateWithdrawalFee(amount, details);
+    return totalWithdrawalFee;
   }
 
   async claimUnstakeTicket(ticket: TicketAccount): Promise<string> {
