@@ -1,11 +1,14 @@
-import { SunriseStakeClient } from "./client";
-import { Connection, Transaction } from "@solana/web3.js";
+import {
+  SunriseStakeClient,
+  type TicketAccount,
+  type Details,
+  MINIMUM_EXTRACTABLE_YIELD,
+  SUNRISE_STAKE_STATE,
+} from "@sunrisestake/client";
+import { type Connection, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@project-serum/anchor";
-import BN from "bn.js";
-import { MINIMUM_EXTRACTABLE_YIELD, SUNRISE_STAKE_STATE } from "./constants";
-import { TicketAccount } from "./client/types/TicketAccount";
-import { Details } from "./client/types/Details";
-import { AnchorWallet } from "@solana/wallet-adapter-react";
+import type BN from "bn.js";
+import { type AnchorWallet } from "@solana/wallet-adapter-react";
 import { debounce } from "./util";
 
 export class SunriseClientWrapper {
@@ -64,7 +67,7 @@ export class SunriseClientWrapper {
   async deposit(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
-      .deposit(amount)
+      .makeDeposit(amount)
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -88,7 +91,8 @@ export class SunriseClientWrapper {
   }
 
   calculateWithdrawalFee(amount: BN, details: Details): BN {
-    return this.client.calculateWithdrawalFee(amount, details);
+    let { totalWithdrawalFee } = this.client.calculateWithdrawalFee(amount, details);
+    return totalWithdrawalFee;
   }
 
   async claimUnstakeTicket(ticket: TicketAccount): Promise<string> {

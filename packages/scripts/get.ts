@@ -1,8 +1,7 @@
-import { SunriseStakeClient } from "../app/src/lib/client/";
+import { SunriseStakeClient, SUNRISE_STAKE_STATE } from "../client/src";
 import "./util";
 import { AnchorProvider } from "@project-serum/anchor";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
-import { toSol, ZERO } from "@sunrisestake/app/src/lib/util";
+import { toSol, ZERO } from "../app/src/lib/util";
 import BN from "bn.js";
 
 (async () => {
@@ -18,11 +17,14 @@ import BN from "bn.js";
   );
 
   const totalValue = details.mpDetails.msolValue
+    .add(details.bpDetails.bsolValue)
     .add(details.lpDetails.lpSolValue)
     .add(inflightTotal);
 
-  const spShare =
+  const mpShare =
     details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+  const bpShare =
+    details.bpDetails.bsolValue.muln(10_000).div(totalValue).toNumber() / 100;
   const lpShare =
     details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() / 100;
   const inflightShare =
@@ -36,9 +38,12 @@ import BN from "bn.js";
 
   const report: Record<string, string> = {
     "gSOL Supply": details.balances.gsolSupply.uiAmountString ?? "-",
-    "Stake Pool Value": `${toSol(
+    "Marinade Stake Pool Value": `${toSol(
       details.mpDetails.msolValue
-    )} (${spShare.toString()}%)`,
+    )} (${mpShare.toString()}%)`,
+    "SolBlaze Stake Pool Value": `${toSol(
+      details.bpDetails.bsolValue
+    )} (${bpShare.toString()}%)`,
     "Liquidity Pool Value": `${toSol(
       details.lpDetails.lpSolValue
     )} (${lpShare.toString()}%)`,
@@ -58,14 +63,6 @@ import BN from "bn.js";
     )} (${missingValueShare.toString()}%)`,
     "Extractable Yield": `${toSol(details.extractableYield)}`,
   };
-
-  console.log({
-    config: client.config,
-    details,
-  });
-
-  console.log("\n\n==================================");
-  console.log("\nReport:\n");
 
   Object.keys(report).forEach((key) => {
     console.log(key, ":", report[key]);

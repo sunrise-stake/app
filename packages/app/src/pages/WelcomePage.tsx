@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { type FC } from "react";
 import Spinner from "../components/Spinner";
 import CarbonRecovered from "../components/CarbonRecovered";
 import { useSunriseStake } from "../context/sunriseStakeContext";
@@ -12,7 +12,9 @@ export const WelcomePage: FC = () => {
   return (
     <div className="w-full">
       {!details ? (
-        <Spinner />
+        <div className="flex justify-center items-center m-2">
+          <Spinner />
+        </div>
       ) : (
         <div
           style={{ maxWidth: "864px" }}
@@ -46,7 +48,6 @@ export const WelcomePage: FC = () => {
             src={"./logo.png"}
             alt="Sunrise"
           />
-
           <CarbonRecovered />
         </div>
       )}

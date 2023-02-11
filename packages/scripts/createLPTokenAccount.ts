@@ -24,7 +24,7 @@ import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
   const tx = new Transaction().add(
     createAssociatedTokenAccountIdempotentInstruction(
       provider.publicKey,
-      tokenAccount!,
+      tokenAccount,
       client.msolTokenAccountAuthority!,
       client.marinadeState!.lpMint.address
     )

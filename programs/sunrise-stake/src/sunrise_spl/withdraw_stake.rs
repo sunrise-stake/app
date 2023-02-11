@@ -1,5 +1,4 @@
 use crate::{
-    check_mint_supply,
     utils::{calc, seeds, token as TokenUtils},
     State,
 };
@@ -49,18 +48,14 @@ use spl_stake_pool::state::StakePool;
 #[derive(Accounts)]
 pub struct SplWithdrawStake<'info> {
     #[account(
+        mut,
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
     pub state: Box<Account<'info, State>>,
     #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
-    #[account(
-        seeds = [state.key().as_ref(), seeds::GSOL_MINT_AUTHORITY],
-        bump = state.gsol_mint_authority_bump
-    )]
-    pub gsol_mint_authority: SystemAccount<'info>,
-
+   
     pub user: Signer<'info>,
     #[account(
         mut,
@@ -125,7 +120,6 @@ impl<'info> SplWithdrawStake<'info> {
 
     pub fn withdraw_stake(&mut self, lamports: u64) -> Result<()> {
         self.check_stake_pool_program()?;
-        check_mint_supply(&self.state, &self.gsol_mint)?;
 
         let bump = self.state.bsol_authority_bump;
         let state_key = self.state.to_account_info().key;

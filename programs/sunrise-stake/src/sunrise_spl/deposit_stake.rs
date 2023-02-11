@@ -1,5 +1,4 @@
 use crate::{
-    check_mint_supply,
     utils::{seeds, token as TokenUtils},
     State,
 };
@@ -35,6 +34,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 #[derive(Accounts)]
 pub struct SplDepositStake<'info> {
     #[account(
+        mut,
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
@@ -127,7 +127,6 @@ impl<'info> SplDepositStake<'info> {
 
     pub fn deposit_stake(&mut self) -> Result<()> {
         self.check_stake_pool_program()?;
-        check_mint_supply(&self.state, &self.gsol_mint)?;
 
         let stake_account_info =
             try_from_slice_unchecked::<StakeState>(&self.stake_account.data.borrow())?;

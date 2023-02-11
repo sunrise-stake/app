@@ -1,16 +1,25 @@
 import {
-  AccountInfo,
-  ConfirmOptions,
-  Connection,
+  type AccountInfo,
+  type ConfirmOptions,
+  type Connection,
   PublicKey,
-  TokenAmount,
-  Transaction,
-  StakeProgram,
+  type TokenAmount,
+  type Transaction,
 } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
-import { ManagementAccount } from "./types/ManagementAccount";
-import { MarinadeState } from "@sunrisestake/marinade-ts-sdk";
+import { type ManagementAccount } from "./types/ManagementAccount";
+import {
+  type MarinadeState,
+  MarinadeUtils,
+  Provider,
+  type Wallet,
+} from "@sunrisestake/marinade-ts-sdk";
+import { type Details } from "./types/Details";
+import { PERCENTAGE_STAKE_TO_MARINADE } from "./constants";
+
+// zero bn number
+export const ZERO = new BN(0);
 
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
@@ -104,12 +113,13 @@ export const findOrderUnstakeTicketAccount = (
   );
 };
 
-export const logKeys = (transaction: Transaction): void =>
+export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
     instruction.keys.forEach((key, i) => {
       console.log(j, i, key.pubkey.toBase58());
     });
   });
+};
 
 export const confirm = (connection: Connection) => async (txSig: string) =>
   connection.confirmTransaction({
@@ -198,38 +208,35 @@ export const proportionalBN = (
   return new BN(result.toString());
 };
 
-export const getVoterAddress = async (
-  stakeAccountAddress: PublicKey,
-  connection: Connection
-): Promise<PublicKey> => {
-  const { value: stakeAccountInfo } = await connection.getParsedAccountInfo(
-    stakeAccountAddress
+export const getStakeAccountInfo = async (
+  stakeAccount: PublicKey,
+  anchorProvider: AnchorProvider
+  // program: anchor.Program<SunriseStake>,
+): Promise<MarinadeUtils.ParsedStakeAccountInfo> => {
+  const provider = new Provider(
+    anchorProvider.connection,
+    anchorProvider.wallet as Wallet,
+    {}
   );
 
-  if (!stakeAccountInfo) {
-    throw new Error(
-      `Failed getting info for ${stakeAccountAddress.toBase58()}`
-    );
+  const parsedData = MarinadeUtils.getParsedStakeAccountInfo(
+    provider,
+    stakeAccount
+  );
+  console.log("parsedData: ", parsedData);
+  return parsedData;
+};
+
+export const getVoterAddress = async (
+  stakeAccount: PublicKey,
+  provider: AnchorProvider
+  // program: Program<SunriseStake>,
+): Promise<PublicKey> => {
+  const info = await getStakeAccountInfo(stakeAccount, provider);
+  if (!info.voterAddress) {
+    throw new Error(`Stake account must be delegated`);
   }
-
-  if (!stakeAccountInfo.owner.equals(StakeProgram.programId)) {
-    throw new Error(`${stakeAccountAddress.toBase58()} is not a stake account`);
-  }
-
-  if (stakeAccountInfo.data instanceof Buffer) {
-    throw new Error(`Invalid parsed account data`);
-  }
-
-  const { parsed: data } = stakeAccountInfo.data;
-
-  const voterAddress =
-    data.voterAddress === null ? null : new PublicKey(data.voterAddress);
-
-  if (!voterAddress) {
-    throw new Error(`The stake account is not delegated`);
-  }
-
-  return voterAddress;
+  return info.voterAddress;
 };
 
 export const getValidatorIndex = async (
@@ -243,4 +250,19 @@ export const getValidatorIndex = async (
   return validatorLookupIndex === -1
     ? marinadeState.state.validatorSystem.validatorList.count
     : validatorLookupIndex;
+};
+
+export const marinadeTargetReached = (details: Details): boolean => {
+  const msolValue = details.mpDetails.msolValue;
+  const lpValue = details.lpDetails.lpSolValue;
+  const totalMarinade = msolValue.add(lpValue);
+  const totalValue = totalMarinade.add(details.bpDetails.bsolValue);
+
+  const limit = proportionalBN(
+    totalValue,
+    new BN(PERCENTAGE_STAKE_TO_MARINADE),
+    new BN(100)
+  );
+
+  return totalMarinade.gt(limit);
 };

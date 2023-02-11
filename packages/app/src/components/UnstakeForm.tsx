@@ -9,9 +9,10 @@ import AmountInput from "./AmountInput";
 import UnstakeOption from "./UnstakeOption";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { solToLamports, ZERO } from "../lib/util";
+import Spinner from "./Spinner";
 
 interface UnstakeFormProps {
-  withdraw: (amount: string) => void;
+  withdraw: (amount: string) => Promise<any>;
   delayedWithdraw: boolean;
   setDelayedWithdraw: (delayedWithdraw: boolean) => void;
 }
@@ -25,8 +26,14 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
   const [amount, setAmount] = useState("");
   const [valid, setValid] = useState(false);
   const [feeLoading, setFeeLoading] = useState(true);
+  const [isBusy, setIsBusy] = useState(false);
 
-  const withdrawModal = useModal(() => withdraw(amount));
+  const withdrawModal = useModal(() => {
+    setIsBusy(true);
+    withdraw(amount).finally(() => {
+      setIsBusy(false);
+    });
+  });
 
   useEffect(() => {
     if (client && details) setFeeLoading(false);
@@ -65,6 +72,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         amount={amount}
         setAmount={setAmount}
         setValid={setValid}
+        mode="UNSTAKE"
       />
       <div className="flex flex-col-reverse gap-4 sm:flex-row justify-between">
         <UnstakeOption
@@ -74,10 +82,16 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
           feeLoading={feeLoading}
         />
         <Button
-          onClick={() => withdraw(amount)}
-          disabled={!valid}
+          onClick={() => {
+            setIsBusy(true);
+            withdraw(amount).finally(() => {
+              setIsBusy(false);
+            });
+          }}
+          disabled={!valid || isBusy}
           className="mr-auto sm:mr-0"
         >
+          {isBusy ? <Spinner size="1rem" className="mr-1" /> : null}
           Withdraw <FiArrowDownLeft className="inline" size={24} />
         </Button>
       </div>

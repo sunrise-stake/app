@@ -1,21 +1,23 @@
 import React from "react";
 import useScript from "../hooks/useScript";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-import toast, { Toast } from "react-hot-toast";
+import toast, { type Toast } from "react-hot-toast";
 
 interface TweetButtonProps {
   amount: string;
   t: Toast;
 }
 
-const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
+const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
   useScript("https://platform.twitter.com/widgets.js");
 
   return (
     <div className=" bg-background p-8 rounded-md border border-green">
       <div className={`ml-2 flex-shrink-0 flex justify-end`}>
         <button
-          onClick={() => toast.dismiss(t.id)}
+          onClick={() => {
+            toast.dismiss(t.id);
+          }}
           className={`default-transition rounded-md inline-flex text-white hover:opacity-75 focus:outline-none`}
         >
           <span className={`sr-only`}>Close</span>
@@ -54,7 +56,7 @@ const TweetButton: React.FC<TweetButtonProps> = ({ amount, t }) => {
           href="https://twitter.com/share?ref_src=twsrc%5Etfw"
           className="twitter-share-button"
           data-size="large"
-          data-text="I just staked with Sunrise, offsetting carbon and making Solana stronger"
+          data-text="I just staked with Sunrise, offsetting carbon and making Solana stronger."
           data-url="https://app.sunrisestake.com/"
           data-via="sunrisestake"
           // data-hashtags=""

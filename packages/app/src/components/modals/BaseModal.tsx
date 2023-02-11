@@ -1,4 +1,10 @@
-import { FC, Fragment, ReactNode, useCallback, useState } from "react";
+import {
+  type FC,
+  Fragment,
+  type ReactNode,
+  useCallback,
+  useState,
+} from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { GiCancel } from "react-icons/gi";
 import { FiArrowRight } from "react-icons/fi";
@@ -27,7 +33,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={setIsOpen}>
+      <Dialog as="div" onClose={clickCancel}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -37,10 +43,10 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          <div className="fixed z-30 inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
         </Transition.Child>
 
-        <div className="fixed inset-0 z-10 overflow-y-auto">
+        <div className="fixed z-30 inset-0 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <Transition.Child
               as={Fragment}
@@ -58,7 +64,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
                     disabled={!okEnabled}
                     variant="primary"
                     className={
-                      "w-full justify-center items-center" +
+                      "w-full justify-center items-center " +
                       "hover:opacity-70 " +
                       "disabled:opacity-50 disabled:cursor-not-allowed " +
                       "sm:col-start-2 sm:text-sm"

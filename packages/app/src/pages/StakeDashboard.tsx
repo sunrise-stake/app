@@ -1,13 +1,14 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import BN from "bn.js";
 import clx from "classnames";
-import { FC, useCallback, useEffect, useState } from "react";
+import { type FC, useCallback, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
+import { GiCircleForest } from "react-icons/gi";
 
 import StakeForm from "../components/StakeForm";
 import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
-import { TicketAccount } from "../lib/client/types/TicketAccount";
+import { type TicketAccount } from "@sunrisestake/client";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
@@ -20,6 +21,9 @@ import {
   notifyTweet,
 } from "../utils/notifications";
 import { useCarbon } from "../hooks/useCarbon";
+import { DetailsBox } from "../components/DetailsBox";
+import TooltipPopover from "../components/TooltipPopover";
+import { tooltips } from "../utils/tooltips";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -61,10 +65,10 @@ export const StakeDashboard: FC = () => {
   ]);
 
   const deposit = useCallback(
-    (amount: string) => {
-      if (!client) return;
+    async (amount: string) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      client
+      return client
         .deposit(solToLamports(amount))
         .then((tx) => {
           notifyTweet(amount);
@@ -81,14 +85,14 @@ export const StakeDashboard: FC = () => {
   );
 
   const withdraw = useCallback(
-    (amount: string) => {
-      if (!client) return;
+    async (amount: string) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
       const withdraw = delayedWithdraw
         ? client.orderWithdrawal.bind(client)
         : client.withdraw.bind(client);
 
-      withdraw(solToLamports(amount))
+      return withdraw(solToLamports(amount))
         .then((tx) => {
           notifyTransaction({
             type: NotificationType.success,
@@ -103,10 +107,10 @@ export const StakeDashboard: FC = () => {
   );
 
   const redeem = useCallback(
-    (ticket: TicketAccount) => {
-      if (!client) return;
+    async (ticket: TicketAccount) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      client
+      return client
         .claimUnstakeTicket(ticket)
         .then((tx) => {
           notifyTransaction({
@@ -122,7 +126,7 @@ export const StakeDashboard: FC = () => {
   );
 
   return (
-    <div style={{ maxWidth: "564px" }} className="mx-auto">
+    <div style={{ maxWidth: "620px" }} className="mx-auto relative">
       <div className="text-center">
         <img
           className="block sm:hidden w-auto h-16 mx-auto mb-3"
@@ -135,11 +139,14 @@ export const StakeDashboard: FC = () => {
         </h3>
       </div>
       <div className="flex">
-        <Panel className="flex grid-cols-1 mx-auto mb-9 p-4 rounded-lg">
+        <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
           <Button
             variant={isStakeSelected ? "primary" : "secondary"}
-            className="mr-5"
-            onClick={() => setIsStakeSelected(true)}
+            size={"sm"}
+            className="mr-3 sm:mr-5"
+            onClick={() => {
+              setIsStakeSelected(true);
+            }}
           >
             Stake
             <FaLeaf
@@ -152,7 +159,10 @@ export const StakeDashboard: FC = () => {
           </Button>
           <Button
             variant={isStakeSelected ? "secondary" : "danger"}
-            onClick={() => setIsStakeSelected(false)}
+            size={"sm"}
+            onClick={() => {
+              setIsStakeSelected(false);
+            }}
           >
             Unstake
             <TbLeafOff
@@ -185,38 +195,85 @@ export const StakeDashboard: FC = () => {
           />
         )}
       </Panel>
-      <div className="grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {details !== undefined &&
-              toFixedWithPrecision(
-                toSol(new BN(details.balances.gsolBalance.amount))
-              ) + " gSOL"}
-          </span>
-          <br />
-          Your stake
+
+      <div className="relative z-30 grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
+        <InfoBox className="py-2 px-4 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <img
+              src={`gSOL.png`}
+              className="h-8 my-auto pr-2 hidden sm:block"
+            />
+            <div className="mx-auto sm:mx-0 items-center">
+              <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
+                <span className="font-bold text-sm sm:text-lg">
+                  {details !== undefined &&
+                    toFixedWithPrecision(
+                      toSol(new BN(details.balances.gsolBalance.amount)),
+                      2
+                    )}{" "}
+                </span>
+                <span className="text-xs font-bold">gSOL</span>
+              </div>
+
+              {/* <br /> */}
+              <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
+                <div className="text-xs sm:text-sm">Your Stake</div>
+                <TooltipPopover>{tooltips.yourStake}</TooltipPopover>
+              </div>
+            </div>
+          </div>
         </InfoBox>
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {details &&
-              toFixedWithPrecision(
-                toSol(new BN(details.balances.gsolSupply.amount))
-              ) + " SOL"}{" "}
-          </span>
-          <br />
-          Total Stake
+        <InfoBox className="py-2 px-4 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <img src={`SOL.png`} className="h-8 my-auto pr-2 hidden sm:block" />
+            <div className="mx-auto sm:mx-0 items-center">
+              <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
+                <span className="font-bold text-sm sm:text-lg">
+                  {details &&
+                    toFixedWithPrecision(
+                      toSol(new BN(details.balances.gsolSupply.amount)),
+                      2
+                    )}{" "}
+                </span>
+                <span className="text-xs font-bold">SOL</span>
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
+                <div className="text-xs sm:text-sm">Total Stake</div>
+                <TooltipPopover>{tooltips.totalStake}</TooltipPopover>
+              </div>
+            </div>
+          </div>
         </InfoBox>
-        <InfoBox className="p-2 rounded text-center">
-          <span className="font-bold text-xl">
-            {totalCarbon !== undefined &&
-              toFixedWithPrecision(totalCarbon) + " tCO₂E"}
-          </span>
-          <br />
-          Retired Carbon
+        <InfoBox className="py-2 px-4 rounded text-center">
+          <div className="flex flex-row justify-between items-center">
+            <GiCircleForest
+              className="hidden sm:block"
+              color="#52dc90"
+              size={32}
+            />
+
+            <div className="mx-auto sm:mx-0 items-center">
+              <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
+                <span className="font-bold text-sm sm:text-lg">
+                  {totalCarbon !== undefined &&
+                    toFixedWithPrecision(totalCarbon, 2)}{" "}
+                </span>
+                <span className="text-xs font-bold">tCO₂E</span>
+              </div>
+              <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
+                <div className="text-xs sm:text-sm">Offset CO₂</div>
+                <TooltipPopover>{tooltips.offsetCO2}</TooltipPopover>
+              </div>
+            </div>
+          </div>
         </InfoBox>
       </div>
+      <div className="relative z-20 mb-8 mt-2">
+        <DetailsBox />
+      </div>
 
-      <div className="flex flex-col gap-8 mb-8 justify-center">
+      <div className="relative z-10 flex flex-col gap-8 mb-8 justify-center">
         {delayedUnstakeTickets.map((ticket) => {
           return (
             <WithdrawTicket

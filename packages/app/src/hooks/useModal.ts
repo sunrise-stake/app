@@ -8,7 +8,9 @@ interface ModalControl {
 }
 const useModal = (onOK: () => void, onCancel = () => {}): ModalControl => {
   const [modalShown, setModalShown] = useState(false);
-  const trigger = (): void => setModalShown(true);
+  const trigger = (): void => {
+    setModalShown(true);
+  };
   const onModalClose = (): void => {
     setModalShown(false);
     onCancel();

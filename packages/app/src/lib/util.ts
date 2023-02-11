@@ -1,5 +1,5 @@
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
+import { LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
+import { type SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
 import BN from "bn.js";
 
 export const ZERO = new BN(0);
@@ -33,20 +33,26 @@ export const solToLamports = (sol: number | string): BN => {
 
 // Get the number of decimal places to show in a formatted number
 // Min = 0, Max = MAX_NUM_PRECISION
-const formatPrecision = (n: number): number =>
+const formatPrecision = (n: number, precision = MAX_NUM_PRECISION): number =>
   Math.min(
     Math.abs(Math.min(0, Math.ceil(Math.log(n) / Math.log(10)))) + 1,
-    MAX_NUM_PRECISION
+    precision
   );
-export const toFixedWithPrecision = (n: number): string =>
-  n.toFixed(formatPrecision(n));
+
+export const toFixedWithPrecision = (
+  n: number,
+  precision = MAX_NUM_PRECISION
+): string => n.toFixed(formatPrecision(n, precision));
+
+export const getDigits = (strNo: string): number | undefined => {
+  const match = strNo.match(/^\d*\.(\d+)$/);
+  if (match?.[1] != null) return match[1].length;
+};
 
 interface SparseWallet {
   publicKey: PublicKey;
-  signTransaction: SignerWalletAdapterProps["signTransaction"] | undefined;
-  signAllTransactions:
-    | SignerWalletAdapterProps["signAllTransactions"]
-    | undefined;
+  signTransaction?: SignerWalletAdapterProps["signTransaction"];
+  signAllTransactions?: SignerWalletAdapterProps["signAllTransactions"];
 }
 
 type SparseWalletContextAdapter = Omit<SparseWallet, "publicKey"> & {

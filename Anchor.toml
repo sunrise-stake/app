@@ -1,5 +1,5 @@
 [workspace]
-types = "packages/app/src/lib/client/types"
+types = "packages/client/types"
 
 [features]
 seeds = false
@@ -14,8 +14,8 @@ url = "https://api.apr.dev"
 cluster = "localnet"
 wallet = "packages/tests/fixtures/id.json"
 
-[test]
-startup_wait = 60000
+#[test]
+#startup_wait = 60000
 
 [scripts]
 test = "yarn test:anchor"
@@ -59,20 +59,22 @@ filename = "packages/tests/fixtures/lp_mint_address.json"
 address = "Du3Ysj1wKbxPKkuPPnvzQLQh8oMSVifs3jGZjJWXFmHN"
 filename = "packages/tests/fixtures/reserve_pda.json"
 
+
+# Solblaze fixtures
 [[test.validator.account]]
 address = "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"
 filename = "packages/tests/fixtures/blaze/b_sol_mint_address.json"
 
 [[test.validator.account]]
-address = "stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"
+address = "azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"
 filename = "packages/tests/fixtures/blaze/pool.json"
 
 [[test.validator.account]]
-address = "1istpXjy8BM7Vd5vPfA485frrV7SRJhgq5vs3sskWmc"
+address = "aEP3DRe8ssFXDFokXiNMo4UXLhpL7LEPVbneUsfqeaJ"
 filename = "packages/tests/fixtures/blaze/validator_list.json"
 
 [[test.validator.account]]
-address = "rsrxDvYUXjH1RQj2Ke36LNZEVqGztATxFkqNukERqFT"
+address = "aRkys1kVHeysrcn9bJFat9FkvoyyYD8M1kK286X3Aro"
 filename = "packages/tests/fixtures/blaze/reserve_account.json"
 
 [[test.validator.account]]

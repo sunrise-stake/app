@@ -1,6 +1,6 @@
-import BN from "bn.js";
-import { Balance } from "../util";
-import { EpochInfo } from "@solana/web3.js";
+import type BN from "bn.js";
+import { type Balance } from "../util";
+import { type EpochInfo } from "@solana/web3.js";
 
 export interface InflightDetails {
   epoch: bigint;
@@ -36,14 +36,29 @@ export interface Details {
     supply: bigint;
     mintAuthority?: string;
     decimals: number;
-    lpSolShare: BN;
-    lpSolValue: BN;
+    lpSolShare: BN; // The amount of lamports in the pool owned by sunrise
+    lpMsolShare: BN; // The amount of msol in the pool owned by sunrise
+    lpSolValue: BN; // The sum of the lpSolBalance and the sol value of lpMsolBalance - the total value of the pool owned by sunrise
     msolLeg: string;
   };
   bpDetails: {
     pool: string;
     bsolPrice: number;
     bsolValue: BN;
+    solWithdrawalFee: {
+      numerator: BN;
+      denominator: BN;
+    };
   };
   inflight: InflightDetails[];
+}
+
+export interface WithdrawalDetails {
+  lpWithdrawal: BN;
+  blazeUnstake: BN;
+  marinadeUnstake: BN;
+  blazeUnstakeFee: BN;
+  marinadeUnstakeFee: BN;
+  processFee: number;
+  totalWithdrawalFee: BN;
 }

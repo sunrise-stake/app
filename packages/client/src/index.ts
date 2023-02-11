@@ -1,40 +1,42 @@
-import { SunriseStake, IDL } from "./types/sunrise_stake";
+import { IDL, type SunriseStake } from "../types/sunrise_stake";
 import * as anchor from "@project-serum/anchor";
-import { AnchorProvider, Program, utils } from "@project-serum/anchor";
+import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
 import {
-  ConfirmOptions,
+  type ConfirmOptions,
   Keypair,
   PublicKey,
-  Signer,
+  type Signer,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   Transaction,
-  TransactionInstruction,
+  type TransactionInstruction,
 } from "@solana/web3.js";
 import {
+  type Balance,
   confirm,
+  findBSolTokenAccountAuthority,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
-  findBSolTokenAccountAuthority,
-  SunriseStakeConfig,
   logKeys,
-  Options,
+  marinadeTargetReached,
+  type Options,
   PROGRAM_ID,
-  setUpAnchor,
-  ZERO_BALANCE,
-  Balance,
   proportionalBN,
+  setUpAnchor,
+  type SunriseStakeConfig,
+  ZERO,
+  ZERO_BALANCE,
 } from "./util";
 import {
   Marinade,
   MarinadeConfig,
-  MarinadeState,
+  type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
-import { Details } from "./types/Details";
+import { type Details, type WithdrawalDetails } from "./types/Details";
 import {
-  SunriseTicketAccountFields,
-  TicketAccount,
+  type SunriseTicketAccountFields,
+  type TicketAccount,
 } from "./types/TicketAccount";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -48,7 +50,7 @@ import {
   NETWORK_FEE,
   SOLBLAZE_CONFIG,
   STAKE_POOL_PROGRAM_ID,
-} from "../constants";
+} from "./constants";
 import {
   deposit,
   depositStakeAccount,
@@ -56,10 +58,27 @@ import {
   orders,
   triggerRebalance,
 } from "./marinade";
-import { blazeDeposit, blazeDepositStake, blazeWithdrawSol, blazeWithdrawStake } from "./blaze";
-import { ZERO } from "../util";
-import { BlazeState } from "./types/Solblaze";
-import { getStakePoolAccount, StakePool } from "./decode_stake_pool";
+import {
+  blazeDeposit,
+  blazeDepositStake,
+  blazeWithdrawSol,
+  blazeWithdrawStake,
+} from "./blaze";
+import { type BlazeState } from "./types/Solblaze";
+import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
+
+// export getSakePoolAccount
+export { getStakePoolAccount, type StakePool };
+
+// export all types
+export * from "../types/sunrise_stake";
+export * from "./types/Details";
+export * from "./types/TicketAccount";
+export * from "./types/ManagementAccount";
+export * from "./types/Solblaze";
+
+// export all constants
+export * from "./constants";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -99,6 +118,11 @@ export class SunriseStakeClient {
   private async init(): Promise<void> {
     const sunriseStakeState = await this.program.account.state.fetch(
       this.stateAddress
+    );
+
+    const stakePoolInfo = await getStakePoolAccount(
+      this.provider.connection,
+      SOLBLAZE_CONFIG.pool
     );
 
     this.config = {
@@ -148,10 +172,6 @@ export class SunriseStakeClient {
       owner: this.msolTokenAccountAuthority,
     });
 
-    const stakePoolInfo = await getStakePoolAccount(
-      this.provider.connection,
-      SOLBLAZE_CONFIG.pool
-    );
     const [withdrawAuthority] = PublicKey.findProgramAddressSync(
       [SOLBLAZE_CONFIG.pool.toBuffer(), Buffer.from("withdraw")],
       STAKE_POOL_PROGRAM_ID
@@ -196,15 +216,22 @@ export class SunriseStakeClient {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
 
-    const createATAInstruction =
-      createAssociatedTokenAccountIdempotentInstruction(
-        this.provider.publicKey,
-        this.stakerGSolTokenAccount,
-        this.staker,
-        this.config.gsolMint
-      );
+    return createAssociatedTokenAccountIdempotentInstruction(
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      this.staker,
+      this.config.gsolMint
+    );
+  }
 
-    return createATAInstruction;
+  public async makeDeposit(lamports: BN): Promise<string> {
+    const details = await this.details();
+    if (marinadeTargetReached(details)) {
+      console.log("Routing deposit to Solblaze");
+      return this.depositToBlaze(lamports);
+    }
+    console.log("Depositing to marinade");
+    return this.deposit(lamports);
   }
 
   public async deposit(lamports: BN): Promise<string> {
@@ -223,7 +250,7 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 
@@ -242,7 +269,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  public async blazeDeposit(lamports: BN): Promise<string> {
+  public async depositToBlaze(lamports: BN): Promise<string> {
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
@@ -253,7 +280,7 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 
@@ -270,7 +297,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  public async blazeDepositStakeAccount(
+  public async depositStakeToBlaze(
     stakeAccountAddress: PublicKey
   ): Promise<string> {
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
@@ -283,13 +310,14 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = await this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
 
     const depositTx = await blazeDepositStake(
       this.config,
       this.program,
+      this.provider,
       this.blazeState,
       this.provider.publicKey,
       stakeAccountAddress,
@@ -339,6 +367,7 @@ export class SunriseStakeClient {
 
   public async unstake(lamports: BN): Promise<string> {
     if (
+      !this.blazeState ||
       !this.marinadeState ||
       !this.marinade ||
       !this.config ||
@@ -347,8 +376,19 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const transaction = await liquidUnstake(
+    const { instruction: rebalanceInstruction } = await triggerRebalance(
       this.config,
+      this.marinade,
+      this.marinadeState,
+      this.program,
+      this.stateAddress,
+      this.staker
+    );
+    const rebalanceTransaction = new Transaction().add(rebalanceInstruction);
+
+    const unstakeTransaction = await liquidUnstake(
+      this.config,
+      this.blazeState,
       this.marinade,
       this.marinadeState,
       this.program,
@@ -358,9 +398,13 @@ export class SunriseStakeClient {
       lamports
     );
 
-    Boolean(this.config?.options.verbose) && logKeys(transaction);
+    Boolean(this.config?.options.verbose) && logKeys(unstakeTransaction);
+    Boolean(this.config?.options.verbose) && logKeys(rebalanceTransaction);
 
-    return this.sendAndConfirmTransaction(transaction, []);
+    const result = this.sendAndConfirmTransaction(unstakeTransaction, []);
+    this.sendAndConfirmTransaction(rebalanceTransaction, []);
+
+    return result;
   }
 
   /**
@@ -508,9 +552,7 @@ export class SunriseStakeClient {
     return this.claimUnstakeTicket(account);
   }
 
-  public async blazeWithdrawal(
-    amount: BN,
-  ): Promise<string> {
+  public async withdrawFromBlaze(amount: BN): Promise<string> {
     if (
       !this.blazeState ||
       !this.config ||
@@ -528,14 +570,13 @@ export class SunriseStakeClient {
       amount
     );
 
-    let transaction = new Transaction().add(withdrawIx);
+    const transaction = new Transaction().add(withdrawIx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-
-  public async blazeStakeWithdrawal(
+  public async withdrawStakeFromBlaze(
     newStakeAccount: PublicKey,
-    amount: BN,
+    amount: BN
   ): Promise<string> {
     if (
       !this.blazeState ||
@@ -555,9 +596,10 @@ export class SunriseStakeClient {
       amount
     );
 
-    let transaction = new Transaction().add(withdrawStakeIx);
+    const transaction = new Transaction().add(withdrawStakeIx);
     return this.sendAndConfirmTransaction(transaction, []);
   }
+
   public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
       !this.marinadeState ||
@@ -614,7 +656,10 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction);
   }
 
-  public calculateWithdrawalFee(withdrawalLamports: BN, details: Details): BN {
+  public calculateWithdrawalFee(
+    withdrawalLamports: BN,
+    details: Details
+  ): WithdrawalDetails {
     // Calculate how much can be withdrawn from the lp (without fee)
     const lpSolShare = details.lpDetails.lpSolShare;
     const preferredMinLiqPoolValue = new BN(
@@ -634,20 +679,70 @@ export class SunriseStakeClient {
       ? MARINADE_TICKET_RENT
       : 0;
 
-    console.log({
-      amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
-      rentForOrderUnstakeTicket: rentForOrderUnstakeTicket.toString(),
-      networkFee: NETWORK_FEE.toString(),
-    });
+    // possibly compromised due to separating the instructions
+    const processFee = rentForOrderUnstakeTicket + NETWORK_FEE;
 
-    if (amountBeingLiquidUnstaked.lte(ZERO)) return ZERO;
+    if (amountBeingLiquidUnstaked.lte(ZERO)) {
+      return {
+        lpWithdrawal: lpSolShare,
+        marinadeUnstake: ZERO,
+        blazeUnstake: ZERO,
+        blazeUnstakeFee: ZERO,
+        marinadeUnstakeFee: ZERO,
+        processFee,
+        totalWithdrawalFee: new BN(processFee),
+      };
+    }
 
-    // Calculate the fee
-    return amountBeingLiquidUnstaked
-      .muln(3)
-      .divn(1000)
-      .addn(rentForOrderUnstakeTicket)
-      .addn(NETWORK_FEE);
+    let marinadeUnstake = new BN(0);
+    let blazeUnstake = new BN(0);
+    let marinadeUnstakeFee = new BN(0);
+    let blazeUnstakeFee = new BN(0);
+
+    const msolValue = details.mpDetails.msolValue;
+    const bsolValue = details.bpDetails.bsolValue;
+
+    if (msolValue >= bsolValue) {
+      marinadeUnstake =
+        msolValue > amountBeingLiquidUnstaked
+          ? amountBeingLiquidUnstaked
+          : msolValue;
+    } else {
+      marinadeUnstake =
+        bsolValue > amountBeingLiquidUnstaked
+          ? new BN(0)
+          : amountBeingLiquidUnstaked.sub(bsolValue);
+    }
+
+    blazeUnstake = amountBeingLiquidUnstaked.sub(marinadeUnstake);
+    blazeUnstakeFee = blazeUnstake
+      .mul(details.bpDetails.solWithdrawalFee.numerator)
+      .div(details.bpDetails.solWithdrawalFee.denominator);
+
+    marinadeUnstakeFee = marinadeUnstake.muln(3).divn(1000);
+
+    const totalWithdrawalFee = blazeUnstakeFee
+      .add(marinadeUnstakeFee)
+      .addn(processFee);
+
+    console.log("lpWithdrawal: ", lpSolShare.toString());
+    console.log("rentPayment: ", rentForOrderUnstakeTicket.toString());
+    console.log("blazeUnstake: ", blazeUnstake.toString());
+    console.log("blazeFee: ", blazeUnstakeFee.toString());
+    console.log("marinadeUnstake: ", marinadeUnstake.toString());
+    console.log("marinadeUnstakeFee: ", marinadeUnstakeFee.toString());
+    console.log("processFee: ", processFee.toString());
+    console.log("totalWithdrawalFee: ", totalWithdrawalFee.toString());
+
+    return {
+      lpWithdrawal: lpSolShare,
+      marinadeUnstake,
+      blazeUnstake,
+      blazeUnstakeFee,
+      marinadeUnstakeFee,
+      processFee,
+      totalWithdrawalFee,
+    };
   }
 
   public async details(): Promise<Details> {
@@ -718,6 +813,7 @@ export class SunriseStakeClient {
       mintAuthority: lpMintInfo.mintAuthority?.toBase58(),
       decimals: lpMintInfo.decimals,
       lpSolShare, // proportion of SOL deposited in the LP
+      lpMsolShare,
       lpSolValue, // total SOL value of the LP tokens held by the sunrise instance
       msolLeg: this.marinadeState.mSolLeg.toBase58(),
     };
@@ -750,6 +846,10 @@ export class SunriseStakeClient {
       pool: SOLBLAZE_CONFIG.pool.toString(),
       bsolPrice,
       bsolValue,
+      solWithdrawalFee: {
+        numerator: stakePoolInfo.solWithdrawalFee.numerator,
+        denominator: stakePoolInfo.solWithdrawalFee.denominator,
+      },
     };
 
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
@@ -902,7 +1002,6 @@ export class SunriseStakeClient {
   };
 
   private calculateExtractableYield({
-    epochInfo,
     balances,
     mpDetails,
     lpDetails,
@@ -913,24 +1012,17 @@ export class SunriseStakeClient {
       throw new Error("init not called");
 
     // deposited in Stake Pool
-    const msolBalance = new BN(balances.msolBalance.amount);
-    console.log("msolBalance: ", msolBalance.toString());
     const solValueOfMSol = mpDetails.msolValue;
-    console.log("msolValue: ", solValueOfMSol.toString());
     const solValueOfBSol = bpDetails.bsolValue;
-    console.log("bsolValue: ", solValueOfBSol.toString());
 
     // deposited in Liquidity Pool
     const solValueOfLP = lpDetails.lpSolValue;
-    console.log("liquidity pool value: ", solValueOfLP.toString());
 
     const gsolSupply = new BN(balances.gsolSupply.amount);
 
     const totalSolValueStaked = solValueOfMSol
       .add(solValueOfLP)
       .add(solValueOfBSol);
-
-    console.log("totalValueStaked:", totalSolValueStaked.toString());
 
     const inflightTotal = inflight.reduce(
       (acc, { totalOrderedLamports }) => acc.add(totalOrderedLamports),
@@ -943,22 +1035,7 @@ export class SunriseStakeClient {
 
     const fee = extractableSOLGross.muln(3).divn(1000);
 
-    const extractableSOLEffective = extractableSOLGross.sub(fee);
-
-    console.log({
-      epoch: epochInfo.epoch,
-      msolBalance: msolBalance.toString(),
-      solValueOfMSol: solValueOfMSol.toString(),
-      solValueOfBsol: solValueOfBSol.toString(),
-      solValueOfLP: solValueOfLP.toString(),
-      totalSolValueStaked: totalSolValueStaked.toString(),
-      gsolSupply: gsolSupply.toString(),
-      extractableSOLGross: extractableSOLGross.toString(),
-      fee: fee.toString(),
-      extractableSOLEffective: extractableSOLEffective.toString(),
-    });
-
-    return extractableSOLEffective;
+    return extractableSOLGross.sub(fee);
   }
 
   public static async register(

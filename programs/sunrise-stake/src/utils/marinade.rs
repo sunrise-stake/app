@@ -1,5 +1,5 @@
 use crate::{
-    utils::{calc::proportional, seeds::MSOL_ACCOUNT},
+    utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
     ClaimUnstakeTicket, Deposit, DepositStakeAccount, ExtractToTreasury, LiquidUnstake,
     OrderUnstake, OrderUnstakeTicketManagementAccount, State, TriggerPoolRebalance,
 };
@@ -481,6 +481,8 @@ pub fn calculate_extractable_yield<'a>(
     bsol_token_account: &Account<'a, TokenAccount>,
     gsol_mint: &Account<'a, Mint>,
 ) -> Result<u64> {
+    let blaze_stake_pool = spl::deserialize_spl_stake_pool(&accounts.blaze_state)?;
+    
     let liquidity_pool_balance = current_liq_pool_balance(
         &accounts.marinade_state,
         &accounts.liq_pool_mint,
@@ -492,8 +494,7 @@ pub fn calculate_extractable_yield<'a>(
     let lp_value = liquidity_pool_balance.sol_value(&accounts.marinade_state);
     let msol_value =
         calc_lamports_from_msol_amount(&accounts.marinade_state, msol_token_account.amount)?;
-    let bsol_value =
-        calc_lamports_from_bsol_amount(&accounts.blaze_state, bsol_token_account.amount)?;
+        let bsol_value = spl::calc_lamports_from_bsol_amount(&blaze_stake_pool, bsol_token_account.amount)?;
     let total_staked_value = lp_value
         .checked_add(msol_value)
         .unwrap()
@@ -516,17 +517,6 @@ pub fn calculate_extractable_yield<'a>(
     Ok(total_extractable_yield)
 }
 
-// Used in calculating recoverable yield
-pub fn calc_lamports_from_bsol_amount<'a>(
-    blaze_stake_pool: &AccountInfo,
-    bsol_balance: u64,
-) -> Result<u64> {
-    let stake_pool = try_from_slice_unchecked::<spl_stake_pool::state::StakePool>(
-        &blaze_stake_pool.data.borrow(),
-    )?;
-
-    Ok(stake_pool.calc_lamports_withdraw_amount(bsol_balance).unwrap())
-}
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct LiquidityPoolBalance {
@@ -618,6 +608,14 @@ pub fn current_liq_pool_balance<'a>(
 
     msg!("Total LP: {:?}", total_balance);
     msg!("Sunrise LP: {:?}", sunrise_liq_pool_balance);
+    msg!(
+        "Total LP value: {:?}",
+        total_balance.sol_value(marinade_state)
+    );
+    msg!(
+        "Sunrise LP value: {:?}",
+        sunrise_liq_pool_balance.sol_value(marinade_state)
+    );
 
     Ok(sunrise_liq_pool_balance)
 }
@@ -642,9 +640,9 @@ fn total_liq_pool(
 
 /// The preferred liquidity pool balance is a proportion of the total issued gsol
 /// (after accounting for the deposit)
-pub fn preferred_liq_pool_balance<'a>(
+pub fn preferred_liq_pool_balance(
     state: &State,
-    gsol_mint: &Account<'a, Mint>,
+    gsol_mint: &Account<'_, Mint>,
     lamports_being_staked: u64,
 ) -> Result<u64> {
     let gsol_supply_after_deposit = gsol_mint
@@ -662,9 +660,9 @@ pub fn preferred_liq_pool_balance<'a>(
 // is:
 //      the total gsol supply (after removing the stake that is being removed)
 //      * the minimum liquidity pool proportion
-pub fn preferred_liq_pool_min_balance<'a>(
+pub fn preferred_liq_pool_min_balance(
     state: &State,
-    gsol_mint: &Account<'a, Mint>,
+    gsol_mint: &Account<'_, Mint>,
     lamports_being_unstaked: u64,
 ) -> Result<u64> {
     let gsol_supply_after_unstake = gsol_mint
@@ -688,13 +686,16 @@ pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> 
     )?;
     let preferred_balance =
         preferred_liq_pool_balance(&accounts.state, &accounts.gsol_mint, lamports)?;
-    let missing_balance = preferred_balance
-        .checked_sub(liq_pool_balance.lamports)
-        .expect("missing_balance");
+
+    // if the preferred balance is less than the actual current balance, then we don't need to deposit
+    // any more. Return 0.
+    // This can happen if the value of the liquidity pool rises, via yield accrued through fees.
+    let liq_pool_value = liq_pool_balance.sol_value(&accounts.marinade_state);
+    let missing_balance = preferred_balance.saturating_sub(liq_pool_value);
     let amount_to_be_deposited = lamports.min(missing_balance);
     msg!(
-        "liq_pool_balance:{:?}, preferred_liq_pool_balance:{}, missing_balance:{}, amount_to_be_deposited:{}",
-        liq_pool_balance,
+        "liq_pool_balance value:{:?}, preferred_liq_pool_balance value:{}, missing_balance:{}, amount_to_be_deposited:{}",
+        liq_pool_value,
         preferred_balance,
         missing_balance,
         amount_to_be_deposited
@@ -812,6 +813,7 @@ pub fn calculate_pool_balance_amounts(
         requested_withdrawal_lamports.saturating_sub(amount_to_withdraw_from_liq_pool.lamports);
 
     // The amount that remains in the liquidity pool after the unstake
+    // checked_sub is safe as it cannot be more than the current balance
     let actual_pool_balance_after_unstake = liq_pool_balance
         .checked_sub_lamports(amount_to_withdraw_from_liq_pool.lamports)
         .expect("actual_pool_balance_after_unstake");
@@ -826,6 +828,7 @@ pub fn calculate_pool_balance_amounts(
 
     // This amount should be ordered for delayed unstake to rebalance the liquidity pool to its preferred minimum
     let amount_to_order_delayed_unstake = preferred_min_liq_pool_after_unstake
+        // checked_sub is appropriate, we use unwrap_or(0) to avoid a panic
         .checked_sub(actual_pool_balance_after_unstake.sol_value(&accounts.marinade_state))
         // the msol withdrawn from the liquidity pool will be sent into the msol pot, so should be discounted here
         .and_then(|pool_balance_shortfall_after_unstake| {

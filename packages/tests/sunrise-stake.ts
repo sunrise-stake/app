@@ -1,6 +1,12 @@
 import BN from "bn.js";
 import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
-import { SunriseStakeClient } from "../app/src/lib/client";
+import {
+  SunriseStakeClient,
+  type TicketAccount,
+  DEFAULT_LP_MIN_PROPORTION,
+  DEFAULT_LP_PROPORTION,
+  NETWORK_FEE,
+} from "../client/src";
 import {
   burnGSol,
   expectAmount,
@@ -12,19 +18,17 @@ import {
   getBalance,
   getLPPrice,
   getBsolPrice,
+  getBlazeWithdrawalFee,
+  getDelegatedAmount,
+  toSol,
   log,
   waitForNextEpoch,
   expectBSolTokenBalance,
+  initializeStakeAccount,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { TicketAccount } from "@sunrisestake/app/src/lib/client/types/TicketAccount";
-import {
-  DEFAULT_LP_MIN_PROPORTION,
-  DEFAULT_LP_PROPORTION,
-  NETWORK_FEE,
-} from "@sunrisestake/app/src/lib/constants";
-import { getStakePoolAccount } from "@sunrisestake/app/src/lib/client/decode_stake_pool";
+import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
 
 chai.use(chaiAsPromised);
 
@@ -37,6 +41,10 @@ describe("sunrise-stake", () => {
   const unstakeLamportsExceedLPBalance = new BN(20 * LAMPORTS_PER_SOL); // 20 SOL
   const orderUnstakeLamports = new BN(2 * LAMPORTS_PER_SOL); // Order a delayed unstake of 2 SOL
   const burnLamports = 100 * LAMPORTS_PER_SOL;
+
+  const blazeDepositLamports = new BN(100 * LAMPORTS_PER_SOL);
+  const blazeUnstakeLamports = new BN(60 * LAMPORTS_PER_SOL);
+  const marinadeStakeDeposit = new BN(100 * LAMPORTS_PER_SOL);
 
   let updateAuthority: Keypair;
   let delayedUnstakeTicket: TicketAccount;
@@ -122,7 +130,7 @@ describe("sunrise-stake", () => {
     );
   });
 
-  it("can deposit sol", async () => {
+  it("can deposit sol to marinade", async () => {
     await getBalance(client); // print balance before deposit
 
     // figure out what balances we expect before we make the deposit
@@ -144,48 +152,61 @@ describe("sunrise-stake", () => {
     await expectStakerGSolTokenBalance(client, depositLamports.toNumber());
   });
 
-  it("can depositToBlaze", async () => {
-    const depositAmount = new BN(100 * LAMPORTS_PER_SOL);
+  
+
+  it("can deposit to blaze", async () => {
     await getBalance(client);
     const bsolPrice = await getBsolPrice(client);
 
-    const poolInfo = await getStakePoolAccount(
-      client.provider.connection,
-      client.blazeState!.pool
+    const expectedBSol = Math.floor(
+      blazeDepositLamports.toNumber() / bsolPrice
     );
-    // console.log(poolInfo);
 
-    const solDepositFee =
-      Number(poolInfo.solDepositFee.numerator) /
-      Number(poolInfo.solDepositFee.denominator);
-    console.log("sol deposit fee: ", solDepositFee); // the 0.08% comes back to us so it's accounted for
-
-    const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
-
-    await client.blazeDeposit(depositAmount);
+    await client.depositToBlaze(blazeDepositLamports);
 
     await expectBSolTokenBalance(client, expectedBSol, 50);
     await expectStakerGSolTokenBalance(
       client,
-      depositLamports.toNumber() + depositAmount.toNumber()
+      depositLamports.toNumber() + blazeDepositLamports.toNumber()
     );
+  });
+
+  // At present (TODO change) a Solblaze deposit does not
+  // send 10% to the liquidity pool
+  // the above deposit added 100SOL to the pool, bringing the pool to 200,
+  // but left the amount in the LP at 10Sol
+  // So after the previous deposit, the liquidity pool is at its minimum (5%)
+  // Any subsequent liquid unstakes will trigger a rebalance
+  // So to avoid this (in order to test feeless unstake)
+  // we deposit 10 more here, which shoudl go straight into the LP, bringing it back up to its maximum (10%)
+  it("deposits into the liquidity pool to rebalance the pools", async () => {
+    await getBalance(client); // print balance before deposit
+
+    // figure out what balances we expect before we make the deposit
+    // since this is the first deposit, 10% will go into the liquidity pool
+    // so the sunrise liquidity pool token balance should go up,
+    // and the sunrise msol balance should be at 90% of the value of the deposit
+    const lpPrice = await getLPPrice(client); // TODO should this be inverse price?
+    const expectedLiqPool = Math.floor((20 * LAMPORTS_PER_SOL) / lpPrice);
+
+    await client.deposit(new BN(10 * LAMPORTS_PER_SOL));
+
+    await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
   });
 
   it("no yield to extract yet", async () => {
     const { extractableYield } = await client.details();
-    console.log("extractableYield: ", extractableYield.toString());
-
-    expectAmount(extractableYield, 0, 100);
+    expectAmount(extractableYield, 0, 10);
   });
 
-  it("can feelessly unstake sol when under the level of the LP", async () => {
+  it("can feelessly unstake sol when under the level of the LP but above the min level that triggers a rebalance", async () => {
     const stakerPreSolBalance = await getBalance(client);
 
     await client.unstake(unstakeLamportsUnderLPBalance);
 
     const expectedPostUnstakeBalance = stakerPreSolBalance
       .add(unstakeLamportsUnderLPBalance)
-      .subn(NETWORK_FEE);
+      .subn(NETWORK_FEE * 2); 
 
     // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
@@ -195,22 +216,64 @@ describe("sunrise-stake", () => {
 
   it("can calculate the withdrawal fee if unstaking more than the LP balance", async () => {
     const details = await client.details();
-    const liquidUnstakeFee = client.calculateWithdrawalFee(
+    const {totalWithdrawalFee} = client.calculateWithdrawalFee(
       unstakeLamportsExceedLPBalance,
       details
     );
+    console.log("total withdrawal fee: ", totalWithdrawalFee.toString());
 
-    // calculated through experimentation
-    expectAmount(36835869, liquidUnstakeFee, 100);
+    // The LP balance is ~18 SOL at this point
+    // The amount being unstaked is 20 SOL
+    // However, the LP balance is made up of SOL and mSOL, so only the SOL share is available (~17.4 SOL)
+    // So 17.4 SOL will be unstaked feelessly
+    // the remaining 2.6 SOL is charged 0.3%
+    // in addition, a rebalance will be triggered, which incurs the rent cost of the delayed unstake ticket
+    // So the total fee will be roughly:
+    // 2.6e9 * 0.003 + 1503360 + 5000 = 9.1e6
+    // Actual values: ((20000000000-17448456901)* 0,003) + 1503360 + 5000 = 9162989.297
+    // Tolerance to allow for rounding issues
+
+    // TODO: Calculate expected
+    expectAmount(9162989, totalWithdrawalFee, 100);
   });
 
+  // Triggers a liquid unstake from Blaze only(Since it's valuation is higher)
+  it("liquid unstakes sol from the Blaze pool when its valuation exceeds Marinade's", async () => {
+    const stakerPreSolBalance =
+      toSol(await client.provider.connection.getBalance(client.staker)); 
+    
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(
+      client.stakerGSolTokenAccount!
+    );
+
+    const feePercentage = await getBlazeWithdrawalFee(client);
+    expect(feePercentage).to.equal(0.0003);
+
+    const expectedSolIncrease = toSol(0.9997 * Number(blazeUnstakeLamports));
+
+    await client.unstake(blazeUnstakeLamports);
+
+    log("after big unstake");
+    await client.details();
+
+    await expectStakerGSolTokenBalance( 
+      client,
+      new BN(gsolBalance.value.amount).sub(blazeUnstakeLamports)
+    );
+
+    const stakerNewBalance = toSol(await client.provider.connection.getBalance(client.staker));
+    await expectAmount(stakerNewBalance, stakerPreSolBalance + expectedSolIncrease);
+  });
+
+  // Triggers a liquid unstake from Marinade only
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
     log("Before big unstake");
     const details = await client.details();
-    const liquidUnstakeFee = client.calculateWithdrawalFee(
+    const {totalWithdrawalFee} = client.calculateWithdrawalFee(
       unstakeLamportsExceedLPBalance,
       details
     );
+    console.log("liquidUnstakeFee: ", totalWithdrawalFee.toString());
 
     const stakerPreSolBalance = await getBalance(client);
 
@@ -223,20 +286,25 @@ describe("sunrise-stake", () => {
     log("after big unstake");
     await client.details();
 
-    await expectStakerGSolTokenBalance(
+    await expectStakerGSolTokenBalance( 
       client,
       new BN(gsolBalance.value.amount).sub(unstakeLamportsExceedLPBalance)
     );
 
     const expectedPostUnstakeBalance = stakerPreSolBalance
       .add(unstakeLamportsExceedLPBalance)
-      .sub(liquidUnstakeFee);
+      .sub(totalWithdrawalFee);
 
     // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
     // variable, as well as floating point precision
+
+    // TODO: Recombine liquidUnstake and TriggerRebalance txs so this makes sense again.
     await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
   });
+
+  // TODO: Write tests to prove that withdrawals can be shared between both pools if the higher pool
+  // doesn't have enough on its own.
 
   it("registers zero extractable yield while a rebalance is in-flight", async () => {
     // ensure in-flight SOL is counted as part of the total staked SOL when calculating extractable yield
@@ -284,9 +352,7 @@ describe("sunrise-stake", () => {
     // we run the validator at 32 slots per epoch, so we "only" need to wait for ~12 seconds
     // we wait 15 seconds to be safe
     // An alternative is to write rust tests using solana-program-test
-    // log("Waiting 15s for next epoch...");
     await waitForNextEpoch(client);
-    // await new Promise((resolve) => setTimeout(resolve, 15000));
 
     epochInfo = await client.provider.connection.getEpochInfo();
     log("current epoch", epochInfo.epoch);
@@ -360,9 +426,6 @@ describe("sunrise-stake", () => {
     // subtract 0.3% liquid unstake fee until we do delayed unstake
     const expectedYield = new BN(burnLamports).muln(997).divn(1000);
 
-    console.log("**Expected Yield to extract values:**");
-    console.log("   ", postBurnYieldToExtract.toNumber());
-    console.log("   ", expectedYield.toNumber());
     expectAmount(postBurnYieldToExtract, expectedYield, 50);
   });
 
@@ -380,5 +443,108 @@ describe("sunrise-stake", () => {
     // marinade charges a 0.3% fee for liquid unstaking
     const expectedTreasuryBalance = new BN(burnLamports).muln(997).divn(1000);
     await expectTreasurySolBalance(client, expectedTreasuryBalance, 10);
+  });
+
+  //
+  // This test generates a situation where the liquidity pool balance is overfull, by adding fees to the pool.
+  //
+  it("can deposit sol after fees are sent to the liquidity pool, increasing the value of the liquidity pool tokens", async () => {
+    if (!client.marinade) {
+      throw new Error("Marinade state not initialized");
+    }
+
+    let details = await client.details();
+
+    // deposit directly into marinade, and withdrawing again, in order to add fees to the pool
+    // raising its value above the preferred amount.
+    const marinadeConfig = new MarinadeConfig({
+      connection: client.provider.connection,
+      publicKey: client.provider.publicKey,
+    });
+    const marinade = new Marinade(marinadeConfig);
+
+    log("LP Sol Value: ", details.lpDetails.lpSolValue.toNumber());
+    // Simulate fees being sent to the liquidity pool
+    log("Depositing directly into marinade");
+    let { transaction } = await marinade.deposit(
+      new BN(100000 * LAMPORTS_PER_SOL)
+    );
+    await client.provider.sendAndConfirm(transaction);
+    log("Liquid unstaking from marinade, sending fees into the liquidity pool");
+    ({ transaction } = await marinade.liquidUnstake(
+      new BN(90000 * LAMPORTS_PER_SOL)
+    ));
+    await client.provider.sendAndConfirm(transaction);
+    details = await client.details();
+    log("LP Sol Value: ", details.lpDetails.lpSolValue.toNumber());
+    log("preferred lp value", Number(details.balances.gsolSupply.amount) * 0.1);
+
+    const liqPoolBalance =
+      await client.provider.connection.getTokenAccountBalance(
+        client.liqPoolTokenAccount!
+      );
+
+    await client.deposit(new BN(0.01 * LAMPORTS_PER_SOL));
+
+    // the deposit should not increase the balance of the liquidity pool tokens
+    await expectLiqPoolTokenBalance(
+      client,
+      new BN(liqPoolBalance.value.amount)
+    );
+  });
+
+  it.skip("can deposit a stake account to marinade", async () => {
+    const stakeAccount = Keypair.generate();
+    await initializeStakeAccount(client, stakeAccount, marinadeStakeDeposit);
+
+    let info = await client.provider.connection.getAccountInfo(
+      stakeAccount.publicKey
+    );
+    let balance = info?.lamports.toString();
+    console.log("stake account balance: ", balance);
+
+    // Wait for cooling down period
+    await waitForNextEpoch(client);
+    await waitForNextEpoch(client);
+
+    const delegatedStake = await getDelegatedAmount(
+      client,
+      stakeAccount.publicKey
+    );
+    console.log("delegated amount: ", delegatedStake.toNumber());
+
+    const initialMsolBalance = Number(
+      (await client.balance()).msolBalance.amount
+    );
+    console.log("balance from client: ", initialMsolBalance);
+
+    const initialStakerGsolBalance = (
+      await client.provider.connection.getTokenAccountBalance(
+        client.stakerGSolTokenAccount!
+      )
+    ).value.amount;
+
+    const expectedMsolIncrease = Math.floor(
+      delegatedStake.toNumber() / client.marinadeState!.mSolPrice
+    );
+    console.log("Expected msol increase: ", expectedMsolIncrease);
+
+    await client.depositStakeAccount(stakeAccount.publicKey);
+
+    info = await client.provider.connection.getAccountInfo(
+      stakeAccount.publicKey
+    );
+    balance = info?.lamports.toString();
+    console.log("stake account balance: ", balance);
+
+    await expectMSolTokenBalance(
+      client,
+      initialMsolBalance + expectedMsolIncrease,
+      50
+    );
+    await expectStakerGSolTokenBalance(
+      client,
+      Number(initialStakerGsolBalance) + Number(delegatedStake)
+    );
   });
 });

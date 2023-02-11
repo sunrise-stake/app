@@ -1,5 +1,5 @@
-import BaseModal, { ModalProps } from "./BaseModal";
-import React, { FC } from "react";
+import BaseModal, { type ModalProps } from "./BaseModal";
+import React, { type FC } from "react";
 import { Dialog } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import useFlags from "../../hooks/useFlags";
@@ -23,9 +23,9 @@ const LiquidWithdrawWarningModal: FC<ModalProps> = (props) => {
           </Dialog.Title>
           <div className="mt-2">
             <WarningConfirm
-              onConfirm={(confirmed: boolean) =>
-                setFlag("fee-confirm", confirmed)
-              }
+              onConfirm={(confirmed: boolean) => {
+                setFlag("fee-confirm", confirmed);
+              }}
               idx={1}
             >
               <p className="text-sm text-gray-900">
