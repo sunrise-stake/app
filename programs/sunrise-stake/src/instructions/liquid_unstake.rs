@@ -1,6 +1,6 @@
 use crate::state::State;
-use crate::utils::marinade;
-use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
+use crate::utils::{ marinade, spl };
+use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT, BSOL_ACCOUNT};
 use crate::utils::token::burn;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
@@ -14,6 +14,7 @@ use std::ops::Deref;
 pub struct LiquidUnstake<'info> {
     #[account(
     has_one = marinade_state,
+    has_one = gsol_mint,
     )]
     pub state: Box<Account<'info, State>>,
 
@@ -81,6 +82,7 @@ pub struct LiquidUnstake<'info> {
 
     #[account(
     mut,
+    token::mint = gsol_mint,
     token::authority = gsol_token_account_authority
     )]
     pub gsol_token_account: Box<Account<'info, TokenAccount>>,
@@ -93,6 +95,41 @@ pub struct LiquidUnstake<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub marinade_program: Program<'info, MarinadeFinance>,
+
+    ///////////////////////////////////////////////////////
+    ///  Blaze Stake Accounts
+    /// //////////////////////////////////////////////////
+
+    #[account(mut, token::authority = bsol_account_authority)]
+    pub bsol_token_account: Account<'info, TokenAccount>,
+    #[account(
+        seeds = [state.key().as_ref(), BSOL_ACCOUNT],
+        bump = state.bsol_authority_bump
+    )]
+    /// CHECK:
+    pub bsol_account_authority: AccountInfo<'info>,
+    #[account(mut, constraint = state.blaze_state == *blaze_stake_pool.key)]
+    /// CHECK:
+    pub blaze_stake_pool: AccountInfo<'info>,
+    /// CHECK:
+    pub stake_pool_withdraw_authority: AccountInfo<'info>,
+    #[account(mut)]
+    /// CHECK:
+    pub reserve_stake_account: AccountInfo<'info>,
+    #[account(mut)]
+    /// CHECK:
+    pub manager_fee_account: AccountInfo<'info>,
+    #[account(mut)]
+    /// CHECK:
+    pub bsol_mint: AccountInfo<'info>,
+    /// CHECK:
+    pub sysvar_stake_history: AccountInfo<'info>,
+    /// CHECK:
+    pub stake_pool_program: AccountInfo<'info>,
+    /// CHECK:
+    pub native_stake_program: AccountInfo<'info>,
+    /// CHECK:
+    pub clock: Sysvar<'info, Clock>,
 }
 
 pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Result<()> {
@@ -107,16 +144,19 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
         )?;
     }
 
-    if amounts.amount_to_liquid_unstake > 0 {
-        let msol_lamports = marinade::calc_msol_from_lamports(
-            ctx.accounts.marinade_state.as_ref(),
-            amounts.amount_to_liquid_unstake,
-        )?;
+    let msol_account_valuation = marinade::calc_lamports_from_msol_amount(
+        ctx.accounts.marinade_state.as_ref(),
+        ctx.accounts.get_msol_from.amount,
+    )?;
+    msg!("msol account valuation: {}", msol_account_valuation);
 
-        msg!("Unstaking {} msol lamports", msol_lamports);
-        let accounts = ctx.accounts.deref().into();
-        marinade::unstake(&accounts, msol_lamports)?;
-    }
+    let blaze_pool = spl::deserialize_spl_stake_pool(&ctx.accounts.blaze_stake_pool)?;
+    let bsol_account_valuation =
+        spl::calc_lamports_from_bsol_amount(&blaze_pool, ctx.accounts.bsol_token_account.amount)?;
+    msg!("bsol account valuation: {}", bsol_account_valuation);
+
+    let liquid_unstake_amount = amounts.amount_to_liquid_unstake;
+    msg!("amount to liquid unstake: {}", liquid_unstake_amount);
 
     msg!("Burn GSol");
     burn(
@@ -127,8 +167,56 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
         &ctx.accounts.token_program.to_account_info(),
     )?;
 
-    let state = &mut ctx.accounts.state;
-    state.marinade_minted_gsol = state.marinade_minted_gsol.checked_sub(lamports).unwrap();
+    if liquid_unstake_amount == 0 {
+        return Ok(());
+    }
+
+    let (marinade_withdraw_amount, blaze_withdraw_amount) =
+        if msol_account_valuation >= bsol_account_valuation {
+            match msol_account_valuation >= liquid_unstake_amount {
+                true => (liquid_unstake_amount, 0),
+                false => {
+                    let diff = liquid_unstake_amount
+                        .checked_sub(msol_account_valuation)
+                        .unwrap();
+                    (liquid_unstake_amount.checked_sub(diff).unwrap(), diff)
+                }
+            }
+        } else {
+            match bsol_account_valuation >= liquid_unstake_amount {
+                true => (0, liquid_unstake_amount),
+                false => {
+                    let diff = liquid_unstake_amount
+                        .checked_sub(bsol_account_valuation)
+                        .unwrap();
+                    (diff, liquid_unstake_amount.checked_sub(diff).unwrap())
+                }
+            }
+        };
+    
+    msg!("user demanded unstake: {}", lamports);
+    msg!("(marinade withdrawal, blaze withdrawal) => ({}, {})", marinade_withdraw_amount, blaze_withdraw_amount);
+
+    if marinade_withdraw_amount > 0 {
+        let msol_value = marinade::calc_msol_from_lamports(
+            ctx.accounts.marinade_state.as_ref(),
+            marinade_withdraw_amount,
+        )?;
+
+        msg!("Unstaking {} lamports({} msol) from marinade", marinade_withdraw_amount, msol_value);
+        let accounts = ctx.accounts.deref().into();
+        marinade::unstake(&accounts, msol_value)?;
+
+        let state = &mut ctx.accounts.state;
+        state.marinade_minted_gsol = state.marinade_minted_gsol.checked_sub(lamports).unwrap();
+    }
+
+    if blaze_withdraw_amount > 0 {
+        let bsol_value = spl::calc_bsol_from_lamports(&blaze_pool, blaze_withdraw_amount)?;
+        msg!("Unstaking {} lamports({} bsol) from blaze", blaze_withdraw_amount, bsol_value);
+        let mut accounts: crate::SplWithdrawSol = ctx.accounts.deref().into();
+        accounts.withdraw_sol(blaze_withdraw_amount)?;
+    }
 
     Ok(())
 }

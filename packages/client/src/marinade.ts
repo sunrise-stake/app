@@ -4,11 +4,13 @@ import {
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
+  SYSVAR_STAKE_HISTORY_PUBKEY,
   type Transaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
 import {
   findAllTickets,
+  findBSolTokenAccountAuthority,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   findOrderUnstakeTicketAccount,
@@ -22,10 +24,12 @@ import {
   MarinadeUtils,
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Program, utils } from "@project-serum/anchor";
+import { type BlazeState } from "./types/Solblaze";
 import { type SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
 import { type ManagementAccount } from "./types/ManagementAccount";
+import { STAKE_POOL_PROGRAM_ID } from "./constants";
 
 export const deposit = async (
   config: SunriseStakeConfig,
@@ -195,6 +199,7 @@ const getOrderUnstakeTicketManagementAccount = async (
 // TODO move this into the client to avoid having to pass in so many things?
 export const liquidUnstake = async (
   config: SunriseStakeConfig,
+  blaze: BlazeState,
   marinade: Marinade,
   marinadeState: MarinadeState,
   program: Program<SunriseStake>,
@@ -221,6 +226,12 @@ export const liquidUnstake = async (
       owner: msolTokenAccountAuthority,
     });
 
+  const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
+  const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
+    mint: blaze.bsolMint,
+    owner: bsolTokenAccountAuthority,
+  });
+
   type Accounts = Parameters<
     ReturnType<typeof program.methods.liquidUnstake>["accounts"]
   >[0];
@@ -245,21 +256,22 @@ export const liquidUnstake = async (
     tokenProgram: TOKEN_PROGRAM_ID,
     rent: SYSVAR_RENT_PUBKEY,
     marinadeProgram,
+    bsolTokenAccount: bsolAssociatedTokenAddress,
+    bsolAccountAuthority: bsolTokenAccountAuthority,
+    blazeStakePool: blaze.pool,
+    stakePoolWithdrawAuthority: blaze.withdrawAuthority,
+    reserveStakeAccount: blaze.reserveAccount,
+    managerFeeAccount: blaze.feesDepot,
+    bsolMint: blaze.bsolMint,
+    sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
+    stakePoolProgram: STAKE_POOL_PROGRAM_ID,
+    nativeStakeProgram: StakeProgram.programId,
+    clock: SYSVAR_CLOCK_PUBKEY,
   };
-
-  const { instruction: rebalanceInstruction } = await triggerRebalance(
-    config,
-    marinade,
-    marinadeState,
-    program,
-    stateAddress,
-    staker
-  );
 
   return program.methods
     .liquidUnstake(lamports)
     .accounts(accounts)
-    .postInstructions([rebalanceInstruction])
     .transaction();
 };
 

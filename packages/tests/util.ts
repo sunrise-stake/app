@@ -1,13 +1,16 @@
 import { type SunriseStakeClient, getStakePoolAccount } from "../client/src";
 import {
-  type Keypair,
-  PublicKey,
+  Keypair,
+  type PublicKey,
   StakeProgram,
   Transaction,
+  LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
 import { createBurnInstruction } from "@solana/spl-token";
+import * as fs from "fs";
+import { MarinadeUtils } from "@sunrisestake/marinade-ts-sdk";
 
 // Set in anchor.toml
 const SLOTS_IN_EPOCH = 32;
@@ -127,7 +130,7 @@ export const expectLiqPoolTokenBalance = async (
   expectAmount(new BN(liqPoolBalance.value.amount), expectedAmount, tolerance);
 };
 
-export const getBalance = async (client: SunriseStakeClient) => {
+export const getBalance = async (client: SunriseStakeClient): Promise<BN> => {
   const balance = await client.provider.connection.getBalance(client.staker);
   log("Staker SOL balance", balance);
   // cast to string then convert to BN as BN has trouble with large values of type number in its constructor
@@ -214,16 +217,48 @@ export const getBsolPrice = async (
   return price;
 };
 
+export const getBlazeWithdrawalFee = async (
+  client: SunriseStakeClient
+): Promise<number> => {
+  const poolInfo = await getStakePoolAccount(
+    client.provider.connection,
+    client.blazeState!.pool
+  );
+
+  const solWithdrawalFee =
+    Number(poolInfo.solWithdrawalFee.numerator) /
+    Number(poolInfo.solWithdrawalFee.denominator);
+
+  return solWithdrawalFee;
+};
+
+export const getBlazeSolDepositFee = async (
+  client: SunriseStakeClient
+): Promise<number> => {
+  const poolInfo = await getStakePoolAccount(
+    client.provider.connection,
+    client.blazeState!.pool
+  );
+
+  const depositFee =
+    Number(poolInfo.solDepositFee.numerator) /
+    Number(poolInfo.solDepositFee.denominator);
+
+  return depositFee;
+};
+
+export const toSol = (value: number): number => {
+  return value / LAMPORTS_PER_SOL;
+};
+
 export const initializeStakeAccount = async (
   client: SunriseStakeClient,
   stakeAccount: Keypair,
   lamports: BN
 ) => {
-  /* let lockup =  {
-    unixTimestamp: 0,
-    epoch: 0,
-    custodian: client.provider.publicKey
-  }; */
+  // const validatorRecord = await client.marinadeState?.getValidatorRecords();
+  // console.log("validator record: ", validatorRecord);
+
   const authorized = {
     staker: client.provider.publicKey,
     withdrawer: client.provider.publicKey,
@@ -233,7 +268,6 @@ export const initializeStakeAccount = async (
     fromPubkey: client.provider.publicKey,
     stakePubkey: stakeAccount.publicKey,
     authorized,
-    // lockup,
     lamports: lamports.toNumber(),
   };
   const createIx = StakeProgram.createAccount(createParams);
@@ -241,21 +275,54 @@ export const initializeStakeAccount = async (
   await client.provider.sendAndConfirm(new Transaction().add(createIx), [
     stakeAccount,
   ]);
-  /*
-  export type DelegateStakeParams = {
-  stakePubkey: PublicKey;
-  authorizedPubkey: PublicKey;
-  votePubkey: PublicKey;
-  */
-  const validatorAddress = new PublicKey(
-    "E9W5kU2fnha9yp4RmFZgNNsRUvy6oKnB9ZyR9LC81WaE"
+
+  const voteKeypair = getKeypair(
+    ".anchor/test-ledger/vote-account-keypair.json"
   );
+  const votePubkey = voteKeypair.publicKey;
+
   const delegateParams = {
     stakePubkey: stakeAccount.publicKey,
     authorizedPubkey: client.provider.publicKey,
-    votePubkey: validatorAddress,
+    votePubkey,
   };
 
   const delegateIx = StakeProgram.delegate(delegateParams);
   await client.provider.sendAndConfirm(new Transaction().add(delegateIx), []);
+
+  const stakeAccountInfo = await MarinadeUtils.getParsedStakeAccountInfo(
+    client.marinade!.provider,
+    stakeAccount.publicKey
+  );
+  console.log("stakeAccountInfo: ", stakeAccountInfo);
 };
+
+const getKeypair = (filePath: string): Keypair => {
+  const secretKeyString = fs.readFileSync(filePath, { encoding: "utf8" });
+  const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
+  return Keypair.fromSecretKey(secretKey);
+};
+
+export async function getDelegatedAmount(
+  client: SunriseStakeClient,
+  stakeAccount: PublicKey
+): Promise<BN> {
+  const { value: stakeAccountInfo } =
+    await client.provider.connection.getParsedAccountInfo(stakeAccount);
+
+  if (!stakeAccountInfo) {
+    throw new Error(`Failed getting stake account info`);
+  }
+
+  if (
+    stakeAccountInfo.data === null ||
+    stakeAccountInfo.data instanceof Buffer
+  ) {
+    throw new Error("Failed to parse the stake account data");
+  }
+
+  const { parsed: parsedData } = stakeAccountInfo.data;
+
+  const delegation = parsedData?.info?.stake?.delegation.stake ?? null;
+  return new BN(delegation);
+}
