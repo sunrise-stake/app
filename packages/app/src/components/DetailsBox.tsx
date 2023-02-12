@@ -45,7 +45,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
 
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  if (!details) return <>Loading...</>;
+  if (details == null) return <>Loading...</>;
 
   const inflightTotal = details.inflight.reduce(
     (acc, x) => acc.add(x.totalOrderedLamports),

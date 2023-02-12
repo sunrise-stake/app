@@ -36,11 +36,11 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
   });
 
   useEffect(() => {
-    if (client && details) setFeeLoading(false);
+    if (client != null && details != null) setFeeLoading(false);
   }, [client, details]);
 
   const withdrawalFee = useMemo(() => {
-    if (!client || !details || !amount) return 0;
+    if (client == null || details == null || amount == null) return 0;
 
     setFeeLoading(false);
 

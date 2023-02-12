@@ -11,7 +11,7 @@ export const WelcomePage: FC = () => {
 
   return (
     <div className="w-full">
-      {!details ? (
+      {details == null ? (
         <div className="flex justify-center items-center m-2">
           <Spinner />
         </div>
