@@ -1,8 +1,4 @@
-import {
-  type SunriseStakeClient,
-  SOLBLAZE_CONFIG,
-  getStakePoolAccount,
-} from "../client/src";
+import { type SunriseStakeClient, getStakePoolAccount } from "../client/src";
 import {
   type Keypair,
   PublicKey,
@@ -209,7 +205,7 @@ export const getBsolPrice = async (
 ): Promise<number> => {
   const accountInfo = await getStakePoolAccount(
     client.provider.connection,
-    SOLBLAZE_CONFIG.pool
+    client.env.blaze.pool
   );
 
   const price =

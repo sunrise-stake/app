@@ -18,7 +18,7 @@ import {
   type Program,
   utils,
 } from "@project-serum/anchor";
-import { type SunriseStake } from "./types/SunriseStake";
+import { type SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { type BlazeState } from "./types/Solblaze";
 import {

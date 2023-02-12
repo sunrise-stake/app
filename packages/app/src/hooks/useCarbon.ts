@@ -3,16 +3,15 @@ import { useEffect, useState } from "react";
 import BN from "bn.js";
 import { solToCarbon, toSol } from "../lib/util";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { HOLDING_ACCOUNT } from "@sunrisestake/client";
 
 export const useCarbon = (): { totalCarbon: number | undefined } => {
   const { connection } = useConnection();
-  const { details } = useSunriseStake();
+  const { details, client } = useSunriseStake();
   const [totalCarbon, setTotalCarbon] = useState<number>();
 
   useEffect(() => {
     void (async () => {
-      if (!details) return;
+      if (!details || !client) return;
       // TODO extract to some library
       // Total carbon is the carbon value of
       // 1. the extractable yield
@@ -23,7 +22,7 @@ export const useCarbon = (): { totalCarbon: number | undefined } => {
       const extractableYield = details.extractableYield;
       const treasuryBalance = new BN(details.balances.treasuryBalance);
       const holdingAccountBalance = new BN(
-        await connection.getBalance(HOLDING_ACCOUNT)
+        await connection.getBalance(client.holdingAccount)
       );
 
       const totalLamports = extractableYield

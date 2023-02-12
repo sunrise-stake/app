@@ -13,7 +13,7 @@
     "@solana/wallet-adapter-react-ui": "^0.9.24",
     "@solana/wallet-adapter-wallets": "^0.19.9",
     "@solana/web3.js": "^1.66.2",
-    "@sunrisestake/client": "0.1.0",
+    "@sunrisestake/client": "*",
     "@sunrisestake/marinade-ts-sdk": "4.0.4-alpha.18",
     "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/typography": "^0.5.7",

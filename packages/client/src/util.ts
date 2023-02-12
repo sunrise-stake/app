@@ -16,7 +16,6 @@ import {
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Details } from "./types/Details";
-import { PERCENTAGE_STAKE_TO_MARINADE } from "./constants";
 
 // zero bn number
 export const ZERO = new BN(0);
@@ -252,7 +251,10 @@ export const getValidatorIndex = async (
     : validatorLookupIndex;
 };
 
-export const marinadeTargetReached = (details: Details): boolean => {
+export const marinadeTargetReached = (
+  details: Details,
+  percentageStakeToMarinade: number
+): boolean => {
   const msolValue = details.mpDetails.msolValue;
   const lpValue = details.lpDetails.lpSolValue;
   const totalMarinade = msolValue.add(lpValue);
@@ -260,7 +262,7 @@ export const marinadeTargetReached = (details: Details): boolean => {
 
   const limit = proportionalBN(
     totalValue,
-    new BN(PERCENTAGE_STAKE_TO_MARINADE),
+    new BN(percentageStakeToMarinade),
     new BN(100)
   );
 

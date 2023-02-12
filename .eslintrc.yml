@@ -7,7 +7,7 @@ extends:
 plugins:
   - prettier
 ignorePatterns:
-  - "**/types/SunriseStake.ts"
+  - "**/types/sunrise_stake.ts"
 parser: "@typescript-eslint/parser"
 parserOptions:
   ecmaVersion: latest

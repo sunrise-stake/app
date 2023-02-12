@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { SunriseStakeClient } from "../app/src/lib/client/";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import {Environment, SunriseStakeClient} from "../client/src";
+import { Transaction } from "@solana/web3.js";
 import "./util";
 import { AnchorProvider } from "@project-serum/anchor";
 import { createAssociatedTokenAccountIdempotentInstruction } from "@solana/spl-token";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
 
 // Used to create the LP token account for a given sunrise instance
 // Only needed to upgrade legacy instances created before this was added in register_state
@@ -16,8 +15,10 @@ import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
 
   const client = await SunriseStakeClient.get(
     provider,
-    new PublicKey(SUNRISE_STAKE_STATE)
+    process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment
   );
+
+  if (!client.liqPoolTokenAccount) throw new Error("No liq pool token account");
 
   const tokenAccount = client.liqPoolTokenAccount;
 
