@@ -1,7 +1,7 @@
 use crate::state::State;
-use crate::utils::{ marinade, spl };
-use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT, BSOL_ACCOUNT};
+use crate::utils::seeds::{BSOL_ACCOUNT, GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::burn;
+use crate::utils::{marinade, spl};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -193,9 +193,13 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
                 }
             }
         };
-    
+
     msg!("user demanded unstake: {}", lamports);
-    msg!("(marinade withdrawal, blaze withdrawal) => ({}, {})", marinade_withdraw_amount, blaze_withdraw_amount);
+    msg!(
+        "(marinade withdrawal, blaze withdrawal) => ({}, {})",
+        marinade_withdraw_amount,
+        blaze_withdraw_amount
+    );
 
     if marinade_withdraw_amount > 0 {
         let msol_value = marinade::calc_msol_from_lamports(
@@ -203,7 +207,11 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
             marinade_withdraw_amount,
         )?;
 
-        msg!("Unstaking {} lamports({} msol) from marinade", marinade_withdraw_amount, msol_value);
+        msg!(
+            "Unstaking {} lamports({} msol) from marinade",
+            marinade_withdraw_amount,
+            msol_value
+        );
         let accounts = ctx.accounts.deref().into();
         marinade::unstake(&accounts, msol_value)?;
 
@@ -213,7 +221,11 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
 
     if blaze_withdraw_amount > 0 {
         let bsol_value = spl::calc_bsol_from_lamports(&blaze_pool, blaze_withdraw_amount)?;
-        msg!("Unstaking {} lamports({} bsol) from blaze", blaze_withdraw_amount, bsol_value);
+        msg!(
+            "Unstaking {} lamports({} bsol) from blaze",
+            blaze_withdraw_amount,
+            bsol_value
+        );
         let mut accounts: crate::SplWithdrawSol = ctx.accounts.deref().into();
         accounts.withdraw_sol(blaze_withdraw_amount)?;
     }

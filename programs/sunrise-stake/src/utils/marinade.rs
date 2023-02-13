@@ -482,7 +482,7 @@ pub fn calculate_extractable_yield<'a>(
     gsol_mint: &Account<'a, Mint>,
 ) -> Result<u64> {
     let blaze_stake_pool = spl::deserialize_spl_stake_pool(&accounts.blaze_state)?;
-    
+
     let liquidity_pool_balance = current_liq_pool_balance(
         &accounts.marinade_state,
         &accounts.liq_pool_mint,
@@ -494,7 +494,8 @@ pub fn calculate_extractable_yield<'a>(
     let lp_value = liquidity_pool_balance.sol_value(&accounts.marinade_state);
     let msol_value =
         calc_lamports_from_msol_amount(&accounts.marinade_state, msol_token_account.amount)?;
-        let bsol_value = spl::calc_lamports_from_bsol_amount(&blaze_stake_pool, bsol_token_account.amount)?;
+    let bsol_value =
+        spl::calc_lamports_from_bsol_amount(&blaze_stake_pool, bsol_token_account.amount)?;
     let total_staked_value = lp_value
         .checked_add(msol_value)
         .unwrap()
@@ -516,7 +517,6 @@ pub fn calculate_extractable_yield<'a>(
 
     Ok(total_extractable_yield)
 }
-
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct LiquidityPoolBalance {

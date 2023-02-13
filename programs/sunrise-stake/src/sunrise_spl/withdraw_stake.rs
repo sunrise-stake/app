@@ -55,7 +55,7 @@ pub struct SplWithdrawStake<'info> {
     pub state: Box<Account<'info, State>>,
     #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
-   
+
     pub user: Signer<'info>,
     #[account(
         mut,
