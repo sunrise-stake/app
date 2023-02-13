@@ -53,15 +53,8 @@ export interface Details {
   inflight: InflightDetails[];
 }
 
-export interface WithdrawalDetails {
-  lpWithdrawal: BN;
-  blazeUnstake: BN;
-  marinadeUnstake: BN;
-  blazeUnstakeFee: BN;
-  marinadeUnstakeFee: BN;
-  processFee: number;
-  totalWithdrawalFee: BN;
-  amountBeingLiquidUnstaked: BN;
-  networkFee: number;
+export interface WithdrawalFees {
+  liquidUnstakeFee: BN;
   ticketFee: number;
+  totalFee: BN;
 }

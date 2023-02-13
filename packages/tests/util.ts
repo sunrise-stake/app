@@ -4,7 +4,6 @@ import {
   type PublicKey,
   StakeProgram,
   Transaction,
-  LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
@@ -245,10 +244,6 @@ export const getBlazeSolDepositFee = async (
     Number(poolInfo.solDepositFee.denominator);
 
   return depositFee;
-};
-
-export const toSol = (value: number): number => {
-  return value / LAMPORTS_PER_SOL;
 };
 
 export const initializeStakeAccount = async (

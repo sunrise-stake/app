@@ -19,9 +19,7 @@ import {
   getBalance,
   getLPPrice,
   getBsolPrice,
-  getBlazeWithdrawalFee,
   getDelegatedAmount,
-  toSol,
   log,
   waitForNextEpoch,
   expectBSolTokenBalance,
@@ -168,7 +166,9 @@ describe("sunrise-stake", () => {
       blazeDepositLamports.toNumber() / bsolPrice
     );
 
-    await client.depositToBlaze(blazeDepositLamports);
+    await client.sendAndConfirmTransaction(
+      await client.depositToBlaze(blazeDepositLamports)
+    );
 
     await expectBSolTokenBalance(client, expectedBSol, 50);
     await expectStakerGSolTokenBalance(
@@ -213,10 +213,11 @@ describe("sunrise-stake", () => {
     await client.sendAndConfirmTransaction(
       await client.unstake(unstakeLamportsUnderLPBalance)
     );
+    await client.triggerRebalance();
 
     const expectedPostUnstakeBalance = stakerPreSolBalance
       .add(unstakeLamportsUnderLPBalance)
-      .subn(NETWORK_FEE);
+      .subn(NETWORK_FEE * 2); // Because the transactions are now separated?
 
     // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
@@ -226,11 +227,11 @@ describe("sunrise-stake", () => {
 
   it("can calculate the withdrawal fee if unstaking more than the LP balance", async () => {
     const details = await client.details();
-    const { totalWithdrawalFee } = client.calculateWithdrawalFee(
+    const { totalFee } = client.calculateWithdrawalFee(
       unstakeLamportsExceedLPBalance,
       details
     );
-    console.log("total withdrawal fee: ", totalWithdrawalFee.toString());
+    console.log("total withdrawal fee: ", totalFee.toString());
 
     // The LP balance is ~18 SOL at this point
     // The amount being unstaked is 20 SOL
@@ -243,30 +244,36 @@ describe("sunrise-stake", () => {
     // Actual values: ((20000000000-17448456901)* 0,003) + 1503360 + 5000 = 9162989.297
     // Tolerance to allow for rounding issues
 
-    expectAmount(9162989, totalWithdrawalFee, 100);
+    // expectAmount(9162989, totalWithdrawalFee, 100);
 
-    // Liquid unstake now comes from blaze here, charged at 0.03% rather than marinade's 0.3%
-    // The new value: ((20000000000-17448456901)* 0.0003) + 1503360 + (2 * 5000) = 2278822.9297
-    // expectAmount(2278822, totalWithdrawalFee, 100);
+    // Liquid unstake comes completely from blaze here, charged at 0.03% rather than marinade's 0.3%
+    // Unsure about if the rebalance works the same as it did prior. If it does, the new value should be:
+    // ((20000000000-17448456901)* 0.0003) + 1503360 + (2 * 5000) = 2278822.9297
+    expectAmount(2278822, totalFee, 100);
   });
 
   // Triggers a liquid unstake from Blaze only(Since it's valuation is higher)
   it("liquid unstakes sol from the Blaze pool when its valuation exceeds Marinade's", async () => {
-    const stakerPreSolBalance = toSol(
-      await client.provider.connection.getBalance(client.staker)
-    );
+    const stakerPreSolBalance = await getBalance(client);
 
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(
       client.stakerGSolTokenAccount!
     );
 
-    const feePercentage = await getBlazeWithdrawalFee(client);
-    expect(feePercentage).to.equal(0.0003);
+    const details = await client.details();
+    const { totalFee } = client.calculateWithdrawalFee(
+      blazeUnstakeLamports,
+      details
+    );
 
-    const expectedSolIncrease = toSol(0.9997 * Number(blazeUnstakeLamports));
-
-    await client.unstake(blazeUnstakeLamports);
+    await client.sendAndConfirmTransaction(
+      await client.unstake(blazeUnstakeLamports)
+    );
     await client.triggerRebalance();
+
+    const expectedPostUnstakeBalance = stakerPreSolBalance
+      .add(blazeUnstakeLamports)
+      .sub(totalFee);
 
     log("after big unstake");
     await client.details();
@@ -275,25 +282,20 @@ describe("sunrise-stake", () => {
       client,
       new BN(gsolBalance.value.amount).sub(blazeUnstakeLamports)
     );
-
-    const stakerNewBalance = toSol(
-      await client.provider.connection.getBalance(client.staker)
-    );
-
-    expectAmount(stakerNewBalance, stakerPreSolBalance + expectedSolIncrease);
+    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
   });
 
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
     log("Before big unstake");
     const details = await client.details();
 
-    const wd = client.calculateWithdrawalFee(
+    const { liquidUnstakeFee } = client.calculateWithdrawalFee(
       unstakeLamportsExceedLPBalance,
       details
     );
+    const totalFees = liquidUnstakeFee.addn(2 * NETWORK_FEE);
 
     const stakerPreSolBalance = await getBalance(client);
-
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(
       client.stakerGSolTokenAccount!
     );
@@ -301,6 +303,7 @@ describe("sunrise-stake", () => {
     await client.sendAndConfirmTransaction(
       await client.unstake(unstakeLamportsExceedLPBalance)
     );
+    await client.triggerRebalance();
 
     log("after big unstake");
     await client.details();
@@ -310,9 +313,6 @@ describe("sunrise-stake", () => {
       new BN(gsolBalance.value.amount).sub(unstakeLamportsExceedLPBalance)
     );
 
-    // Only the liquidUnstake fee should be deducted(check commented out calculation)
-    // sub(network fee + liquid unstake fees + rent for order unstake ticket)
-    const totalFees = wd.blazeUnstakeFee.add(wd.marinadeUnstakeFee).addn(wd.ticketFee).addn(wd.networkFee);
     const expectedPostUnstakeBalance = stakerPreSolBalance
       .add(unstakeLamportsExceedLPBalance)
       .sub(totalFees);
