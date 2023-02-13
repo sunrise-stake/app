@@ -231,7 +231,7 @@ describe("sunrise-stake", () => {
       unstakeLamportsExceedLPBalance,
       details
     );
-    console.log("total withdrawal fee: ", totalFee.toString());
+    log("total withdrawal fee: ", totalFee.toString());
 
     // The LP balance is ~18 SOL at this point
     // The amount being unstaked is 20 SOL
@@ -266,6 +266,9 @@ describe("sunrise-stake", () => {
       details
     );
 
+    log(`Before unstake from blaze (${blazeUnstakeLamports.toString()}): `);
+    await client.report();
+
     await client.sendAndConfirmTransaction(
       await client.unstake(blazeUnstakeLamports)
     );
@@ -275,8 +278,8 @@ describe("sunrise-stake", () => {
       .add(blazeUnstakeLamports)
       .sub(totalFee);
 
-    log("after big unstake");
-    await client.details();
+    log("after big unstake from blaze");
+    await client.report();
 
     await expectStakerGSolTokenBalance(
       client,
@@ -300,13 +303,16 @@ describe("sunrise-stake", () => {
       client.stakerGSolTokenAccount!
     );
 
+    await client.report();
+
     await client.sendAndConfirmTransaction(
       await client.unstake(unstakeLamportsExceedLPBalance)
     );
+
     await client.triggerRebalance();
 
     log("after big unstake");
-    await client.details();
+    await client.report();
 
     await expectStakerGSolTokenBalance(
       client,
@@ -416,11 +422,14 @@ describe("sunrise-stake", () => {
   it("can recover previous epoch rebalance tickets by triggering a new rebalance", async () => {
     const { extractableYield: yieldToExtractBefore } = await client.details();
     log("yield to extract before", yieldToExtractBefore.toString());
+    await client.report();
 
     await client.triggerRebalance();
 
     const { extractableYield: yieldToExtractAfter } = await client.details();
+    log("\n\n====================\n\n");
     log("yield to extract after", yieldToExtractAfter.toString());
+    await client.report();
   });
 
   it("can detect yield to extract", async () => {
@@ -535,12 +544,12 @@ describe("sunrise-stake", () => {
       client,
       stakeAccount.publicKey
     );
-    console.log("delegated amount: ", delegatedStake.toNumber());
+    log("delegated amount: ", delegatedStake.toNumber());
 
     const initialMsolBalance = Number(
       (await client.balance()).msolBalance.amount
     );
-    console.log("balance from client: ", initialMsolBalance);
+    log("balance from client: ", initialMsolBalance);
 
     const initialStakerGsolBalance = (
       await client.provider.connection.getTokenAccountBalance(
@@ -551,7 +560,7 @@ describe("sunrise-stake", () => {
     const expectedMsolIncrease = Math.floor(
       delegatedStake.toNumber() / client.marinadeState!.mSolPrice
     );
-    console.log("Expected msol increase: ", expectedMsolIncrease);
+    log("Expected msol increase: ", expectedMsolIncrease);
 
     await client.depositStakeAccount(stakeAccount.publicKey);
 
@@ -559,7 +568,7 @@ describe("sunrise-stake", () => {
       stakeAccount.publicKey
     );
     balance = info?.lamports.toString();
-    console.log("stake account balance: ", balance);
+    log("stake account balance: ", balance);
 
     await expectMSolTokenBalance(
       client,

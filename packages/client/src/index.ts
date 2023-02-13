@@ -67,6 +67,7 @@ import {
 } from "./blaze";
 import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
+import { toSol } from "@sunrisestake/app/src/lib/util";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
@@ -422,6 +423,71 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
+  public async report(): Promise<void> {
+    const details = await this.details();
+
+    const inflightTotal = details.inflight.reduce(
+      (acc, x) => acc.add(x.totalOrderedLamports),
+      ZERO
+    );
+
+    const totalValue = details.mpDetails.msolValue
+      .add(details.bpDetails.bsolValue)
+      .add(details.lpDetails.lpSolValue)
+      .add(inflightTotal);
+
+    const mpShare =
+      details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    const bpShare =
+      details.bpDetails.bsolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    const lpShare =
+      details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() /
+      100;
+    const inflightShare =
+      inflightTotal.muln(10_000).div(totalValue).toNumber() / 100;
+
+    const missingValue = totalValue.sub(
+      new BN(details.balances.gsolSupply.amount)
+    );
+    const missingValueShare =
+      missingValue.muln(10_000).div(totalValue).toNumber() / 100;
+
+    const report: Record<string, string> = {
+      "gSOL Supply": details.balances.gsolSupply.uiAmountString ?? "-",
+      "Marinade Stake Pool Value": `${toSol(
+        details.mpDetails.msolValue
+      )} (${mpShare.toString()}%)`,
+      "SolBlaze Stake Pool Value": `${toSol(
+        details.bpDetails.bsolValue
+      )} (${bpShare.toString()}%)`,
+      "Liquidity Pool Value": `${toSol(
+        details.lpDetails.lpSolValue
+      )} (${lpShare.toString()}%)`,
+      "Total Value": `${toSol(totalValue)}`,
+      "Open Orders": `${details.inflight.reduce(
+        (acc, x) => acc + x.tickets,
+        0
+      )}`,
+      "Open Order value (Current Epoch)": `${toSol(
+        details.inflight[0].totalOrderedLamports ?? ZERO
+      )}`,
+      "Open Order value (Previous Epoch)": `${toSol(
+        details.inflight[1].totalOrderedLamports ?? ZERO
+      )}`,
+      "Open Order value (Total)": `${toSol(
+        inflightTotal
+      )} (${inflightShare.toString()}%)`,
+      "Extractable Yield (calculated)": `${toSol(
+        missingValue
+      )} (${missingValueShare.toString()}%)`,
+      "Extractable Yield": `${toSol(details.extractableYield)}`,
+    };
+
+    Object.keys(report).forEach((key) => {
+      this.log(key, ":", report[key]);
+    });
+  }
+
   public async orderUnstake(lamports: BN): Promise<[Transaction, Keypair[]]> {
     if (
       !this.marinadeState ||
@@ -676,8 +742,8 @@ export class SunriseStakeClient {
       ? MARINADE_TICKET_RENT
       : 0;
 
-    console.log("amount to order unstake: ", amountToOrderUnstake);
-    console.log("rent for order unstake: ", rentForOrderUnstakeTicket);
+    this.log("amount to order unstake: ", amountToOrderUnstake);
+    this.log("rent for order unstake: ", rentForOrderUnstakeTicket);
 
     const ticketFee = rentForOrderUnstakeTicket;
 
@@ -720,14 +786,6 @@ export class SunriseStakeClient {
     const liquidUnstakeFee = blazeUnstakeFee.add(marinadeUnstakeFee);
 
     totalFee = totalFee.add(liquidUnstakeFee);
-
-    console.log("lpWithdrawal: ", lpSolShare.toString());
-    console.log("rentPayment: ", rentForOrderUnstakeTicket.toString());
-    console.log("blazeUnstake: ", blazeUnstake.toString());
-    console.log("blazeUnstakeFee: ", blazeUnstakeFee.toString());
-    console.log("marinadeUnstake: ", marinadeUnstake.toString());
-    console.log("marinadeUnstakeFee: ", marinadeUnstakeFee.toString());
-    console.log("totalFee: ", totalFee.toString());
 
     return {
       liquidUnstakeFee,

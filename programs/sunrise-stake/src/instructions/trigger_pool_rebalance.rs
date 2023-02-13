@@ -142,7 +142,7 @@ pub fn trigger_pool_rebalance_handler<'info>(
     );
 
     let management_account = &mut ctx.accounts.order_unstake_ticket_management_account;
-    if management_account.epoch == 0 {
+    if management_account.epoch == 0 && management_account.tickets == 0 {
         // set up management account
         management_account.epoch = epoch;
         management_account.tickets = 0;
