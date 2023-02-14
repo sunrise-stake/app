@@ -18,4 +18,10 @@ pub enum ErrorCode {
     UnexpectedMintSupply,
     #[msg("The order unstake management account is invalid for this epoch")]
     InvalidOrderUnstakeManagementAccount,
+    #[msg("Delayed unstake tickets for the current epoch can not yet be claimed")]
+    DelayedUnstakeTicketsNotYetClaimable,
+    #[msg("The amount of delayed unstake tickets requested to be recovered exceeds the amount in the report")]
+    TooManyTicketsClaimed,
+    #[msg("The total ordered ticket amount exceeds the amount in all found tickets")]
+    RemainingUnclaimableTicketAmount,
 }

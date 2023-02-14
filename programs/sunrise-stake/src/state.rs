@@ -80,14 +80,47 @@ impl SunriseTicketAccount {
 }
 
 #[account]
-pub struct OrderUnstakeTicketManagementAccount {
+pub struct EpochReportAccount {
     pub state_address: Pubkey,
     pub epoch: u64,
     pub tickets: u64,
     pub total_ordered_lamports: u64,
+    pub extractable_yield: u64,
+    pub extracted_yield: u64,
+    pub current_gsol_supply: u64,
 }
-impl OrderUnstakeTicketManagementAccount {
-    pub const SPACE: usize = 32 + 8 + 8 + 8 + 8 /* DISCRIMINATOR */ ;
+impl EpochReportAccount {
+    pub const SPACE: usize = 32 + 8 + 8 + 8 + 8 + 8 + 8 + 8 /* DISCRIMINATOR */ ;
+
+    pub fn new(
+        state_address: &Pubkey,
+        epoch: u64,
+        extractable_yield: u64,
+        extracted_yield: u64,
+        current_gsol_supply: u64,
+    ) -> Self {
+        Self {
+            state_address: *state_address,
+            epoch,
+            tickets: 0,
+            total_ordered_lamports: 0,
+            extractable_yield,
+            extracted_yield,
+            current_gsol_supply,
+        }
+    }
+
+    pub fn new_from_previous(previous_epoch_report: &EpochReportAccount) -> Self {
+        Self {
+            state_address: previous_epoch_report.state_address,
+            epoch: previous_epoch_report.epoch + 1,
+            tickets: 0,
+            total_ordered_lamports: 0,
+            extractable_yield: previous_epoch_report.extractable_yield,
+            extracted_yield: previous_epoch_report.extracted_yield,
+            current_gsol_supply: previous_epoch_report.current_gsol_supply,
+        }
+    }
 
     pub fn add_ticket(&mut self, ticket_amount_lamports: u64, epoch: u64) -> Result<()> {
         if self.epoch == 0 {
@@ -99,9 +132,19 @@ impl OrderUnstakeTicketManagementAccount {
                 ErrorCode::InvalidOrderUnstakeManagementAccount
             );
         }
-        self.tickets += 1;
-        self.total_ordered_lamports += ticket_amount_lamports;
+        self.tickets = self.tickets.checked_add(1).unwrap();
+        self.total_ordered_lamports = self.total_ordered_lamports.checked_add(ticket_amount_lamports).unwrap();
         Ok(())
+    }
+
+    pub fn add_extracted_yield(&mut self, extracted_yield: u64) {
+        self.extracted_yield = self.extracted_yield.checked_add(extracted_yield).unwrap();
+    }
+
+    pub fn update_report(&mut self, current_gsol_supply: u64, extractable_yield: u64, add_extracted_yield: u64) {
+        self.current_gsol_supply = current_gsol_supply;
+        self.extractable_yield = extractable_yield;
+        self.add_extracted_yield(add_extracted_yield);
     }
 }
 

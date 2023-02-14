@@ -580,12 +580,12 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "orderUnstakeTicketManagementAccount",
+          "name": "epochReportAccount",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "previousOrderUnstakeTicketManagementAccount",
+          "name": "previousEpochReportAccount",
           "isMut": true,
           "isSigner": false,
           "isOptional": true
@@ -1572,7 +1572,7 @@ export type SunriseStake = {
       }
     },
     {
-      "name": "orderUnstakeTicketManagementAccount",
+      "name": "epochReportAccount",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1590,6 +1590,18 @@ export type SunriseStake = {
           },
           {
             "name": "totalOrderedLamports",
+            "type": "u64"
+          },
+          {
+            "name": "extractableYield",
+            "type": "u64"
+          },
+          {
+            "name": "extractedYield",
+            "type": "u64"
+          },
+          {
+            "name": "currentGsolSupply",
             "type": "u64"
           }
         ]
@@ -2268,12 +2280,12 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "orderUnstakeTicketManagementAccount",
+          "name": "epochReportAccount",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "previousOrderUnstakeTicketManagementAccount",
+          "name": "previousEpochReportAccount",
           "isMut": true,
           "isSigner": false,
           "isOptional": true
@@ -3260,7 +3272,7 @@ export const IDL: SunriseStake = {
       }
     },
     {
-      "name": "orderUnstakeTicketManagementAccount",
+      "name": "epochReportAccount",
       "type": {
         "kind": "struct",
         "fields": [
@@ -3278,6 +3290,18 @@ export const IDL: SunriseStake = {
           },
           {
             "name": "totalOrderedLamports",
+            "type": "u64"
+          },
+          {
+            "name": "extractableYield",
+            "type": "u64"
+          },
+          {
+            "name": "extractedYield",
+            "type": "u64"
+          },
+          {
+            "name": "currentGsolSupply",
             "type": "u64"
           }
         ]

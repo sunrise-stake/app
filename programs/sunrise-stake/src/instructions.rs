@@ -9,6 +9,7 @@ mod register_state;
 mod trigger_pool_rebalance;
 mod update_metadata;
 mod update_state;
+mod recover_tickets;
 
 pub use claim_unstake_ticket::*;
 pub use create_metadata::*;
@@ -21,3 +22,4 @@ pub use register_state::*;
 pub use trigger_pool_rebalance::*;
 pub use update_metadata::*;
 pub use update_state::*;
+pub use recover_tickets::*;
