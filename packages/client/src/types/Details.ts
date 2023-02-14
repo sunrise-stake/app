@@ -45,6 +45,16 @@ export interface Details {
     pool: string;
     bsolPrice: number;
     bsolValue: BN;
+    solWithdrawalFee: {
+      numerator: BN;
+      denominator: BN;
+    };
   };
   inflight: InflightDetails[];
+}
+
+export interface WithdrawalFees {
+  liquidUnstakeFee: BN;
+  ticketFee: number;
+  totalFee: BN;
 }

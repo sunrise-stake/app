@@ -33,7 +33,7 @@ import {
   type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
-import { type Details } from "./types/Details";
+import { type Details, type WithdrawalFees } from "./types/Details";
 import {
   type SunriseTicketAccountFields,
   type TicketAccount,
@@ -67,8 +67,9 @@ import {
 } from "./blaze";
 import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
+import { toSol } from "@sunrisestake/app/src/lib/util";
 
-// export getSakePoolAccount
+// export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
 
 // export all types
@@ -374,12 +375,14 @@ export class SunriseStakeClient {
       !this.marinade ||
       !this.config ||
       !this.msolTokenAccount ||
-      !this.stakerGSolTokenAccount
+      !this.stakerGSolTokenAccount ||
+      !this.blazeState
     )
       throw new Error("init not called");
 
     const transaction = await liquidUnstake(
       this.config,
+      this.blazeState,
       this.marinade,
       this.marinadeState,
       this.program,
@@ -418,6 +421,71 @@ export class SunriseStakeClient {
 
     const transaction = new Transaction().add(instruction);
     return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+  public async report(): Promise<void> {
+    const details = await this.details();
+
+    const inflightTotal = details.inflight.reduce(
+      (acc, x) => acc.add(x.totalOrderedLamports),
+      ZERO
+    );
+
+    const totalValue = details.mpDetails.msolValue
+      .add(details.bpDetails.bsolValue)
+      .add(details.lpDetails.lpSolValue)
+      .add(inflightTotal);
+
+    const mpShare =
+      details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    const bpShare =
+      details.bpDetails.bsolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    const lpShare =
+      details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() /
+      100;
+    const inflightShare =
+      inflightTotal.muln(10_000).div(totalValue).toNumber() / 100;
+
+    const missingValue = totalValue.sub(
+      new BN(details.balances.gsolSupply.amount)
+    );
+    const missingValueShare =
+      missingValue.muln(10_000).div(totalValue).toNumber() / 100;
+
+    const report: Record<string, string> = {
+      "gSOL Supply": details.balances.gsolSupply.uiAmountString ?? "-",
+      "Marinade Stake Pool Value": `${toSol(
+        details.mpDetails.msolValue
+      )} (${mpShare.toString()}%)`,
+      "SolBlaze Stake Pool Value": `${toSol(
+        details.bpDetails.bsolValue
+      )} (${bpShare.toString()}%)`,
+      "Liquidity Pool Value": `${toSol(
+        details.lpDetails.lpSolValue
+      )} (${lpShare.toString()}%)`,
+      "Total Value": `${toSol(totalValue)}`,
+      "Open Orders": `${details.inflight.reduce(
+        (acc, x) => acc + x.tickets,
+        0
+      )}`,
+      "Open Order value (Current Epoch)": `${toSol(
+        details.inflight[0].totalOrderedLamports ?? ZERO
+      )}`,
+      "Open Order value (Previous Epoch)": `${toSol(
+        details.inflight[1].totalOrderedLamports ?? ZERO
+      )}`,
+      "Open Order value (Total)": `${toSol(
+        inflightTotal
+      )} (${inflightShare.toString()}%)`,
+      "Extractable Yield (calculated)": `${toSol(
+        missingValue
+      )} (${missingValueShare.toString()}%)`,
+      "Extractable Yield": `${toSol(details.extractableYield)}`,
+    };
+
+    Object.keys(report).forEach((key) => {
+      this.log(key, ":", report[key]);
+    });
   }
 
   public async orderUnstake(lamports: BN): Promise<[Transaction, Keypair[]]> {
@@ -620,6 +688,7 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction);
   }
 
+  /*
   public calculateWithdrawalFee(withdrawalLamports: BN, details: Details): BN {
     // Calculate how much can be withdrawn from the lp (without fee)
     const lpSolShare = details.lpDetails.lpSolShare;
@@ -648,6 +717,81 @@ export class SunriseStakeClient {
       .divn(1000)
       .addn(rentForOrderUnstakeTicket)
       .addn(NETWORK_FEE);
+  } */
+
+  public calculateWithdrawalFee(
+    withdrawalLamports: BN,
+    details: Details
+  ): WithdrawalFees {
+    // Calculate how much can be withdrawn from the lp (without fee)
+    const lpSolShare = details.lpDetails.lpSolShare;
+    const preferredMinLiqPoolValue = new BN(
+      details.balances.gsolSupply.amount
+    ).muln(0.1);
+    const postUnstakeLpSolValue = new BN(lpSolShare).sub(withdrawalLamports);
+
+    // Calculate how much will be withdrawn through liquid unstaking (with fee)
+    const amountBeingLiquidUnstaked = withdrawalLamports.sub(lpSolShare);
+
+    // Determine if a rebalance will occur (if the lp value is too low)
+    // This will incur a cost due to the unstake ticket rent
+    const amountToOrderUnstake = new BN(preferredMinLiqPoolValue).sub(
+      postUnstakeLpSolValue
+    );
+    const rentForOrderUnstakeTicket = amountToOrderUnstake.gt(ZERO)
+      ? MARINADE_TICKET_RENT
+      : 0;
+
+    this.log("amount to order unstake: ", amountToOrderUnstake);
+    this.log("rent for order unstake: ", rentForOrderUnstakeTicket);
+
+    const ticketFee = rentForOrderUnstakeTicket;
+
+    let totalFee = new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE);
+
+    if (amountBeingLiquidUnstaked.lte(ZERO)) {
+      return {
+        liquidUnstakeFee: ZERO,
+        ticketFee,
+        totalFee,
+      };
+    }
+
+    let marinadeUnstake = new BN(0);
+    let blazeUnstake = new BN(0);
+    let marinadeUnstakeFee = new BN(0);
+    let blazeUnstakeFee = new BN(0);
+
+    const msolValue = details.mpDetails.msolValue;
+    const bsolValue = details.bpDetails.bsolValue;
+
+    if (msolValue >= bsolValue) {
+      marinadeUnstake =
+        msolValue > amountBeingLiquidUnstaked
+          ? amountBeingLiquidUnstaked
+          : msolValue;
+    } else {
+      marinadeUnstake =
+        bsolValue > amountBeingLiquidUnstaked
+          ? new BN(0)
+          : amountBeingLiquidUnstaked.sub(bsolValue);
+    }
+
+    blazeUnstake = amountBeingLiquidUnstaked.sub(marinadeUnstake);
+    blazeUnstakeFee = blazeUnstake
+      .mul(details.bpDetails.solWithdrawalFee.numerator)
+      .div(details.bpDetails.solWithdrawalFee.denominator);
+
+    marinadeUnstakeFee = marinadeUnstake.muln(3).divn(1000);
+    const liquidUnstakeFee = blazeUnstakeFee.add(marinadeUnstakeFee);
+
+    totalFee = totalFee.add(liquidUnstakeFee);
+
+    return {
+      liquidUnstakeFee,
+      ticketFee,
+      totalFee,
+    };
   }
 
   public async details(): Promise<Details> {
@@ -751,6 +895,10 @@ export class SunriseStakeClient {
       pool: this.env.blaze.pool.toString(),
       bsolPrice,
       bsolValue,
+      solWithdrawalFee: {
+        numerator: stakePoolInfo.solWithdrawalFee.numerator,
+        denominator: stakePoolInfo.solWithdrawalFee.denominator,
+      },
     };
 
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {

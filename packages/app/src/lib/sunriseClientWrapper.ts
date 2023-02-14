@@ -32,7 +32,7 @@ export class SunriseClientWrapper {
 
     // TODO too noisy?
     accountsToListenTo.forEach((account) => {
-      if (account) {
+      if (account != null) {
         this.client.provider.connection.onAccountChange(account, () => {
           this.debouncedUpdate();
         });

@@ -1,5 +1,5 @@
 use crate::{
-    utils::{calc::proportional, seeds::MSOL_ACCOUNT},
+    utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
     ClaimUnstakeTicket, Deposit, DepositStakeAccount, ExtractToTreasury, LiquidUnstake,
     OrderUnstake, EpochReportAccount, State, TriggerPoolRebalance,
 };
@@ -509,6 +509,8 @@ impl<'a> From<&ExtractToTreasury<'a>> for CalculateExtractableYieldProperties<'a
 pub fn calculate_extractable_yield<'a>(
     accounts: &CalculateExtractableYieldProperties,
 ) -> Result<u64> {
+    let blaze_stake_pool = spl::deserialize_spl_stake_pool(&accounts.blaze_state)?;
+
     let liquidity_pool_balance = current_liq_pool_balance(
         &accounts.marinade_state,
         &accounts.liq_pool_mint,
@@ -521,7 +523,7 @@ pub fn calculate_extractable_yield<'a>(
     let msol_value =
         calc_lamports_from_msol_amount(&accounts.marinade_state, accounts.get_msol_from.amount)?;
     let bsol_value =
-        calc_lamports_from_bsol_amount(&accounts.blaze_state, accounts.get_bsol_from.amount)?;
+        spl::calc_lamports_from_bsol_amount(&blaze_stake_pool, accounts.get_bsol_from.amount)?;
     let total_staked_value = lp_value
         .checked_add(msol_value)
         .unwrap()
@@ -542,20 +544,6 @@ pub fn calculate_extractable_yield<'a>(
     msg!("total_extractable_yield: {}", total_extractable_yield);
 
     Ok(total_extractable_yield)
-}
-
-// Used in calculating recoverable yield
-pub fn calc_lamports_from_bsol_amount(
-    blaze_stake_pool: &AccountInfo,
-    bsol_balance: u64,
-) -> Result<u64> {
-    let stake_pool = try_from_slice_unchecked::<spl_stake_pool::state::StakePool>(
-        &blaze_stake_pool.data.borrow(),
-    )?;
-
-    Ok(stake_pool
-        .calc_lamports_withdraw_amount(bsol_balance)
-        .unwrap())
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
