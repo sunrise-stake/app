@@ -4,6 +4,7 @@ use crate::utils::marinade::ClaimUnstakeTicketProperties;
 use crate::utils::seeds::{
     MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT, EPOCH_REPORT_ACCOUNT,
 };
+use crate::ErrorCode;
 use crate::utils::system;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -12,7 +13,6 @@ use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
-#[instruction()]
 pub struct RecoverTickets<'info> {
     #[account(
     has_one = marinade_state,
@@ -21,10 +21,10 @@ pub struct RecoverTickets<'info> {
     pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub payer: Signer<'info>,
 
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     #[account(mut)]
     pub msol_mint: Box<Account<'info, Mint>>,
@@ -83,7 +83,7 @@ pub struct RecoverTickets<'info> {
     init_if_needed,
     space = EpochReportAccount::SPACE,
     payer = payer,
-    seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT, &epoch.to_be_bytes()],
+    seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
     bump
     )]
     pub epoch_report_account:
@@ -96,10 +96,8 @@ pub struct RecoverTickets<'info> {
     pub marinade_program: Program<'info, MarinadeFinance>,
 }
 
-pub fn recover_tickets<'info>(
+pub fn recover_tickets_handler<'info>(
     ctx: Context<'_, '_, '_, 'info, RecoverTickets<'info>>,
-    order_unstake_ticket_account_bump: u8,
-    _previous_order_unstake_ticket_management_account_bump: u8,
 ) -> Result<()> {
     // This ensures we only try to recover tickets for an epoch in the past
     require_gt!(
@@ -152,7 +150,7 @@ pub fn recover_tickets<'info>(
     }
 
     if claimed_lamports == ctx.accounts.epoch_report_account.total_ordered_lamports {
-        if ctx.remaining_accounts.len() == ctx.accounts.epoch_report_account.tickets {
+        if ctx.remaining_accounts.len() as u64 == ctx.accounts.epoch_report_account.tickets {
             // all tickets are recovered. Now we update the epoch report account to the current epoch
             ctx.accounts.epoch_report_account.epoch = ctx.accounts.clock.epoch;
             ctx.accounts.epoch_report_account.tickets = 0;

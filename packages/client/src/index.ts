@@ -46,6 +46,7 @@ import {
 import {
   DEFAULT_LP_MIN_PROPORTION,
   DEFAULT_LP_PROPORTION,
+  EMPTY_EPOCH_REPORT,
   Environment,
   type EnvironmentConfig,
   MARINADE_TICKET_RENT,
@@ -56,8 +57,9 @@ import {
   deposit,
   depositStakeAccount,
   liquidUnstake,
-  orders,
   triggerRebalance,
+  getEpochReportAccount,
+  recoverTickets,
 } from "./marinade";
 import {
   blazeDeposit,
@@ -76,7 +78,7 @@ export { getStakePoolAccount, type StakePool };
 export * from "./types/sunrise_stake";
 export * from "./types/Details";
 export * from "./types/TicketAccount";
-export * from "./types/ManagementAccount";
+export * from "./types/EpochReportAccount";
 export * from "./types/Solblaze";
 
 // export all constants
@@ -410,7 +412,7 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const { instruction } = await triggerRebalance(
+    const recoverInstruction = await recoverTickets(
       this.config,
       this.marinade,
       this.marinadeState,
@@ -419,17 +421,26 @@ export class SunriseStakeClient {
       this.provider.publicKey
     );
 
-    const transaction = new Transaction().add(instruction);
+    const { instruction: rebalanceInstruction } = await triggerRebalance(
+      this.config,
+      this.marinade,
+      this.marinadeState,
+      this.program,
+      this.env.state,
+      this.provider.publicKey
+    );
+
+    const instructions = [recoverInstruction, rebalanceInstruction].filter(
+      Boolean
+    ) as TransactionInstruction[];
+    const transaction = new Transaction().add(...instructions);
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
   public async report(): Promise<void> {
     const details = await this.details();
 
-    const inflightTotal = details.inflight.reduce(
-      (acc, x) => acc.add(x.totalOrderedLamports),
-      ZERO
-    );
+    const inflightTotal = details.epochReport.totalOrderedLamports;
 
     const totalValue = details.mpDetails.msolValue
       .add(details.bpDetails.bsolValue)
@@ -464,17 +475,8 @@ export class SunriseStakeClient {
         details.lpDetails.lpSolValue
       )} (${lpShare.toString()}%)`,
       "Total Value": `${toSol(totalValue)}`,
-      "Open Orders": `${details.inflight.reduce(
-        (acc, x) => acc + x.tickets,
-        0
-      )}`,
-      "Open Order value (Current Epoch)": `${toSol(
-        details.inflight[0].totalOrderedLamports ?? ZERO
-      )}`,
-      "Open Order value (Previous Epoch)": `${toSol(
-        details.inflight[1].totalOrderedLamports ?? ZERO
-      )}`,
-      "Open Order value (Total)": `${toSol(
+      "Open Orders": `${details.epochReport.tickets.toNumber()}`,
+      "Open Order value": `${toSol(
         inflightTotal
       )} (${inflightShare.toString()}%)`,
       "Extractable Yield (calculated)": `${toSol(
@@ -688,37 +690,6 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction);
   }
 
-  /*
-  public calculateWithdrawalFee(withdrawalLamports: BN, details: Details): BN {
-    // Calculate how much can be withdrawn from the lp (without fee)
-    const lpSolShare = details.lpDetails.lpSolShare;
-    const preferredMinLiqPoolValue = new BN(
-      details.balances.gsolSupply.amount
-    ).muln(0.1);
-    const postUnstakeLpSolValue = new BN(lpSolShare).sub(withdrawalLamports);
-
-    // Calculate how much will be withdrawn through liquid unstaking (with fee)
-    const amountBeingLiquidUnstaked = withdrawalLamports.sub(lpSolShare);
-
-    // Determine if a rebalance will occur (if the lp value is too low)
-    // This will incur a cost due to the unstake ticket rent
-    const amountToOrderUnstake = new BN(preferredMinLiqPoolValue).sub(
-      postUnstakeLpSolValue
-    );
-    const rentForOrderUnstakeTicket = amountToOrderUnstake.gt(ZERO)
-      ? MARINADE_TICKET_RENT
-      : 0;
-
-    if (amountBeingLiquidUnstaked.lte(ZERO)) return ZERO;
-
-    // Calculate the fee
-    return amountBeingLiquidUnstaked
-      .muln(3)
-      .divn(1000)
-      .addn(rentForOrderUnstakeTicket)
-      .addn(NETWORK_FEE);
-  } */
-
   public calculateWithdrawalFee(
     withdrawalLamports: BN,
     details: Details
@@ -803,7 +774,7 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const epochInfoPromise = this.provider.connection.getEpochInfo();
+    const currentEpochPromise = this.provider.connection.getEpochInfo();
 
     const lpMintInfoPromise = this.marinadeState.lpMint.mintInfo();
     const lpMsolBalancePromise =
@@ -816,9 +787,9 @@ export class SunriseStakeClient {
 
     const balancesPromise = this.balance();
 
-    const [epochInfo, lpMintInfo, lpSolLegBalance, lpMsolBalance, balances] =
+    const [currentEpoch, lpMintInfo, lpSolLegBalance, lpMsolBalance, balances] =
       await Promise.all([
-        epochInfoPromise,
+        currentEpochPromise,
         lpMintInfoPromise,
         solLegBalancePromise,
         lpMsolBalancePromise,
@@ -867,19 +838,9 @@ export class SunriseStakeClient {
       msolLeg: this.marinadeState.mSolLeg.toBase58(),
     };
 
-    // find all inflight unstake tickets (WARNING: for the current and previous epoch only)
-    const config = this.config;
-    const inflight = await Promise.all(
-      [epochInfo.epoch, epochInfo.epoch - 1].map(async (epoch) =>
-        orders(config, this.program, BigInt(epoch)).then(
-          ({ managementAccount, tickets }) => ({
-            epoch: BigInt(epoch),
-            tickets: tickets.length,
-            totalOrderedLamports:
-              managementAccount.account?.totalOrderedLamports ?? ZERO,
-          })
-        )
-      )
+    const { account: epochReport } = await getEpochReportAccount(
+      this.config,
+      this.program
     );
 
     const stakePoolInfo = await getStakePoolAccount(
@@ -904,7 +865,8 @@ export class SunriseStakeClient {
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
       balances,
-      epochInfo,
+      currentEpoch,
+      epochReport: epochReport ?? EMPTY_EPOCH_REPORT,
       stakerGSolTokenAccount: this.stakerGSolTokenAccount.toBase58(),
       sunriseStakeConfig: {
         gsolMint: this.config.gsolMint.toBase58(),
@@ -920,7 +882,6 @@ export class SunriseStakeClient {
       mpDetails,
       lpDetails,
       bpDetails,
-      inflight,
     };
 
     const extractableYield =
@@ -1054,7 +1015,7 @@ export class SunriseStakeClient {
     balances,
     mpDetails,
     lpDetails,
-    inflight,
+    epochReport,
     bpDetails,
   }: Omit<Details, "extractableYield">): BN {
     if (!this.marinadeState || !this.msolTokenAccount)
@@ -1073,10 +1034,7 @@ export class SunriseStakeClient {
       .add(solValueOfLP)
       .add(solValueOfBSol);
 
-    const inflightTotal = inflight.reduce(
-      (acc, { totalOrderedLamports }) => acc.add(totalOrderedLamports),
-      ZERO
-    );
+    const inflightTotal = epochReport.totalOrderedLamports;
 
     const extractableSOLGross = totalSolValueStaked
       .add(inflightTotal)

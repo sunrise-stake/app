@@ -14,7 +14,7 @@ import {
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   findOrderUnstakeTicketAccount,
-  findOrderUnstakeTicketManagementAccount,
+  findEpochReportAccount,
   type SunriseStakeConfig,
   getValidatorIndex,
 } from "./util";
@@ -28,7 +28,7 @@ import { type BlazeState } from "./types/Solblaze";
 import { type SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
-import { type ManagementAccount } from "./types/ManagementAccount";
+import { type EpochReportAccount } from "./types/EpochReportAccount";
 import { STAKE_POOL_PROGRAM_ID } from "./constants";
 
 export const deposit = async (
@@ -171,23 +171,18 @@ export const depositStakeAccount = async (
     .transaction();
 };
 
-const getOrderUnstakeTicketManagementAccount = async (
+export const getEpochReportAccount = async (
   config: SunriseStakeConfig,
-  program: Program<SunriseStake>,
-  epoch: bigint
+  program: Program<SunriseStake>
 ): Promise<{
   address: PublicKey;
   bump: number;
-  account: ManagementAccount | null;
+  account: EpochReportAccount | null;
 }> => {
-  const [address, bump] = findOrderUnstakeTicketManagementAccount(
-    config,
-    epoch
+  const [address, bump] = findEpochReportAccount(config);
+  const account = await program.account.epochReportAccount.fetchNullable(
+    address
   );
-  const account =
-    await program.account.orderUnstakeTicketManagementAccount.fetchNullable(
-      address
-    );
 
   return {
     address,
@@ -275,44 +270,109 @@ export const liquidUnstake = async (
     .transaction();
 };
 
-export const orders = async (
+// Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
+export const recoverTickets = async (
   config: SunriseStakeConfig,
+  marinade: Marinade,
+  marinadeState: MarinadeState,
   program: Program<SunriseStake>,
-  epoch: bigint
-): Promise<{
-  managementAccount: {
-    address: PublicKey;
-    bump: number;
-    account: ManagementAccount | null;
-  };
-  tickets: PublicKey[];
-}> => {
-  const managementAccount = await getOrderUnstakeTicketManagementAccount(
+  stateAddress: PublicKey,
+  payer: PublicKey
+): Promise<TransactionInstruction | null> => {
+  const sunriseStakeState = await program.account.state.fetch(stateAddress);
+  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
+  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
+  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
+    {
+      mint: marinadeState.mSolMintAddress,
+      owner: msolTokenAccountAuthority,
+    }
+  );
+  const liqPoolAssociatedTokenAccountAddress =
+    await utils.token.associatedAddress({
+      mint: marinadeState.lpMint.address,
+      owner: msolTokenAccountAuthority,
+    });
+
+  // check the most recent epoch report account
+  // if it is not for the current epoch, then we may need to recover tickets
+  const { address: epochReportAccountAddress, account: epochReport } =
+    await getEpochReportAccount(config, program);
+  const currentEpoch = await program.provider.connection.getEpochInfo();
+
+  if (!epochReport) {
+    // no epoch report account found at all - something went wrong
+    throw new Error("No epoch report account found during recoverTickets");
+  }
+
+  if (currentEpoch.epoch === epochReport.epoch.toNumber()) {
+    // nothing to do here - the report account is for the current epoch, so we cannot recover any tickets yet
+    return null;
+  }
+
+  if (epochReport.tickets.toNumber() === 0) {
+    // no tickets to recover
+    return null;
+  }
+
+  // get a list of all the open delayed unstake tickets that can now be recovered
+  const previousEpochTickets = await findAllTickets(
+    program.provider.connection,
     config,
-    program,
-    epoch
+    // change BigInt(1) to 1n when we target ES2020 in tsconfig.json
+    BigInt(epochReport.epoch.toString()) - BigInt(1),
+    epochReport.tickets.toNumber()
   );
 
-  const tickets = managementAccount.account
-    ? await findAllTickets(
-        program.provider.connection,
-        config,
-        managementAccount.account,
-        epoch
-      )
-    : [];
+  const previousEpochTicketAccountMetas = previousEpochTickets.map(
+    (ticket) => ({
+      pubkey: ticket,
+      isSigner: false,
+      isWritable: true,
+    })
+  );
 
-  return {
-    managementAccount,
-    tickets,
+  type Accounts = Parameters<
+    ReturnType<typeof program.methods.recoverTickets>["accounts"]
+  >[0];
+
+  const accounts: Accounts = {
+    state: stateAddress,
+    payer,
+    marinadeState: marinadeState.marinadeStateAddress,
+    gsolMint: sunriseStakeState.gsolMint,
+    msolMint: marinadeState.mSolMint.address,
+    liqPoolMint: marinadeState.lpMint.address,
+    liqPoolMintAuthority: await marinadeState.lpMintAuthority(),
+    liqPoolSolLegPda: await marinadeState.solLeg(),
+    liqPoolMsolLeg: marinadeState.mSolLeg,
+    liqPoolMsolLegAuthority: await marinadeState.mSolLegAuthority(),
+    liqPoolTokenAccount: liqPoolAssociatedTokenAccountAddress,
+    reservePda: await marinadeState.reserveAddress(),
+    treasuryMsolAccount: marinadeState.treasuryMsolAccount,
+    getMsolFrom: msolAssociatedTokenAccountAddress,
+    getMsolFromAuthority: msolTokenAccountAuthority,
+    epochReportAccount: epochReportAccountAddress,
+    systemProgram: SystemProgram.programId,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    clock: SYSVAR_CLOCK_PUBKEY,
+    rent: SYSVAR_RENT_PUBKEY,
+    marinadeProgram,
   };
+
+  const instruction = await program.methods
+    .recoverTickets()
+    .accounts(accounts)
+    .remainingAccounts(previousEpochTicketAccountMetas)
+    .instruction();
+
+  return instruction;
 };
 
 export interface TriggerRebalanceResult {
   instruction: TransactionInstruction;
   orderUnstakeTicketAccount: PublicKey;
-  managementAccount: PublicKey;
-  previousManagementAccount: PublicKey;
+  epochReportAccount: PublicKey;
 }
 export const triggerRebalance = async (
   config: SunriseStakeConfig,
@@ -337,34 +397,22 @@ export const triggerRebalance = async (
       owner: msolTokenAccountAuthority,
     });
 
-  // TODO Add instruction to close an arbitrary ticket, in case an epoch gets missed
   const epochInfo = await program.provider.connection.getEpochInfo();
-  const { managementAccount } = await orders(
-    config,
-    program,
-    BigInt(epochInfo.epoch)
-  );
-  const {
-    managementAccount: previousManagementAccount,
-    tickets: previousEpochTickets,
-  } = await orders(config, program, BigInt(epochInfo.epoch - 1));
+  const { account: epochReportAccount, address: epochReportAccountAddress } =
+    await getEpochReportAccount(config, program);
 
-  const previousEpochTicketAccountMetas = previousEpochTickets.map(
-    (ticket) => ({
-      pubkey: ticket,
-      isSigner: false,
-      isWritable: true,
-    })
-  );
+  // If the epoch report account has not yet been created, then the upgrade_authority has to create it
+  // with the initEpochReport instruction
+  if (!epochReportAccount) throw new Error("No epoch report account found");
+
+  // If the epoch report account has not yet been incremented to the current epoch,
+  // then we may need to recover tickets from the previous epoch first
+  // The triggerRebalance instruction should fail in that case
+
   // TODO add check to see if rebalancing is needed
 
-  // TODO Split rebalancing (order unstake) and claiming tickets - claiming tickets can be one instruction each
-  // no need for remaining accounts etc.
-  // Then the client bundles them together. However, this means the client will not be guaranteed to do a rebalancing
-  // which costs a bit of rent.
-
   // TODO incrementing on the client side like this will cause clashes in future, we need to replace it
-  const index = (managementAccount?.account?.tickets.toNumber() ?? 0) + 1;
+  const index = (epochReportAccount.tickets.toNumber() ?? 0) + 1;
   const [orderUnstakeTicketAccount, orderUnstakeTicketAccountBump] =
     findOrderUnstakeTicketAccount(
       config,
@@ -393,16 +441,7 @@ export const triggerRebalance = async (
     getMsolFrom: msolAssociatedTokenAccountAddress,
     getMsolFromAuthority: msolTokenAccountAuthority,
     orderUnstakeTicketAccount,
-    orderUnstakeTicketManagementAccount: managementAccount.address,
-    // Utilising the new "optional named accounts" feature in Anchor 0.26.0
-    // to pass this only if it exists.
-    // Since this passes null instead of the address, what is to stop the client from "lying"?
-    // Well, nothing in the general case, but in this case, it is in the caller's interest to pass the account,
-    // as it allows them to claim rent on closure of this account and the tickets.
-    previousOrderUnstakeTicketManagementAccount:
-      previousManagementAccount.account
-        ? previousManagementAccount.address
-        : null,
+    epochReportAccount: epochReportAccountAddress,
     systemProgram: SystemProgram.programId,
     tokenProgram: TOKEN_PROGRAM_ID,
     clock: SYSVAR_CLOCK_PUBKEY,
@@ -414,17 +453,14 @@ export const triggerRebalance = async (
     .triggerPoolRebalance(
       new BN(epochInfo.epoch),
       new BN(index),
-      orderUnstakeTicketAccountBump,
-      previousManagementAccount.bump
+      orderUnstakeTicketAccountBump
     )
     .accounts(accounts)
-    .remainingAccounts(previousEpochTicketAccountMetas)
     .instruction();
 
   return {
     instruction,
     orderUnstakeTicketAccount,
-    managementAccount: managementAccount.address,
-    previousManagementAccount: managementAccount.address,
+    epochReportAccount: epochReportAccountAddress,
   };
 };

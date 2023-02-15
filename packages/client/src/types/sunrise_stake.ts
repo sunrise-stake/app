@@ -640,14 +640,8 @@ export type SunriseStake = {
         },
         {
           "name": "epochReportAccount",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "previousEpochReportAccount",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
         },
         {
           "name": "clock",
@@ -687,12 +681,119 @@ export type SunriseStake = {
         {
           "name": "orderUnstakeTicketAccountBump",
           "type": "u8"
-        },
-        {
-          "name": "previousOrderUnstakeTicketManagementAccountBump",
-          "type": "u8"
         }
       ]
+    },
+    {
+      "name": "recoverTickets",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLegAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reservePda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "extractToTreasury",
@@ -701,6 +802,11 @@ export type SunriseStake = {
           "name": "state",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "marinadeState",
@@ -778,6 +884,16 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "epochReportAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -794,6 +910,127 @@ export type SunriseStake = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "initEpochReport",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "blazeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "extractedYield",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "splDepositSol",
@@ -1743,6 +1980,21 @@ export type SunriseStake = {
       "code": 6007,
       "name": "InvalidOrderUnstakeManagementAccount",
       "msg": "The order unstake management account is invalid for this epoch"
+    },
+    {
+      "code": 6008,
+      "name": "DelayedUnstakeTicketsNotYetClaimable",
+      "msg": "Delayed unstake tickets for the current epoch can not yet be claimed"
+    },
+    {
+      "code": 6009,
+      "name": "TooManyTicketsClaimed",
+      "msg": "The amount of delayed unstake tickets requested to be recovered exceeds the amount in the report"
+    },
+    {
+      "code": 6010,
+      "name": "RemainingUnclaimableTicketAmount",
+      "msg": "The total ordered ticket amount exceeds the amount in all found tickets"
     }
   ]
 };
@@ -2389,14 +2641,8 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "epochReportAccount",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "previousEpochReportAccount",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
         },
         {
           "name": "clock",
@@ -2436,12 +2682,119 @@ export const IDL: SunriseStake = {
         {
           "name": "orderUnstakeTicketAccountBump",
           "type": "u8"
-        },
-        {
-          "name": "previousOrderUnstakeTicketManagementAccountBump",
-          "type": "u8"
         }
       ]
+    },
+    {
+      "name": "recoverTickets",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLegAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reservePda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "extractToTreasury",
@@ -2450,6 +2803,11 @@ export const IDL: SunriseStake = {
           "name": "state",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "marinadeState",
@@ -2527,6 +2885,16 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "epochReportAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -2543,6 +2911,127 @@ export const IDL: SunriseStake = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "initEpochReport",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "blazeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "extractedYield",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "splDepositSol",
@@ -3492,6 +3981,21 @@ export const IDL: SunriseStake = {
       "code": 6007,
       "name": "InvalidOrderUnstakeManagementAccount",
       "msg": "The order unstake management account is invalid for this epoch"
+    },
+    {
+      "code": 6008,
+      "name": "DelayedUnstakeTicketsNotYetClaimable",
+      "msg": "Delayed unstake tickets for the current epoch can not yet be claimed"
+    },
+    {
+      "code": 6009,
+      "name": "TooManyTicketsClaimed",
+      "msg": "The amount of delayed unstake tickets requested to be recovered exceeds the amount in the report"
+    },
+    {
+      "code": 6010,
+      "name": "RemainingUnclaimableTicketAmount",
+      "msg": "The total ordered ticket amount exceeds the amount in all found tickets"
     }
   ]
 };

@@ -25,6 +25,7 @@ use marinade_cpi::{
     program::MarinadeFinance,
     State as MarinadeState,
 };
+use crate::instructions::{InitEpochReport, RecoverTickets};
 
 pub struct GenericUnstakeProperties<'info> {
     state: Box<Account<'info, State>>,
@@ -178,26 +179,26 @@ impl<'a> From<&ClaimUnstakeTicket<'a>> for ClaimUnstakeTicketProperties<'a> {
         claim.to_owned().into()
     }
 }
-impl<'a> From<TriggerPoolRebalance<'a>> for ClaimUnstakeTicketProperties<'a> {
-    fn from(trigger_pool_rebalance: TriggerPoolRebalance<'a>) -> Self {
+impl<'a> From<RecoverTickets<'a>> for ClaimUnstakeTicketProperties<'a> {
+    fn from(recover_tickets: RecoverTickets<'a>) -> Self {
         Self {
-            marinade_state: trigger_pool_rebalance.marinade_state,
-            reserve_pda: trigger_pool_rebalance.reserve_pda.to_account_info(),
-            ticket_account: trigger_pool_rebalance
-                .order_unstake_ticket_account
-                .to_account_info(),
-            transfer_sol_to: trigger_pool_rebalance
+            marinade_state: recover_tickets.marinade_state,
+            reserve_pda: recover_tickets.reserve_pda.to_account_info(),
+            transfer_sol_to: recover_tickets
                 .get_msol_from_authority
                 .to_account_info(),
-            marinade_program: trigger_pool_rebalance.marinade_program,
-            clock: trigger_pool_rebalance.clock,
-            system_program: trigger_pool_rebalance.system_program,
+            // Temporary and will be overwritten
+            // TODO clean up
+            ticket_account: recover_tickets.marinade_program.to_account_info(),
+            marinade_program: recover_tickets.marinade_program,
+            clock: recover_tickets.clock,
+            system_program: recover_tickets.system_program,
         }
     }
 }
-impl<'a> From<&TriggerPoolRebalance<'a>> for ClaimUnstakeTicketProperties<'a> {
-    fn from(trigger_pool_rebalance: &TriggerPoolRebalance<'a>) -> Self {
-        trigger_pool_rebalance.to_owned().into()
+impl<'a> From<&RecoverTickets<'a>> for ClaimUnstakeTicketProperties<'a> {
+    fn from(recover_tickets: &RecoverTickets<'a>) -> Self {
+        recover_tickets.to_owned().into()
     }
 }
 
@@ -341,28 +342,28 @@ impl<'a> From<&Deposit<'a>> for AddLiquidityProperties<'a> {
         deposit.to_owned().into()
     }
 }
-impl<'a> From<TriggerPoolRebalance<'a>> for AddLiquidityProperties<'a> {
-    fn from(trigger_pool_rebalance: TriggerPoolRebalance<'a>) -> Self {
+impl<'a> From<RecoverTickets<'a>> for AddLiquidityProperties<'a> {
+    fn from(recover_tickets: RecoverTickets<'a>) -> Self {
         Self {
-            state: trigger_pool_rebalance.state,
-            marinade_state: trigger_pool_rebalance.marinade_state,
-            liq_pool_mint: trigger_pool_rebalance.liq_pool_mint,
-            liq_pool_mint_authority: trigger_pool_rebalance.liq_pool_mint_authority,
-            liq_pool_sol_leg_pda: trigger_pool_rebalance.liq_pool_sol_leg_pda,
-            liq_pool_msol_leg: trigger_pool_rebalance.liq_pool_msol_leg,
-            transfer_from: trigger_pool_rebalance
+            state: recover_tickets.state,
+            marinade_state: recover_tickets.marinade_state,
+            liq_pool_mint: recover_tickets.liq_pool_mint,
+            liq_pool_mint_authority: recover_tickets.liq_pool_mint_authority,
+            liq_pool_sol_leg_pda: recover_tickets.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: recover_tickets.liq_pool_msol_leg,
+            transfer_from: recover_tickets
                 .get_msol_from_authority
                 .to_account_info(),
-            mint_liq_pool_to: trigger_pool_rebalance.liq_pool_token_account,
-            system_program: trigger_pool_rebalance.system_program,
-            token_program: trigger_pool_rebalance.token_program,
-            marinade_program: trigger_pool_rebalance.marinade_program,
+            mint_liq_pool_to: recover_tickets.liq_pool_token_account,
+            system_program: recover_tickets.system_program,
+            token_program: recover_tickets.token_program,
+            marinade_program: recover_tickets.marinade_program,
         }
     }
 }
-impl<'a> From<&TriggerPoolRebalance<'a>> for AddLiquidityProperties<'a> {
-    fn from(trigger_pool_rebalance: &TriggerPoolRebalance<'a>) -> Self {
-        trigger_pool_rebalance.to_owned().into()
+impl<'a> From<&RecoverTickets<'a>> for AddLiquidityProperties<'a> {
+    fn from(recover_tickets: &RecoverTickets<'a>) -> Self {
+        recover_tickets.to_owned().into()
     }
 }
 
@@ -500,6 +501,26 @@ impl<'a> From<ExtractToTreasury<'a>> for CalculateExtractableYieldProperties<'a>
 }
 impl<'a> From<&ExtractToTreasury<'a>> for CalculateExtractableYieldProperties<'a> {
     fn from(extract_to_treasury: &ExtractToTreasury<'a>) -> Self {
+        extract_to_treasury.to_owned().into()
+    }
+}
+impl<'a> From<InitEpochReport<'a>> for CalculateExtractableYieldProperties<'a> {
+    fn from(init_epoch_pool_report: InitEpochReport<'a>) -> Self {
+        Self {
+            marinade_state: init_epoch_pool_report.marinade_state,
+            blaze_state: init_epoch_pool_report.blaze_state,
+            gsol_mint: init_epoch_pool_report.gsol_mint,
+            liq_pool_mint: init_epoch_pool_report.liq_pool_mint,
+            liq_pool_sol_leg_pda: init_epoch_pool_report.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: init_epoch_pool_report.liq_pool_msol_leg,
+            liq_pool_token_account: init_epoch_pool_report.liq_pool_token_account,
+            get_msol_from: init_epoch_pool_report.get_msol_from,
+            get_bsol_from: init_epoch_pool_report.get_bsol_from,
+        }
+    }
+}
+impl<'a> From<&InitEpochReport<'a>> for CalculateExtractableYieldProperties<'a> {
+    fn from(extract_to_treasury: &InitEpochReport<'a>) -> Self {
         extract_to_treasury.to_owned().into()
     }
 }

@@ -13,6 +13,7 @@ use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
 #[instruction(
+epoch: u64,
 order_unstake_ticket_index: u64,
 order_unstake_ticket_account_bump: u8,
 )]
@@ -89,28 +90,18 @@ pub struct TriggerPoolRebalance<'info> {
     // payer = gsol_token_account_authority,
     // space = MARINADE_TICKET_ACCOUNT_SPACE,
     seeds = [state.key().as_ref(), ORDER_UNSTAKE_TICKET_ACCOUNT, &epoch.to_be_bytes(), &order_unstake_ticket_index.to_be_bytes()],
-    bump = order_unstake_ticket_account_bump,
+    bump = order_unstake_ticket_account_bump
     )]
     /// CHECK: Checked in marinade program
     pub order_unstake_ticket_account: UncheckedAccount<'info>,
 
     #[account(
-    init_if_needed,
-    space = EpochReportAccount::SPACE,
-    payer = payer,
-    seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT, &epoch.to_be_bytes()],
-    bump
+    seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
+    bump,
+    constraint = epoch == clock.epoch
     )]
     pub epoch_report_account:
         Box<Account<'info, EpochReportAccount>>,
-
-    #[account(
-        mut,
-        seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT, &(epoch - 1).to_be_bytes()],
-        bump = previous_epoch_report_account_bump
-    )]
-    pub previous_epoch_report_account:
-        Option<Account<'info, EpochReportAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
     pub rent: Sysvar<'info, Rent>,
@@ -121,9 +112,9 @@ pub struct TriggerPoolRebalance<'info> {
 
 pub fn trigger_pool_rebalance_handler<'info>(
     ctx: Context<'_, '_, '_, 'info, TriggerPoolRebalance<'info>>,
+    _epoch: u64,
     index: u64,
     order_unstake_ticket_account_bump: u8,
-    _previous_order_unstake_ticket_management_account_bump: u8,
 ) -> Result<()> {
     msg!("Checking liq_pool pool balance");
     let calculate_pool_balance_props = ctx.accounts.deref().into();
@@ -159,16 +150,6 @@ pub fn trigger_pool_rebalance_handler<'info>(
                 ctx.accounts.clock.epoch,
             )?;
     }
-
-    // // WARNING - this must happen _after_ the order unstake ticket account is created
-    // // otherwise the transaction fails with "sum of account balances before and after instruction do not match"
-    // // TODO check here that all tickets for the previous epoch are now closed
-    // // Close the previous epoch's ticket management account
-    // // and pass the rent to the tx payer, which compensates them for opening a new one
-    // msg!("Closing previous epoch's ticket management account");
-    // ctx.accounts
-    //     .previous_epoch_report_account
-    //     .close(ctx.accounts.payer.to_account_info())?;
 
     Ok(())
 }

@@ -3,6 +3,7 @@ import {
   type TicketAccount,
   type Details,
   MINIMUM_EXTRACTABLE_YIELD,
+  type WithdrawalFees,
 } from "@sunrisestake/client";
 import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@project-serum/anchor";
@@ -98,7 +99,7 @@ export class SunriseClientWrapper {
     return this.client.getDelayedUnstakeTickets();
   }
 
-  calculateWithdrawalFee(amount: BN, details: Details): BN {
+  calculateWithdrawalFee(amount: BN, details: Details): WithdrawalFees {
     return this.client.calculateWithdrawalFee(amount, details);
   }
 

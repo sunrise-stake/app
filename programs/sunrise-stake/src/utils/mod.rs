@@ -5,4 +5,3 @@ pub(crate) mod seeds;
 pub(crate) mod spl;
 pub(crate) mod system;
 pub(crate) mod token;
-pub(crate) mod report;

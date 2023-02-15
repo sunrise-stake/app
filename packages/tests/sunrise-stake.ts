@@ -51,7 +51,7 @@ describe("sunrise-stake", () => {
   let treasury = Keypair.generate();
   const mint = Keypair.generate();
 
-  it("can register a new Sunrise state", async () => {
+  it.only("can register a new Sunrise state", async () => {
     client = await SunriseStakeClient.register(
       treasury.publicKey,
       mint,

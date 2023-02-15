@@ -1,26 +1,30 @@
-use std::ops::{Deref, DerefMut};
-use crate::{
-    state::{EpochReportAccount, State},
-    utils::marinade,
-    utils::marinade::CalculateExtractableYieldProperties,
-    utils::seeds::{BSOL_ACCOUNT, MSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT}
+use crate::state::{EpochReportAccount, State, TicketAccountData};
+use crate::utils::marinade;
+use crate::utils::marinade::{CalculateExtractableYieldProperties, ClaimUnstakeTicketProperties};
+use crate::utils::seeds::{
+    MSOL_ACCOUNT, BSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT, EPOCH_REPORT_ACCOUNT,
 };
+use crate::utils::system;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::State as MarinadeState;
+use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
-pub struct ExtractToTreasury<'info> {
+pub struct InitEpochReport<'info> {
     #[account(
-    has_one = treasury,
+    has_one = gsol_mint,
     has_one = marinade_state,
     has_one = blaze_state,
+    has_one = update_authority,
     )]
     pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    pub update_authority: Signer<'info>,
 
     #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
@@ -88,36 +92,40 @@ pub struct ExtractToTreasury<'info> {
     pub treasury: SystemAccount<'info>, // sunrise-stake treasury
 
     #[account(
+    init,
+    space = EpochReportAccount::SPACE,
+    payer = payer,
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
     bump,
-    constraint = epoch_report_account.epoch == clock.epoch
     )]
-    pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
+    pub epoch_report_account:
+        Box<Account<'info, EpochReportAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
+    pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
-    pub marinade_program: Program<'info, MarinadeFinance>,
 }
 
-pub fn extract_to_treasury_handler(mut ctx: Context<ExtractToTreasury>) -> Result<()> {
-    // TODO at present, this withdraws all msol yield. In future, we should be able to choose how much to withdraw
+pub fn init_epoch_report_handler<'info>(
+    ctx: Context<'_, '_, '_, 'info, InitEpochReport<'info>>,
+    extracted_yield: u64,
+) -> Result<()> {
+    ctx.accounts.epoch_report_account.epoch = ctx.accounts.clock.epoch;
+    ctx.accounts.epoch_report_account.tickets = 0;
+    ctx.accounts.epoch_report_account.total_ordered_lamports = 0;
+    ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
+
     let calculate_yield_accounts: CalculateExtractableYieldProperties = ctx.accounts.deref().into();
     let extractable_yield = marinade::calculate_extractable_yield(
         &calculate_yield_accounts
     )?;
 
-    // update the epoch report with the yield that is being extracted
-    ctx.accounts.epoch_report_account.add_extracted_yield(extractable_yield);
+    ctx.accounts.epoch_report_account.extractable_yield = extractable_yield;
 
-    let extractable_yield_msol =
-        marinade::calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), extractable_yield)?;
-
-    // TODO later change to use "slow unstake" rather than incur liq pool fees
-
-    msg!("Withdrawing {} msol to treasury", extractable_yield);
-    let accounts = ctx.accounts.deref().into();
-    marinade::unstake(&accounts, extractable_yield_msol)?;
+    // we have to trust that the extracted amount is accurate,
+    // as extracted yield is no longer managed by the program.
+    // This is why this instruction is only callable by the update authority
+    ctx.accounts.epoch_report_account.extracted_yield = extracted_yield;
 
     Ok(())
 }
