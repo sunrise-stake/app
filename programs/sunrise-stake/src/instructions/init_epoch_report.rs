@@ -1,13 +1,9 @@
-use crate::state::{EpochReportAccount, State, TicketAccountData};
+use crate::state::{EpochReportAccount, State};
 use crate::utils::marinade;
-use crate::utils::marinade::{CalculateExtractableYieldProperties, ClaimUnstakeTicketProperties};
-use crate::utils::seeds::{
-    MSOL_ACCOUNT, BSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT, EPOCH_REPORT_ACCOUNT,
-};
-use crate::utils::system;
+use crate::utils::marinade::CalculateExtractableYieldProperties;
+use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
+use anchor_spl::token::{Mint, TokenAccount};
 use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
 
@@ -26,13 +22,11 @@ pub struct InitEpochReport<'info> {
 
     pub update_authority: Signer<'info>,
 
-    #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     /// CHECK: Checked
     pub blaze_state: AccountInfo<'info>,
 
-    #[account(mut)]
     pub msol_mint: Box<Account<'info, Mint>>,
 
     pub gsol_mint: Box<Account<'info, Mint>>,
@@ -41,16 +35,13 @@ pub struct InitEpochReport<'info> {
 
     pub liq_pool_mint: Box<Account<'info, Mint>>,
 
-    #[account(mut)]
     /// CHECK: Checked in marinade program
     pub liq_pool_sol_leg_pda: AccountInfo<'info>,
 
-    #[account(mut)]
     /// CHECK: Checked in marinade program
     pub liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
 
     #[account(
-    mut,
     token::mint = liq_pool_mint,
     // use the same authority PDA for this and the msol token account
     token::authority = get_msol_from_authority
@@ -75,7 +66,6 @@ pub struct InitEpochReport<'info> {
     pub get_msol_from_authority: SystemAccount<'info>, // sunrise-stake PDA
 
     #[account(
-    mut,
     token::mint = bsol_mint,
     token::authority = get_bsol_from_authority,
     )]
@@ -87,7 +77,6 @@ pub struct InitEpochReport<'info> {
     )]
     pub get_bsol_from_authority: SystemAccount<'info>, // sunrise-stake PDA
 
-    #[account(mut)]
     /// CHECK: Matches state.treasury
     pub treasury: SystemAccount<'info>, // sunrise-stake treasury
 
@@ -98,8 +87,7 @@ pub struct InitEpochReport<'info> {
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
     bump,
     )]
-    pub epoch_report_account:
-        Box<Account<'info, EpochReportAccount>>,
+    pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
     pub rent: Sysvar<'info, Rent>,
@@ -110,15 +98,14 @@ pub fn init_epoch_report_handler<'info>(
     ctx: Context<'_, '_, '_, 'info, InitEpochReport<'info>>,
     extracted_yield: u64,
 ) -> Result<()> {
+    ctx.accounts.epoch_report_account.state_address = ctx.accounts.state.key();
     ctx.accounts.epoch_report_account.epoch = ctx.accounts.clock.epoch;
     ctx.accounts.epoch_report_account.tickets = 0;
     ctx.accounts.epoch_report_account.total_ordered_lamports = 0;
     ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
 
     let calculate_yield_accounts: CalculateExtractableYieldProperties = ctx.accounts.deref().into();
-    let extractable_yield = marinade::calculate_extractable_yield(
-        &calculate_yield_accounts
-    )?;
+    let extractable_yield = marinade::calculate_extractable_yield(&calculate_yield_accounts)?;
 
     ctx.accounts.epoch_report_account.extractable_yield = extractable_yield;
 

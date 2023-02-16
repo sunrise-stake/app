@@ -1,14 +1,15 @@
-use std::ops::{Deref, DerefMut};
 use crate::{
+    error::ErrorCode,
     state::{EpochReportAccount, State},
     utils::marinade,
     utils::marinade::CalculateExtractableYieldProperties,
-    utils::seeds::{BSOL_ACCOUNT, MSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT}
+    utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT},
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::State as MarinadeState;
+use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
 pub struct ExtractToTreasury<'info> {
@@ -88,9 +89,10 @@ pub struct ExtractToTreasury<'info> {
     pub treasury: SystemAccount<'info>, // sunrise-stake treasury
 
     #[account(
+    mut,
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
     bump,
-    constraint = epoch_report_account.epoch == clock.epoch
+    constraint = epoch_report_account.epoch == clock.epoch @ ErrorCode::InvalidEpochReportAccount
     )]
     pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 
@@ -100,15 +102,15 @@ pub struct ExtractToTreasury<'info> {
     pub marinade_program: Program<'info, MarinadeFinance>,
 }
 
-pub fn extract_to_treasury_handler(mut ctx: Context<ExtractToTreasury>) -> Result<()> {
+pub fn extract_to_treasury_handler(ctx: Context<ExtractToTreasury>) -> Result<()> {
     // TODO at present, this withdraws all msol yield. In future, we should be able to choose how much to withdraw
     let calculate_yield_accounts: CalculateExtractableYieldProperties = ctx.accounts.deref().into();
-    let extractable_yield = marinade::calculate_extractable_yield(
-        &calculate_yield_accounts
-    )?;
+    let extractable_yield = marinade::calculate_extractable_yield(&calculate_yield_accounts)?;
 
     // update the epoch report with the yield that is being extracted
-    ctx.accounts.epoch_report_account.add_extracted_yield(extractable_yield);
+    ctx.accounts
+        .epoch_report_account
+        .add_extracted_yield(extractable_yield);
 
     let extractable_yield_msol =
         marinade::calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), extractable_yield)?;

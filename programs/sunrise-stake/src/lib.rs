@@ -52,12 +52,7 @@ pub mod sunrise_stake {
         index: u64,
         order_unstake_ticket_account_bump: u8,
     ) -> Result<()> {
-        trigger_pool_rebalance_handler(
-            ctx,
-            epoch,
-            index,
-            order_unstake_ticket_account_bump,
-        )
+        trigger_pool_rebalance_handler(ctx, epoch, index, order_unstake_ticket_account_bump)
     }
 
     pub fn recover_tickets<'info>(
@@ -70,7 +65,10 @@ pub mod sunrise_stake {
         extract_to_treasury_handler(ctx)
     }
 
-    pub fn init_epoch_report<'info>(ctx: Context<'_, '_, '_, 'info, InitEpochReport<'info>>, extracted_yield: u64) -> Result<()> {
+    pub fn init_epoch_report<'info>(
+        ctx: Context<'_, '_, '_, 'info, InitEpochReport<'info>>,
+        extracted_yield: u64,
+    ) -> Result<()> {
         init_epoch_report_handler(ctx, extracted_yield)
     }
 

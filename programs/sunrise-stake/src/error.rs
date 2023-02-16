@@ -16,8 +16,8 @@ pub enum ErrorCode {
     UnexpectedAccounts,
     #[msg("Unexpected gsol mint supply")]
     UnexpectedMintSupply,
-    #[msg("The order unstake management account is invalid for this epoch")]
-    InvalidOrderUnstakeManagementAccount,
+    #[msg("The epoch report account is not yet updated to the current epoch")]
+    InvalidEpochReportAccount,
     #[msg("Delayed unstake tickets for the current epoch can not yet be claimed")]
     DelayedUnstakeTicketsNotYetClaimable,
     #[msg("The amount of delayed unstake tickets requested to be recovered exceeds the amount in the report")]

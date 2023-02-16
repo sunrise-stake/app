@@ -271,6 +271,8 @@ export const liquidUnstake = async (
 };
 
 // Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
+// Note, even if there are no tickets to recover, if the epoch report references the previous epoch
+// we call this instruction anyway as part of triggerRebalance, to update the epoch.
 export const recoverTickets = async (
   config: SunriseStakeConfig,
   marinade: Marinade,
@@ -310,19 +312,16 @@ export const recoverTickets = async (
     return null;
   }
 
-  if (epochReport.tickets.toNumber() === 0) {
-    // no tickets to recover
-    return null;
-  }
-
   // get a list of all the open delayed unstake tickets that can now be recovered
   const previousEpochTickets = await findAllTickets(
     program.provider.connection,
     config,
     // change BigInt(1) to 1n when we target ES2020 in tsconfig.json
-    BigInt(epochReport.epoch.toString()) - BigInt(1),
+    BigInt(epochReport.epoch.toString()),
     epochReport.tickets.toNumber()
   );
+
+  console.log(`***FOUND ${previousEpochTickets.length} TICKETS`);
 
   const previousEpochTicketAccountMetas = previousEpochTickets.map(
     (ticket) => ({
@@ -412,7 +411,7 @@ export const triggerRebalance = async (
   // TODO add check to see if rebalancing is needed
 
   // TODO incrementing on the client side like this will cause clashes in future, we need to replace it
-  const index = (epochReportAccount.tickets.toNumber() ?? 0) + 1;
+  const index = epochReportAccount.tickets.toNumber() ?? 0;
   const [orderUnstakeTicketAccount, orderUnstakeTicketAccountBump] =
     findOrderUnstakeTicketAccount(
       config,

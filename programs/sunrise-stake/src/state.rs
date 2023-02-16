@@ -122,18 +122,17 @@ impl EpochReportAccount {
         }
     }
 
-    pub fn add_ticket(&mut self, ticket_amount_lamports: u64, epoch: u64) -> Result<()> {
-        if self.epoch == 0 {
-            self.epoch = epoch;
-        } else {
-            require_eq!(
-                self.epoch,
-                epoch,
-                ErrorCode::InvalidOrderUnstakeManagementAccount
-            );
-        }
+    pub fn add_ticket(&mut self, ticket_amount_lamports: u64, clock: &Sysvar<Clock>) -> Result<()> {
+        require_eq!(
+            self.epoch,
+            clock.epoch,
+            ErrorCode::InvalidEpochReportAccount
+        );
         self.tickets = self.tickets.checked_add(1).unwrap();
-        self.total_ordered_lamports = self.total_ordered_lamports.checked_add(ticket_amount_lamports).unwrap();
+        self.total_ordered_lamports = self
+            .total_ordered_lamports
+            .checked_add(ticket_amount_lamports)
+            .unwrap();
         Ok(())
     }
 
@@ -141,7 +140,12 @@ impl EpochReportAccount {
         self.extracted_yield = self.extracted_yield.checked_add(extracted_yield).unwrap();
     }
 
-    pub fn update_report(&mut self, current_gsol_supply: u64, extractable_yield: u64, add_extracted_yield: u64) {
+    pub fn update_report(
+        &mut self,
+        current_gsol_supply: u64,
+        extractable_yield: u64,
+        add_extracted_yield: u64,
+    ) {
         self.current_gsol_supply = current_gsol_supply;
         self.extractable_yield = extractable_yield;
         self.add_extracted_yield(add_extracted_yield);

@@ -51,7 +51,7 @@ describe("sunrise-stake", () => {
   let treasury = Keypair.generate();
   const mint = Keypair.generate();
 
-  it.only("can register a new Sunrise state", async () => {
+  it("can register a new Sunrise state", async () => {
     client = await SunriseStakeClient.register(
       treasury.publicKey,
       mint,
@@ -62,6 +62,16 @@ describe("sunrise-stake", () => {
     );
 
     log(await client.details());
+  });
+
+  // TODO in future, this should be part of the register instruction probably
+  it("can initialise the epoch report", async () => {
+    await client.initEpochReport();
+
+    const epochInfo = await client.provider.connection.getEpochInfo();
+    const report = await client.getEpochReport();
+
+    expect(report.epoch.toNumber()).to.equal(epochInfo.epoch);
   });
 
   it("can update the state", async () => {
@@ -132,6 +142,11 @@ describe("sunrise-stake", () => {
     expect(Number(msolBalanceAfterRebalance.amount)).to.equal(
       Number(previousMsolBalance.amount)
     );
+  });
+
+  it("can trigger two rebalances in a row", async () => {
+    await client.triggerRebalance();
+    await client.triggerRebalance();
   });
 
   it("can deposit sol to marinade", async () => {
@@ -252,7 +267,7 @@ describe("sunrise-stake", () => {
     expectAmount(2278822, totalFee, 100);
   });
 
-  // Triggers a liquid unstake from Blaze only(Since it's valuation is higher)
+  // Triggers a liquid unstake from Blaze only (since its valuation is higher)
   it("liquid unstakes sol from the Blaze pool when its valuation exceeds Marinade's", async () => {
     const stakerPreSolBalance = await getBalance(client);
 
@@ -260,7 +275,7 @@ describe("sunrise-stake", () => {
       client.stakerGSolTokenAccount!
     );
 
-    const details = await client.details();
+    let details = await client.details();
     const { totalFee } = client.calculateWithdrawalFee(
       blazeUnstakeLamports,
       details
@@ -286,6 +301,11 @@ describe("sunrise-stake", () => {
       new BN(gsolBalance.value.amount).sub(blazeUnstakeLamports)
     );
     await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
+
+    details = await client.details();
+    expect(details.epochReport.totalOrderedLamports.toNumber()).to.equal(
+      7450000000
+    );
   });
 
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
@@ -430,6 +450,14 @@ describe("sunrise-stake", () => {
     log("\n\n====================\n\n");
     log("yield to extract after", yieldToExtractAfter.toString());
     await client.report();
+
+    // the epoch report account has now been updated to the current epoch and all tickets have been claimed
+    const currentEpoch =
+      await client.program.provider.connection.getEpochInfo();
+    const details = await client.details();
+    expect(details.epochReport.epoch.toNumber()).to.equal(currentEpoch.epoch);
+    expect(details.epochReport.tickets.toNumber()).to.equal(0);
+    expect(details.epochReport.totalOrderedLamports.toNumber()).to.equal(0);
   });
 
   it("can detect yield to extract", async () => {
@@ -462,6 +490,30 @@ describe("sunrise-stake", () => {
     log("details", details);
 
     expectAmount(postBurnYieldToExtract, expectedYield, 50);
+  });
+
+  it("cannot extract yield while the epoch report is still pointing to the previous epoch", async () => {
+    await waitForNextEpoch(client);
+
+    const currentEpoch = await client.provider.connection.getEpochInfo();
+    const details = await client.details();
+
+    // epoch report is still on the last epoch
+    expect(details.epochReport.epoch.toNumber()).to.equal(
+      currentEpoch.epoch - 1
+    );
+
+    // so extract yield will fail
+    await expect(client.extractYield()).to.be.rejected;
+  });
+
+  it("can update the epoch report account with a triggerRebalance (including a recoverTickets call)", async () => {
+    await client.triggerRebalance();
+
+    const currentEpoch = await client.provider.connection.getEpochInfo();
+    const details = await client.details();
+
+    expect(details.epochReport.epoch.toNumber()).to.equal(currentEpoch.epoch);
   });
 
   it("can extract earned yield", async () => {

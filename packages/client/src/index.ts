@@ -15,6 +15,7 @@ import {
   type Balance,
   confirm,
   findBSolTokenAccountAuthority,
+  findEpochReportAccount,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   logKeys,
@@ -70,6 +71,7 @@ import {
 import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 import { toSol } from "@sunrisestake/app/src/lib/util";
+import { type EpochReportAccount } from "./types/EpochReportAccount";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
@@ -634,6 +636,68 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
+  // This should be done only once per state, and must be signed by the update authority
+  public async initEpochReport(): Promise<string> {
+    if (
+      !this.marinadeState ||
+      !this.blazeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.msolTokenAccount ||
+      !this.msolTokenAccountAuthority ||
+      !this.liqPoolTokenAccount
+    ) {
+      throw new Error("init not called");
+    }
+
+    const liqPoolSolLegPda = await this.marinadeState.solLeg();
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.initEpochReport>["accounts"]
+    >[0];
+
+    const [epochReportAccountAddress] = findEpochReportAccount(this.config);
+
+    const accounts: Accounts = {
+      state: this.env.state,
+      marinadeState: this.marinadeState.marinadeStateAddress,
+      blazeState: this.blazeState.pool,
+      msolMint: this.marinadeState.mSolMintAddress,
+      gsolMint: this.config.gsolMint,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolSolLegPda,
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getMsolFromAuthority: this.msolTokenAccountAuthority,
+      getBsolFrom: this.bsolTokenAccount,
+      getBsolFromAuthority: this.bsolTokenAccountAuthority,
+      epochReportAccount: epochReportAccountAddress,
+      treasury: this.config.treasury,
+      systemProgram: SystemProgram.programId,
+    };
+
+    return this.program.methods
+      .initEpochReport(new BN(0))
+      .accounts(accounts)
+      .rpc();
+  }
+
+  public async getEpochReport(): Promise<EpochReportAccount> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
+    const { account } = await getEpochReportAccount(this.config, this.program);
+
+    // The update authority must create the epoch report account for this sunrise state instance
+    if (!account) throw new Error("Epoch report account not found");
+
+    return account;
+  }
+
   public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
       !this.marinadeState ||
@@ -655,6 +719,8 @@ export class SunriseStakeClient {
 
     const liqPoolSolLegPda = await this.marinadeState.solLeg();
 
+    const [epochReportAccount] = findEpochReportAccount(this.config);
+
     const accounts: Accounts = {
       state: this.env.state,
       marinadeState: this.marinadeState.marinadeStateAddress,
@@ -671,6 +737,7 @@ export class SunriseStakeClient {
       getMsolFromAuthority: this.msolTokenAccountAuthority,
       getBsolFrom: this.bsolTokenAccount,
       getBsolFromAuthority: this.bsolTokenAccountAuthority,
+      epochReportAccount,
       treasury: this.config.treasury,
       systemProgram: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,

@@ -1,9 +1,6 @@
-use crate::state::{EpochReportAccount, State, TicketAccountData};
+use crate::state::{EpochReportAccount, State};
 use crate::utils::marinade;
-use crate::utils::marinade::ClaimUnstakeTicketProperties;
-use crate::utils::seeds::{
-    MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT, EPOCH_REPORT_ACCOUNT,
-};
+use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT};
 use crate::utils::system;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -96,12 +93,12 @@ pub struct TriggerPoolRebalance<'info> {
     pub order_unstake_ticket_account: UncheckedAccount<'info>,
 
     #[account(
+    mut,
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
     bump,
     constraint = epoch == clock.epoch
     )]
-    pub epoch_report_account:
-        Box<Account<'info, EpochReportAccount>>,
+    pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
     pub rent: Sysvar<'info, Rent>,
@@ -145,10 +142,7 @@ pub fn trigger_pool_rebalance_handler<'info>(
         // updating the internal record of delayed unstakes ordered.
         ctx.accounts
             .epoch_report_account
-            .add_ticket(
-                amounts.amount_to_order_delayed_unstake,
-                ctx.accounts.clock.epoch,
-            )?;
+            .add_ticket(amounts.amount_to_order_delayed_unstake, &ctx.accounts.clock)?;
     }
 
     Ok(())

@@ -1,7 +1,8 @@
+use crate::instructions::{InitEpochReport, RecoverTickets};
 use crate::{
     utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
-    ClaimUnstakeTicket, Deposit, DepositStakeAccount, ExtractToTreasury, LiquidUnstake,
-    OrderUnstake, EpochReportAccount, State, TriggerPoolRebalance,
+    ClaimUnstakeTicket, Deposit, DepositStakeAccount, EpochReportAccount, ExtractToTreasury,
+    LiquidUnstake, OrderUnstake, State, TriggerPoolRebalance,
 };
 use anchor_lang::{
     context::CpiContext,
@@ -25,7 +26,6 @@ use marinade_cpi::{
     program::MarinadeFinance,
     State as MarinadeState,
 };
-use crate::instructions::{InitEpochReport, RecoverTickets};
 
 pub struct GenericUnstakeProperties<'info> {
     state: Box<Account<'info, State>>,
@@ -184,9 +184,7 @@ impl<'a> From<RecoverTickets<'a>> for ClaimUnstakeTicketProperties<'a> {
         Self {
             marinade_state: recover_tickets.marinade_state,
             reserve_pda: recover_tickets.reserve_pda.to_account_info(),
-            transfer_sol_to: recover_tickets
-                .get_msol_from_authority
-                .to_account_info(),
+            transfer_sol_to: recover_tickets.get_msol_from_authority.to_account_info(),
             // Temporary and will be overwritten
             // TODO clean up
             ticket_account: recover_tickets.marinade_program.to_account_info(),
@@ -351,9 +349,7 @@ impl<'a> From<RecoverTickets<'a>> for AddLiquidityProperties<'a> {
             liq_pool_mint_authority: recover_tickets.liq_pool_mint_authority,
             liq_pool_sol_leg_pda: recover_tickets.liq_pool_sol_leg_pda,
             liq_pool_msol_leg: recover_tickets.liq_pool_msol_leg,
-            transfer_from: recover_tickets
-                .get_msol_from_authority
-                .to_account_info(),
+            transfer_from: recover_tickets.get_msol_from_authority.to_account_info(),
             mint_liq_pool_to: recover_tickets.liq_pool_token_account,
             system_program: recover_tickets.system_program,
             token_program: recover_tickets.token_program,
@@ -527,9 +523,7 @@ impl<'a> From<&InitEpochReport<'a>> for CalculateExtractableYieldProperties<'a> 
 /// Calculate the current recoverable yield (in msol) from marinade.
 /// Recoverable yield is defined as the sol value of the msol + lp tokens
 /// that are not matched by gsol
-pub fn calculate_extractable_yield<'a>(
-    accounts: &CalculateExtractableYieldProperties,
-) -> Result<u64> {
+pub fn calculate_extractable_yield(accounts: &CalculateExtractableYieldProperties) -> Result<u64> {
     let blaze_stake_pool = spl::deserialize_spl_stake_pool(&accounts.blaze_state)?;
 
     let liquidity_pool_balance = current_liq_pool_balance(
@@ -766,8 +760,7 @@ pub struct PoolBalanceProperties<'info> {
     liq_pool_sol_leg_pda: AccountInfo<'info>,
     liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
     liq_pool_token_account: Box<Account<'info, TokenAccount>>,
-    epoch_report_account:
-        Option<Account<'info, EpochReportAccount>>,
+    epoch_report_account: Option<Account<'info, EpochReportAccount>>,
 }
 impl<'a> From<LiquidUnstake<'a>> for PoolBalanceProperties<'a> {
     fn from(unstake: LiquidUnstake<'a>) -> Self {
@@ -798,9 +791,7 @@ impl<'a> From<TriggerPoolRebalance<'a>> for PoolBalanceProperties<'a> {
             liq_pool_sol_leg_pda: trigger_pool_rebalance.liq_pool_sol_leg_pda,
             liq_pool_msol_leg: trigger_pool_rebalance.liq_pool_msol_leg,
             liq_pool_token_account: trigger_pool_rebalance.liq_pool_token_account,
-            epoch_report_account: Some(
-                *trigger_pool_rebalance.epoch_report_account,
-            ),
+            epoch_report_account: Some(*trigger_pool_rebalance.epoch_report_account),
         }
     }
 }
@@ -867,13 +858,15 @@ pub fn calculate_pool_balance_amounts(
         .checked_sub_lamports(amount_to_withdraw_from_liq_pool.lamports)
         .expect("actual_pool_balance_after_unstake");
 
-    let delayed_unstake_in_flight_this_epoch =
-        match &accounts.epoch_report_account {
-            Some(epoch_report_account) => {
-                epoch_report_account.total_ordered_lamports
-            }
-            None => 0,
-        };
+    let delayed_unstake_in_flight_this_epoch = match &accounts.epoch_report_account {
+        Some(epoch_report_account) => epoch_report_account.total_ordered_lamports,
+        None => 0,
+    };
+
+    msg!(
+        "delayed unstake in-flight {}",
+        delayed_unstake_in_flight_this_epoch
+    );
 
     // This amount should be ordered for delayed unstake to rebalance the liquidity pool to its preferred minimum
     let amount_to_order_delayed_unstake = preferred_min_liq_pool_after_unstake

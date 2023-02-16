@@ -1,16 +1,18 @@
 use crate::state::{EpochReportAccount, State, TicketAccountData};
 use crate::utils::marinade;
 use crate::utils::marinade::ClaimUnstakeTicketProperties;
-use crate::utils::seeds::{
-    MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT, EPOCH_REPORT_ACCOUNT,
-};
+use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
 use crate::ErrorCode;
-use crate::utils::system;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
+
+// TODO: RECOVERED_MARGIN is needed because, for some reason, the claim tickets have a couple of lamports less than they should,
+// probably due to a rounding error converting to and from marinade
+// Figure this out and then remove this margin
+const RECOVERED_MARGIN: u64 = 10;
 
 #[derive(Accounts, Clone)]
 pub struct RecoverTickets<'info> {
@@ -80,14 +82,11 @@ pub struct RecoverTickets<'info> {
     pub reserve_pda: UncheckedAccount<'info>,
 
     #[account(
-    init_if_needed,
-    space = EpochReportAccount::SPACE,
-    payer = payer,
+    mut,
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
     bump
     )]
-    pub epoch_report_account:
-        Box<Account<'info, EpochReportAccount>>,
+    pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
     pub rent: Sysvar<'info, Rent>,
@@ -149,7 +148,25 @@ pub fn recover_tickets_handler<'info>(
         marinade::add_liquidity_from_pda(&add_liquidity_props, claimed_lamports)?;
     }
 
-    if claimed_lamports == ctx.accounts.epoch_report_account.total_ordered_lamports {
+    msg!(
+        "Claimed lamports {}, total_ordered_lamports {}",
+        claimed_lamports,
+        ctx.accounts.epoch_report_account.total_ordered_lamports
+    );
+
+    // If we have claimed all that is remaining to claim, and there are no more tickets, update the epoch report (we are done for this epoch)
+    // TODO: RECOVERED_MARGIN is needed because, for some reason, the claim tickets have a couple of lamports less than they should,
+    // probably due to a rounding error converting to and from marinade
+    // Figure this out and then remove this margin
+    if claimed_lamports
+        >= ctx
+            .accounts
+            .epoch_report_account
+            .total_ordered_lamports
+            .saturating_sub(RECOVERED_MARGIN)
+    {
+        msg!("Claimed total amount");
+        msg!("RemainingAccounts {}", ctx.remaining_accounts.len());
         if ctx.remaining_accounts.len() as u64 == ctx.accounts.epoch_report_account.tickets {
             // all tickets are recovered. Now we update the epoch report account to the current epoch
             ctx.accounts.epoch_report_account.epoch = ctx.accounts.clock.epoch;

@@ -640,7 +640,7 @@ export type SunriseStake = {
         },
         {
           "name": "epochReportAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -885,7 +885,7 @@ export type SunriseStake = {
         },
         {
           "name": "epochReportAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -931,7 +931,7 @@ export type SunriseStake = {
         },
         {
           "name": "marinadeState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -941,7 +941,7 @@ export type SunriseStake = {
         },
         {
           "name": "msolMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -961,17 +961,17 @@ export type SunriseStake = {
         },
         {
           "name": "liqPoolSolLegPda",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "liqPoolMsolLeg",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "liqPoolTokenAccount",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -991,7 +991,7 @@ export type SunriseStake = {
         },
         {
           "name": "getBsolFrom",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1001,7 +1001,7 @@ export type SunriseStake = {
         },
         {
           "name": "treasury",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1978,8 +1978,8 @@ export type SunriseStake = {
     },
     {
       "code": 6007,
-      "name": "InvalidOrderUnstakeManagementAccount",
-      "msg": "The order unstake management account is invalid for this epoch"
+      "name": "InvalidEpochReportAccount",
+      "msg": "The epoch report account is not yet updated to the current epoch"
     },
     {
       "code": 6008,
@@ -2641,7 +2641,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "epochReportAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2886,7 +2886,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "epochReportAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2932,7 +2932,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "marinadeState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2942,7 +2942,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "msolMint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2962,17 +2962,17 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "liqPoolSolLegPda",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "liqPoolMsolLeg",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "liqPoolTokenAccount",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2992,7 +2992,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "getBsolFrom",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -3002,7 +3002,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "treasury",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -3979,8 +3979,8 @@ export const IDL: SunriseStake = {
     },
     {
       "code": 6007,
-      "name": "InvalidOrderUnstakeManagementAccount",
-      "msg": "The order unstake management account is invalid for this epoch"
+      "name": "InvalidEpochReportAccount",
+      "msg": "The epoch report account is not yet updated to the current epoch"
     },
     {
       "code": 6008,
