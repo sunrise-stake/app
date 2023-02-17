@@ -2,12 +2,18 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import BN from "bn.js";
 import clx from "classnames";
 import { type FC, useCallback, useEffect, useState } from "react";
-import { FaLeaf } from "react-icons/fa";
+import { FaLeaf, FaLock } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 import { GiCircleForest } from "react-icons/gi";
 
 import StakeForm from "../components/StakeForm";
-import { solToLamports, toBN, toFixedWithPrecision, toSol } from "../lib/util";
+import {
+  solToLamports,
+  toBN,
+  toFixedWithPrecision,
+  toSol,
+  type UIMode,
+} from "../lib/util";
 import { type TicketAccount } from "@sunrisestake/client";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
@@ -24,6 +30,7 @@ import { useCarbon } from "../hooks/useCarbon";
 import { DetailsBox } from "../components/DetailsBox";
 import TooltipPopover from "../components/TooltipPopover";
 import { tooltips } from "../utils/tooltips";
+import LockForm from "../components/LockForm";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -34,7 +41,7 @@ export const StakeDashboard: FC = () => {
   const [delayedUnstakeTickets, setDelayedUnstakeTickets] = useState<
     TicketAccount[]
   >([]);
-  const [isStakeSelected, setIsStakeSelected] = useState(true);
+  const [mode, setMode] = useState<UIMode>("STAKE");
   const { totalCarbon } = useCarbon();
 
   // TODO move to details?
@@ -125,6 +132,14 @@ export const StakeDashboard: FC = () => {
     [client, setBalances]
   );
 
+  const lock = useCallback(
+    async (amount: string) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
+      await client.lockGSol(solToLamports(amount));
+    },
+    [client]
+  );
+
   return (
     <div style={{ maxWidth: "620px" }} className="mx-auto relative">
       <div className="text-center">
@@ -141,34 +156,51 @@ export const StakeDashboard: FC = () => {
       <div className="flex">
         <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
           <Button
-            variant={isStakeSelected ? "primary" : "secondary"}
+            variant={mode === "STAKE" ? "primary" : "secondary"}
             size={"sm"}
             className="mr-3 sm:mr-5"
             onClick={() => {
-              setIsStakeSelected(true);
+              setMode("STAKE");
             }}
           >
             Stake
             <FaLeaf
               className={clx(
                 "animate-fade-in inline ml-2 transition-opacity duration-500",
-                { hidden: !isStakeSelected }
+                { hidden: mode !== "STAKE" }
               )}
               size={24}
             />
           </Button>
           <Button
-            variant={isStakeSelected ? "secondary" : "danger"}
+            variant={mode === "UNSTAKE" ? "secondary" : "danger"}
             size={"sm"}
             onClick={() => {
-              setIsStakeSelected(false);
+              setMode("UNSTAKE");
             }}
           >
             Unstake
             <TbLeafOff
               className={clx(
                 "animate-fade-in inline ml-2 transition-opacity duration-500",
-                { hidden: isStakeSelected }
+                { hidden: mode !== "UNSTAKE" }
+              )}
+              size={24}
+            />
+          </Button>
+          <Button
+            variant={mode === "LOCK" ? "primary" : "secondary"}
+            size={"sm"}
+            className="ml-3 sm:ml-5"
+            onClick={() => {
+              setMode("LOCK");
+            }}
+          >
+            Lock
+            <FaLock
+              className={clx(
+                "animate-fade-in inline ml-2 transition-opacity duration-500",
+                { hidden: mode !== "LOCK" }
               )}
               size={24}
             />
@@ -185,15 +217,17 @@ export const StakeDashboard: FC = () => {
             ></div>
           </div>
         )}
-        {isStakeSelected ? (
+        {mode === "STAKE" && (
           <StakeForm solBalance={solBalance} deposit={deposit} />
-        ) : (
+        )}
+        {mode === "UNSTAKE" && (
           <UnstakeForm
             withdraw={withdraw}
             setDelayedWithdraw={setDelayedWithdraw}
             delayedWithdraw={delayedWithdraw}
           />
         )}
+        {mode === "LOCK" && <LockForm lock={lock} />}
       </Panel>
 
       <div className="relative z-30 grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
@@ -201,6 +235,7 @@ export const StakeDashboard: FC = () => {
           <div className="flex flex-row justify-between items-center">
             <img
               src={`gSOL.png`}
+                alt="gSOL"
               className="h-8 my-auto pr-2 hidden sm:block"
             />
             <div className="mx-auto sm:mx-0 items-center">
@@ -225,7 +260,7 @@ export const StakeDashboard: FC = () => {
         </InfoBox>
         <InfoBox className="py-2 px-4 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <img src={`SOL.png`} className="h-8 my-auto pr-2 hidden sm:block" />
+            <img src={`SOL.png`} className="h-8 my-auto pr-2 hidden sm:block" alt="sol"/>
             <div className="mx-auto sm:mx-0 items-center">
               <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
                 <span className="font-bold text-sm sm:text-lg">

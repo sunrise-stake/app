@@ -11,25 +11,21 @@ import {
 import {
   findAllTickets,
   findBSolTokenAccountAuthority,
+  findEpochReportAccount,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   findOrderUnstakeTicketAccount,
-  findEpochReportAccount,
-  type SunriseStakeConfig,
   getValidatorIndex,
+  type SunriseStakeConfig,
 } from "./util";
-import {
-  type Marinade,
-  type MarinadeState,
-  MarinadeUtils,
-} from "@sunrisestake/marinade-ts-sdk";
-import { type Program, utils } from "@project-serum/anchor";
-import { type BlazeState } from "./types/Solblaze";
-import { type SunriseStake } from "./types/sunrise_stake";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {type Marinade, type MarinadeState, MarinadeUtils,} from "@sunrisestake/marinade-ts-sdk";
+import {type Program, utils} from "@project-serum/anchor";
+import {type BlazeState} from "./types/Solblaze";
+import {type SunriseStake} from "./types/sunrise_stake";
+import {TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import BN from "bn.js";
-import { type EpochReportAccount } from "./types/EpochReportAccount";
-import { STAKE_POOL_PROGRAM_ID } from "./constants";
+import {type EpochReportAccount} from "./types/EpochReportAccount";
+import {STAKE_POOL_PROGRAM_ID} from "./constants";
 
 export const deposit = async (
   config: SunriseStakeConfig,
@@ -278,10 +274,11 @@ export const recoverTickets = async (
   marinade: Marinade,
   marinadeState: MarinadeState,
   program: Program<SunriseStake>,
-  stateAddress: PublicKey,
   payer: PublicKey
 ): Promise<TransactionInstruction | null> => {
-  const sunriseStakeState = await program.account.state.fetch(stateAddress);
+  const sunriseStakeState = await program.account.state.fetch(
+    config.stateAddress
+  );
   const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
   const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
   const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
@@ -321,8 +318,6 @@ export const recoverTickets = async (
     epochReport.tickets.toNumber()
   );
 
-  console.log(`***FOUND ${previousEpochTickets.length} TICKETS`);
-
   const previousEpochTicketAccountMetas = previousEpochTickets.map(
     (ticket) => ({
       pubkey: ticket,
@@ -336,7 +331,7 @@ export const recoverTickets = async (
   >[0];
 
   const accounts: Accounts = {
-    state: stateAddress,
+    state: config.stateAddress,
     payer,
     marinadeState: marinadeState.marinadeStateAddress,
     gsolMint: sunriseStakeState.gsolMint,
@@ -359,13 +354,11 @@ export const recoverTickets = async (
     marinadeProgram,
   };
 
-  const instruction = await program.methods
-    .recoverTickets()
-    .accounts(accounts)
-    .remainingAccounts(previousEpochTicketAccountMetas)
-    .instruction();
-
-  return instruction;
+  return program.methods
+      .recoverTickets()
+      .accounts(accounts)
+      .remainingAccounts(previousEpochTicketAccountMetas)
+      .instruction();
 };
 
 export interface TriggerRebalanceResult {

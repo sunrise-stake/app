@@ -18,7 +18,10 @@ export interface EnvironmentConfig {
   percentageStakeToMarinade: number;
   blaze: BlazeConfig;
 }
-export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
+export const Environment: Record<
+  WalletAdapterNetwork | "localnet",
+  EnvironmentConfig
+> = {
   "mainnet-beta": {
     state: new PublicKey("43m66crxGfXSJpmx5wXRoFuHubhHA1GCvtHgmHW6cM1P"),
     holdingAccount: new PublicKey(
@@ -42,6 +45,17 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
   },
   devnet: {
     state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
+    holdingAccount: new PublicKey(
+      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
+    ),
+    percentageStakeToMarinade: 75,
+    blaze: {
+      pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
+      bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
+    },
+  },
+  localnet: {
+    state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
     holdingAccount: new PublicKey(
       "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
     ),

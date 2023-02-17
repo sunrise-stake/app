@@ -24,4 +24,6 @@ pub enum ErrorCode {
     TooManyTicketsClaimed,
     #[msg("The total ordered ticket amount exceeds the amount in all found tickets")]
     RemainingUnclaimableTicketAmount,
+    #[msg("The source gsol account does not have the required balance to lock")]
+    LockInsufficientBalance,
 }

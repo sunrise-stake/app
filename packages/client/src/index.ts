@@ -72,6 +72,7 @@ import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 import { toSol } from "@sunrisestake/app/src/lib/util";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
+import { lockGSol } from "./lock";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
@@ -419,7 +420,6 @@ export class SunriseStakeClient {
       this.marinade,
       this.marinadeState,
       this.program,
-      this.env.state,
       this.provider.publicKey
     );
 
@@ -795,10 +795,10 @@ export class SunriseStakeClient {
       };
     }
 
-    let marinadeUnstake = new BN(0);
-    let blazeUnstake = new BN(0);
-    let marinadeUnstakeFee = new BN(0);
-    let blazeUnstakeFee = new BN(0);
+    let marinadeUnstake: BN;
+    let blazeUnstake: BN;
+    let marinadeUnstakeFee: BN;
+    let blazeUnstakeFee: BN;
 
     const msolValue = details.mpDetails.msolValue;
     const bsolValue = details.bpDetails.bsolValue;
@@ -1143,6 +1143,8 @@ export class SunriseStakeClient {
 
     await client.init();
 
+    await client.initEpochReport().then(confirm(client.provider.connection));
+
     return client;
   }
 
@@ -1264,6 +1266,42 @@ export class SunriseStakeClient {
       treasuryBalance,
       bsolBalance: bsolLamportsBalance.value,
     };
+  }
+
+  public async lockGSol(lamports: BN): Promise<Transaction> {
+    if (
+      !this.stakerGSolTokenAccount ||
+      !this.config ||
+      !this.marinade ||
+      !this.marinadeState
+    )
+      throw new Error("init not called");
+
+    const transaction = new Transaction();
+
+    const recoverInstruction = await recoverTickets(
+      this.config,
+      this.marinade,
+      this.marinadeState,
+      this.program,
+      this.staker
+    );
+
+    if (recoverInstruction) {
+      transaction.add(recoverInstruction);
+    }
+
+    const { transaction: lockTx } = await lockGSol(
+      this.config,
+      this.program,
+      this.staker,
+      this.stakerGSolTokenAccount,
+      lamports
+    );
+
+    transaction.add(lockTx);
+
+    return transaction;
   }
 
   public static async get(

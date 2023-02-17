@@ -105,3 +105,20 @@ pub fn burn<'a>(
     let cpi_ctx = CpiContext::new(cpi_program, accounts);
     token::burn(cpi_ctx, amount)
 }
+
+pub fn transfer_to<'a>(
+    amount: u64,
+    authority: &AccountInfo<'a>,
+    source_token_account: &AccountInfo<'a>,
+    recipient_token_account: &AccountInfo<'a>,
+    token_program: &AccountInfo<'a>,
+) -> Result<()> {
+    let cpi_program = token_program.clone();
+    let accounts = token::Transfer {
+        from: source_token_account.clone(),
+        to: recipient_token_account.clone(),
+        authority: authority.clone(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, accounts);
+    token::transfer(cpi_ctx, amount)
+}

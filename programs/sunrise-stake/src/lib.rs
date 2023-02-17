@@ -93,6 +93,16 @@ pub mod sunrise_stake {
     }
 
     ////////////////////////////
+    // LOCK FUNCTIONS
+    ////////////////////////////
+    pub fn lock_gsol<'info>(
+        ctx: Context<'_, '_, '_, 'info, LockGSol<'info>>,
+        lamports: u64,
+    ) -> Result<()> {
+        lock_gsol_handler(ctx, lamports)
+    }
+
+    ////////////////////////////
     // ADMIN FUNCTIONS
     ////////////////////////////
     pub fn register_state(ctx: Context<RegisterState>, state: StateInput) -> Result<()> {

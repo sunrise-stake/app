@@ -1,6 +1,6 @@
-import { SunriseStakeClient } from "../app/src/lib/client/";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import "./util";
+import {Environment, SunriseStakeClient} from "../client/src";
 
 // Used in devnet and for local testing
 const defaultTreasuryKey = "stdeYBs3MUtQN7zqgAQaxvsYemxncJKNDMJhciHct9M";
@@ -20,9 +20,10 @@ const gsolMintKeypair = Keypair.fromSecretKey(
 (async () => {
   const client = await SunriseStakeClient.register(
     treasuryKey,
-    gsolMintKeypair
+    gsolMintKeypair,
+      Environment.localnet
   );
   const details = await client.details();
   console.debug("Registered state", details);
-  console.log("State address", client.stateAddress.toBase58());
+  console.log("State address", client.env.state.toBase58());
 })().catch(console.error);

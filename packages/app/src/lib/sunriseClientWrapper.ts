@@ -4,6 +4,7 @@ import {
   type Details,
   MINIMUM_EXTRACTABLE_YIELD,
   type WithdrawalFees,
+  type Environment,
 } from "@sunrisestake/client";
 import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@project-serum/anchor";
@@ -13,7 +14,7 @@ import { debounce } from "./util";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const stage =
-  (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ||
   WalletAdapterNetwork.Devnet;
 
 export class SunriseClientWrapper {
@@ -137,5 +138,13 @@ export class SunriseClientWrapper {
 
   get holdingAccount(): PublicKey {
     return this.client.env.holdingAccount;
+  }
+
+  async lockGSol(amount: BN): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .lockGSol(amount)
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
+      .then(this.triggerUpdateAndReturn.bind(this));
   }
 }

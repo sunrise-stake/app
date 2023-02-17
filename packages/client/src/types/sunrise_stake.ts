@@ -1417,6 +1417,77 @@ export type SunriseStake = {
       ]
     },
     {
+      "name": "lockGsol",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lockAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lockGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "registerState",
       "accounts": [
         {
@@ -1892,6 +1963,34 @@ export type SunriseStake = {
           }
         ]
       }
+    },
+    {
+      "name": "lockAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stateAddress",
+            "type": "publicKey"
+          },
+          {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "startEpoch",
+            "type": "u64"
+          },
+          {
+            "name": "sunriseYieldAtStart",
+            "type": "u64"
+          }
+        ]
+      }
     }
   ],
   "types": [
@@ -1995,6 +2094,11 @@ export type SunriseStake = {
       "code": 6010,
       "name": "RemainingUnclaimableTicketAmount",
       "msg": "The total ordered ticket amount exceeds the amount in all found tickets"
+    },
+    {
+      "code": 6011,
+      "name": "LockInsufficientBalance",
+      "msg": "The source gsol account does not have the required balance to lock"
     }
   ]
 };
@@ -3418,6 +3522,77 @@ export const IDL: SunriseStake = {
       ]
     },
     {
+      "name": "lockGsol",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lockAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lockGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "registerState",
       "accounts": [
         {
@@ -3893,6 +4068,34 @@ export const IDL: SunriseStake = {
           }
         ]
       }
+    },
+    {
+      "name": "lockAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stateAddress",
+            "type": "publicKey"
+          },
+          {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "startEpoch",
+            "type": "u64"
+          },
+          {
+            "name": "sunriseYieldAtStart",
+            "type": "u64"
+          }
+        ]
+      }
     }
   ],
   "types": [
@@ -3996,6 +4199,11 @@ export const IDL: SunriseStake = {
       "code": 6010,
       "name": "RemainingUnclaimableTicketAmount",
       "msg": "The total ordered ticket amount exceeds the amount in all found tickets"
+    },
+    {
+      "code": 6011,
+      "name": "LockInsufficientBalance",
+      "msg": "The source gsol account does not have the required balance to lock"
     }
   ]
 };

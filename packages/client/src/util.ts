@@ -25,6 +25,8 @@ export const enum ProgramDerivedAddressSeed {
   B_SOL_ACCOUNT = "bsol_account",
   EPOCH_REPORT_ACCOUNT = "epoch_report",
   ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
+  LOCK_ACCOUNT = "lock_account",
+  LOCK_TOKEN_ACCOUNT = "lock_token_account",
 }
 
 export interface SunriseStakeConfig {
@@ -105,6 +107,24 @@ export const findOrderUnstakeTicketAccount = (
     [epochBuf, indexBuf]
   );
 };
+
+export const findLockAccount = (
+  config: SunriseStakeConfig,
+  authority: PublicKey
+): [PublicKey, number] =>
+  findProgramDerivedAddress(config, ProgramDerivedAddressSeed.LOCK_ACCOUNT, [
+    authority.toBuffer(),
+  ]);
+
+export const findLockTokenAccount = (
+  config: SunriseStakeConfig,
+  authority: PublicKey
+): [PublicKey, number] =>
+  findProgramDerivedAddress(
+    config,
+    ProgramDerivedAddressSeed.LOCK_TOKEN_ACCOUNT,
+    [authority.toBuffer()]
+  );
 
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
@@ -215,7 +235,6 @@ export const proportionalBN = (
 export const getStakeAccountInfo = async (
   stakeAccount: PublicKey,
   anchorProvider: AnchorProvider
-  // program: anchor.Program<SunriseStake>,
 ): Promise<MarinadeUtils.ParsedStakeAccountInfo> => {
   const provider = new Provider(
     anchorProvider.connection,
@@ -223,12 +242,7 @@ export const getStakeAccountInfo = async (
     {}
   );
 
-  const parsedData = MarinadeUtils.getParsedStakeAccountInfo(
-    provider,
-    stakeAccount
-  );
-  console.log("parsedData: ", parsedData);
-  return parsedData;
+  return MarinadeUtils.getParsedStakeAccountInfo(provider, stakeAccount);
 };
 
 export const getVoterAddress = async (

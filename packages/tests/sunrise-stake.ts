@@ -36,10 +36,12 @@ describe("sunrise-stake", () => {
   let client: SunriseStakeClient;
 
   const depositLamports = new BN(100 * LAMPORTS_PER_SOL); // Deposit 100 SOL
-  const unstakeLamportsUnderLPBalance = new BN(1 * LAMPORTS_PER_SOL); // 1 SOL
+  const unstakeLamportsUnderLPBalance = new BN(LAMPORTS_PER_SOL); // 1 SOL
   const unstakeLamportsExceedLPBalance = new BN(20 * LAMPORTS_PER_SOL); // 20 SOL
   const orderUnstakeLamports = new BN(2 * LAMPORTS_PER_SOL); // Order a delayed unstake of 2 SOL
   const burnLamports = 100 * LAMPORTS_PER_SOL;
+
+  const lockLamports = new BN(LAMPORTS_PER_SOL); // Lock 1 SOL
 
   const blazeDepositLamports = new BN(100 * LAMPORTS_PER_SOL);
   const blazeUnstakeLamports = new BN(60 * LAMPORTS_PER_SOL);
@@ -62,16 +64,6 @@ describe("sunrise-stake", () => {
     );
 
     log(await client.details());
-  });
-
-  // TODO in future, this should be part of the register instruction probably
-  it("can initialise the epoch report", async () => {
-    await client.initEpochReport();
-
-    const epochInfo = await client.provider.connection.getEpochInfo();
-    const report = await client.getEpochReport();
-
-    expect(report.epoch.toNumber()).to.equal(epochInfo.epoch);
   });
 
   it("can update the state", async () => {
@@ -171,6 +163,10 @@ describe("sunrise-stake", () => {
     await expectMSolTokenBalance(client, expectedMsol, 50);
     await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
     await expectStakerGSolTokenBalance(client, depositLamports.toNumber());
+  });
+
+  it("can lock sol", async () => {
+    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
   });
 
   it("can deposit to blaze", async () => {

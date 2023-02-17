@@ -221,3 +221,15 @@ pub struct ResizeState<'info> {
 
     pub system_program: Program<'info, System>,
 }
+
+#[account]
+pub struct LockAccount {
+    pub state_address: Pubkey,
+    pub owner: Pubkey,
+    pub token_account: Pubkey,
+    pub start_epoch: u64,
+    pub sunrise_yield_at_start: u64,
+}
+impl LockAccount {
+    pub const SPACE: usize = 32 + 32 + 32 + 8 + 8 + 8 /* DISCRIMINATOR */ ;
+}
