@@ -21,4 +21,4 @@ anchor-spl = "0.26.0"
 marinade-cpi = "0.3.0"
 spl-stake-pool = {version = "0.6.4", features = ["no-entrypoint"]}
 mpl-token-metadata = { version="1.4.1", features=["no-entrypoint"] }
-
+solana-address-lookup-table-program = "1.15.2"

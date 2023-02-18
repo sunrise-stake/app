@@ -95,6 +95,7 @@ impl<'info> SplWithdrawSol<'info> {
 
         let stake_pool = spl::deserialize_spl_stake_pool(&self.stake_pool)?;
         let pool_tokens = spl::calc_bsol_from_lamports(&stake_pool, lamports)?;
+
         invoke_signed(
             &spl_stake_pool::instruction::withdraw_sol(
                 &spl_stake_pool::ID,

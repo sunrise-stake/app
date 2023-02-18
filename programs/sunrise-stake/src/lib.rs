@@ -1,4 +1,5 @@
 #![allow(clippy::result_large_err)]
+mod generic;
 mod sunrise_spl;
 mod utils;
 
