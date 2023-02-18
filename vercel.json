@@ -1,5 +1,0 @@
-{
-  "installCommand": "yarn",
-  "buildCommand": "yarn build",
-  "outputDirectory": "packages/app/build"
-}
