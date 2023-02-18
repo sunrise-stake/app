@@ -3,13 +3,17 @@ import {
   type TicketAccount,
   type Details,
   MINIMUM_EXTRACTABLE_YIELD,
-  SUNRISE_STAKE_STATE,
 } from "@sunrisestake/client";
-import { type Connection, Transaction } from "@solana/web3.js";
+import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@project-serum/anchor";
 import type BN from "bn.js";
 import { type AnchorWallet } from "@solana/wallet-adapter-react";
 import { debounce } from "./util";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+
+const stage =
+  (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+  WalletAdapterNetwork.Devnet;
 
 export class SunriseClientWrapper {
   public debouncedUpdate = debounce(this.triggerUpdate.bind(this), 1000);
@@ -52,7 +56,7 @@ export class SunriseClientWrapper {
       wallet as unknown as AnchorWallet,
       {}
     );
-    const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE, {
+    const client = await SunriseStakeClient.get(provider, stage, {
       verbose: Boolean(process.env.REACT_APP_VERBOSE),
     });
 
@@ -67,7 +71,8 @@ export class SunriseClientWrapper {
   async deposit(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
-      .makeDeposit(amount)
+      .makeBalancedDeposit(amount)
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -75,6 +80,7 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .unstake(amount)
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -82,7 +88,9 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .orderUnstake(amount)
-      .then(([txSig]) => txSig)
+      .then(async ([tx, keypairs]) =>
+        this.client.sendAndConfirmTransaction(tx, keypairs)
+      )
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -98,6 +106,7 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .claimUnstakeTicket(ticket)
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -123,5 +132,9 @@ export class SunriseClientWrapper {
     return this.client.provider
       .sendAndConfirm(tx, [])
       .then(this.triggerUpdateAndReturn.bind(this));
+  }
+
+  get holdingAccount(): PublicKey {
+    return this.client.env.holdingAccount;
   }
 }
