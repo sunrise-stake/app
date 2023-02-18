@@ -4,21 +4,21 @@ import { fetcher } from '@/helper'
 import { toShortBase58 } from '@/utils'
 import { Transition } from '@headlessui/react';
 import Link from 'next/link';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FiArrowLeftCircle, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import useSWR from 'swr'
-
-const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
 function Trees({ address }) {
   const { data: _data } = useSWR(`/api/account/${address}`, fetcher)
   const containerRef =  useRef(null)
+  const treeImgRef = useRef(null)
 
-  const [data, setData] = useState(null)
-  const [index, setIndex] = useState(0)
+  const [data, updateData] = useState(null)
+  const [index, updateIndex] = useState(0)
+  const [show, updateShow] = useState(false)
 
   useEffect(() => {
-    setData(_data)
+    updateData(_data)
   }, [_data])
 
   useEffect(() => {
@@ -32,11 +32,18 @@ function Trees({ address }) {
   }, [index])
 
   const handleNavClick = (step: number) => {
-    if (!(index + step < 0 || index + step > Object.keys(data.neighbors).length)) setIndex(index + step)
+    if (!(index + step < 0 || index + step > Object.keys(data.neighbors).length)) updateIndex(index + step)
   }
-
-  const [show, updateShow] = useState(false)
-  useIsomorphicLayoutEffect(() => { setTimeout(() => updateShow(true), 1000) })
+  
+  // Wait for tree image to complete loading before showing, otherwise animations won't run
+  useEffect(() => {
+    let iid = setInterval(() => {
+      if (treeImgRef.current && treeImgRef.current.complete) {
+        updateShow(true)
+        clearInterval(iid)
+      }
+    }, 250)
+  }, [])
 
   return (
     <div className="fixed w-full h-full">
@@ -51,7 +58,7 @@ function Trees({ address }) {
         >
           <ul className="relative w-full h-full overflow-hidden" ref={containerRef}>
             <li className="w-full h-full flex flex-col justify-center items-center">
-              <img className="max-w-full FloatingTree" src="/tree.png" />
+              <img className="max-w-full FloatingTree" src="/tree.png" ref={treeImgRef} />
               <div>{toShortBase58(address)}</div>
             </li>
             {Object.keys(data.neighbors).map((key, n) => (
