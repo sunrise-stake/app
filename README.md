@@ -1,7 +1,12 @@
 # Sunrise Stake
 
-What is Sunrise Stake?
+- [What is Sunrise Stake?](#what-is-sunrise-stake-)
+- [How it works](#how-it-works)
+- [Treasury spending](#treasury-spending)
+- [Quick Start](#quick-start)
+- [Deployed Addresses:](#deployed-addresses-)
 
+## What is Sunrise Stake?
 
 Sunrise Stake is a ReFi staking protocol that directs staking yield to climate-positive projects.
 
@@ -18,29 +23,11 @@ For more details, visit the [docs](https://docs.sunrisestake.com).
 
 ![stake.gif](/doc/stake.gif)
 
-## Quick Start
-
-```shell
-$ yarn
-$ anchor build
-$ anchor localnet
-```
-and in another shell.
-```shell
-$ cd packages/app
-$ yarn start
-```
-
-To run the tests, __close__ the validator in the first shell and run
-```shell
-yarn test
-```
-
 ## How it works
 
 Note, for more details, visit the [docs](https://docs.sunrisestake.com).
 
-#### Step 1: Depositing SOL with Sunrise Stake
+### Step 1: Depositing SOL with Sunrise Stake
 
 ![staking_white_without_comments.png](/doc/staking_white_without_comments.png)
 
@@ -58,11 +45,11 @@ This pool is used during the unstaking process to provide fee-less unstaking, en
 When you deposit your SOL, you will receive an equivalent amount of gSOL in your wallet.
 gSOL can be used in the same way as SOL, by protocols or recipients that support it.
 
-#### Step 2: Accruing yield
+### Step 2: Accruing yield
 
 ![accruing_yield_white.png](/doc/accruing_yield_white.png)
 
-###### Stake Pools
+#### Stake Pools
 At the end of each epoch (every 2 or 3 days), yield gets paid out into stake accounts,
 and the value of the overall stake pool increases.
 
@@ -71,7 +58,7 @@ As mSOL and bSOL represent a share of their respective stake pools, the value of
 The yield accrued on the staked SOL is equal to the value of mSOL and bSOL held by Sunrise
 minus the value of SOL staked (calculated as the circulating supply of gSOL).
 
-###### Liquidity Pool
+#### Liquidity Pool
 
 The Marinade Unstake Pool also accrues yield through fees from the marinade liquid unstaking feature.
 The total value of the holdings of the Sunrise protocol are therefore:
@@ -95,13 +82,14 @@ in order to maintain a 10% liquidity pool balance.
 
 ![rebalancing_white.png](/doc/rebalancing_white.png)
 
-## Sunrise Stake treasury spending
+## Ttreasury spending
 
-Thanks to the yield earned in the staking process, Sunrise can purchase carbon tokens and burn them to offset carbon emissions.
+Sunrise spends the yield earned through staking on purchasing
+and burning carbon tokens to offset carbon emissions for its users.
 
 ![yield_controller_white_without_comments.png](/doc/yield_controller_white_without_comments.png)
 
-#### 1. Yield transfer to the treasury account
+### 1. Yield transfer to the treasury account
 
 The yield earned from staking SOL is transferred to the __treasury account__.
 
@@ -111,7 +99,7 @@ meaning that it is owned and controlled by a smart contract, not a private key.
 This smart contract is known as the [treasury controller](https://github.com/sunrise-stake/treasury-controller).
 It can trigger a state change to buy or burn carbon tokens, thus retiring underlying carbon credits.
 
-#### 2. Purchasing carbon tokens
+### 2. Purchasing carbon tokens
 
 The carbon token used by Sunrise Stake is the [Toucan Nature Carbon Tonne token](https://blog.toucan.earth/announcing-nct-nature-carbon-tonne/).
 
@@ -120,12 +108,30 @@ It is issued on the Polygon and Celo blockchains and has been bridged to Solana 
 
 The Solana bridged token mint address is [7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT](https://solscan.io/token/7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT).
 
-#### 3. Burning the Carbon Tokens
+### 3. Burning the Carbon Tokens
 
 The Sunrise [treasury controller](https://github.com/sunrise-stake/treasury-controller) purchases NCT from a DEX, and burns them.
 
 _NOTE_:
 Until sufficient liquidity is present on Solana for NCT, Sunrise is maintaining a reserve of bridged NCT, and is automatically burning from this pot at a fixed price.
+
+## Quick Start
+
+```shell
+$ yarn
+$ anchor build
+$ anchor localnet
+```
+and in another shell.
+```shell
+$ cd packages/app
+$ yarn start
+```
+
+To run the tests, __close__ the validator in the first shell and run
+```shell
+yarn test
+```
 
 ## Deployed Addresses:
 

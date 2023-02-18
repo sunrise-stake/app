@@ -1,13 +1,12 @@
 {
   "name": "@sunrisestake/client",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.4",
   "description": "Sunrise Stake Client",
-  "main": "src/index.ts",
+  "main": "dist/index.ts",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist; tsc --declaration",
+    "build": "rm -rf dist; tsc",
     "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx src"
   },
   "files": [
@@ -16,6 +15,7 @@
   "dependencies": {
     "@project-serum/anchor": "^0.26.0",
     "@project-serum/borsh": "^0.2.5",
+    "@solana/spl-token": "^0.3.7",
     "@solana/web3.js": "^1.73.2",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
     "bn.js": "^5.2.1"

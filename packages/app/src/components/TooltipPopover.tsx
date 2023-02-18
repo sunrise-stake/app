@@ -33,7 +33,7 @@ const TooltipPopover: FC<TooltipProps> = ({ children }) => {
       <Popover.Panel
         ref={setPopperElement}
         style={styles.popper}
-        className="bg-green px-4 py-2 rounded-md text-xs min-w-[120px] sm:min-w-[160px] w-1/2 md:w-1/3"
+        className="bg-green px-4 py-2 rounded-md text-xs min-w-[120px] sm:min-w-[160px] w-1/2 md:w-1/3 z-50"
         {...attributes.popper}
       >
         {children}
