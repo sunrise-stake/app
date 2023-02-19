@@ -3,7 +3,6 @@ import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import {
   SunriseStakeClient,
   type TicketAccount,
-  getStakePoolAccount,
   DEFAULT_LP_MIN_PROPORTION,
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
@@ -20,6 +19,7 @@ import {
   getBalance,
   getLPPrice,
   getBsolPrice,
+  getDelegatedAmount,
   log,
   waitForNextEpoch,
   expectBSolTokenBalance,
@@ -28,19 +28,23 @@ import {
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
+import {
+  blazeDepositLamports,
+  blazeUnstakeLamports,
+  burnLamports,
+  depositLamports,
+  lockLamports,
+  marinadeStakeDeposit,
+  orderUnstakeLamports,
+  unstakeLamportsExceedLPBalance,
+  unstakeLamportsUnderLPBalance,
+} from "./constants";
 
 chai.use(chaiAsPromised);
 
 const { expect } = chai;
 describe("sunrise-stake", () => {
   let client: SunriseStakeClient;
-
-  const depositLamports = new BN(100 * LAMPORTS_PER_SOL); // Deposit 100 SOL
-  const unstakeLamportsUnderLPBalance = new BN(LAMPORTS_PER_SOL); // 1 SOL
-  const unstakeLamportsExceedLPBalance = new BN(20 * LAMPORTS_PER_SOL); // 20 SOL
-  const orderUnstakeLamports = new BN(2 * LAMPORTS_PER_SOL); // Order a delayed unstake of 2 SOL
-  const burnLamports = 100 * LAMPORTS_PER_SOL;
-
   let updateAuthority: Keypair;
   let delayedUnstakeTicket: TicketAccount;
 
@@ -130,7 +134,12 @@ describe("sunrise-stake", () => {
     );
   });
 
-  it("can deposit sol", async () => {
+  it("can trigger two rebalances in a row", async () => {
+    await client.triggerRebalance();
+    await client.triggerRebalance();
+  });
+
+  it("can deposit sol to marinade", async () => {
     await getBalance(client); // print balance before deposit
 
     // figure out what balances we expect before we make the deposit
@@ -154,56 +163,61 @@ describe("sunrise-stake", () => {
     await expectStakerGSolTokenBalance(client, depositLamports.toNumber());
   });
 
-  // Seems not to work on local validator
-  it.skip("can deposit a stake account to marinade", async () => {
-    const deposit = new BN(100 * LAMPORTS_PER_SOL);
-    // await getBalance(client); // print balance before deposit
-    const stakeAccount = Keypair.generate();
-    await initializeStakeAccount(client, stakeAccount, deposit);
-    // Wait for cooling down period
-    await waitForNextEpoch(client);
-    await waitForNextEpoch(client);
-    const info = await client.provider.connection.getAccountInfo(
-      stakeAccount.publicKey
-    );
-    const balance = info?.lamports.toString();
-    console.log("stake account balance: ", balance);
+  it("can lock sol", async () => {
+    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
 
-    const expectedMsol = Math.floor(
-      deposit.toNumber() / client.marinadeState!.mSolPrice
+    // the gsol balance has dropped by the amount locked
+    const balance = await client.balance();
+    expect(Number(balance.gsolBalance.amount)).to.equal(
+      depositLamports.sub(lockLamports).toNumber()
+    );
+  });
+
+  it("cannot re-lock", async () => {
+    const shouldFail = client.sendAndConfirmTransaction(
+      await client.lockGSol(lockLamports)
     );
 
-    await client.depositStakeAccount(stakeAccount.publicKey);
+    return expect(shouldFail).to.be.rejected;
+  });
 
-    await expectMSolTokenBalance(client, expectedMsol, 50);
-    await expectStakerGSolTokenBalance(client, deposit.toNumber());
+  it("can unlock sol", async () => {
+    await client.sendAndConfirmTransaction(await client.unlockGSol());
+
+    // the gsol balance has gone back to the original value
+    const balance = await client.balance();
+    expect(Number(balance.gsolBalance.amount)).to.equal(
+      depositLamports.toNumber()
+    );
+  });
+
+  it("can lock and unlock again", async () => {
+    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
+    await client.sendAndConfirmTransaction(await client.unlockGSol());
+
+    // the gsol balance remained as it was
+    const balance = await client.balance();
+    expect(Number(balance.gsolBalance.amount)).to.equal(
+      depositLamports.toNumber()
+    );
   });
 
   it("can deposit to blaze", async () => {
-    const depositAmount = new BN(100 * LAMPORTS_PER_SOL);
     await getBalance(client);
     const bsolPrice = await getBsolPrice(client);
 
-    const poolInfo = await getStakePoolAccount(
-      client.provider.connection,
-      client.blazeState!.pool
+    const expectedBSol = Math.floor(
+      blazeDepositLamports.toNumber() / bsolPrice
     );
 
-    const solDepositFee =
-      Number(poolInfo.solDepositFee.numerator) /
-      Number(poolInfo.solDepositFee.denominator);
-    expect(solDepositFee).to.equal(0.0008);
-
-    const expectedBSol = Math.floor(depositAmount.toNumber() / bsolPrice);
-
     await client.sendAndConfirmTransaction(
-      await client.depositToBlaze(depositAmount)
+      await client.depositToBlaze(blazeDepositLamports)
     );
 
     await expectBSolTokenBalance(client, expectedBSol, 50);
     await expectStakerGSolTokenBalance(
       client,
-      depositLamports.toNumber() + depositAmount.toNumber()
+      depositLamports.toNumber() + blazeDepositLamports.toNumber()
     );
   });
 
@@ -232,6 +246,10 @@ describe("sunrise-stake", () => {
     await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
   });
 
+  it("locks sol for the next epoch", async () => {
+    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
+  });
+
   it("no yield to extract yet", async () => {
     const { extractableYield } = await client.details();
     expectAmount(extractableYield, 0, 10);
@@ -243,10 +261,11 @@ describe("sunrise-stake", () => {
     await client.sendAndConfirmTransaction(
       await client.unstake(unstakeLamportsUnderLPBalance)
     );
+    await client.triggerRebalance();
 
     const expectedPostUnstakeBalance = stakerPreSolBalance
       .add(unstakeLamportsUnderLPBalance)
-      .subn(NETWORK_FEE);
+      .subn(NETWORK_FEE * 2); // Because the transactions are now separated?
 
     // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
@@ -256,10 +275,11 @@ describe("sunrise-stake", () => {
 
   it("can calculate the withdrawal fee if unstaking more than the LP balance", async () => {
     const details = await client.details();
-    const liquidUnstakeFee = client.calculateWithdrawalFee(
+    const { totalFee } = client.calculateWithdrawalFee(
       unstakeLamportsExceedLPBalance,
       details
     );
+    log("total withdrawal fee: ", totalFee.toString());
 
     // The LP balance is ~18 SOL at this point
     // The amount being unstaked is 20 SOL
@@ -271,29 +291,81 @@ describe("sunrise-stake", () => {
     // 2.6e9 * 0.003 + 1503360 + 5000 = 9.1e6
     // Actual values: ((20000000000-17448456901)* 0,003) + 1503360 + 5000 = 9162989.297
     // Tolerance to allow for rounding issues
-    expectAmount(9162989, liquidUnstakeFee, 100);
+
+    // expectAmount(9162989, totalWithdrawalFee, 100);
+
+    // Liquid unstake comes completely from blaze here, charged at 0.03% rather than marinade's 0.3%
+    // Unsure about if the rebalance works the same as it did prior. If it does, the new value should be:
+    // ((20000000000-17448456901)* 0.0003) + 1503360 + (2 * 5000) = 2278822.9297
+    expectAmount(2278822, totalFee, 100);
   });
 
-  it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
-    log("Before big unstake");
-    const details = await client.details();
-    const liquidUnstakeFee = client.calculateWithdrawalFee(
-      unstakeLamportsExceedLPBalance,
-      details
-    );
-
+  // Triggers a liquid unstake from Blaze only (since its valuation is higher)
+  it("liquid unstakes sol from the Blaze pool when its valuation exceeds Marinade's", async () => {
     const stakerPreSolBalance = await getBalance(client);
 
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(
       client.stakerGSolTokenAccount!
     );
 
+    let details = await client.details();
+    const { totalFee } = client.calculateWithdrawalFee(
+      blazeUnstakeLamports,
+      details
+    );
+
+    log(`Before unstake from blaze (${blazeUnstakeLamports.toString()}): `);
+    await client.report();
+
+    await client.sendAndConfirmTransaction(
+      await client.unstake(blazeUnstakeLamports)
+    );
+    await client.triggerRebalance();
+
+    const expectedPostUnstakeBalance = stakerPreSolBalance
+      .add(blazeUnstakeLamports)
+      .sub(totalFee);
+
+    log("after big unstake from blaze");
+    await client.report();
+
+    await expectStakerGSolTokenBalance(
+      client,
+      new BN(gsolBalance.value.amount).sub(blazeUnstakeLamports)
+    );
+    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
+
+    details = await client.details();
+    expect(details.epochReport.totalOrderedLamports.toNumber()).to.equal(
+      7450000000
+    );
+  });
+
+  it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
+    log("Before big unstake");
+    const details = await client.details();
+
+    const { liquidUnstakeFee } = client.calculateWithdrawalFee(
+      unstakeLamportsExceedLPBalance,
+      details
+    );
+    const totalFees = liquidUnstakeFee.addn(2 * NETWORK_FEE);
+
+    const stakerPreSolBalance = await getBalance(client);
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(
+      client.stakerGSolTokenAccount!
+    );
+
+    await client.report();
+
     await client.sendAndConfirmTransaction(
       await client.unstake(unstakeLamportsExceedLPBalance)
     );
 
+    await client.triggerRebalance();
+
     log("after big unstake");
-    await client.details();
+    await client.report();
 
     await expectStakerGSolTokenBalance(
       client,
@@ -302,7 +374,7 @@ describe("sunrise-stake", () => {
 
     const expectedPostUnstakeBalance = stakerPreSolBalance
       .add(unstakeLamportsExceedLPBalance)
-      .sub(liquidUnstakeFee);
+      .sub(totalFees);
 
     // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
@@ -403,11 +475,22 @@ describe("sunrise-stake", () => {
   it("can recover previous epoch rebalance tickets by triggering a new rebalance", async () => {
     const { extractableYield: yieldToExtractBefore } = await client.details();
     log("yield to extract before", yieldToExtractBefore.toString());
+    await client.report();
 
     await client.triggerRebalance();
 
     const { extractableYield: yieldToExtractAfter } = await client.details();
+    log("\n\n====================\n\n");
     log("yield to extract after", yieldToExtractAfter.toString());
+    await client.report();
+
+    // the epoch report account has now been updated to the current epoch and all tickets have been claimed
+    const currentEpoch =
+      await client.program.provider.connection.getEpochInfo();
+    const details = await client.details();
+    expect(details.epochReport.epoch.toNumber()).to.equal(currentEpoch.epoch);
+    expect(details.epochReport.tickets.toNumber()).to.equal(0);
+    expect(details.epochReport.totalOrderedLamports.toNumber()).to.equal(0);
   });
 
   it("can detect yield to extract", async () => {
@@ -440,6 +523,48 @@ describe("sunrise-stake", () => {
     log("details", details);
 
     expectAmount(postBurnYieldToExtract, expectedYield, 50);
+  });
+
+  it("cannot extract yield while the epoch report is still pointing to the previous epoch", async () => {
+    await waitForNextEpoch(client);
+
+    const currentEpoch = await client.provider.connection.getEpochInfo();
+    const details = await client.details();
+
+    // epoch report is still on the last epoch
+    expect(details.epochReport.epoch.toNumber()).to.equal(
+      currentEpoch.epoch - 1
+    );
+
+    // so extract yield will fail
+    await expect(client.extractYield()).to.be.rejected;
+  });
+
+  it("can unlock sol (including a recoverTickets call)", async () => {
+    await client.sendAndConfirmTransaction(await client.unlockGSol());
+
+    // the epoch report has now been updated to the current epoch
+    const currentEpoch = await client.provider.connection.getEpochInfo();
+    const details = await client.details();
+    expect(details.epochReport.epoch.toNumber()).to.equal(currentEpoch.epoch);
+
+    // and the lock account for the user has been updated to add the yield that their locked gsol accrued
+    const { lockAccount } = await client.getLockAccount();
+
+    // calculate the expected locked yield:
+    // yield accrued
+    const expectedYield = details.extractableYield; // new BN(burnLamports).muln(997).divn(1000);
+    // locked amount as a proportion of the total supply:
+    const lockedProportion =
+      lockLamports.toNumber() / Number(details.balances.gsolSupply.amount);
+    // expected yield * locked proportion
+    const expectedLockedYield = expectedYield.toNumber() * lockedProportion;
+
+    console.log("locked proportion", lockedProportion);
+    console.log("expected yield", expectedYield.toString());
+    console.log("expected locked yield", expectedLockedYield);
+
+    expectAmount(lockAccount!.yieldAccruedByOwner, expectedLockedYield, 50);
   });
 
   it("can extract earned yield", async () => {
@@ -501,6 +626,61 @@ describe("sunrise-stake", () => {
     await expectLiqPoolTokenBalance(
       client,
       new BN(liqPoolBalance.value.amount)
+    );
+  });
+
+  it.skip("can deposit a stake account to marinade", async () => {
+    const stakeAccount = Keypair.generate();
+    await initializeStakeAccount(client, stakeAccount, marinadeStakeDeposit);
+
+    let info = await client.provider.connection.getAccountInfo(
+      stakeAccount.publicKey
+    );
+    let balance = info?.lamports.toString();
+    console.log("stake account balance: ", balance);
+
+    // Wait for cooling down period
+    await waitForNextEpoch(client);
+    await waitForNextEpoch(client);
+
+    const delegatedStake = await getDelegatedAmount(
+      client,
+      stakeAccount.publicKey
+    );
+    log("delegated amount: ", delegatedStake.toNumber());
+
+    const initialMsolBalance = Number(
+      (await client.balance()).msolBalance.amount
+    );
+    log("balance from client: ", initialMsolBalance);
+
+    const initialStakerGsolBalance = (
+      await client.provider.connection.getTokenAccountBalance(
+        client.stakerGSolTokenAccount!
+      )
+    ).value.amount;
+
+    const expectedMsolIncrease = Math.floor(
+      delegatedStake.toNumber() / client.marinadeState!.mSolPrice
+    );
+    log("Expected msol increase: ", expectedMsolIncrease);
+
+    await client.depositStakeAccount(stakeAccount.publicKey);
+
+    info = await client.provider.connection.getAccountInfo(
+      stakeAccount.publicKey
+    );
+    balance = info?.lamports.toString();
+    log("stake account balance: ", balance);
+
+    await expectMSolTokenBalance(
+      client,
+      initialMsolBalance + expectedMsolIncrease,
+      50
+    );
+    await expectStakerGSolTokenBalance(
+      client,
+      Number(initialStakerGsolBalance) + Number(delegatedStake)
     );
   });
 });

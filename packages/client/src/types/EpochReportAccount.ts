@@ -1,6 +1,6 @@
 import type BN from "bn.js";
 
-export interface ManagementAccount {
+export interface EpochReportAccount {
   epoch: BN;
   tickets: BN;
   totalOrderedLamports: BN;

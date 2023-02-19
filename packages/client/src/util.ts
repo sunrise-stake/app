@@ -8,7 +8,6 @@ import {
 } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
-import { type ManagementAccount } from "./types/ManagementAccount";
 import {
   type MarinadeState,
   MarinadeUtils,
@@ -24,8 +23,10 @@ export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
   M_SOL_ACCOUNT = "msol_account",
   B_SOL_ACCOUNT = "bsol_account",
-  ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT = "order_unstake_ticket_mgmt",
+  EPOCH_REPORT_ACCOUNT = "epoch_report",
   ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
+  LOCK_ACCOUNT = "lock_account",
+  LOCK_TOKEN_ACCOUNT = "lock_token_account",
 }
 
 export interface SunriseStakeConfig {
@@ -81,18 +82,13 @@ export const findGSolMintAuthority = (
     ProgramDerivedAddressSeed.G_SOL_MINT_AUTHORITY
   );
 
-export const findOrderUnstakeTicketManagementAccount = (
-  config: SunriseStakeConfig,
-  epoch: bigint
-): [PublicKey, number] => {
-  const epochBuf = Buffer.allocUnsafe(8);
-  epochBuf.writeBigInt64BE(epoch);
-  return findProgramDerivedAddress(
+export const findEpochReportAccount = (
+  config: SunriseStakeConfig
+): [PublicKey, number] =>
+  findProgramDerivedAddress(
     config,
-    ProgramDerivedAddressSeed.ORDER_UNSTAKE_TICKET_MANAGEMENT_ACCOUNT,
-    [epochBuf]
+    ProgramDerivedAddressSeed.EPOCH_REPORT_ACCOUNT
   );
-};
 
 export const findOrderUnstakeTicketAccount = (
   config: SunriseStakeConfig,
@@ -111,6 +107,24 @@ export const findOrderUnstakeTicketAccount = (
     [epochBuf, indexBuf]
   );
 };
+
+export const findLockAccount = (
+  config: SunriseStakeConfig,
+  authority: PublicKey
+): [PublicKey, number] =>
+  findProgramDerivedAddress(config, ProgramDerivedAddressSeed.LOCK_ACCOUNT, [
+    authority.toBuffer(),
+  ]);
+
+export const findLockTokenAccount = (
+  config: SunriseStakeConfig,
+  authority: PublicKey
+): [PublicKey, number] =>
+  findProgramDerivedAddress(
+    config,
+    ProgramDerivedAddressSeed.LOCK_TOKEN_ACCOUNT,
+    [authority.toBuffer()]
+  );
 
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
@@ -161,15 +175,24 @@ export interface Options {
   confirmOptions?: ConfirmOptions;
   verbose?: boolean;
 }
+
+/**
+ * Find all open delayed unstake tickets for the given epoch
+ * @param connection
+ * @param config
+ * @param epoch
+ * @param expectedCount
+ */
 export const findAllTickets = async (
   connection: Connection,
   config: SunriseStakeConfig,
-  managementAccount: ManagementAccount,
-  epoch: bigint
+  epoch: bigint,
+  expectedCount: number
 ): Promise<PublicKey[]> => {
   // find all tickets for the last epoch in reverse order, this allows us to better paginate later
   const tickets: PublicKey[] = [];
-  for (let i = managementAccount.tickets.toNumber(); i >= 0; i--) {
+  // get the public keys for all the accounts
+  for (let i = expectedCount - 1; i >= 0; i--) {
     const [orderUnstakeTicketAccount] = findOrderUnstakeTicketAccount(
       config,
       epoch,
@@ -178,9 +201,11 @@ export const findAllTickets = async (
 
     tickets.push(orderUnstakeTicketAccount);
   }
+  // get the actual accounts (in case they have been closed somehow in the meantime)
   // TODO Later add pagination here in case the count is too high for one call
   const accountInfos = await connection.getMultipleAccountsInfo(tickets);
 
+  // remove missing accounts and return the pubkeys of the non-missing ones.
   return accountInfos
     .map((accountInfo, i): [PublicKey, ArrayElement<typeof accountInfos>] => [
       tickets[i],
@@ -210,7 +235,6 @@ export const proportionalBN = (
 export const getStakeAccountInfo = async (
   stakeAccount: PublicKey,
   anchorProvider: AnchorProvider
-  // program: anchor.Program<SunriseStake>,
 ): Promise<MarinadeUtils.ParsedStakeAccountInfo> => {
   const provider = new Provider(
     anchorProvider.connection,
@@ -218,12 +242,7 @@ export const getStakeAccountInfo = async (
     {}
   );
 
-  const parsedData = MarinadeUtils.getParsedStakeAccountInfo(
-    provider,
-    stakeAccount
-  );
-  console.log("parsedData: ", parsedData);
-  return parsedData;
+  return MarinadeUtils.getParsedStakeAccountInfo(provider, stakeAccount);
 };
 
 export const getVoterAddress = async (

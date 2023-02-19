@@ -104,9 +104,6 @@ export const blazeDepositStake = async (
     throw new Error(`Invalid validator account`);
   }
 
-  // const validatorAccount = await getVoterAddress(
-  //  stakeAccount, provider);
-
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
@@ -142,7 +139,6 @@ export const blazeWithdrawSol = async (
   userGsolTokenAccount: PublicKey,
   amount: BN
 ): Promise<Transaction> => {
-  const [gsolMintAuthority] = findGSolMintAuthority(config);
   const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
   const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
     mint: blaze.bsolMint,
@@ -156,7 +152,6 @@ export const blazeWithdrawSol = async (
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
-    gsolMintAuthority,
     user,
     userGsolTokenAccount,
     bsolTokenAccount: bsolAssociatedTokenAddress,
@@ -188,7 +183,6 @@ export const blazeWithdrawStake = async (
   userGsolTokenAccount: PublicKey,
   amount: BN
 ): Promise<Transaction> => {
-  const [gsolMintAuthority] = findGSolMintAuthority(config);
   const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
   const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
     mint: blaze.bsolMint,
@@ -202,7 +196,6 @@ export const blazeWithdrawStake = async (
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
-    gsolMintAuthority,
     user,
     userGsolTokenAccount,
     userNewStakeAccount: newStakeAccount,

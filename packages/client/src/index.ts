@@ -8,13 +8,16 @@ import {
   type Signer,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
+  SYSVAR_RENT_PUBKEY,
   Transaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
 import {
   type Balance,
   confirm,
+  findAllTickets,
   findBSolTokenAccountAuthority,
+  findEpochReportAccount,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   logKeys,
@@ -33,7 +36,7 @@ import {
   type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
-import { type Details } from "./types/Details";
+import { type Details, type WithdrawalFees } from "./types/Details";
 import {
   type SunriseTicketAccountFields,
   type TicketAccount,
@@ -46,6 +49,7 @@ import {
 import {
   DEFAULT_LP_MIN_PROPORTION,
   DEFAULT_LP_PROPORTION,
+  EMPTY_EPOCH_REPORT,
   Environment,
   type EnvironmentConfig,
   MARINADE_TICKET_RENT,
@@ -56,8 +60,8 @@ import {
   deposit,
   depositStakeAccount,
   liquidUnstake,
-  orders,
   triggerRebalance,
+  getEpochReportAccount,
 } from "./marinade";
 import {
   blazeDeposit,
@@ -67,15 +71,24 @@ import {
 } from "./blaze";
 import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
+import { toSol } from "@sunrisestake/app/src/lib/util";
+import { type EpochReportAccount } from "./types/EpochReportAccount";
+import {
+  getLockAccount,
+  type GetLockAccountResult,
+  lockGSol,
+  unlockGSol,
+  updateLockAccount,
+} from "./lock";
 
-// export getSakePoolAccount
+// export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
 
 // export all types
 export * from "./types/sunrise_stake";
 export * from "./types/Details";
 export * from "./types/TicketAccount";
-export * from "./types/ManagementAccount";
+export * from "./types/EpochReportAccount";
 export * from "./types/Solblaze";
 
 // export all constants
@@ -374,12 +387,14 @@ export class SunriseStakeClient {
       !this.marinade ||
       !this.config ||
       !this.msolTokenAccount ||
-      !this.stakerGSolTokenAccount
+      !this.stakerGSolTokenAccount ||
+      !this.blazeState
     )
       throw new Error("init not called");
 
     const transaction = await liquidUnstake(
       this.config,
+      this.blazeState,
       this.marinade,
       this.marinadeState,
       this.program,
@@ -392,6 +407,95 @@ export class SunriseStakeClient {
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
     return transaction;
+  }
+
+  // Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
+  // Note, even if there are no tickets to recover, if the epoch report references the previous epoch
+  // we call this instruction anyway as part of triggerRebalance, to update the epoch.
+  async recoverTickets(): Promise<TransactionInstruction | null> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.msolTokenAccount ||
+      !this.bsolTokenAccount ||
+      !this.stakerGSolTokenAccount ||
+      !this.blazeState
+    )
+      throw new Error("init not called");
+
+    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
+
+    // check the most recent epoch report account
+    // if it is not for the current epoch, then we may need to recover tickets
+    const { address: epochReportAccountAddress, account: epochReport } =
+      await getEpochReportAccount(this.config, this.program);
+    const currentEpoch = await this.program.provider.connection.getEpochInfo();
+
+    if (!epochReport) {
+      // no epoch report account found at all - something went wrong
+      throw new Error("No epoch report account found during recoverTickets");
+    }
+
+    if (currentEpoch.epoch === epochReport.epoch.toNumber()) {
+      // nothing to do here - the report account is for the current epoch, so we cannot recover any tickets yet
+      return null;
+    }
+
+    // get a list of all the open delayed unstake tickets that can now be recovered
+    const previousEpochTickets = await findAllTickets(
+      this.program.provider.connection,
+      this.config,
+      // change BigInt(1) to 1n when we target ES2020 in tsconfig.json
+      BigInt(epochReport.epoch.toString()),
+      epochReport.tickets.toNumber()
+    );
+
+    const previousEpochTicketAccountMetas = previousEpochTickets.map(
+      (ticket) => ({
+        pubkey: ticket,
+        isSigner: false,
+        isWritable: true,
+      })
+    );
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.recoverTickets>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.config.stateAddress,
+      payer: this.staker,
+      marinadeState: this.marinadeState.marinadeStateAddress,
+      blazeState: this.blazeState.pool,
+      gsolMint: this.config.gsolMint,
+      msolMint: this.marinadeState.mSolMint.address,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolMsolLegAuthority: await this.marinadeState.mSolLegAuthority(),
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      reservePda: await this.marinadeState.reserveAddress(),
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getMsolFromAuthority: this.msolTokenAccountAuthority,
+      getBsolFrom: this.bsolTokenAccount,
+      getBsolFromAuthority: this.bsolTokenAccountAuthority,
+      epochReportAccount: epochReportAccountAddress,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      clock: SYSVAR_CLOCK_PUBKEY,
+      rent: SYSVAR_RENT_PUBKEY,
+      marinadeProgram,
+    };
+
+    return this.program.methods
+      .recoverTickets()
+      .accounts(accounts)
+      .remainingAccounts(previousEpochTicketAccountMetas)
+      .instruction();
   }
 
   /**
@@ -407,7 +511,9 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const { instruction } = await triggerRebalance(
+    const recoverInstruction = await this.recoverTickets();
+
+    const { instruction: rebalanceInstruction } = await triggerRebalance(
       this.config,
       this.marinade,
       this.marinadeState,
@@ -416,8 +522,64 @@ export class SunriseStakeClient {
       this.provider.publicKey
     );
 
-    const transaction = new Transaction().add(instruction);
+    const instructions = [recoverInstruction, rebalanceInstruction].filter(
+      Boolean
+    ) as TransactionInstruction[];
+    const transaction = new Transaction().add(...instructions);
     return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+  public async report(): Promise<void> {
+    const details = await this.details();
+
+    const inflightTotal = details.epochReport.totalOrderedLamports;
+
+    const totalValue = details.mpDetails.msolValue
+      .add(details.bpDetails.bsolValue)
+      .add(details.lpDetails.lpSolValue)
+      .add(inflightTotal);
+
+    const mpShare =
+      details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    const bpShare =
+      details.bpDetails.bsolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    const lpShare =
+      details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() /
+      100;
+    const inflightShare =
+      inflightTotal.muln(10_000).div(totalValue).toNumber() / 100;
+
+    const missingValue = totalValue.sub(
+      new BN(details.balances.gsolSupply.amount)
+    );
+    const missingValueShare =
+      missingValue.muln(10_000).div(totalValue).toNumber() / 100;
+
+    const report: Record<string, string> = {
+      "gSOL Supply": details.balances.gsolSupply.uiAmountString ?? "-",
+      "Marinade Stake Pool Value": `${toSol(
+        details.mpDetails.msolValue
+      )} (${mpShare.toString()}%)`,
+      "SolBlaze Stake Pool Value": `${toSol(
+        details.bpDetails.bsolValue
+      )} (${bpShare.toString()}%)`,
+      "Liquidity Pool Value": `${toSol(
+        details.lpDetails.lpSolValue
+      )} (${lpShare.toString()}%)`,
+      "Total Value": `${toSol(totalValue)}`,
+      "Open Orders": `${details.epochReport.tickets.toNumber()}`,
+      "Open Order value": `${toSol(
+        inflightTotal
+      )} (${inflightShare.toString()}%)`,
+      "Extractable Yield (calculated)": `${toSol(
+        missingValue
+      )} (${missingValueShare.toString()}%)`,
+      "Extractable Yield": `${toSol(details.extractableYield)}`,
+    };
+
+    Object.keys(report).forEach((key) => {
+      this.log(key, ":", report[key]);
+    });
   }
 
   public async orderUnstake(lamports: BN): Promise<[Transaction, Keypair[]]> {
@@ -564,6 +726,68 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
+  // This should be done only once per state, and must be signed by the update authority
+  public async initEpochReport(): Promise<string> {
+    if (
+      !this.marinadeState ||
+      !this.blazeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.msolTokenAccount ||
+      !this.msolTokenAccountAuthority ||
+      !this.liqPoolTokenAccount
+    ) {
+      throw new Error("init not called");
+    }
+
+    const liqPoolSolLegPda = await this.marinadeState.solLeg();
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.initEpochReport>["accounts"]
+    >[0];
+
+    const [epochReportAccountAddress] = findEpochReportAccount(this.config);
+
+    const accounts: Accounts = {
+      state: this.env.state,
+      marinadeState: this.marinadeState.marinadeStateAddress,
+      blazeState: this.blazeState.pool,
+      msolMint: this.marinadeState.mSolMintAddress,
+      gsolMint: this.config.gsolMint,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolSolLegPda,
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getMsolFromAuthority: this.msolTokenAccountAuthority,
+      getBsolFrom: this.bsolTokenAccount,
+      getBsolFromAuthority: this.bsolTokenAccountAuthority,
+      epochReportAccount: epochReportAccountAddress,
+      treasury: this.config.treasury,
+      systemProgram: SystemProgram.programId,
+    };
+
+    return this.program.methods
+      .initEpochReport(new BN(0))
+      .accounts(accounts)
+      .rpc();
+  }
+
+  public async getEpochReport(): Promise<EpochReportAccount> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
+    const { account } = await getEpochReportAccount(this.config, this.program);
+
+    // The update authority must create the epoch report account for this sunrise state instance
+    if (!account) throw new Error("Epoch report account not found");
+
+    return account;
+  }
+
   public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
       !this.marinadeState ||
@@ -585,6 +809,8 @@ export class SunriseStakeClient {
 
     const liqPoolSolLegPda = await this.marinadeState.solLeg();
 
+    const [epochReportAccount] = findEpochReportAccount(this.config);
+
     const accounts: Accounts = {
       state: this.env.state,
       marinadeState: this.marinadeState.marinadeStateAddress,
@@ -601,6 +827,7 @@ export class SunriseStakeClient {
       getMsolFromAuthority: this.msolTokenAccountAuthority,
       getBsolFrom: this.bsolTokenAccount,
       getBsolFromAuthority: this.bsolTokenAccountAuthority,
+      epochReportAccount,
       treasury: this.config.treasury,
       systemProgram: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -620,7 +847,10 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction);
   }
 
-  public calculateWithdrawalFee(withdrawalLamports: BN, details: Details): BN {
+  public calculateWithdrawalFee(
+    withdrawalLamports: BN,
+    details: Details
+  ): WithdrawalFees {
     // Calculate how much can be withdrawn from the lp (without fee)
     const lpSolShare = details.lpDetails.lpSolShare;
     const preferredMinLiqPoolValue = new BN(
@@ -640,14 +870,53 @@ export class SunriseStakeClient {
       ? MARINADE_TICKET_RENT
       : 0;
 
-    if (amountBeingLiquidUnstaked.lte(ZERO)) return ZERO;
+    this.log("amount to order unstake: ", amountToOrderUnstake);
+    this.log("rent for order unstake: ", rentForOrderUnstakeTicket);
 
-    // Calculate the fee
-    return amountBeingLiquidUnstaked
-      .muln(3)
-      .divn(1000)
-      .addn(rentForOrderUnstakeTicket)
-      .addn(NETWORK_FEE);
+    const ticketFee = rentForOrderUnstakeTicket;
+
+    let totalFee = new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE);
+
+    if (amountBeingLiquidUnstaked.lte(ZERO)) {
+      return {
+        liquidUnstakeFee: ZERO,
+        ticketFee,
+        totalFee,
+      };
+    }
+
+    let marinadeUnstake: BN;
+
+    const msolValue = details.mpDetails.msolValue;
+    const bsolValue = details.bpDetails.bsolValue;
+
+    if (msolValue >= bsolValue) {
+      marinadeUnstake =
+        msolValue > amountBeingLiquidUnstaked
+          ? amountBeingLiquidUnstaked
+          : msolValue;
+    } else {
+      marinadeUnstake =
+        bsolValue > amountBeingLiquidUnstaked
+          ? new BN(0)
+          : amountBeingLiquidUnstaked.sub(bsolValue);
+    }
+
+    const blazeUnstake = amountBeingLiquidUnstaked.sub(marinadeUnstake);
+    const blazeUnstakeFee = blazeUnstake
+      .mul(details.bpDetails.solWithdrawalFee.numerator)
+      .div(details.bpDetails.solWithdrawalFee.denominator);
+
+    const marinadeUnstakeFee = marinadeUnstake.muln(3).divn(1000);
+    const liquidUnstakeFee = blazeUnstakeFee.add(marinadeUnstakeFee);
+
+    totalFee = totalFee.add(liquidUnstakeFee);
+
+    return {
+      liquidUnstakeFee,
+      ticketFee,
+      totalFee,
+    };
   }
 
   public async details(): Promise<Details> {
@@ -659,7 +928,7 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const epochInfoPromise = this.provider.connection.getEpochInfo();
+    const currentEpochPromise = this.provider.connection.getEpochInfo();
 
     const lpMintInfoPromise = this.marinadeState.lpMint.mintInfo();
     const lpMsolBalancePromise =
@@ -672,9 +941,9 @@ export class SunriseStakeClient {
 
     const balancesPromise = this.balance();
 
-    const [epochInfo, lpMintInfo, lpSolLegBalance, lpMsolBalance, balances] =
+    const [currentEpoch, lpMintInfo, lpSolLegBalance, lpMsolBalance, balances] =
       await Promise.all([
-        epochInfoPromise,
+        currentEpochPromise,
         lpMintInfoPromise,
         solLegBalancePromise,
         lpMsolBalancePromise,
@@ -723,19 +992,9 @@ export class SunriseStakeClient {
       msolLeg: this.marinadeState.mSolLeg.toBase58(),
     };
 
-    // find all inflight unstake tickets (WARNING: for the current and previous epoch only)
-    const config = this.config;
-    const inflight = await Promise.all(
-      [epochInfo.epoch, epochInfo.epoch - 1].map(async (epoch) =>
-        orders(config, this.program, BigInt(epoch)).then(
-          ({ managementAccount, tickets }) => ({
-            epoch: BigInt(epoch),
-            tickets: tickets.length,
-            totalOrderedLamports:
-              managementAccount.account?.totalOrderedLamports ?? ZERO,
-          })
-        )
-      )
+    const { account: epochReport } = await getEpochReportAccount(
+      this.config,
+      this.program
     );
 
     const stakePoolInfo = await getStakePoolAccount(
@@ -751,12 +1010,17 @@ export class SunriseStakeClient {
       pool: this.env.blaze.pool.toString(),
       bsolPrice,
       bsolValue,
+      solWithdrawalFee: {
+        numerator: stakePoolInfo.solWithdrawalFee.numerator,
+        denominator: stakePoolInfo.solWithdrawalFee.denominator,
+      },
     };
 
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
       balances,
-      epochInfo,
+      currentEpoch,
+      epochReport: epochReport ?? EMPTY_EPOCH_REPORT,
       stakerGSolTokenAccount: this.stakerGSolTokenAccount.toBase58(),
       sunriseStakeConfig: {
         gsolMint: this.config.gsolMint.toBase58(),
@@ -772,7 +1036,6 @@ export class SunriseStakeClient {
       mpDetails,
       lpDetails,
       bpDetails,
-      inflight,
     };
 
     const extractableYield =
@@ -906,7 +1169,7 @@ export class SunriseStakeClient {
     balances,
     mpDetails,
     lpDetails,
-    inflight,
+    epochReport,
     bpDetails,
   }: Omit<Details, "extractableYield">): BN {
     if (!this.marinadeState || !this.msolTokenAccount)
@@ -925,10 +1188,7 @@ export class SunriseStakeClient {
       .add(solValueOfLP)
       .add(solValueOfBSol);
 
-    const inflightTotal = inflight.reduce(
-      (acc, { totalOrderedLamports }) => acc.add(totalOrderedLamports),
-      ZERO
-    );
+    const inflightTotal = epochReport.totalOrderedLamports;
 
     const extractableSOLGross = totalSolValueStaked
       .add(inflightTotal)
@@ -969,6 +1229,8 @@ export class SunriseStakeClient {
       .then(confirm(client.provider.connection));
 
     await client.init();
+
+    await client.initEpochReport().then(confirm(client.provider.connection));
 
     return client;
   }
@@ -1091,6 +1353,90 @@ export class SunriseStakeClient {
       treasuryBalance,
       bsolBalance: bsolLamportsBalance.value,
     };
+  }
+
+  public async lockGSol(lamports: BN): Promise<Transaction> {
+    if (
+      !this.stakerGSolTokenAccount ||
+      !this.config ||
+      !this.marinade ||
+      !this.marinadeState
+    )
+      throw new Error("init not called");
+
+    const transaction = new Transaction();
+
+    const recoverInstruction = await this.recoverTickets();
+
+    if (recoverInstruction) {
+      transaction.add(recoverInstruction);
+    }
+
+    const lockTx = await lockGSol(
+      this.config,
+      this.program,
+      this.staker,
+      this.stakerGSolTokenAccount,
+      lamports
+    );
+
+    transaction.add(lockTx);
+
+    return transaction;
+  }
+
+  public async unlockGSol(): Promise<Transaction> {
+    if (
+      !this.stakerGSolTokenAccount ||
+      !this.config ||
+      !this.marinade ||
+      !this.marinadeState
+    )
+      throw new Error("init not called");
+
+    const transaction = new Transaction();
+
+    const currentEpoch = await this.provider.connection.getEpochInfo();
+
+    const recoverInstruction = await this.recoverTickets();
+
+    if (recoverInstruction) {
+      transaction.add(recoverInstruction);
+    }
+
+    const { lockAccount } = await this.getLockAccount();
+
+    if (!lockAccount) throw new Error("lock account not found");
+    if (!lockAccount.startEpoch || !lockAccount.updatedToEpoch)
+      throw new Error("lock account has not been locked?");
+
+    if (lockAccount.updatedToEpoch?.toNumber() < currentEpoch.epoch) {
+      const updateTx = await updateLockAccount(
+        this.config,
+        this.program,
+        this.staker
+      );
+
+      transaction.add(updateTx);
+    }
+
+    const unlockTx = await unlockGSol(
+      this.config,
+      this.program,
+      this.staker,
+      this.stakerGSolTokenAccount
+    );
+
+    transaction.add(unlockTx);
+
+    return transaction;
+  }
+
+  public async getLockAccount(): Promise<GetLockAccountResult> {
+    if (!this.stakerGSolTokenAccount || !this.config)
+      throw new Error("init not called");
+
+    return getLockAccount(this.config, this.program, this.staker);
   }
 
   public static async get(

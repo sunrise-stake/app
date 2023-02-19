@@ -39,10 +39,10 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
   return (
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
-        variant={ticket.ticketDue ? "primary" : "ticket"}
+        variant={ticket.ticketDue != null ? "primary" : "ticket"}
         className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem] items-center"
         onClick={() => {
-          if (ticket.ticketDue === undefined || !ticket.ticketDue) {
+          if (ticket.ticketDue === undefined || ticket.ticketDue == null) {
             console.log("Ticket is not due yet");
             setIsClicked((prevState) => !prevState);
             return;

@@ -55,11 +55,6 @@ pub struct SplWithdrawStake<'info> {
     pub state: Box<Account<'info, State>>,
     #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
-    #[account(
-        seeds = [state.key().as_ref(), seeds::GSOL_MINT_AUTHORITY],
-        bump = state.gsol_mint_authority_bump
-    )]
-    pub gsol_mint_authority: SystemAccount<'info>,
 
     pub user: Signer<'info>,
     #[account(
