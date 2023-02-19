@@ -70,7 +70,6 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
     ctx.accounts.lock_account.updated_to_epoch = Some(ctx.accounts.clock.epoch);
     ctx.accounts.lock_account.sunrise_yield_at_start =
         ctx.accounts.epoch_report_account.all_extractable_yield();
-    ctx.accounts.lock_account.yield_accrued_by_owner = 0;
     // TODO create or update NFT to 0:
 
     Ok(())

@@ -34,7 +34,7 @@ const LockedGSol: React.FC<LockedGSolProps> = ({
   const [isClicked, setIsClicked] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [needsUpdate] = useState(
-    () => lockDetails.updatedToEpoch.toNumber() >= currentEpoch.epoch
+    () => lockDetails.updatedToEpoch.toNumber() < currentEpoch.epoch
   );
 
   useEffect(() => {
