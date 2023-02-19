@@ -1,6 +1,6 @@
 import type BN from "bn.js";
 import { type Balance } from "../util";
-import { type EpochInfo } from "@solana/web3.js";
+import { type EpochInfo, type PublicKey } from "@solana/web3.js";
 import { type EpochReportAccount } from "./EpochReportAccount";
 
 export interface Details {
@@ -45,6 +45,14 @@ export interface Details {
       numerator: BN;
       denominator: BN;
     };
+  };
+  lockDetails?: {
+    amountLocked: BN;
+    startEpoch: BN;
+    updatedToEpoch: BN;
+    yield: BN;
+    lockAccount: PublicKey;
+    lockTokenAccount: PublicKey;
   };
 }
 

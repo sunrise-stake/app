@@ -31,6 +31,7 @@ import { DetailsBox } from "../components/DetailsBox";
 import TooltipPopover from "../components/TooltipPopover";
 import { tooltips } from "../utils/tooltips";
 import LockForm from "../components/LockForm";
+import LockedGSol from "../components/LockedGSol";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -139,6 +140,16 @@ export const StakeDashboard: FC = () => {
     },
     [client]
   );
+
+  const unlock = useCallback(async () => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
+    await client.unlockGSol();
+  }, [client]);
+
+  const updateLockAccount = useCallback(async () => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
+    await client.updateLockAccount();
+  }, [client]);
 
   return (
     <div style={{ maxWidth: "620px" }} className="mx-auto relative">
@@ -322,6 +333,17 @@ export const StakeDashboard: FC = () => {
             />
           );
         })}
+      </div>
+      <div className="relative z-10 flex flex-col gap-8 mb-8 justify-center">
+        {details?.lockDetails && (
+          <LockedGSol
+            lockDetails={details.lockDetails}
+            epochReport={details.epochReport}
+            currentEpoch={details.currentEpoch}
+            update={updateLockAccount}
+            unlock={unlock}
+          />
+        )}
       </div>
     </div>
   );
