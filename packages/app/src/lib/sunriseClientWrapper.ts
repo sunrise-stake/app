@@ -147,4 +147,23 @@ export class SunriseClientWrapper {
       .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
+
+  async unlockGSol(): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .unlockGSol()
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
+      .then(this.triggerUpdateAndReturn.bind(this));
+  }
+
+  async updateLockAccount(): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .updateLockAccount()
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx));
+  }
+
+  internal(): SunriseStakeClient {
+    return this.client;
+  }
 }

@@ -941,14 +941,23 @@ export class SunriseStakeClient {
 
     const balancesPromise = this.balance();
 
-    const [currentEpoch, lpMintInfo, lpSolLegBalance, lpMsolBalance, balances] =
-      await Promise.all([
-        currentEpochPromise,
-        lpMintInfoPromise,
-        solLegBalancePromise,
-        lpMsolBalancePromise,
-        balancesPromise,
-      ]);
+    const lockAccountPromise = await this.getLockAccount();
+
+    const [
+      currentEpoch,
+      lpMintInfo,
+      lpSolLegBalance,
+      lpMsolBalance,
+      balances,
+      lockAccountDetails,
+    ] = await Promise.all([
+      currentEpochPromise,
+      lpMintInfoPromise,
+      solLegBalancePromise,
+      lpMsolBalancePromise,
+      balancesPromise,
+      lockAccountPromise,
+    ]);
 
     const availableLiqPoolSolLegBalance = new BN(lpSolLegBalance).sub(
       this.marinadeState.state.rentExemptForTokenAcc
@@ -1016,6 +1025,21 @@ export class SunriseStakeClient {
       },
     };
 
+    const lockDetails: Details["lockDetails"] =
+      lockAccountDetails.lockAccount &&
+      lockAccountDetails.tokenAccount &&
+      lockAccountDetails.lockAccount.startEpoch &&
+      lockAccountDetails.lockAccount.updatedToEpoch
+        ? {
+            lockAccount: lockAccountDetails.lockAccountAddress,
+            lockTokenAccount: lockAccountDetails.tokenAccountAddress,
+            startEpoch: lockAccountDetails.lockAccount.startEpoch,
+            updatedToEpoch: lockAccountDetails.lockAccount.updatedToEpoch,
+            amountLocked: new BN(`${lockAccountDetails.tokenAccount.amount}`),
+            yield: lockAccountDetails.lockAccount.yieldAccruedByOwner,
+          }
+        : undefined;
+
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
       balances,
@@ -1036,6 +1060,7 @@ export class SunriseStakeClient {
       mpDetails,
       lpDetails,
       bpDetails,
+      lockDetails,
     };
 
     const extractableYield =
@@ -1385,19 +1410,16 @@ export class SunriseStakeClient {
     return transaction;
   }
 
-  public async unlockGSol(): Promise<Transaction> {
-    if (
-      !this.stakerGSolTokenAccount ||
-      !this.config ||
-      !this.marinade ||
-      !this.marinadeState
-    )
-      throw new Error("init not called");
+  public async updateLockAccount(): Promise<Transaction> {
+    if (!this.config) throw new Error("init not called");
 
     const transaction = new Transaction();
 
     const currentEpoch = await this.provider.connection.getEpochInfo();
 
+    // ensure all rebalance tickets are recovered before updating the yield on the lock account
+    // otherwise the calculations will be incorrect
+    // this will also update the epoch report to the current epoch if not already updated
     const recoverInstruction = await this.recoverTickets();
 
     if (recoverInstruction) {
@@ -1410,6 +1432,7 @@ export class SunriseStakeClient {
     if (!lockAccount.startEpoch || !lockAccount.updatedToEpoch)
       throw new Error("lock account has not been locked?");
 
+    // only update if the lock account has not been updated this epoch
     if (lockAccount.updatedToEpoch?.toNumber() < currentEpoch.epoch) {
       const updateTx = await updateLockAccount(
         this.config,
@@ -1419,6 +1442,16 @@ export class SunriseStakeClient {
 
       transaction.add(updateTx);
     }
+
+    return transaction;
+  }
+
+  public async unlockGSol(): Promise<Transaction> {
+    if (!this.config) throw new Error("init not called");
+    if (!this.stakerGSolTokenAccount) throw new Error("No stake found");
+
+    // Update a lock account if it has not been updated this epoch
+    const transaction = await this.updateLockAccount();
 
     const unlockTx = await unlockGSol(
       this.config,
