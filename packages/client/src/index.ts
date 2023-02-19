@@ -870,8 +870,13 @@ export class SunriseStakeClient {
       ? MARINADE_TICKET_RENT
       : 0;
 
-    this.log("amount to order unstake: ", amountToOrderUnstake);
-    this.log("rent for order unstake: ", rentForOrderUnstakeTicket);
+    this.log("withdrawal lamports: ", withdrawalLamports.toString());
+    this.log("lp sol share: ", lpSolShare.toString());
+    this.log("preferred min lp value: ", preferredMinLiqPoolValue.toString());
+    this.log("post unstake lp sol value: ", postUnstakeLpSolValue.toString());
+    this.log("amount to order unstake: ", amountToOrderUnstake.toString());
+    this.log("rent for order unstake: ", rentForOrderUnstakeTicket.toString());
+    this.log("amount being liquid unstaked: ", amountBeingLiquidUnstaked.toString())
 
     const ticketFee = rentForOrderUnstakeTicket;
 
@@ -911,6 +916,17 @@ export class SunriseStakeClient {
     const liquidUnstakeFee = blazeUnstakeFee.add(marinadeUnstakeFee);
 
     totalFee = totalFee.add(liquidUnstakeFee);
+
+    this.log("amountBeingLiquidUnstaked: ", amountBeingLiquidUnstaked.toString())
+    this.log("marinadeUnstake: ", marinadeUnstake.toString());
+    this.log("blazeUnstake: ", blazeUnstake.toString());
+
+    this.log("ticketFee: ", ticketFee.toString());
+    this.log("liquidUnstakeFee: ", liquidUnstakeFee.toString());
+    this.log("marinadeUnstakeFee: ", marinadeUnstakeFee.toString());
+    this.log("blazeUnstakeFee: ", blazeUnstakeFee.toString());
+
+    this.log("totalFee: ", totalFee.toString());
 
     return {
       liquidUnstakeFee,

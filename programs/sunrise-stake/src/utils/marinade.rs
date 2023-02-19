@@ -1,4 +1,4 @@
-use crate::instructions::{InitEpochReport, RecoverTickets};
+use crate::instructions::{InitEpochReport, RecoverMissedEpoch, RecoverTickets};
 use crate::{
     utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
     ClaimUnstakeTicket, Deposit, DepositStakeAccount, EpochReportAccount, ExtractToTreasury,
@@ -199,6 +199,26 @@ impl<'a> From<&RecoverTickets<'a>> for ClaimUnstakeTicketProperties<'a> {
         recover_tickets.to_owned().into()
     }
 }
+impl<'a> From<RecoverMissedEpoch<'a>> for ClaimUnstakeTicketProperties<'a> {
+    fn from(recover_missed_epoch: RecoverMissedEpoch<'a>) -> Self {
+        Self {
+            marinade_state: recover_missed_epoch.marinade_state,
+            reserve_pda: recover_missed_epoch.reserve_pda.to_account_info(),
+            transfer_sol_to: recover_missed_epoch.get_msol_from_authority.to_account_info(),
+            // Temporary and will be overwritten
+            // TODO clean up
+            ticket_account: recover_missed_epoch.marinade_program.to_account_info(),
+            marinade_program: recover_missed_epoch.marinade_program,
+            clock: recover_missed_epoch.clock,
+            system_program: recover_missed_epoch.system_program,
+        }
+    }
+}
+impl<'a> From<&RecoverMissedEpoch<'a>> for ClaimUnstakeTicketProperties<'a> {
+    fn from(recover_missed_epoch: &RecoverMissedEpoch<'a>) -> Self {
+        recover_missed_epoch.to_owned().into()
+    }
+}
 
 pub fn deposit(accounts: &Deposit, lamports: u64) -> Result<()> {
     let cpi_program = accounts.marinade_program.to_account_info();
@@ -360,6 +380,29 @@ impl<'a> From<RecoverTickets<'a>> for AddLiquidityProperties<'a> {
 impl<'a> From<&RecoverTickets<'a>> for AddLiquidityProperties<'a> {
     fn from(recover_tickets: &RecoverTickets<'a>) -> Self {
         recover_tickets.to_owned().into()
+    }
+}
+
+impl<'a> From<RecoverMissedEpoch<'a>> for AddLiquidityProperties<'a> {
+    fn from(recover_missed_epoch: RecoverMissedEpoch<'a>) -> Self {
+        Self {
+            state: recover_missed_epoch.state,
+            marinade_state: recover_missed_epoch.marinade_state,
+            liq_pool_mint: recover_missed_epoch.liq_pool_mint,
+            liq_pool_mint_authority: recover_missed_epoch.liq_pool_mint_authority,
+            liq_pool_sol_leg_pda: recover_missed_epoch.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: recover_missed_epoch.liq_pool_msol_leg,
+            transfer_from: recover_missed_epoch.get_msol_from_authority.to_account_info(),
+            mint_liq_pool_to: recover_missed_epoch.liq_pool_token_account,
+            system_program: recover_missed_epoch.system_program,
+            token_program: recover_missed_epoch.token_program,
+            marinade_program: recover_missed_epoch.marinade_program,
+        }
+    }
+}
+impl<'a> From<&RecoverMissedEpoch<'a>> for AddLiquidityProperties<'a> {
+    fn from(recover_missed_epoch: &RecoverMissedEpoch<'a>) -> Self {
+        recover_missed_epoch.to_owned().into()
     }
 }
 

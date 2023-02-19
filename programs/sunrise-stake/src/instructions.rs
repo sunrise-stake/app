@@ -15,6 +15,7 @@ mod unlock_gsol;
 mod update_lock_account;
 mod update_metadata;
 mod update_state;
+mod recover_missed_epoch;
 
 pub use claim_unstake_ticket::*;
 pub use create_metadata::*;
@@ -33,3 +34,4 @@ pub use unlock_gsol::*;
 pub use update_lock_account::*;
 pub use update_metadata::*;
 pub use update_state::*;
+pub use recover_missed_epoch::*;

@@ -5,8 +5,7 @@ import { SystemProgram } from "@solana/web3.js";
 import {
   IDL,
   SunriseStake,
-} from "@sunrisestake/app/src/lib/client/types/sunrise_stake";
-import { PROGRAM_ID } from "@sunrisestake/app/src/lib/client/util";
+} from "../client/types/sunrise_stake";
 import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
 
 /**

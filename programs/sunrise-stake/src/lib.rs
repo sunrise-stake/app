@@ -61,6 +61,12 @@ pub mod sunrise_stake {
         recover_tickets_handler(ctx)
     }
 
+    pub fn recover_missed_epoch<'info>(
+        ctx: Context<'_, '_, '_, 'info, RecoverMissedEpoch<'info>>,
+    ) -> Result<()> {
+        recover_missed_epoch_handler(ctx)
+    }
+
     pub fn extract_to_treasury(ctx: Context<ExtractToTreasury>) -> Result<()> {
         extract_to_treasury_handler(ctx)
     }
