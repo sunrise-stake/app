@@ -95,11 +95,27 @@ pub mod sunrise_stake {
     ////////////////////////////
     // LOCK FUNCTIONS
     ////////////////////////////
+    pub fn init_lock_account<'info>(
+        ctx: Context<'_, '_, '_, 'info, InitLockAccount<'info>>,
+    ) -> Result<()> {
+        init_lock_account_handler(ctx)
+    }
+
+    pub fn update_lock_account<'info>(
+        ctx: Context<'_, '_, '_, 'info, UpdateLockAccount<'info>>,
+    ) -> Result<()> {
+        update_lock_account_handler(ctx)
+    }
+
     pub fn lock_gsol<'info>(
         ctx: Context<'_, '_, '_, 'info, LockGSol<'info>>,
         lamports: u64,
     ) -> Result<()> {
         lock_gsol_handler(ctx, lamports)
+    }
+
+    pub fn unlock_gsol<'info>(ctx: Context<'_, '_, '_, 'info, UnlockGSol<'info>>) -> Result<()> {
+        unlock_gsol_handler(ctx)
     }
 
     ////////////////////////////

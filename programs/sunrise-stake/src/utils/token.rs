@@ -122,3 +122,34 @@ pub fn transfer_to<'a>(
     let cpi_ctx = CpiContext::new(cpi_program, accounts);
     token::transfer(cpi_ctx, amount)
 }
+
+#[allow(clippy::too_many_arguments)]
+pub fn transfer_to_signed<'a>(
+    amount: u64,
+    authority: &AccountInfo<'a>,
+    source_token_account: &AccountInfo<'a>,
+    recipient: &AccountInfo<'a>,
+    recipient_token_account: &AccountInfo<'a>,
+    token_program: &AccountInfo<'a>,
+    state: &Account<'a, State>,
+    seed: &[u8],
+    authority_pda_bump: u8,
+) -> Result<()> {
+    let state_address = state.key();
+    let seeds = &[
+        state_address.as_ref(),
+        seed,
+        recipient.key.as_ref(),
+        &[authority_pda_bump],
+    ];
+    let pda_signer = &[&seeds[..]];
+
+    let cpi_program = token_program.clone();
+    let accounts = token::Transfer {
+        from: source_token_account.clone(),
+        to: recipient_token_account.clone(),
+        authority: authority.clone(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, accounts).with_signer(pda_signer);
+    token::transfer(cpi_ctx, amount)
+}

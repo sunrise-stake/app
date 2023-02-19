@@ -9,7 +9,6 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import {
-  findAllTickets,
   findBSolTokenAccountAuthority,
   findEpochReportAccount,
   findGSolMintAuthority,
@@ -18,14 +17,18 @@ import {
   getValidatorIndex,
   type SunriseStakeConfig,
 } from "./util";
-import {type Marinade, type MarinadeState, MarinadeUtils,} from "@sunrisestake/marinade-ts-sdk";
-import {type Program, utils} from "@project-serum/anchor";
-import {type BlazeState} from "./types/Solblaze";
-import {type SunriseStake} from "./types/sunrise_stake";
-import {TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import {
+  type Marinade,
+  type MarinadeState,
+  MarinadeUtils,
+} from "@sunrisestake/marinade-ts-sdk";
+import { type Program, utils } from "@project-serum/anchor";
+import { type BlazeState } from "./types/Solblaze";
+import { type SunriseStake } from "./types/sunrise_stake";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
-import {type EpochReportAccount} from "./types/EpochReportAccount";
-import {STAKE_POOL_PROGRAM_ID} from "./constants";
+import { type EpochReportAccount } from "./types/EpochReportAccount";
+import { STAKE_POOL_PROGRAM_ID } from "./constants";
 
 export const deposit = async (
   config: SunriseStakeConfig,
@@ -264,101 +267,6 @@ export const liquidUnstake = async (
     .liquidUnstake(lamports)
     .accounts(accounts)
     .transaction();
-};
-
-// Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
-// Note, even if there are no tickets to recover, if the epoch report references the previous epoch
-// we call this instruction anyway as part of triggerRebalance, to update the epoch.
-export const recoverTickets = async (
-  config: SunriseStakeConfig,
-  marinade: Marinade,
-  marinadeState: MarinadeState,
-  program: Program<SunriseStake>,
-  payer: PublicKey
-): Promise<TransactionInstruction | null> => {
-  const sunriseStakeState = await program.account.state.fetch(
-    config.stateAddress
-  );
-  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
-  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
-  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
-    {
-      mint: marinadeState.mSolMintAddress,
-      owner: msolTokenAccountAuthority,
-    }
-  );
-  const liqPoolAssociatedTokenAccountAddress =
-    await utils.token.associatedAddress({
-      mint: marinadeState.lpMint.address,
-      owner: msolTokenAccountAuthority,
-    });
-
-  // check the most recent epoch report account
-  // if it is not for the current epoch, then we may need to recover tickets
-  const { address: epochReportAccountAddress, account: epochReport } =
-    await getEpochReportAccount(config, program);
-  const currentEpoch = await program.provider.connection.getEpochInfo();
-
-  if (!epochReport) {
-    // no epoch report account found at all - something went wrong
-    throw new Error("No epoch report account found during recoverTickets");
-  }
-
-  if (currentEpoch.epoch === epochReport.epoch.toNumber()) {
-    // nothing to do here - the report account is for the current epoch, so we cannot recover any tickets yet
-    return null;
-  }
-
-  // get a list of all the open delayed unstake tickets that can now be recovered
-  const previousEpochTickets = await findAllTickets(
-    program.provider.connection,
-    config,
-    // change BigInt(1) to 1n when we target ES2020 in tsconfig.json
-    BigInt(epochReport.epoch.toString()),
-    epochReport.tickets.toNumber()
-  );
-
-  const previousEpochTicketAccountMetas = previousEpochTickets.map(
-    (ticket) => ({
-      pubkey: ticket,
-      isSigner: false,
-      isWritable: true,
-    })
-  );
-
-  type Accounts = Parameters<
-    ReturnType<typeof program.methods.recoverTickets>["accounts"]
-  >[0];
-
-  const accounts: Accounts = {
-    state: config.stateAddress,
-    payer,
-    marinadeState: marinadeState.marinadeStateAddress,
-    gsolMint: sunriseStakeState.gsolMint,
-    msolMint: marinadeState.mSolMint.address,
-    liqPoolMint: marinadeState.lpMint.address,
-    liqPoolMintAuthority: await marinadeState.lpMintAuthority(),
-    liqPoolSolLegPda: await marinadeState.solLeg(),
-    liqPoolMsolLeg: marinadeState.mSolLeg,
-    liqPoolMsolLegAuthority: await marinadeState.mSolLegAuthority(),
-    liqPoolTokenAccount: liqPoolAssociatedTokenAccountAddress,
-    reservePda: await marinadeState.reserveAddress(),
-    treasuryMsolAccount: marinadeState.treasuryMsolAccount,
-    getMsolFrom: msolAssociatedTokenAccountAddress,
-    getMsolFromAuthority: msolTokenAccountAuthority,
-    epochReportAccount: epochReportAccountAddress,
-    systemProgram: SystemProgram.programId,
-    tokenProgram: TOKEN_PROGRAM_ID,
-    clock: SYSVAR_CLOCK_PUBKEY,
-    rent: SYSVAR_RENT_PUBKEY,
-    marinadeProgram,
-  };
-
-  return program.methods
-      .recoverTickets()
-      .accounts(accounts)
-      .remainingAccounts(previousEpochTicketAccountMetas)
-      .instruction();
 };
 
 export interface TriggerRebalanceResult {

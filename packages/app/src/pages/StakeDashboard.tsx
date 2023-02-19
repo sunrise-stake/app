@@ -235,7 +235,7 @@ export const StakeDashboard: FC = () => {
           <div className="flex flex-row justify-between items-center">
             <img
               src={`gSOL.png`}
-                alt="gSOL"
+              alt="gSOL"
               className="h-8 my-auto pr-2 hidden sm:block"
             />
             <div className="mx-auto sm:mx-0 items-center">
@@ -260,7 +260,11 @@ export const StakeDashboard: FC = () => {
         </InfoBox>
         <InfoBox className="py-2 px-4 rounded text-center">
           <div className="flex flex-row justify-between items-center">
-            <img src={`SOL.png`} className="h-8 my-auto pr-2 hidden sm:block" alt="sol"/>
+            <img
+              src={`SOL.png`}
+              className="h-8 my-auto pr-2 hidden sm:block"
+              alt="sol"
+            />
             <div className="mx-auto sm:mx-0 items-center">
               <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
                 <span className="font-bold text-sm sm:text-lg">

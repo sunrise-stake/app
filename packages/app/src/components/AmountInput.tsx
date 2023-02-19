@@ -98,7 +98,11 @@ const AmountInput: React.FC<AmountInputProps> = ({
             </button>
           </div>
           <div className="flex">
-            <img src={`${token}.png`} className="h-12 my-auto pr-2" alt="token"/>
+            <img
+              src={`${token}.png`}
+              className="h-12 my-auto pr-2"
+              alt="token"
+            />
             <input
               className="appearance-textfield grow w-full border-none bg-transparent text-3xl text-right"
               type="number"

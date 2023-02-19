@@ -17,6 +17,7 @@ pub struct ExtractToTreasury<'info> {
     has_one = treasury,
     has_one = marinade_state,
     has_one = blaze_state,
+    has_one = gsol_mint
     )]
     pub state: Box<Account<'info, State>>,
 
@@ -26,8 +27,8 @@ pub struct ExtractToTreasury<'info> {
     #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
-    /// CHECK: Checked
-    pub blaze_state: AccountInfo<'info>,
+    /// CHECK: Must match state
+    pub blaze_state: UncheckedAccount<'info>,
 
     #[account(mut)]
     pub msol_mint: Box<Account<'info, Mint>>,
@@ -40,7 +41,7 @@ pub struct ExtractToTreasury<'info> {
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub liq_pool_sol_leg_pda: AccountInfo<'info>,
+    pub liq_pool_sol_leg_pda: UncheckedAccount<'info>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
@@ -91,7 +92,7 @@ pub struct ExtractToTreasury<'info> {
     #[account(
     mut,
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
-    bump,
+    bump = epoch_report_account.bump,
     constraint = epoch_report_account.epoch == clock.epoch @ ErrorCode::InvalidEpochReportAccount
     )]
     pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
@@ -111,6 +112,7 @@ pub fn extract_to_treasury_handler(ctx: Context<ExtractToTreasury>) -> Result<()
     ctx.accounts
         .epoch_report_account
         .add_extracted_yield(extractable_yield);
+    ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
 
     let extractable_yield_msol =
         marinade::calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), extractable_yield)?;

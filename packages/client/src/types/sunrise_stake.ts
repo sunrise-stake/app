@@ -703,8 +703,18 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "blazeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "msolMint",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -750,6 +760,16 @@ export type SunriseStake = {
         {
           "name": "getMsolFromAuthority",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFromAuthority",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1417,6 +1437,118 @@ export type SunriseStake = {
       ]
     },
     {
+      "name": "initLockAccount",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lockAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lockGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateLockAccount",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lockAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lockGsolAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "lockGsol",
       "accounts": [
         {
@@ -1486,6 +1618,72 @@ export type SunriseStake = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "unlockGsol",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lockAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "targetGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lockGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "registerState",
@@ -1960,6 +2158,10 @@ export type SunriseStake = {
           {
             "name": "currentGsolSupply",
             "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -1983,11 +2185,27 @@ export type SunriseStake = {
           },
           {
             "name": "startEpoch",
-            "type": "u64"
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "updatedToEpoch",
+            "type": {
+              "option": "u64"
+            }
           },
           {
             "name": "sunriseYieldAtStart",
             "type": "u64"
+          },
+          {
+            "name": "yieldAccruedByOwner",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -2099,6 +2317,41 @@ export type SunriseStake = {
       "code": 6011,
       "name": "LockInsufficientBalance",
       "msg": "The source gsol account does not have the required balance to lock"
+    },
+    {
+      "code": 6012,
+      "name": "LockAccountIncorrectState",
+      "msg": "The state of the lock account does not match the state in the instruction"
+    },
+    {
+      "code": 6013,
+      "name": "LockAccountIncorrectOwner",
+      "msg": "The owner of the lock account does not match the authority in the instruction"
+    },
+    {
+      "code": 6014,
+      "name": "LockAccountIncorrectTokenAccount",
+      "msg": "The lock token account does not match the token account in the lock account"
+    },
+    {
+      "code": 6015,
+      "name": "LockAccountAlreadyLocked",
+      "msg": "The lock account has already been locked - unlock before re-locking"
+    },
+    {
+      "code": 6016,
+      "name": "LockAccountNotLocked",
+      "msg": "The lock account has not been locked yet - lock before unlocking or updating"
+    },
+    {
+      "code": 6017,
+      "name": "LockAccountNotUpdated",
+      "msg": "The lock account must be updated to the current epoch before it can be unlocked"
+    },
+    {
+      "code": 6018,
+      "name": "LockAccountAlreadyUpdated",
+      "msg": "The lock account has already been updated to the current epoch. Cannot update twice in the same epoch."
     }
   ]
 };
@@ -2808,8 +3061,18 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "blazeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "msolMint",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bsolMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2855,6 +3118,16 @@ export const IDL: SunriseStake = {
         {
           "name": "getMsolFromAuthority",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFromAuthority",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -3522,6 +3795,118 @@ export const IDL: SunriseStake = {
       ]
     },
     {
+      "name": "initLockAccount",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lockAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lockGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateLockAccount",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lockAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lockGsolAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "lockGsol",
       "accounts": [
         {
@@ -3591,6 +3976,72 @@ export const IDL: SunriseStake = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "unlockGsol",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lockAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "targetGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lockGsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "registerState",
@@ -4065,6 +4516,10 @@ export const IDL: SunriseStake = {
           {
             "name": "currentGsolSupply",
             "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -4088,11 +4543,27 @@ export const IDL: SunriseStake = {
           },
           {
             "name": "startEpoch",
-            "type": "u64"
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "updatedToEpoch",
+            "type": {
+              "option": "u64"
+            }
           },
           {
             "name": "sunriseYieldAtStart",
             "type": "u64"
+          },
+          {
+            "name": "yieldAccruedByOwner",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -4204,6 +4675,41 @@ export const IDL: SunriseStake = {
       "code": 6011,
       "name": "LockInsufficientBalance",
       "msg": "The source gsol account does not have the required balance to lock"
+    },
+    {
+      "code": 6012,
+      "name": "LockAccountIncorrectState",
+      "msg": "The state of the lock account does not match the state in the instruction"
+    },
+    {
+      "code": 6013,
+      "name": "LockAccountIncorrectOwner",
+      "msg": "The owner of the lock account does not match the authority in the instruction"
+    },
+    {
+      "code": 6014,
+      "name": "LockAccountIncorrectTokenAccount",
+      "msg": "The lock token account does not match the token account in the lock account"
+    },
+    {
+      "code": 6015,
+      "name": "LockAccountAlreadyLocked",
+      "msg": "The lock account has already been locked - unlock before re-locking"
+    },
+    {
+      "code": 6016,
+      "name": "LockAccountNotLocked",
+      "msg": "The lock account has not been locked yet - lock before unlocking or updating"
+    },
+    {
+      "code": 6017,
+      "name": "LockAccountNotUpdated",
+      "msg": "The lock account must be updated to the current epoch before it can be unlocked"
+    },
+    {
+      "code": 6018,
+      "name": "LockAccountAlreadyUpdated",
+      "msg": "The lock account has already been updated to the current epoch. Cannot update twice in the same epoch."
     }
   ]
 };

@@ -7,7 +7,10 @@ export interface LockAccount {
   authority: PublicKey;
   lockTokenAccount: PublicKey;
 
-  startEpoch: BN;
+  startEpoch: BN | null;
+
+  updatedToEpoch: BN | null;
 
   sunriseYieldAtStart: BN;
+  yieldAccruedByOwner: BN;
 }

@@ -26,4 +26,18 @@ pub enum ErrorCode {
     RemainingUnclaimableTicketAmount,
     #[msg("The source gsol account does not have the required balance to lock")]
     LockInsufficientBalance,
+    #[msg("The state of the lock account does not match the state in the instruction")]
+    LockAccountIncorrectState,
+    #[msg("The owner of the lock account does not match the authority in the instruction")]
+    LockAccountIncorrectOwner,
+    #[msg("The lock token account does not match the token account in the lock account")]
+    LockAccountIncorrectTokenAccount,
+    #[msg("The lock account has already been locked - unlock before re-locking")]
+    LockAccountAlreadyLocked,
+    #[msg("The lock account has not been locked yet - lock before unlocking or updating")]
+    LockAccountNotLocked,
+    #[msg("The lock account must be updated to the current epoch before it can be unlocked")]
+    LockAccountNotUpdated,
+    #[msg("The lock account has already been updated to the current epoch. Cannot update twice in the same epoch.")]
+    LockAccountAlreadyUpdated,
 }

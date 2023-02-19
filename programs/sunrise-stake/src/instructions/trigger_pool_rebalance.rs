@@ -36,11 +36,11 @@ pub struct TriggerPoolRebalance<'info> {
     pub liq_pool_mint: Box<Account<'info, Mint>>,
 
     /// CHECK: Checked in marinade program
-    pub liq_pool_mint_authority: AccountInfo<'info>,
+    pub liq_pool_mint_authority: UncheckedAccount<'info>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub liq_pool_sol_leg_pda: AccountInfo<'info>,
+    pub liq_pool_sol_leg_pda: UncheckedAccount<'info>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
@@ -95,7 +95,7 @@ pub struct TriggerPoolRebalance<'info> {
     #[account(
     mut,
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
-    bump,
+    bump = epoch_report_account.bump,
     constraint = epoch == clock.epoch
     )]
     pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
@@ -143,6 +143,7 @@ pub fn trigger_pool_rebalance_handler<'info>(
         ctx.accounts
             .epoch_report_account
             .add_ticket(amounts.amount_to_order_delayed_unstake, &ctx.accounts.clock)?;
+        ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
     }
 
     Ok(())

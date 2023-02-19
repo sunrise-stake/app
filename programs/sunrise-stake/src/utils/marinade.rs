@@ -32,7 +32,7 @@ pub struct GenericUnstakeProperties<'info> {
     marinade_state: Box<Account<'info, MarinadeState>>,
     msol_mint: Box<Account<'info, Mint>>,
     /// CHECK: Checked in marinade program
-    liq_pool_sol_leg_pda: AccountInfo<'info>,
+    liq_pool_sol_leg_pda: UncheckedAccount<'info>,
     liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
     /// CHECK: Checked in marinade program
     treasury_msol_account: Box<Account<'info, TokenAccount>>,
@@ -307,9 +307,9 @@ pub struct AddLiquidityProperties<'info> {
     marinade_state: Box<Account<'info, MarinadeState>>,
     liq_pool_mint: Box<Account<'info, Mint>>,
     /// CHECK: Checked in marinade program
-    liq_pool_mint_authority: AccountInfo<'info>,
+    liq_pool_mint_authority: UncheckedAccount<'info>,
     /// CHECK: Checked in marinade program
-    liq_pool_sol_leg_pda: AccountInfo<'info>,
+    liq_pool_sol_leg_pda: UncheckedAccount<'info>,
     liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
     /// CHECK: Checked in marinade program
     transfer_from: AccountInfo<'info>,
@@ -471,10 +471,10 @@ pub fn calc_lamports_from_msol_amount(
 
 pub struct CalculateExtractableYieldProperties<'info> {
     marinade_state: Box<Account<'info, MarinadeState>>,
-    blaze_state: AccountInfo<'info>,
+    blaze_state: UncheckedAccount<'info>,
     gsol_mint: Box<Account<'info, Mint>>,
     liq_pool_mint: Box<Account<'info, Mint>>,
-    liq_pool_sol_leg_pda: AccountInfo<'info>,
+    liq_pool_sol_leg_pda: UncheckedAccount<'info>,
     liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
     liq_pool_token_account: Box<Account<'info, TokenAccount>>,
     get_msol_from: Box<Account<'info, TokenAccount>>,
@@ -520,6 +520,26 @@ impl<'a> From<&InitEpochReport<'a>> for CalculateExtractableYieldProperties<'a> 
         extract_to_treasury.to_owned().into()
     }
 }
+impl<'a> From<RecoverTickets<'a>> for CalculateExtractableYieldProperties<'a> {
+    fn from(recover_tickets: RecoverTickets<'a>) -> Self {
+        Self {
+            marinade_state: recover_tickets.marinade_state,
+            blaze_state: recover_tickets.blaze_state,
+            gsol_mint: recover_tickets.gsol_mint,
+            liq_pool_mint: recover_tickets.liq_pool_mint,
+            liq_pool_sol_leg_pda: recover_tickets.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: recover_tickets.liq_pool_msol_leg,
+            liq_pool_token_account: recover_tickets.liq_pool_token_account,
+            get_msol_from: recover_tickets.get_msol_from,
+            get_bsol_from: recover_tickets.get_bsol_from,
+        }
+    }
+}
+impl<'a> From<&RecoverTickets<'a>> for CalculateExtractableYieldProperties<'a> {
+    fn from(recover_tickets: &RecoverTickets<'a>) -> Self {
+        recover_tickets.to_owned().into()
+    }
+}
 /// Calculate the current recoverable yield (in msol) from marinade.
 /// Recoverable yield is defined as the sol value of the msol + lp tokens
 /// that are not matched by gsol
@@ -546,9 +566,7 @@ pub fn calculate_extractable_yield(accounts: &CalculateExtractableYieldPropertie
         .expect("total_staked_value");
 
     let gsol_supply = accounts.gsol_mint.supply;
-    let total_extractable_yield = total_staked_value
-        .checked_sub(gsol_supply)
-        .expect("total_extractable_yield");
+    let total_extractable_yield = total_staked_value.saturating_sub(gsol_supply);
 
     // TODO Remove when no longer debugging
     msg!("lp_value: {}", lp_value);
@@ -757,7 +775,7 @@ pub struct PoolBalanceProperties<'info> {
     gsol_mint: Box<Account<'info, Mint>>,
     liq_pool_mint: Box<Account<'info, Mint>>,
     /// CHECK: Checked in marinade program
-    liq_pool_sol_leg_pda: AccountInfo<'info>,
+    liq_pool_sol_leg_pda: UncheckedAccount<'info>,
     liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
     liq_pool_token_account: Box<Account<'info, TokenAccount>>,
     epoch_report_account: Option<Account<'info, EpochReportAccount>>,

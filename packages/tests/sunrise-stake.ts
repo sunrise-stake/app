@@ -28,25 +28,23 @@ import {
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
+import {
+  blazeDepositLamports,
+  blazeUnstakeLamports,
+  burnLamports,
+  depositLamports,
+  lockLamports,
+  marinadeStakeDeposit,
+  orderUnstakeLamports,
+  unstakeLamportsExceedLPBalance,
+  unstakeLamportsUnderLPBalance,
+} from "./constants";
 
 chai.use(chaiAsPromised);
 
 const { expect } = chai;
 describe("sunrise-stake", () => {
   let client: SunriseStakeClient;
-
-  const depositLamports = new BN(100 * LAMPORTS_PER_SOL); // Deposit 100 SOL
-  const unstakeLamportsUnderLPBalance = new BN(LAMPORTS_PER_SOL); // 1 SOL
-  const unstakeLamportsExceedLPBalance = new BN(20 * LAMPORTS_PER_SOL); // 20 SOL
-  const orderUnstakeLamports = new BN(2 * LAMPORTS_PER_SOL); // Order a delayed unstake of 2 SOL
-  const burnLamports = 100 * LAMPORTS_PER_SOL;
-
-  const lockLamports = new BN(LAMPORTS_PER_SOL); // Lock 1 SOL
-
-  const blazeDepositLamports = new BN(100 * LAMPORTS_PER_SOL);
-  const blazeUnstakeLamports = new BN(60 * LAMPORTS_PER_SOL);
-  const marinadeStakeDeposit = new BN(100 * LAMPORTS_PER_SOL);
-
   let updateAuthority: Keypair;
   let delayedUnstakeTicket: TicketAccount;
 
@@ -167,6 +165,41 @@ describe("sunrise-stake", () => {
 
   it("can lock sol", async () => {
     await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
+
+    // the gsol balance has dropped by the amount locked
+    const balance = await client.balance();
+    expect(Number(balance.gsolBalance.amount)).to.equal(
+      depositLamports.sub(lockLamports).toNumber()
+    );
+  });
+
+  it("cannot re-lock", async () => {
+    const shouldFail = client.sendAndConfirmTransaction(
+      await client.lockGSol(lockLamports)
+    );
+
+    return expect(shouldFail).to.be.rejected;
+  });
+
+  it("can unlock sol", async () => {
+    await client.sendAndConfirmTransaction(await client.unlockGSol());
+
+    // the gsol balance has gone back to the original value
+    const balance = await client.balance();
+    expect(Number(balance.gsolBalance.amount)).to.equal(
+      depositLamports.toNumber()
+    );
+  });
+
+  it("can lock and unlock again", async () => {
+    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
+    await client.sendAndConfirmTransaction(await client.unlockGSol());
+
+    // the gsol balance remained as it was
+    const balance = await client.balance();
+    expect(Number(balance.gsolBalance.amount)).to.equal(
+      depositLamports.toNumber()
+    );
   });
 
   it("can deposit to blaze", async () => {
@@ -211,6 +244,10 @@ describe("sunrise-stake", () => {
     );
 
     await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
+  });
+
+  it("locks sol for the next epoch", async () => {
+    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
   });
 
   it("no yield to extract yet", async () => {
@@ -503,13 +540,31 @@ describe("sunrise-stake", () => {
     await expect(client.extractYield()).to.be.rejected;
   });
 
-  it("can update the epoch report account with a triggerRebalance (including a recoverTickets call)", async () => {
-    await client.triggerRebalance();
+  it("can unlock sol (including a recoverTickets call)", async () => {
+    await client.sendAndConfirmTransaction(await client.unlockGSol());
 
+    // the epoch report has now been updated to the current epoch
     const currentEpoch = await client.provider.connection.getEpochInfo();
     const details = await client.details();
-
     expect(details.epochReport.epoch.toNumber()).to.equal(currentEpoch.epoch);
+
+    // and the lock account for the user has been updated to add the yield that their locked gsol accrued
+    const { lockAccount } = await client.getLockAccount();
+
+    // calculate the expected locked yield:
+    // yield accrued
+    const expectedYield = details.extractableYield; // new BN(burnLamports).muln(997).divn(1000);
+    // locked amount as a proportion of the total supply:
+    const lockedProportion =
+      lockLamports.toNumber() / Number(details.balances.gsolSupply.amount);
+    // expected yield * locked proportion
+    const expectedLockedYield = expectedYield.toNumber() * lockedProportion;
+
+    console.log("locked proportion", lockedProportion);
+    console.log("expected yield", expectedYield.toString());
+    console.log("expected locked yield", expectedLockedYield);
+
+    expectAmount(lockAccount!.yieldAccruedByOwner, expectedLockedYield, 50);
   });
 
   it("can extract earned yield", async () => {

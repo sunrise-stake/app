@@ -8,12 +8,14 @@ import {
   type Signer,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
+  SYSVAR_RENT_PUBKEY,
   Transaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
 import {
   type Balance,
   confirm,
+  findAllTickets,
   findBSolTokenAccountAuthority,
   findEpochReportAccount,
   findGSolMintAuthority,
@@ -60,7 +62,6 @@ import {
   liquidUnstake,
   triggerRebalance,
   getEpochReportAccount,
-  recoverTickets,
 } from "./marinade";
 import {
   blazeDeposit,
@@ -72,7 +73,13 @@ import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 import { toSol } from "@sunrisestake/app/src/lib/util";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
-import { lockGSol } from "./lock";
+import {
+  getLockAccount,
+  type GetLockAccountResult,
+  lockGSol,
+  unlockGSol,
+  updateLockAccount,
+} from "./lock";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
@@ -402,6 +409,95 @@ export class SunriseStakeClient {
     return transaction;
   }
 
+  // Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
+  // Note, even if there are no tickets to recover, if the epoch report references the previous epoch
+  // we call this instruction anyway as part of triggerRebalance, to update the epoch.
+  async recoverTickets(): Promise<TransactionInstruction | null> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.msolTokenAccount ||
+      !this.bsolTokenAccount ||
+      !this.stakerGSolTokenAccount ||
+      !this.blazeState
+    )
+      throw new Error("init not called");
+
+    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
+
+    // check the most recent epoch report account
+    // if it is not for the current epoch, then we may need to recover tickets
+    const { address: epochReportAccountAddress, account: epochReport } =
+      await getEpochReportAccount(this.config, this.program);
+    const currentEpoch = await this.program.provider.connection.getEpochInfo();
+
+    if (!epochReport) {
+      // no epoch report account found at all - something went wrong
+      throw new Error("No epoch report account found during recoverTickets");
+    }
+
+    if (currentEpoch.epoch === epochReport.epoch.toNumber()) {
+      // nothing to do here - the report account is for the current epoch, so we cannot recover any tickets yet
+      return null;
+    }
+
+    // get a list of all the open delayed unstake tickets that can now be recovered
+    const previousEpochTickets = await findAllTickets(
+      this.program.provider.connection,
+      this.config,
+      // change BigInt(1) to 1n when we target ES2020 in tsconfig.json
+      BigInt(epochReport.epoch.toString()),
+      epochReport.tickets.toNumber()
+    );
+
+    const previousEpochTicketAccountMetas = previousEpochTickets.map(
+      (ticket) => ({
+        pubkey: ticket,
+        isSigner: false,
+        isWritable: true,
+      })
+    );
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.recoverTickets>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.config.stateAddress,
+      payer: this.staker,
+      marinadeState: this.marinadeState.marinadeStateAddress,
+      blazeState: this.blazeState.pool,
+      gsolMint: this.config.gsolMint,
+      msolMint: this.marinadeState.mSolMint.address,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolMsolLegAuthority: await this.marinadeState.mSolLegAuthority(),
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      reservePda: await this.marinadeState.reserveAddress(),
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getMsolFromAuthority: this.msolTokenAccountAuthority,
+      getBsolFrom: this.bsolTokenAccount,
+      getBsolFromAuthority: this.bsolTokenAccountAuthority,
+      epochReportAccount: epochReportAccountAddress,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      clock: SYSVAR_CLOCK_PUBKEY,
+      rent: SYSVAR_RENT_PUBKEY,
+      marinadeProgram,
+    };
+
+    return this.program.methods
+      .recoverTickets()
+      .accounts(accounts)
+      .remainingAccounts(previousEpochTicketAccountMetas)
+      .instruction();
+  }
+
   /**
    * Trigger a rebalance without doing anything else.
    */
@@ -415,13 +511,7 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const recoverInstruction = await recoverTickets(
-      this.config,
-      this.marinade,
-      this.marinadeState,
-      this.program,
-      this.provider.publicKey
-    );
+    const recoverInstruction = await this.recoverTickets();
 
     const { instruction: rebalanceInstruction } = await triggerRebalance(
       this.config,
@@ -796,9 +886,6 @@ export class SunriseStakeClient {
     }
 
     let marinadeUnstake: BN;
-    let blazeUnstake: BN;
-    let marinadeUnstakeFee: BN;
-    let blazeUnstakeFee: BN;
 
     const msolValue = details.mpDetails.msolValue;
     const bsolValue = details.bpDetails.bsolValue;
@@ -815,12 +902,12 @@ export class SunriseStakeClient {
           : amountBeingLiquidUnstaked.sub(bsolValue);
     }
 
-    blazeUnstake = amountBeingLiquidUnstaked.sub(marinadeUnstake);
-    blazeUnstakeFee = blazeUnstake
+    const blazeUnstake = amountBeingLiquidUnstaked.sub(marinadeUnstake);
+    const blazeUnstakeFee = blazeUnstake
       .mul(details.bpDetails.solWithdrawalFee.numerator)
       .div(details.bpDetails.solWithdrawalFee.denominator);
 
-    marinadeUnstakeFee = marinadeUnstake.muln(3).divn(1000);
+    const marinadeUnstakeFee = marinadeUnstake.muln(3).divn(1000);
     const liquidUnstakeFee = blazeUnstakeFee.add(marinadeUnstakeFee);
 
     totalFee = totalFee.add(liquidUnstakeFee);
@@ -1279,19 +1366,13 @@ export class SunriseStakeClient {
 
     const transaction = new Transaction();
 
-    const recoverInstruction = await recoverTickets(
-      this.config,
-      this.marinade,
-      this.marinadeState,
-      this.program,
-      this.staker
-    );
+    const recoverInstruction = await this.recoverTickets();
 
     if (recoverInstruction) {
       transaction.add(recoverInstruction);
     }
 
-    const { transaction: lockTx } = await lockGSol(
+    const lockTx = await lockGSol(
       this.config,
       this.program,
       this.staker,
@@ -1302,6 +1383,60 @@ export class SunriseStakeClient {
     transaction.add(lockTx);
 
     return transaction;
+  }
+
+  public async unlockGSol(): Promise<Transaction> {
+    if (
+      !this.stakerGSolTokenAccount ||
+      !this.config ||
+      !this.marinade ||
+      !this.marinadeState
+    )
+      throw new Error("init not called");
+
+    const transaction = new Transaction();
+
+    const currentEpoch = await this.provider.connection.getEpochInfo();
+
+    const recoverInstruction = await this.recoverTickets();
+
+    if (recoverInstruction) {
+      transaction.add(recoverInstruction);
+    }
+
+    const { lockAccount } = await this.getLockAccount();
+
+    if (!lockAccount) throw new Error("lock account not found");
+    if (!lockAccount.startEpoch || !lockAccount.updatedToEpoch)
+      throw new Error("lock account has not been locked?");
+
+    if (lockAccount.updatedToEpoch?.toNumber() < currentEpoch.epoch) {
+      const updateTx = await updateLockAccount(
+        this.config,
+        this.program,
+        this.staker
+      );
+
+      transaction.add(updateTx);
+    }
+
+    const unlockTx = await unlockGSol(
+      this.config,
+      this.program,
+      this.staker,
+      this.stakerGSolTokenAccount
+    );
+
+    transaction.add(unlockTx);
+
+    return transaction;
+  }
+
+  public async getLockAccount(): Promise<GetLockAccountResult> {
+    if (!this.stakerGSolTokenAccount || !this.config)
+      throw new Error("init not called");
+
+    return getLockAccount(this.config, this.program, this.staker);
   }
 
   public static async get(

@@ -45,7 +45,7 @@ pub struct LiquidUnstake<'info> {
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub liq_pool_sol_leg_pda: AccountInfo<'info>,
+    pub liq_pool_sol_leg_pda: UncheckedAccount<'info>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
