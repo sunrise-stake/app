@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import request from 'got-cjs'
 
-import { addUp, isBase58, toTimestamp as toTS } from '@/utils'
+import { addUp, isBase58, round, toTimestamp as toTS } from '@/utils'
 
 const getDBData = (collection, type, address) => request.post(
   `${process.env.MONGODB_API_URL}/action/find`,
@@ -55,9 +55,10 @@ const getNeighbors = (sendings) => {
 }
 
 const getTotals = (mints, receivals, sendings) => {
-  const amountMinted = addUp('amount', mints)
-  const amountReceived = addUp('amount', receivals)
-  const amountSent = addUp('amount', sendings)
+  const amountMinted = round(addUp('amount', mints))
+  const amountReceived = round(addUp('amount', receivals))
+  const amountSent = round(addUp('amount', sendings))
+  const amountTotal = round((amountMinted + amountReceived - amountSent))
 
   const countMints = mints.length
   const countReceivals = receivals.filter(r => r.sender !== r.recipient).length
@@ -73,6 +74,7 @@ const getTotals = (mints, receivals, sendings) => {
     amountMinted,
     amountReceived,
     amountSent,
+    amountTotal,
     countMints,
     countReceivals,
     countSendings,

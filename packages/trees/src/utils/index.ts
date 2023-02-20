@@ -7,11 +7,13 @@ const toShortBase58 = (str: string): string => `${str.slice(0, 4)}…${str.slice
 const toTimestamp = (ds: string): number => new Date(ds).getTime()
 
 const addUp = (key, arr: Array<number>) => arr.reduce((acc, val) => acc + val[key], 0)
+const round = (number: number, decimals: number = 2) => parseFloat(number.toFixed(decimals))
 
 export {
   addUp,
   isBase58,
   isString,
+  round,
   toShortBase58,
   toTimestamp,
 }
