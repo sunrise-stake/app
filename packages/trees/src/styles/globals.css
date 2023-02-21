@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  @keyframes float-up-down {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(32px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  .FloatingTree {
+    animation: 4s ease-in-out infinite float-up-down;
+  }
+}
