@@ -1,7 +1,7 @@
 import clx from "classnames";
 import { type FC, type ReactNode, useRef, useState } from "react";
 import { useSunriseStake } from "../context/sunriseStakeContext";
-import { toFixedWithPrecision, toSol, ZERO } from "../lib/util";
+import { toFixedWithPrecision, toSol } from "../lib/util";
 import BN from "bn.js";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import TooltipPopover from "./TooltipPopover";
@@ -45,12 +45,9 @@ const DetailsBox: FC<Props> = ({ className }) => {
 
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  if (!details) return <>Loading...</>;
+  if (details == null) return <>Loading...</>;
 
-  const inflightTotal = details.inflight.reduce(
-    (acc, x) => acc.add(x.totalOrderedLamports),
-    ZERO
-  );
+  const inflightTotal = details.epochReport.totalOrderedLamports;
 
   const totalValue = details.mpDetails.msolValue
     .add(details.lpDetails.lpSolValue)

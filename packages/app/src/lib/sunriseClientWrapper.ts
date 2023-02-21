@@ -3,6 +3,8 @@ import {
   type TicketAccount,
   type Details,
   MINIMUM_EXTRACTABLE_YIELD,
+  type WithdrawalFees,
+  type Environment,
 } from "@sunrisestake/client";
 import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@project-serum/anchor";
@@ -12,7 +14,7 @@ import { debounce } from "./util";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const stage =
-  (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
+  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ||
   WalletAdapterNetwork.Devnet;
 
 export class SunriseClientWrapper {
@@ -32,7 +34,7 @@ export class SunriseClientWrapper {
 
     // TODO too noisy?
     accountsToListenTo.forEach((account) => {
-      if (account) {
+      if (account != null) {
         this.client.provider.connection.onAccountChange(account, () => {
           this.debouncedUpdate();
         });
@@ -98,7 +100,7 @@ export class SunriseClientWrapper {
     return this.client.getDelayedUnstakeTickets();
   }
 
-  calculateWithdrawalFee(amount: BN, details: Details): BN {
+  calculateWithdrawalFee(amount: BN, details: Details): WithdrawalFees {
     return this.client.calculateWithdrawalFee(amount, details);
   }
 
@@ -136,5 +138,32 @@ export class SunriseClientWrapper {
 
   get holdingAccount(): PublicKey {
     return this.client.env.holdingAccount;
+  }
+
+  async lockGSol(amount: BN): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .lockGSol(amount)
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
+      .then(this.triggerUpdateAndReturn.bind(this));
+  }
+
+  async unlockGSol(): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .unlockGSol()
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
+      .then(this.triggerUpdateAndReturn.bind(this));
+  }
+
+  async updateLockAccount(): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .updateLockAccount()
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx));
+  }
+
+  internal(): SunriseStakeClient {
+    return this.client;
   }
 }

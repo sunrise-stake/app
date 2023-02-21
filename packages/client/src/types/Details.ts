@@ -1,17 +1,13 @@
 import type BN from "bn.js";
 import { type Balance } from "../util";
-import { type EpochInfo } from "@solana/web3.js";
-
-export interface InflightDetails {
-  epoch: bigint;
-  tickets: number;
-  totalOrderedLamports: BN;
-}
+import { type EpochInfo, type PublicKey } from "@solana/web3.js";
+import { type EpochReportAccount } from "./EpochReportAccount";
 
 export interface Details {
   // TODO Standardise on number/bigint/BigDecimal
   staker: string;
-  epochInfo: EpochInfo;
+  currentEpoch: EpochInfo;
+  epochReport: EpochReportAccount;
   balances: Balance;
   stakerGSolTokenAccount: string;
   sunriseStakeConfig: {
@@ -45,6 +41,23 @@ export interface Details {
     pool: string;
     bsolPrice: number;
     bsolValue: BN;
+    solWithdrawalFee: {
+      numerator: BN;
+      denominator: BN;
+    };
   };
-  inflight: InflightDetails[];
+  lockDetails?: {
+    amountLocked: BN;
+    startEpoch: BN;
+    updatedToEpoch: BN;
+    yield: BN;
+    lockAccount: PublicKey;
+    lockTokenAccount: PublicKey;
+  };
+}
+
+export interface WithdrawalFees {
+  liquidUnstakeFee: BN;
+  ticketFee: number;
+  totalFee: BN;
 }
