@@ -13,10 +13,11 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import React, { type FC, useMemo } from "react";
 import { Route, Routes, Link, useLocation } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
 
 import { SunriseProvider } from "./common/context/sunriseStakeContext";
 import { StakingApp } from "./staking/StakingApp";
+import { Layout } from "./common/partials/Layout";
+import { IntroApp } from "./intro/IntroApp";
 require("./solana-wallet-adapter.css");
 
 const App: FC = () => {
@@ -38,14 +39,14 @@ const App: FC = () => {
 
   return (
     <>
-      <div className="App min-h-screen text-white">
-        <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets}>
-            <WalletModalProvider>
-              <SunriseProvider>
-                <Toaster />
+      <ConnectionProvider endpoint={endpoint}>
+        <WalletProvider wallets={wallets}>
+          <WalletModalProvider>
+            <SunriseProvider>
+              <Layout>
                 <Routes location={location}>
-                  <Route path="/" element={<StakingApp />} />
+                  <Route path="/" element={<IntroApp />} />
+                  <Route path="/stake" element={<StakingApp />} />
                   <Route
                     path="/*"
                     element={
@@ -63,11 +64,11 @@ const App: FC = () => {
                     }
                   />
                 </Routes>
-              </SunriseProvider>
-            </WalletModalProvider>
-          </WalletProvider>
-        </ConnectionProvider>
-      </div>
+              </Layout>
+            </SunriseProvider>
+          </WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
     </>
   );
 };

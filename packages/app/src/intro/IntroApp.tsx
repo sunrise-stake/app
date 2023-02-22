@@ -1,16 +1,23 @@
-import { type FC } from "react";
-import Spinner from "../../common/components/Spinner";
-import CarbonRecovered from "../../common/components/CarbonRecovered";
-import { useSunriseStake } from "../../common/context/sunriseStakeContext";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useEffect, type FC } from "react";
+import { useNavigate } from "react-router-dom";
 
-// TODO remove duplication with StakeDashboard
+import CarbonRecovered from "../common/components/CarbonRecovered";
+import Spinner from "../common/components/Spinner";
+import { useSunriseStake } from "../common/context/sunriseStakeContext";
 
-export const WelcomePage: FC = () => {
+export const IntroApp: FC = () => {
+  const wallet = useWallet();
+  const navigate = useNavigate();
   const { details } = useSunriseStake();
 
+  useEffect(() => {
+    if (wallet.connected) navigate("/stake");
+  }, [wallet.connected]);
+
   return (
-    <div className="w-full">
+    <>
       {details == null ? (
         <div className="flex justify-center items-center m-2">
           <Spinner />
@@ -18,7 +25,7 @@ export const WelcomePage: FC = () => {
       ) : (
         <div
           style={{ maxWidth: "864px" }}
-          className="mx-auto flex flex-col items-center"
+          className="flex flex-col items-center justify-center mx-auto"
         >
           <div className="text-center">
             <img
@@ -51,6 +58,6 @@ export const WelcomePage: FC = () => {
           <CarbonRecovered />
         </div>
       )}
-    </div>
+    </>
   );
 };
