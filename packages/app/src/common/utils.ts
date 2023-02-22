@@ -2,6 +2,10 @@ import { LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
 import { type SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
 import BN from "bn.js";
 
+import { MAX_NUM_PRECISION } from "@sunrisestake/client";
+
+export { MAX_NUM_PRECISION, toSol } from "@sunrisestake/client";
+
 export const ZERO = new BN(0);
 
 export const toBN = (n: number): BN => new BN(`${n}`);
@@ -10,13 +14,7 @@ export const walletIsConnected = (
   wallet: SparseWalletContextAdapter
 ): wallet is ConnectedWallet => wallet.connected && wallet.publicKey != null;
 
-const MAX_NUM_PRECISION = 5;
-
 export type UIMode = "STAKE" | "UNSTAKE" | "LOCK";
-
-export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
-  lamports.div(new BN(10).pow(new BN(precision))).toNumber() /
-  (LAMPORTS_PER_SOL / 10 ** precision);
 
 export const solToLamports = (sol: number | string): BN => {
   // handle very big numbers but also integers.

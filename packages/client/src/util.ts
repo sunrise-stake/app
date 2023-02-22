@@ -16,11 +16,10 @@ import {
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Details } from "./types/Details";
+import { MAX_NUM_PRECISION } from "./constants";
 
 // zero bn number
 export const ZERO = new BN(0);
-
-const MAX_NUM_PRECISION = 5;
 
 export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
   lamports.div(new BN(10).pow(new BN(precision))).toNumber() /

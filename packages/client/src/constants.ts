@@ -3,6 +3,8 @@ import { PublicKey } from "@solana/web3.js";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
 import BN from "bn.js";
 
+export const MAX_NUM_PRECISION = 5;
+
 export const STAKE_POOL_PROGRAM_ID = new PublicKey(
   "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 );
