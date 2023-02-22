@@ -6,33 +6,33 @@ import { FaLeaf, FaLock } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 import { GiCircleForest } from "react-icons/gi";
 
-import StakeForm from "../components/StakeForm";
+import StakeForm from "../../common/components/StakeForm";
 import {
   solToLamports,
   toBN,
   toFixedWithPrecision,
   toSol,
   type UIMode,
-} from "../lib/util";
+} from "../../common/utils";
 import { type TicketAccount, type Details } from "@sunrisestake/client";
-import { Panel } from "../components/Panel";
-import { Button } from "../components/Button";
-import UnstakeForm from "../components/UnstakeForm";
-import { InfoBox } from "../components/InfoBox";
-import WithdrawTicket from "../components/WithdrawTickets";
-import { useSunriseStake } from "../context/sunriseStakeContext";
+import { Panel } from "../../common/components/Panel";
+import { Button } from "../../common/components/Button";
+import UnstakeForm from "../../common/components/UnstakeForm";
+import { InfoBox } from "../../common/components/InfoBox";
+import WithdrawTicket from "../../common/components/WithdrawTickets";
+import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import {
   NotificationType,
   notifyTransaction,
   notifyTweet,
-} from "../utils/notifications";
-import { useCarbon } from "../hooks/useCarbon";
-import { DetailsBox } from "../components/DetailsBox";
-import TooltipPopover from "../components/TooltipPopover";
-import { tooltips } from "../utils/tooltips";
-import LockForm from "../components/LockForm";
-import LockedGSol from "../components/LockedGSol";
-import { type SunriseClientWrapper } from "../lib/sunriseClientWrapper";
+} from "../../utils/notifications";
+import { useCarbon } from "../../common/hooks/useCarbon";
+import { DetailsBox } from "../../common/components/DetailsBox";
+import TooltipPopover from "../../common/components/TooltipPopover";
+import { tooltips } from "../../common/content/tooltips";
+import LockForm from "../../common/components/LockForm";
+import LockedGSol from "../../common/components/LockedGSol";
+import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();

@@ -3,9 +3,9 @@ import { type FC, Fragment } from "react";
 import { FiChevronDown } from "react-icons/fi";
 import { Listbox, Transition } from "@headlessui/react";
 import Spinner from "./Spinner";
-import { toFixedWithPrecision } from "../lib/util";
+import { toFixedWithPrecision } from "../utils";
 import TooltipPopover from "./TooltipPopover";
-import { tooltips } from "../utils/tooltips";
+import { tooltips } from "../content/tooltips";
 
 enum WithdrawOption {
   Delayed = "Delayed",

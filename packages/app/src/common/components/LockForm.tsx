@@ -5,7 +5,7 @@ import { FiArrowDownLeft } from "react-icons/fi";
 import { Button } from "./Button";
 import AmountInput from "./AmountInput";
 import { useSunriseStake } from "../context/sunriseStakeContext";
-import { ZERO } from "../lib/util";
+import { ZERO } from "../utils";
 import Spinner from "./Spinner";
 
 interface LockFormProps {

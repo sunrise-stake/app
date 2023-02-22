@@ -4,7 +4,7 @@ import { Button } from "./Button";
 import { TicketIcon } from "@heroicons/react/24/solid";
 import { AiOutlineClockCircle } from "react-icons/ai";
 import { type TicketAccount } from "@sunrisestake/client";
-import { toFixedWithPrecision, toSol } from "../lib/util";
+import { toFixedWithPrecision, toSol } from "../utils";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Spinner from "./Spinner";

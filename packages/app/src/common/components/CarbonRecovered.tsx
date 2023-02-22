@@ -1,5 +1,5 @@
 import React, { type FC } from "react";
-import { toFixedWithPrecision } from "../lib/util";
+import { toFixedWithPrecision } from "../utils";
 import { useCarbon } from "../hooks/useCarbon";
 
 const CarbonRecovered: FC = () => {

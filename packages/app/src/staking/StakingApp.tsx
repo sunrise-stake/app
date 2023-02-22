@@ -8,12 +8,12 @@ import {
   FaTwitter,
   FaWallet,
 } from "react-icons/fa";
-import { Panel } from "../components/Panel";
+import { Panel } from "../common/components/Panel";
 
-import { StakeDashboard } from "./StakeDashboard";
-import { WelcomePage } from "./WelcomePage";
+import { StakeDashboard } from "./pages/StakeDashboard";
+import { WelcomePage } from "./pages/WelcomePage";
 
-export const WalletConnectionWrapper: FC = () => {
+export const StakingApp: FC = () => {
   const wallet = useWallet();
   return (
     <div className="min-h-screen w-full flex flex-col items-center">

@@ -1,11 +1,11 @@
 import clx from "classnames";
 import { type FC, type ReactNode, useRef, useState } from "react";
 import { useSunriseStake } from "../context/sunriseStakeContext";
-import { toFixedWithPrecision, toSol } from "../lib/util";
+import { toFixedWithPrecision, toSol } from "../utils";
 import BN from "bn.js";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import TooltipPopover from "./TooltipPopover";
-import { tooltips } from "../utils/tooltips";
+import { tooltips } from "../content/tooltips";
 
 interface DetailEntryProps {
   label: string;

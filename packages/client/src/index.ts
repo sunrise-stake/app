@@ -29,6 +29,7 @@ import {
   type SunriseStakeConfig,
   ZERO,
   ZERO_BALANCE,
+  toSol,
 } from "./util";
 import {
   Marinade,
@@ -71,7 +72,6 @@ import {
 } from "./blaze";
 import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
-import { toSol } from "@sunrisestake/app/src/lib/util";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
 import {
   getLockAccount,

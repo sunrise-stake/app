@@ -1,7 +1,7 @@
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { useEffect, useState } from "react";
 import BN from "bn.js";
-import { solToCarbon, toSol } from "../lib/util";
+import { solToCarbon, toSol } from "../utils";
 import { useConnection } from "@solana/wallet-adapter-react";
 
 export const useCarbon = (): { totalCarbon: number | undefined } => {

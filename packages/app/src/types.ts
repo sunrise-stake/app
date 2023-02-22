@@ -1,4 +1,4 @@
-import { type SunriseClientWrapper } from "./lib/sunriseClientWrapper";
+import { type SunriseClientWrapper } from "./common/sunriseClientWrapper";
 
 declare global {
   interface Window {

@@ -1,7 +1,7 @@
 import { type FC } from "react";
-import Spinner from "../components/Spinner";
-import CarbonRecovered from "../components/CarbonRecovered";
-import { useSunriseStake } from "../context/sunriseStakeContext";
+import Spinner from "../../common/components/Spinner";
+import CarbonRecovered from "../../common/components/CarbonRecovered";
+import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 // TODO remove duplication with StakeDashboard

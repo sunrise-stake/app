@@ -8,7 +8,7 @@ import { Button } from "./Button";
 import AmountInput from "./AmountInput";
 import UnstakeOption from "./UnstakeOption";
 import { useSunriseStake } from "../context/sunriseStakeContext";
-import { solToLamports, ZERO } from "../lib/util";
+import { solToLamports, ZERO } from "../utils";
 import Spinner from "./Spinner";
 
 interface UnstakeFormProps {

@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { SunriseClientWrapper } from "../lib/sunriseClientWrapper";
+import { SunriseClientWrapper } from "../sunriseClientWrapper";
 import { Keypair } from "@solana/web3.js";
 import { type Details } from "@sunrisestake/client";
 

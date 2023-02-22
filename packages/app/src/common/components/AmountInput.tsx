@@ -6,7 +6,7 @@ import {
   toFixedWithPrecision,
   toSol,
   type UIMode,
-} from "../lib/util";
+} from "../utils";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 
 interface AmountInputProps {

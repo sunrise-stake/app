@@ -11,14 +11,12 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import { WalletConnectionWrapper } from "./pages/WalletConnectionWrapper";
+import { StakingApp } from "./staking/StakingApp";
 import { clusterApiUrl } from "@solana/web3.js";
-import { SunriseProvider } from "./context/sunriseStakeContext";
+import { SunriseProvider } from "./common/context/sunriseStakeContext";
 import { Toaster } from "react-hot-toast";
 
 require("./solana-wallet-adapter.css");
-
-const Content: FC = () => <WalletConnectionWrapper />;
 
 const App: FC = () => {
   const network =
@@ -44,7 +42,7 @@ const App: FC = () => {
             <WalletModalProvider>
               <SunriseProvider>
                 <Toaster />
-                <Content />
+                <StakingApp />
               </SunriseProvider>
             </WalletModalProvider>
           </WalletProvider>
