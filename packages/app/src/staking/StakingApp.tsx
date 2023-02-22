@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { StakeDashboard } from "./pages/StakeDashboard";
 
-export const StakingApp: FC = () => {
+const StakingApp: FC = () => {
   const wallet = useWallet();
   const navigate = useNavigate();
 
@@ -20,3 +20,5 @@ export const StakingApp: FC = () => {
     </div>
   );
 };
+
+export { StakingApp };

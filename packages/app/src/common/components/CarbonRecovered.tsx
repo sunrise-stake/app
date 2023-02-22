@@ -1,6 +1,7 @@
 import React, { type FC } from "react";
-import { toFixedWithPrecision } from "../utils";
+
 import { useCarbon } from "../hooks/useCarbon";
+import { toFixedWithPrecision } from "../utils";
 
 const CarbonRecovered: FC = () => {
   const { totalCarbon } = useCarbon();
@@ -21,4 +22,4 @@ const CarbonRecovered: FC = () => {
   ); // TODO loading screen
 };
 
-export default CarbonRecovered;
+export { CarbonRecovered };

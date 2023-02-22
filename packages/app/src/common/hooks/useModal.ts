@@ -6,6 +6,7 @@ interface ModalControl {
   onModalClose: () => void;
   onModalOK: () => void;
 }
+
 const useModal = (onOK: () => void, onCancel = () => {}): ModalControl => {
   const [modalShown, setModalShown] = useState(false);
   const trigger = (): void => {
@@ -27,4 +28,4 @@ const useModal = (onOK: () => void, onCancel = () => {}): ModalControl => {
   };
 };
 
-export default useModal;
+export { useModal };

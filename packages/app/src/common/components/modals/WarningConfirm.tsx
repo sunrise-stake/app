@@ -31,4 +31,4 @@ const WarningConfirm: FC<{
   </>
 );
 
-export default WarningConfirm;
+export { WarningConfirm };

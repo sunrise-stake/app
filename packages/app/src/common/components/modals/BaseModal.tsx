@@ -1,3 +1,4 @@
+import { Dialog, Transition } from "@headlessui/react";
 import {
   type FC,
   Fragment,
@@ -5,9 +6,9 @@ import {
   useCallback,
   useState,
 } from "react";
-import { Dialog, Transition } from "@headlessui/react";
-import { GiCancel } from "react-icons/gi";
 import { FiArrowRight } from "react-icons/fi";
+import { GiCancel } from "react-icons/gi";
+
 import { Button } from "../Button";
 
 export interface ModalProps {
@@ -91,4 +92,5 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
     </Transition.Root>
   );
 };
-export default BaseModal;
+
+export { BaseModal };

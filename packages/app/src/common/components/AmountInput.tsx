@@ -1,5 +1,7 @@
-import React, { useCallback } from "react";
 import BN from "bn.js";
+import React, { useCallback } from "react";
+import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
+
 import {
   getDigits,
   solToLamports,
@@ -7,7 +9,6 @@ import {
   toSol,
   type UIMode,
 } from "../utils";
-import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 
 interface AmountInputProps {
   className?: string;
@@ -137,4 +138,4 @@ const AmountInput: React.FC<AmountInputProps> = ({
   );
 };
 
-export default AmountInput;
+export { AmountInput };

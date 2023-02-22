@@ -1,10 +1,11 @@
-import { useSunriseStake } from "../context/sunriseStakeContext";
-import { useEffect, useState } from "react";
-import BN from "bn.js";
-import { solToCarbon, toSol } from "../utils";
 import { useConnection } from "@solana/wallet-adapter-react";
+import BN from "bn.js";
+import { useEffect, useState } from "react";
 
-export const useCarbon = (): { totalCarbon: number | undefined } => {
+import { useSunriseStake } from "../context/sunriseStakeContext";
+import { solToCarbon, toSol } from "../utils";
+
+const useCarbon = (): { totalCarbon: number | undefined } => {
   const { connection } = useConnection();
   const { details, client } = useSunriseStake();
   const [totalCarbon, setTotalCarbon] = useState<number>();
@@ -48,3 +49,5 @@ export const useCarbon = (): { totalCarbon: number | undefined } => {
 
   return { totalCarbon };
 };
+
+export { useCarbon };

@@ -1,4 +1,4 @@
-export const tooltips = {
+const tooltips = {
   yourStake: <>Your total staked SOL</>,
   totalStake: <>The sum of everyones staked SOL</>,
   offsetCO2: (
@@ -78,3 +78,5 @@ export const tooltips = {
     </>
   ),
 };
+
+export { tooltips };

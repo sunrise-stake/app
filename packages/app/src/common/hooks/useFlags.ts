@@ -34,4 +34,4 @@ const useFlags = <T extends string>(flags: T[]): Flags<T> => {
   };
 };
 
-export default useFlags;
+export { useFlags };

@@ -1,11 +1,12 @@
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import BN from "bn.js";
 import clx from "classnames";
 import { type FC, type ReactNode, useRef, useState } from "react";
+
+import { tooltips } from "../content/tooltips";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { toFixedWithPrecision, toSol } from "../utils";
-import BN from "bn.js";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import TooltipPopover from "./TooltipPopover";
-import { tooltips } from "../content/tooltips";
+import { TooltipPopover } from "./TooltipPopover";
 
 interface DetailEntryProps {
   label: string;

@@ -1,11 +1,11 @@
+import { Listbox, Transition } from "@headlessui/react";
 import clx from "classnames";
 import { type FC, Fragment } from "react";
 import { FiChevronDown } from "react-icons/fi";
-import { Listbox, Transition } from "@headlessui/react";
-import Spinner from "./Spinner";
-import { toFixedWithPrecision } from "../utils";
-import TooltipPopover from "./TooltipPopover";
+
 import { tooltips } from "../content/tooltips";
+import { toFixedWithPrecision } from "../utils";
+import { Spinner, TooltipPopover } from "./";
 
 enum WithdrawOption {
   Delayed = "Delayed",
@@ -131,4 +131,4 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
   );
 };
 
-export default UnstakeOption;
+export { UnstakeOption };

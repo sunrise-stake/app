@@ -12,7 +12,7 @@ import {
 
 import { Panel } from "../components/Panel";
 
-export const Layout: FC<{ children: ReactNode }> = ({ children }) => {
+const Layout: FC<{ children: ReactNode }> = ({ children }) => {
   const wallet = useWallet();
 
   return (
@@ -69,3 +69,5 @@ export const Layout: FC<{ children: ReactNode }> = ({ children }) => {
     </div>
   );
 };
+
+export { Layout };

@@ -1,7 +1,8 @@
-import React from "react";
-import useScript from "../hooks/useScript";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import React from "react";
 import toast, { type Toast } from "react-hot-toast";
+
+import { useScript } from "../hooks";
 
 interface TweetButtonProps {
   amount: string;
@@ -70,4 +71,4 @@ const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
   );
 };
 
-export default TweetButton;
+export { TweetButton };

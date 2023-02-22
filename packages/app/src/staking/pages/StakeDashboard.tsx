@@ -1,4 +1,5 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { type TicketAccount, type Details } from "@sunrisestake/client";
 import BN from "bn.js";
 import clx from "classnames";
 import { type FC, useCallback, useEffect, useState } from "react";
@@ -6,7 +7,6 @@ import { FaLeaf, FaLock } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 import { GiCircleForest } from "react-icons/gi";
 
-import StakeForm from "../../common/components/StakeForm";
 import {
   solToLamports,
   toBN,
@@ -14,12 +14,18 @@ import {
   toSol,
   type UIMode,
 } from "../../common/utils";
-import { type TicketAccount, type Details } from "@sunrisestake/client";
-import { Panel } from "../../common/components/Panel";
-import { Button } from "../../common/components/Button";
-import UnstakeForm from "../../common/components/UnstakeForm";
-import { InfoBox } from "../../common/components/InfoBox";
-import WithdrawTicket from "../../common/components/WithdrawTickets";
+import {
+  DetailsBox,
+  Panel,
+  Button,
+  UnstakeForm,
+  InfoBox,
+  WithdrawTicket,
+  TooltipPopover,
+  LockForm,
+  LockedGSol,
+  StakeForm,
+} from "../../common/components";
 import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import {
   NotificationType,
@@ -27,14 +33,10 @@ import {
   notifyTweet,
 } from "../../utils/notifications";
 import { useCarbon } from "../../common/hooks/useCarbon";
-import { DetailsBox } from "../../common/components/DetailsBox";
-import TooltipPopover from "../../common/components/TooltipPopover";
 import { tooltips } from "../../common/content/tooltips";
-import LockForm from "../../common/components/LockForm";
-import LockedGSol from "../../common/components/LockedGSol";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 
-export const StakeDashboard: FC = () => {
+const StakeDashboard: FC = () => {
   const wallet = useWallet();
   const { connection } = useConnection();
   const {
@@ -355,3 +357,5 @@ export const StakeDashboard: FC = () => {
     </div>
   );
 };
+
+export { StakeDashboard };

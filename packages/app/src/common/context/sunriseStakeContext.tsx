@@ -1,3 +1,6 @@
+import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { Keypair } from "@solana/web3.js";
+import { type Details } from "@sunrisestake/client";
 import {
   createContext,
   type FC,
@@ -7,10 +10,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+
 import { SunriseClientWrapper } from "../sunriseClientWrapper";
-import { Keypair } from "@solana/web3.js";
-import { type Details } from "@sunrisestake/client";
 
 interface SunriseContextProps {
   client: SunriseClientWrapper | undefined;
@@ -25,7 +26,7 @@ const SunriseContext = createContext<SunriseContextProps>(defaultValue);
 // pass into anchor when the wallet is not yet connected
 const dummyKey = Keypair.generate().publicKey;
 
-export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
+const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [client, setClient] = useState<SunriseClientWrapper>();
   const [details, setDetails] = useState<Details>();
   const { connection } = useConnection();
@@ -85,5 +86,6 @@ export const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   );
 };
 
-export const useSunriseStake = (): SunriseContextProps =>
-  useContext(SunriseContext);
+const useSunriseStake = (): SunriseContextProps => useContext(SunriseContext);
+
+export { SunriseProvider, useSunriseStake };

@@ -2,14 +2,11 @@ import BN from "bn.js";
 import React, { useEffect, useMemo, useState } from "react";
 import { FiArrowDownLeft } from "react-icons/fi";
 
-import useModal from "../hooks/useModal";
-import LiquidWithdrawWarningModal from "./modals/LiquidWithdrawWarningModal";
-import { Button } from "./Button";
-import AmountInput from "./AmountInput";
-import UnstakeOption from "./UnstakeOption";
 import { useSunriseStake } from "../context/sunriseStakeContext";
+import { useModal } from "../hooks";
 import { solToLamports, ZERO } from "../utils";
-import Spinner from "./Spinner";
+import { AmountInput, Button, Spinner, UnstakeOption } from "./";
+import { LiquidWithdrawWarningModal } from "./modals";
 
 interface UnstakeFormProps {
   withdraw: (amount: string) => Promise<any>;
@@ -99,4 +96,4 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
   );
 };
 
-export default UnstakeForm;
+export { UnstakeForm };

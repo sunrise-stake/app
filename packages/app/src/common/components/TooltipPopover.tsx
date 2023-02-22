@@ -1,7 +1,7 @@
-import { useState, type FC, type ReactNode } from "react";
-import { usePopper } from "react-popper";
 import { Popover } from "@headlessui/react";
+import { useState, type FC, type ReactNode } from "react";
 import { BsInfoCircle } from "react-icons/bs";
+import { usePopper } from "react-popper";
 
 interface TooltipProps {
   children: ReactNode;
@@ -43,4 +43,4 @@ const TooltipPopover: FC<TooltipProps> = ({ children }) => {
   );
 };
 
-export default TooltipPopover;
+export { TooltipPopover };

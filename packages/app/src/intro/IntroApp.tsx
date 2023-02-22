@@ -3,11 +3,10 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useEffect, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 
-import CarbonRecovered from "../common/components/CarbonRecovered";
-import Spinner from "../common/components/Spinner";
+import { CarbonRecovered, Spinner } from "../common/components";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
 
-export const IntroApp: FC = () => {
+const IntroApp: FC = () => {
   const wallet = useWallet();
   const navigate = useNavigate();
   const { details } = useSunriseStake();
@@ -61,3 +60,5 @@ export const IntroApp: FC = () => {
     </>
   );
 };
+
+export { IntroApp };

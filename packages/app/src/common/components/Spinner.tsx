@@ -25,4 +25,4 @@ const Spinner: FC<SpinnerProps> = ({ size = "1.5rem", ...rest }) => {
   );
 };
 
-export default Spinner;
+export { Spinner };

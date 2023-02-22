@@ -15,4 +15,4 @@ const useScript = (url: string): void => {
   }, [url]);
 };
 
-export default useScript;
+export { useScript };

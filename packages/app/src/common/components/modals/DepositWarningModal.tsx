@@ -1,9 +1,9 @@
-import BaseModal, { type ModalProps } from "./BaseModal";
-import React, { type FC } from "react";
 import { Dialog } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
-import useFlags from "../../hooks/useFlags";
-import WarningConfirm from "./WarningConfirm";
+import React, { type FC } from "react";
+
+import { useFlags } from "../../hooks";
+import { BaseModal, type ModalProps, WarningConfirm } from "./";
 
 const DepositWarningModal: FC<ModalProps> = (props) => {
   const { setFlag, allFlagsSet } = useFlags(["audit-confirm"]);
@@ -52,4 +52,4 @@ const DepositWarningModal: FC<ModalProps> = (props) => {
   );
 };
 
-export default DepositWarningModal;
+export { DepositWarningModal };

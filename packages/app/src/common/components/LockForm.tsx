@@ -2,11 +2,9 @@ import BN from "bn.js";
 import React, { useState } from "react";
 import { FiArrowDownLeft } from "react-icons/fi";
 
-import { Button } from "./Button";
-import AmountInput from "./AmountInput";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { ZERO } from "../utils";
-import Spinner from "./Spinner";
+import { AmountInput, Button, Spinner } from "./";
 
 interface LockFormProps {
   lock: (amount: string) => Promise<any>;
@@ -47,4 +45,4 @@ const LockForm: React.FC<LockFormProps> = ({ lock }) => {
   );
 };
 
-export default LockForm;
+export { LockForm };
