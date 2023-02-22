@@ -1,8 +1,12 @@
-
 .anchor
 .DS_Store
 target
 **/*.rs.bk
+
 node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 test-ledger
 dist/

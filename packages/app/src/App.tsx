@@ -22,8 +22,9 @@ const Content: FC = () => <WalletConnectionWrapper />;
 
 const App: FC = () => {
   const network =
-    (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork) ||
-    WalletAdapterNetwork.Devnet;
+    process.env.REACT_APP_SOLANA_NETWORK !== null
+      ? (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork)
+      : WalletAdapterNetwork.Devnet;
   const endpoint = process.env.REACT_APP_RPC_URL ?? clusterApiUrl(network);
   const wallets = useMemo(
     () => [

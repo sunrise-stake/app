@@ -14,7 +14,7 @@ import {
   toSol,
   type UIMode,
 } from "../lib/util";
-import { type TicketAccount } from "@sunrisestake/client";
+import { type TicketAccount, type Details } from "@sunrisestake/client";
 import { Panel } from "../components/Panel";
 import { Button } from "../components/Button";
 import UnstakeForm from "../components/UnstakeForm";
@@ -32,11 +32,18 @@ import TooltipPopover from "../components/TooltipPopover";
 import { tooltips } from "../utils/tooltips";
 import LockForm from "../components/LockForm";
 import LockedGSol from "../components/LockedGSol";
+import { type SunriseClientWrapper } from "../lib/sunriseClientWrapper";
 
 export const StakeDashboard: FC = () => {
   const wallet = useWallet();
   const { connection } = useConnection();
-  const { client, details } = useSunriseStake();
+  const {
+    client,
+    details,
+  }: {
+    client: SunriseClientWrapper | undefined;
+    details: Details | undefined;
+  } = useSunriseStake();
   const [solBalance, setSolBalance] = useState<BN>();
   const [delayedWithdraw, setDelayedWithdraw] = useState(false);
   const [delayedUnstakeTickets, setDelayedUnstakeTickets] = useState<
