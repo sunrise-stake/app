@@ -77,7 +77,6 @@ function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
   };
 }
 
-export { MAX_NUM_PRECISION, toSol } from "@sunrisestake/client";
 export {
   ZERO,
   CARBON_PRICE_USD_CENTS_PER_TONNE,

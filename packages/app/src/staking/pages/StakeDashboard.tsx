@@ -1,5 +1,5 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { type TicketAccount, type Details } from "@sunrisestake/client";
+import { type TicketAccount, type Details, toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import clx from "classnames";
 import { type FC, useCallback, useEffect, useState } from "react";
@@ -11,7 +11,6 @@ import {
   solToLamports,
   toBN,
   toFixedWithPrecision,
-  toSol,
   type UIMode,
 } from "../../common/utils";
 import {

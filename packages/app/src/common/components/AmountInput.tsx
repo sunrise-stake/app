@@ -1,3 +1,4 @@
+import { toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import React, { useCallback } from "react";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
@@ -6,7 +7,6 @@ import {
   getDigits,
   solToLamports,
   toFixedWithPrecision,
-  toSol,
   type UIMode,
 } from "../utils";
 

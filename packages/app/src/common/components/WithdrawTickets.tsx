@@ -1,12 +1,12 @@
 import { TicketIcon } from "@heroicons/react/24/solid";
-import { type TicketAccount } from "@sunrisestake/client";
+import { toSol, type TicketAccount } from "@sunrisestake/client";
 import clx from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useState, useEffect } from "react";
 import { AiOutlineClockCircle } from "react-icons/ai";
 
-import { toFixedWithPrecision, toSol } from "../utils";
+import { toFixedWithPrecision } from "../utils";
 import { Button, Spinner } from "./";
 
 dayjs.extend(relativeTime);
