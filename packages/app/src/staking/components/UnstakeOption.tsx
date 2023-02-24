@@ -3,9 +3,9 @@ import clx from "classnames";
 import { type FC, Fragment } from "react";
 import { FiChevronDown } from "react-icons/fi";
 
-import { tooltips } from "../content/tooltips";
-import { toFixedWithPrecision } from "../utils";
-import { Spinner, TooltipPopover } from "./";
+import { tooltips } from "../../common/content/tooltips";
+import { toFixedWithPrecision } from "../../common/utils";
+import { Spinner, TooltipPopover } from "../../common/components";
 
 enum WithdrawOption {
   Delayed = "Delayed",

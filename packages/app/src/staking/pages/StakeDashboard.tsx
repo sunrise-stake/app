@@ -17,23 +17,21 @@ import {
   DetailsBox,
   Panel,
   Button,
-  UnstakeForm,
   InfoBox,
-  WithdrawTicket,
   TooltipPopover,
   LockForm,
   LockedGSol,
-  StakeForm,
 } from "../../common/components";
 import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import {
   NotificationType,
   notifyTransaction,
   notifyTweet,
-} from "../../utils/notifications";
+} from "../../common/components/notifications";
 import { useCarbon } from "../../common/hooks/useCarbon";
 import { tooltips } from "../../common/content/tooltips";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
+import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
 
 const StakeDashboard: FC = () => {
   const wallet = useWallet();
