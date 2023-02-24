@@ -6,8 +6,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import React, { useState, useEffect } from "react";
 import { AiOutlineClockCircle } from "react-icons/ai";
 
-import { toFixedWithPrecision } from "../utils";
-import { Button, Spinner } from "./";
+import { toFixedWithPrecision } from "../../common/utils";
+import { Button, Spinner } from "../../common/components";
 
 dayjs.extend(relativeTime);
 
