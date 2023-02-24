@@ -18,7 +18,7 @@ const HubApp: FC = () => {
   return (
     <>
       {details == null ? (
-        <div className="flex justify-center items-center m-2">
+        <div className="flex justify-center items-center m-2 mx-auto">
           <Spinner />
         </div>
       ) : (
