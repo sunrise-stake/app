@@ -1,13 +1,12 @@
-pub mod lookup_table;
-pub mod register_pool;
-pub mod validate;
-pub mod initialize;
-pub mod split_deposit;
-pub mod common;
+mod common;
+mod initialize;
+mod lookup_table;
+mod register_pool;
+mod split_deposit;
 mod utils;
+mod validate;
 
+pub use initialize::*;
 pub use lookup_table::*;
 pub use register_pool::*;
-pub use validate::*;
-pub use initialize::*;
 pub use split_deposit::*;

@@ -1,31 +1,13 @@
-use crate::state::State;
-use crate::utils::seeds::GSOL_MINT_AUTHORITY;
-use crate::utils::token::mint_to;
-use crate::generic::validate;
-use crate::generic::common::*;
+use super::{common::*, utils as generic_utils, validate};
+use crate::{
+    state::State,
+    utils::{calc, seeds::GSOL_MINT_AUTHORITY, token::mint_to},
+};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
 use std::ops::Deref;
-use crate::common::SharedAccounts;
-use crate::utils::calc;
-use crate::generic::utils as generic_utils;
-
-// Marinade pool expected order
-/// Marinade state,
-/// Msol mint,
-/// Liq pool mint,
-/// Liq pool sol leg pda,
-/// liq pool msol leg
-/// liq pool msol leg pda
-/// liq pool mint authority
-/// reserve pda
-/// mint msol to
-/// mint liq pool to
-/// msol mint authority
-/// msol token account authority
-/// marinade program
 
 #[derive(Accounts, Clone)]
 pub struct SplitDeposit<'info> {
@@ -80,65 +62,61 @@ pub struct SplitDeposit<'info> {
 
 #[inline(never)]
 pub fn split_deposit_handler<'info>(
-    ctx: Context<'_, '_, '_, 'info, SplitDeposit<'info>>, 
-    lamports: u64, 
+    ctx: Context<'_, '_, '_, 'info, SplitDeposit<'info>>,
+    lamports: u64,
     marinade_start_offset: u8,
     spl_start_offset: u8,
     spl_pools: u8, // the number of pools passed in through remaining_accounts
 ) -> Result<()> {
     let marinade_range_end = (marinade_start_offset + MARINADE_ACCOUNTS_WIDTH) as usize;
     require_gte!(ctx.accounts.manager.spl_pools.len(), spl_pools as usize);
-    msg!("1.");
-    msg!("marinade_range_end: {}", marinade_range_end);
 
     let marinade_accounts = validate::validate_marinade_accounts(
         &ctx,
         &ctx.accounts.state,
         ctx.accounts.marinade_program.to_account_info(),
         marinade_start_offset as usize,
-        marinade_range_end
+        marinade_range_end,
     )?;
 
     let mut spl_accounts_vec = Vec::new();
 
-    
     for index in 0..spl_pools {
         let start_index = spl_start_offset + (index * SPL_ACCOUNTS_WIDTH);
         let end_index = start_index + SPL_ACCOUNTS_WIDTH;
 
-        msg!("spl_start_index: {}", start_index);
-        msg!("spl_end_index: {}", end_index);
-
         let spl_accounts = validate::validate_spl_accounts(
-            &ctx, 
+            &ctx,
             &ctx.accounts.stake_pool_program,
             &ctx.accounts.manager,
-            start_index as usize, end_index as usize)?;
+            start_index as usize,
+            end_index as usize,
+        )?;
 
         spl_accounts_vec.push(spl_accounts);
     }
 
-
-    msg!("3.");
-
     let shares = generic_utils::calculate_sol_value_shares(&spl_accounts_vec, &marinade_accounts)?;
-    let marinade_limit = calc::proportional( 
-        shares.total_value_staked, 75, 100
-    )?;
-
-    msg!("4.");
+    let marinade_limit = calc::proportional(shares.total_value_staked, 75, 100)?;
 
     let shared_accounts: Box<SharedAccounts> = Box::new(ctx.accounts.deref().into());
-    let to_deposit_in_liq_pool = generic_utils::amount_to_be_deposited_in_liq_pool(&marinade_accounts, &shared_accounts, lamports)?;
+    let to_deposit_in_liq_pool = generic_utils::amount_to_be_deposited_in_liq_pool(
+        &marinade_accounts,
+        &shared_accounts,
+        lamports,
+    )?;
     msg!("to_deposit_in_liq_pool: {}", to_deposit_in_liq_pool);
     let to_stake = lamports.checked_sub(to_deposit_in_liq_pool).unwrap();
 
     if to_deposit_in_liq_pool > 0 {
         msg!("Depositing {} in liq_pool pool", to_deposit_in_liq_pool);
-        generic_utils::add_liquidity(&marinade_accounts, &shared_accounts, &ctx.accounts.transfer_from.to_account_info(), to_deposit_in_liq_pool)?;
+        generic_utils::add_liquidity(
+            &marinade_accounts,
+            &shared_accounts,
+            &ctx.accounts.transfer_from.to_account_info(),
+            to_deposit_in_liq_pool,
+        )?;
     }
-
-    msg!("5.");
 
     msg!("Mint {} GSOL", lamports);
     mint_to(
@@ -150,16 +128,21 @@ pub fn split_deposit_handler<'info>(
         &ctx.accounts.state,
     )?;
 
-    if to_stake <= 0 {
+    if to_stake == 0 {
         return Ok(());
-    } 
+    }
 
     let state = &mut ctx.accounts.state;
 
     if shares.msol_value < marinade_limit {
         // stake to marinade
         msg!("Routing {} lamports to Marinade", to_stake);
-        generic_utils::deposit(&marinade_accounts, &shared_accounts, &ctx.accounts.transfer_from.to_account_info(), to_stake)?;
+        generic_utils::deposit(
+            &marinade_accounts,
+            &shared_accounts,
+            &ctx.accounts.transfer_from.to_account_info(),
+            to_stake,
+        )?;
         state.marinade_minted_gsol = state.marinade_minted_gsol.checked_add(to_stake).unwrap();
     } else {
         let index: usize = {
@@ -192,7 +175,3 @@ impl<'a> From<&SplitDeposit<'a>> for SharedAccounts<'a> {
         accounts.to_owned().into()
     }
 }
-
-
-
-

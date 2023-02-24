@@ -1,33 +1,17 @@
-//! Accounts for a single stake pool are added to the table in this order:
-//! # Stake Pool
-//! # Pool token mint
-//! # Manager fee account(Fees Depot)
-//! # Reserve account
-//! # Validator list
-//! # Sol deposit authority
-//! # Sol withdraw authority
-//! # Stake deposit authority
-//! # Pool info account
-//! # Sunrise token account for the pool mint
-//! # Sunrise token account authority
-
-use crate::generic::common::*;
+use super::common::*;
 use crate::{utils::spl::deserialize_spl_stake_pool, State};
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken as AToken,
-    token::{ Mint, Token, TokenAccount }
+    token::{Mint, Token, TokenAccount},
 };
-use solana_address_lookup_table_program::{
-    self as lookup_program,
-};
+use solana_address_lookup_table_program::{self as lookup_program};
 use spl_stake_pool::state::StakePool;
 
 #[allow(unused_imports)]
-use std::ops::Deref;
+use crate::generic::lookup_table::ExtendTable;
 #[allow(unused_imports)]
-use super::lookup_table::ExtendTable;
-
+use std::ops::Deref;
 
 #[derive(Accounts)]
 pub struct RegisterPool<'info> {
@@ -70,16 +54,21 @@ pub struct RegisterPool<'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AToken>,
     pub system_program: Program<'info, System>,
-    
+
     #[account(address = lookup_program::ID)]
     /// CHECK: Checked via constraints
     pub lookup_table_program: UncheckedAccount<'info>,
 }
 
-fn check_withdraw_authority(account_to_check: &AccountInfo, pool: &AccountInfo, expected_bump: u8) -> Result<()> {
-    let (pda, bump) = Pubkey::find_program_address(&[pool.key().as_ref(), b"withdraw"], &spl_stake_pool::ID);
-    assert_eq!(account_to_check.key, &pda);
-    assert_eq!(bump, expected_bump);
+fn check_withdraw_authority(
+    account_to_check: &AccountInfo,
+    pool: &AccountInfo,
+    expected_bump: u8,
+) -> Result<()> {
+    let (pda, bump) =
+        Pubkey::find_program_address(&[pool.key().as_ref(), b"withdraw"], &spl_stake_pool::ID);
+    require_keys_eq!(*account_to_check.key, pda);
+    require_eq!(bump, expected_bump);
     Ok(())
 }
 
@@ -104,22 +93,29 @@ impl<'info> RegisterPool<'info> {
 
     pub fn handler(&mut self, _manager_bump: u8) -> Result<()> {
         let stake_pool = deserialize_spl_stake_pool(&self.stake_pool)?;
-        // TODO: validate stake_pool accountType
 
-        assert_eq!(self.manager.spl_lookup_table, self.lookup_table.key());
-        assert_eq!(self.stake_pool.owner, &spl_stake_pool::ID);
-        assert_eq!(stake_pool.pool_mint, self.stake_pool_mint.key());
-        assert_eq!(stake_pool.stake_deposit_authority, *self.pool_deposit_authority.key);
-        check_withdraw_authority(&self.pool_withdraw_authority, &self.stake_pool, stake_pool.stake_withdraw_bump_seed)?;
+        require_keys_eq!(self.manager.spl_lookup_table, self.lookup_table.key());
+        require_keys_eq!(*self.stake_pool.owner, spl_stake_pool::ID);
+        require_keys_eq!(stake_pool.pool_mint, self.stake_pool_mint.key());
+        require_keys_eq!(
+            stake_pool.stake_deposit_authority,
+            *self.pool_deposit_authority.key
+        );
+        check_withdraw_authority(
+            &self.pool_withdraw_authority,
+            &self.stake_pool,
+            stake_pool.stake_withdraw_bump_seed,
+        )?;
 
         // Exceeded Max Instructions so can't do this
-        // let addresses = self.get_pool_addresses(&stake_pool)?;
-        // let extend_ctx: ExtendTable = self.deref().into(); 
-        // extend_ctx.handler(addresses, manager_bump)?;
+        /*
+        let addresses = self.get_pool_addresses(&stake_pool)?;
+        let extend_ctx: ExtendTable = self.deref().into();
+        extend_ctx.handler(addresses, manager_bump)?;
+        */
 
         if self.manager.register_pool(self.stake_pool.key()).is_none() {
             return Err(crate::error::ErrorCode::CantAddAnyMorePools.into());
-            //TODO: Change naming of custom error to prevent clashes
         }
 
         let prev_count = self.manager.spl_pool_count;

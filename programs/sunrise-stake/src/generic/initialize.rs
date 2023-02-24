@@ -1,7 +1,6 @@
+use super::common::*;
+use crate::{utils::seeds, State};
 use anchor_lang::prelude::*;
-use crate::generic::common::*;
-use crate::State;
-use crate::utils::seeds;
 
 #[derive(Accounts)]
 pub struct InitializeManager<'info> {
@@ -39,4 +38,3 @@ impl<'info> InitializeManager<'info> {
         Ok(())
     }
 }
-

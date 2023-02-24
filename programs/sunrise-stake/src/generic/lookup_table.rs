@@ -1,18 +1,11 @@
-use super::register_pool::RegisterPool;
-use crate::common::*;
-use crate::State;
-use crate::ErrorCode as CustomError;
+use super::{common::*, register_pool::RegisterPool};
+use crate::{ErrorCode as CustomError, State};
 use anchor_lang::{
     prelude::*,
     solana_program::{instruction::Instruction, program::invoke_signed},
 };
-use solana_address_lookup_table_program::{
-    self as lookup_program,
-};
+use solana_address_lookup_table_program as lookup_program;
 
-/// Handler for adding the lookup tables for both Spl and Marinade
-/// They can't be added in the same instruction because the table's 
-/// address is derived from the current slot
 #[derive(Accounts)]
 pub struct AddLookupTable<'info> {
     #[account(has_one = update_authority)]
@@ -34,7 +27,7 @@ pub struct AddLookupTable<'info> {
     pub manager: Box<Account<'info, Manager>>,
 
     pub system_program: Program<'info, System>,
-    
+
     #[account(address = lookup_program::ID)]
     /// CHECK: Checked via constraints
     pub lookup_table_program: UncheckedAccount<'info>,
@@ -67,10 +60,13 @@ impl<'info> AddLookupTable<'info> {
 
         let spl_table = self.manager.spl_lookup_table;
         let marinade_table = self.manager.marinade_lookup_table;
-        match (spl_table == Pubkey::default(), marinade_table == Pubkey::default()) {
+        match (
+            spl_table == Pubkey::default(),
+            marinade_table == Pubkey::default(),
+        ) {
             (true, _) => self.manager.spl_lookup_table = table_key,
             (false, true) => self.manager.marinade_lookup_table = table_key,
-            _ => return Err(CustomError::AlreadyAddedLookupTables.into())
+            _ => return Err(CustomError::AlreadyAddedLookupTables.into()),
         }
 
         Ok(())
@@ -93,7 +89,7 @@ pub struct ExtendTable<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
-    
+
     #[account(address = lookup_program::ID)]
     /// CHECK: Checked via constraints
     pub lookup_table_program: UncheckedAccount<'info>,
@@ -146,4 +142,3 @@ impl<'a> From<&RegisterPool<'a>> for ExtendTable<'a> {
         accounts.to_owned().into()
     }
 }
-

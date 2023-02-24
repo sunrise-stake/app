@@ -1,17 +1,16 @@
 use crate::State;
 use anchor_lang::{
-    prelude::*
+    prelude::*,
+    solana_program::{borsh::try_from_slice_unchecked, program::invoke},
 };
-use spl_stake_pool::state::StakePool;
-use anchor_lang::solana_program::borsh::try_from_slice_unchecked;
-use anchor_lang::solana_program::program::invoke;
-use std::ops::Deref;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::State as MarinadeState;
+use spl_stake_pool::state::StakePool;
+use std::ops::Deref;
 
 pub const MANAGER: &[u8] = b"manager";
-pub const MARINADE_ACCOUNTS_WIDTH: u8 = 13; // TODO: Get exact
-pub const SPL_ACCOUNTS_WIDTH: u8 = 9; // Make sure its exact
+pub const MARINADE_ACCOUNTS_WIDTH: u8 = 13;
+pub const SPL_ACCOUNTS_WIDTH: u8 = 9;
 
 #[account]
 pub struct Manager {
@@ -21,13 +20,12 @@ pub struct Manager {
     pub marinade_lookup_width: u8,
     pub spl_lookup_width: u8,
     pub spl_pool_count: u8,
-    pub spl_pools: [Pubkey; 3] // hardcode 3 and maybe realloc later
+    pub spl_pools: [Pubkey; 3], // hardcode 3 and possibly realloc later
 }
 
 impl Manager {
     pub fn register_pool(&mut self, pool: Pubkey) -> Option<usize> {
         for (index, entry) in self.spl_pools.iter_mut().enumerate() {
-
             if *entry == Pubkey::default() {
                 *entry = pool;
                 return Some(index);
@@ -42,17 +40,16 @@ impl Manager {
     pub const SIZE: usize = 32 + 32 + 32 + 1 + 1 + 1 + (3 * 32);
 }
 
-
 #[derive(Clone)]
 pub struct SplWrapper {
-    pub value: StakePool
+    pub value: StakePool,
 }
 
 impl anchor_lang::AccountDeserialize for SplWrapper {
     fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self> {
         let value = try_from_slice_unchecked::<StakePool>(buf)
             .map_err(|_| ErrorCode::AccountDidNotDeserialize)?;
-        
+
         Ok(SplWrapper { value })
     }
 }
@@ -76,10 +73,10 @@ impl Deref for SplWrapper {
 impl<'info> SplAccounts<'info> {
     #[inline(never)]
     pub fn deposit(
-        &self, 
+        &self,
         depositor: &AccountInfo<'info>,
         shared_accounts: &SharedAccounts<'info>,
-        amount: u64
+        amount: u64,
     ) -> Result<()> {
         invoke(
             &spl_stake_pool::instruction::deposit_sol(
@@ -118,7 +115,7 @@ pub struct SolValueShares {
     pub msol_value: u64,
     pub spl_pool_values: Vec<u64>,
     pub total_spl_value: u64,
-    pub total_value_staked: u64
+    pub total_value_staked: u64,
 }
 
 #[derive(Clone)]
@@ -135,7 +132,6 @@ pub struct MarinadeAccounts<'info> {
     pub msol_mint: AccountInfo<'info>,
     pub liq_pool_mint: Account<'info, Mint>,
     pub liq_pool_sol_leg_pda: AccountInfo<'info>,
-    //pub liq_pool_msol_leg_account: AccountInfo<'info>,
     pub liq_pool_msol_leg_account: Account<'info, TokenAccount>,
     pub liq_pool_msol_leg_authority: AccountInfo<'info>,
     pub liq_pool_mint_authority: AccountInfo<'info>,
@@ -145,8 +141,7 @@ pub struct MarinadeAccounts<'info> {
     pub sunrise_msol_token_account: Account<'info, TokenAccount>,
     pub sunrise_liq_pool_token_account: Account<'info, TokenAccount>,
     pub sunrise_msol_account_authority: AccountInfo<'info>,
-    //
-    //pub marinade_program: Program<'info, MarinadeFinance>,
+    ///
     pub marinade_program: AccountInfo<'info>,
 }
 pub struct SplAccounts<'info> {
@@ -159,6 +154,6 @@ pub struct SplAccounts<'info> {
     pub pool_withdraw_authority: AccountInfo<'info>,
     pub sunrise_pool_mint_token_account: Account<'info, TokenAccount>,
     pub token_account_authority: AccountInfo<'info>,
-    //
+    ///
     pub stake_pool_program: AccountInfo<'info>,
 }

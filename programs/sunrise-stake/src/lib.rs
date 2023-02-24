@@ -20,7 +20,6 @@ use instructions::*;
 mod generic;
 use generic::*;
 
-
 declare_id!("sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6");
 
 #[program]
@@ -160,7 +159,6 @@ pub mod sunrise_stake {
         update_metadata_account(ctx.accounts, uri, name, symbol)
     }
 
-
     /////////////////////////////////////////////////
     /// Transaction V2 Instructions
     ////////////////////////////////////////////////
@@ -183,29 +181,13 @@ pub mod sunrise_stake {
         ctx.accounts.handler(bump)
     }
 
-    /* 
-    pub fn split_deposit<'c, 'info>(
-        ctx: Context<'_, '_, 'c, 'info, SplitDeposit<'info>>, 
-        lamports: u64, 
-        marinade_offset: u8, 
-        spl_offset: u8, 
-        spl_pools: u8
-    )
-     -> Result<()> 
-    where 'c: 'info
-    {
-        split_deposit_handler(ctx, lamports, marinade_offset, spl_offset, spl_pools)
-    }*/
-
     pub fn split_deposit<'info>(
-        ctx: Context<'_, '_, '_, 'info, SplitDeposit<'info>>, 
-        lamports: u64, 
-        marinade_offset: u8, 
-        spl_offset: u8, 
-        spl_pools: u8
-    )
-     -> Result<()> 
-    {
+        ctx: Context<'_, '_, '_, 'info, SplitDeposit<'info>>,
+        lamports: u64,
+        marinade_offset: u8,
+        spl_offset: u8,
+        spl_pools: u8,
+    ) -> Result<()> {
         split_deposit_handler(ctx, lamports, marinade_offset, spl_offset, spl_pools)
     }
 }
