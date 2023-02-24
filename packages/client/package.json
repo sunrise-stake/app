@@ -6,7 +6,7 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist; tsc",
+    "build": "rimraf dist; tsc",
     "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx src"
   },
   "files": [
@@ -19,5 +19,8 @@
     "@solana/web3.js": "^1.73.2",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
     "bn.js": "^5.2.1"
+  },
+  "devDependencies": {
+    "rimraf": "^4.1.2"
   }
 }
