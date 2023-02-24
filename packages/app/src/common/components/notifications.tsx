@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 
-import { TweetButton } from "../common/components";
+import { TweetButton } from ".";
 
 export enum NotificationType {
   success = "success",
