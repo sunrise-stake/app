@@ -5,6 +5,7 @@ import {
   PublicKey,
   type TokenAmount,
   type Transaction,
+  LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
@@ -15,9 +16,14 @@ import {
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Details } from "./types/Details";
+import { MAX_NUM_PRECISION } from "./constants";
 
 // zero bn number
 export const ZERO = new BN(0);
+
+export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
+  lamports.div(new BN(10).pow(new BN(precision))).toNumber() /
+  (LAMPORTS_PER_SOL / 10 ** precision);
 
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",

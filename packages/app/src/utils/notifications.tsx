@@ -5,7 +5,8 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
-import TweetButton from "../components/TweetButton";
+
+import { TweetButton } from "../common/components";
 
 export enum NotificationType {
   success = "success",
