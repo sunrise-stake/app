@@ -1,17 +1,14 @@
 import {
   PublicKey,
-  StakeProgram,
   SystemProgram,
   AddressLookupTableProgram,
-  SYSVAR_CLOCK_PUBKEY,
-  SYSVAR_STAKE_HISTORY_PUBKEY,
   type Transaction,
   type TransactionInstruction,
   type Connection,
-  AccountMeta,
+  type AccountMeta,
 } from "@solana/web3.js";
 import BN from "bn.js";
-import {getStakePoolAccount} from "./decode_pool";
+import { getStakePoolAccount } from "./decode_pool";
 import {
   findBSolTokenAccountAuthority,
   findGSolMintAuthority,
@@ -25,28 +22,25 @@ import {
   findAssociatedTokenAddress,
 } from "./util";
 import { STAKE_POOL_PROGRAM_ID } from "./constants";
-import {
-  type AnchorProvider,
-  type Program,
-  utils,
-} from "@project-serum/anchor";
+import { type Program, utils } from "@project-serum/anchor";
 import { type SunriseStake } from "./types/sunrise_stake";
-import { Account, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import {
   type Marinade,
   type MarinadeState,
-  MarinadeUtils,
 } from "@sunrisestake/marinade-ts-sdk";
 
 export const initializeV2Accounts = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
-  payer: PublicKey,
+  payer: PublicKey
 ): Promise<Transaction> => {
-  let bsolAuthority = findBSolTokenAccountAuthority(config)[0];
-  let [managerAccount, ] = findManagerAccount(config);
-  let [genericAuthority, ] = findGenericTokenAccountAuthority(config); 
-  
+  const bsolAuthority = findBSolTokenAccountAuthority(config)[0];
+  const [managerAccount] = findManagerAccount(config);
+
   return program.methods
     .initializeV2()
     .accounts({
@@ -55,10 +49,10 @@ export const initializeV2Accounts = async (
       payer,
       manager: managerAccount,
       splTokenAccountAuthority: bsolAuthority,
-      systemProgram: SystemProgram.programId
+      systemProgram: SystemProgram.programId,
     })
     .transaction();
-}
+};
 
 const createTable = async (
   config: SunriseStakeConfig,
@@ -66,8 +60,8 @@ const createTable = async (
   payer: PublicKey,
   slot: number
 ): Promise<Transaction> => {
-  let [managerAccount, ] = findManagerAccount(config);
-  let [lookupAccount, ] = await findLookupTableAccount(managerAccount, slot);
+  const [managerAccount] = findManagerAccount(config);
+  const [lookupAccount] = await findLookupTableAccount(managerAccount, slot);
 
   return program.methods
     .createLookupTable(new BN(slot))
@@ -81,16 +75,16 @@ const createTable = async (
       lookupTableProgram: AddressLookupTableProgram.programId,
     })
     .transaction();
-}
+};
 
 export const createSplLookup = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
   payer: PublicKey,
-  slot: number,
+  slot: number
 ): Promise<Transaction> => {
   return createTable(config, program, payer, slot);
-}
+};
 
 export const createMarinadeLookup = async (
   config: SunriseStakeConfig,
@@ -99,16 +93,16 @@ export const createMarinadeLookup = async (
   slot: number
 ): Promise<Transaction> => {
   return createTable(config, program, payer, slot);
-}
+};
 
 const ExtendLookupTable = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
   lookupTable: PublicKey,
   addresses: PublicKey[],
-  payer: PublicKey,
+  payer: PublicKey
 ): Promise<TransactionInstruction> => {
-  let [managerAccount,] = await findManagerAccount(config);
+  const [managerAccount] = findManagerAccount(config);
 
   return program.methods
     .extendTable(addresses)
@@ -122,51 +116,70 @@ const ExtendLookupTable = async (
       lookupTableProgram: AddressLookupTableProgram.programId,
     })
     .instruction();
-}
+};
 
 export const ExtendMarinadeLookup = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
   addresses: PublicKey[],
-  payer: PublicKey,
+  payer: PublicKey
 ): Promise<TransactionInstruction> => {
-  let [managerAccount,] = await findManagerAccount(config);
-  let managerInfo = await program.account.manager.fetch(managerAccount);
-  return ExtendLookupTable(config, program, managerInfo.marinadeLookupTable, addresses, payer);
-}
+  const [managerAccount] = findManagerAccount(config);
+  const managerInfo = await program.account.manager.fetch(managerAccount);
+  return ExtendLookupTable(
+    config,
+    program,
+    managerInfo.marinadeLookupTable,
+    addresses,
+    payer
+  );
+};
 
 export const ExtendSplLookup = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
   addresses: PublicKey[],
-  payer: PublicKey,
+  payer: PublicKey
 ): Promise<TransactionInstruction> => {
-  let [managerAccount,] = await findManagerAccount(config);
-  let managerInfo = await program.account.manager.fetch(managerAccount);
-  return ExtendLookupTable(config, program, managerInfo.splLookupTable, addresses, payer);
-}
+  const [managerAccount] = findManagerAccount(config);
+  const managerInfo = await program.account.manager.fetch(managerAccount);
+  return ExtendLookupTable(
+    config,
+    program,
+    managerInfo.splLookupTable,
+    addresses,
+    payer
+  );
+};
 
 export const RegisterPool = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
   stakePoolAccount: PublicKey,
-  payer: PublicKey,
+  payer: PublicKey
 ): Promise<Transaction> => {
-  let stakePool = await getStakePoolAccount(program.provider.connection, stakePoolAccount);
-  let [tokenAccountAuth, ] = findGenericTokenAccountAuthority(config);
-  let [withdrawAuthority, ] = findSplPoolWithdrawAuthority(stakePoolAccount);
-  let [depositAuthority, ] = findSplPoolDepositAuthority(stakePoolAccount);
+  const stakePool = await getStakePoolAccount(
+    program.provider.connection,
+    stakePoolAccount
+  );
+  const [tokenAccountAuth] = findGenericTokenAccountAuthority(config);
+  const [withdrawAuthority] = findSplPoolWithdrawAuthority(stakePoolAccount);
+  const [depositAuthority] = findSplPoolDepositAuthority(stakePoolAccount);
 
-  let poolMintTokenAccount = await utils.token.associatedAddress({
+  const poolMintTokenAccount = await utils.token.associatedAddress({
     mint: stakePool.poolMint,
     owner: tokenAccountAuth,
   });
 
-  let [managerAccount,] = await findManagerAccount(config);
-  let managerInfo = await program.account.manager.fetch(managerAccount);
+  const [managerAccount] = findManagerAccount(config);
+  const managerInfo = await program.account.manager.fetch(managerAccount);
 
-  let addresses = await getSplAddresses(config, program.provider.connection, stakePoolAccount);
-  let extendIx = await ExtendSplLookup(config, program, addresses, payer);
+  const addresses = await getSplAddresses(
+    config,
+    program.provider.connection,
+    stakePoolAccount
+  );
+  const extendIx = await ExtendSplLookup(config, program, addresses, payer);
 
   return program.methods
     .registerPool()
@@ -189,33 +202,39 @@ export const RegisterPool = async (
     })
     .postInstructions([extendIx])
     .transaction();
-}
+};
 
-
-export const splitDeposit = async(
+export const splitDeposit = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
   staker: PublicKey,
   stakerGSolTokenAccount: PublicKey,
   lamports: BN,
   marinade: Marinade,
-  marinadeState: MarinadeState,
+  marinadeState: MarinadeState
 ): Promise<TransactionInstruction> => {
   const gsolMintAuthority = findGSolMintAuthority(config)[0];
   const managerAccount = findManagerAccount(config)[0];
-  let info = await program.account.manager.fetch(managerAccount);
-  let pool = info.splPools[0];
+  const info = await program.account.manager.fetch(managerAccount);
+  const pool = info.splPools[0];
 
-  const splAccounts = await constructSplAccountsForDeposit(config, program.provider.connection, pool);
-  const marinadeAccounts = await constructMarinadeAccountsForDeposit(config, marinadeState);
-  let remainingAccounts = marinadeAccounts.concat(splAccounts);
+  const splAccounts = await constructSplAccountsForDeposit(
+    config,
+    program.provider.connection,
+    pool
+  );
+  const marinadeAccounts = await constructMarinadeAccountsForDeposit(
+    config,
+    marinadeState
+  );
+  const remainingAccounts = marinadeAccounts.concat(splAccounts);
 
   const marinadeOffset = 0;
   const splOffset = marinadeOffset + marinadeAccounts.length;
   const poolCount = 1;
 
   return program.methods
-    .splitDeposit(lamports, marinadeOffset, splOffset, poolCount) 
+    .splitDeposit(lamports, marinadeOffset, splOffset, poolCount)
     .accounts({
       state: config.stateAddress,
       gsolMint: config.gsolMint,
@@ -229,20 +248,22 @@ export const splitDeposit = async(
       tokenProgram: TOKEN_PROGRAM_ID,
       marinadeProgram: marinade.marinadeFinanceProgram.programAddress,
     })
-    //.remainingAccounts(marinadeAccounts)
     .remainingAccounts(remainingAccounts)
     .instruction();
-}
+};
 
 export const getSplAddresses = async (
   config: SunriseStakeConfig,
   connection: Connection,
   stakePool: PublicKey
 ): Promise<PublicKey[]> => {
-  let info = await getStakePoolAccount(connection, stakePool);
+  const info = await getStakePoolAccount(connection, stakePool);
 
-  let tokenAccountAuth = findGenericTokenAccountAuthority(config)[0];
-  let poolMintTokenAccount = await findAssociatedTokenAddress(info.poolMint, tokenAccountAuth);
+  const tokenAccountAuth = findGenericTokenAccountAuthority(config)[0];
+  const poolMintTokenAccount = await findAssociatedTokenAddress(
+    info.poolMint,
+    tokenAccountAuth
+  );
 
   const [withdrawAuthority] = PublicKey.findProgramAddressSync(
     [stakePool.toBuffer(), Buffer.from("withdraw")],
@@ -253,7 +274,6 @@ export const getSplAddresses = async (
     [stakePool.toBuffer(), Buffer.from("deposit")],
     STAKE_POOL_PROGRAM_ID
   );
-
 
   // TODO: Make named?
   return [
@@ -268,21 +288,19 @@ export const getSplAddresses = async (
     tokenAccountAuth,
     info.stakeDepositAuthority,
   ];
-}
+};
 
 const getMarinadeAddresses = async (
   config: SunriseStakeConfig,
-  marinadeState: MarinadeState,
+  marinadeState: MarinadeState
 ): Promise<PublicKey[]> => {
   const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
 
-  const sunriseMsolTokenAccount = await utils.token.associatedAddress(
-    {
-      mint: marinadeState.mSolMintAddress,
-      owner: msolTokenAccountAuthority,
-    }
-  );
-  let sunriseLiqPoolTokenAccount = await utils.token.associatedAddress({
+  const sunriseMsolTokenAccount = await utils.token.associatedAddress({
+    mint: marinadeState.mSolMintAddress,
+    owner: msolTokenAccountAuthority,
+  });
+  const sunriseLiqPoolTokenAccount = await utils.token.associatedAddress({
     mint: marinadeState.lpMint.address,
     owner: msolTokenAccountAuthority,
   });
@@ -303,16 +321,16 @@ const getMarinadeAddresses = async (
     sunriseLiqPoolTokenAccount,
     msolTokenAccountAuthority,
   ];
-}
+};
 
 const constructSplAccountsForDeposit = async (
   config: SunriseStakeConfig,
   connection: Connection,
   stakePool: PublicKey
 ): Promise<AccountMeta[]> => {
-  let keys = await getSplAddresses(config, connection, stakePool);
+  const keys = await getSplAddresses(config, connection, stakePool);
 
-  const accounts: Array<AccountMeta> = [
+  const accounts: AccountMeta[] = [
     { pubkey: keys[0], isSigner: false, isWritable: true }, // pool
     { pubkey: keys[1], isSigner: false, isWritable: true }, // poolMint
     { pubkey: keys[2], isSigner: false, isWritable: true }, // managerFeeAccount
@@ -324,15 +342,15 @@ const constructSplAccountsForDeposit = async (
     { pubkey: keys[8], isSigner: false, isWritable: false }, // tokenAccountAuthority
   ];
   return accounts;
-}
+};
 
 const constructMarinadeAccountsForDeposit = async (
   config: SunriseStakeConfig,
-  marinadeState: MarinadeState,
+  marinadeState: MarinadeState
 ): Promise<AccountMeta[]> => {
-  let keys = await getMarinadeAddresses(config, marinadeState);
+  const keys = await getMarinadeAddresses(config, marinadeState);
 
-  const accounts: Array<AccountMeta> = [
+  const accounts: AccountMeta[] = [
     { pubkey: keys[0], isSigner: false, isWritable: true }, // marinadeState
     { pubkey: keys[1], isSigner: false, isWritable: true }, // msolMint
     { pubkey: keys[2], isSigner: false, isWritable: true }, // lpMint
@@ -349,4 +367,4 @@ const constructMarinadeAccountsForDeposit = async (
   ];
 
   return accounts;
-}
+};

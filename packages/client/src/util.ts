@@ -136,50 +136,56 @@ export const findLockTokenAccount = (
   );
 
 export const findManagerAccount = (
-  config: SunriseStakeConfig,
-): [PublicKey, number] => 
+  config: SunriseStakeConfig
+): [PublicKey, number] =>
   findProgramDerivedAddress(config, ProgramDerivedAddressSeed.MANAGER_ACCOUNT);
 
 export const findGenericTokenAccountAuthority = (
   config: SunriseStakeConfig
-): [PublicKey, number] => 
-  findBSolTokenAccountAuthority(config);
+): [PublicKey, number] => findBSolTokenAccountAuthority(config);
 
 export const findLookupTableAccount = async (
   authority: PublicKey,
-  slot: number,
-): Promise<[PublicKey, number]> => 
-  PublicKey.findProgramAddressSync([authority.toBuffer(), new BN(slot).toBuffer('le', 8)], AddressLookupTableProgram.programId);
+  slot: number
+): Promise<[PublicKey, number]> =>
+  PublicKey.findProgramAddressSync(
+    [authority.toBuffer(), new BN(slot).toBuffer("le", 8)],
+    AddressLookupTableProgram.programId
+  );
 
 export const findSplPoolDepositAuthority = (
-  poolAccount: PublicKey,
+  poolAccount: PublicKey
 ): [PublicKey, number] =>
-  PublicKey.findProgramAddressSync([poolAccount.toBuffer(), Buffer.from("deposit")],
-  STAKE_POOL_PROGRAM_ID
+  PublicKey.findProgramAddressSync(
+    [poolAccount.toBuffer(), Buffer.from("deposit")],
+    STAKE_POOL_PROGRAM_ID
   );
 
 export const findSplPoolWithdrawAuthority = (
-  poolAccount: PublicKey,
+  poolAccount: PublicKey
 ): [PublicKey, number] =>
-  PublicKey.findProgramAddressSync([poolAccount.toBuffer(), Buffer.from("withdraw")],
-  STAKE_POOL_PROGRAM_ID
+  PublicKey.findProgramAddressSync(
+    [poolAccount.toBuffer(), Buffer.from("withdraw")],
+    STAKE_POOL_PROGRAM_ID
   );
 
-export const findAssociatedTokenAddress = async ( 
+export const findAssociatedTokenAddress = async (
   mint: PublicKey,
-  owner: PublicKey,
-): Promise<PublicKey> =>
-  await anchor.utils.token.associatedAddress({ mint, owner });
-
+  owner: PublicKey
+): Promise<PublicKey> => anchor.utils.token.associatedAddress({ mint, owner });
 
 export const getValidRecentSlot = async (
   connection: Connection
 ): Promise<number> => {
   const currentSlot = await connection.getSlot();
-    // To make sure our slot is valid
-  const slots = await connection.getBlocks(currentSlot - 200, undefined, "confirmed");
-  return slots[0]
-}
+  // To make sure our slot is valid
+  const slots = await connection.getBlocks(
+    currentSlot - 200,
+    undefined,
+    "confirmed"
+  );
+  return slots[0];
+};
 
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {

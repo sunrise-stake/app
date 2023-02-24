@@ -63,7 +63,7 @@ export interface Details {
     splWidth: number;
     splCount: number;
     splPools: PublicKey[];
-  }
+  };
 }
 
 export interface WithdrawalFees {

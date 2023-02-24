@@ -9,11 +9,10 @@ import {
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
-  Transaction, TransactionInstruction,
+  Transaction,
+  type TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
-  sendAndConfirmTransaction,
-  sendAndConfirmRawTransaction,
 } from "@solana/web3.js";
 import {
   type Balance,
@@ -21,7 +20,7 @@ import {
   findAllTickets,
   findBSolTokenAccountAuthority,
   findEpochReportAccount,
-  findGSolMintAuthority, 
+  findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   findManagerAccount,
   getValidRecentSlot,
@@ -249,9 +248,6 @@ export class SunriseStakeClient {
     signers?: Signer[],
     opts?: ConfirmOptions
   ): Promise<string> {
-    //let serialized = Buffer.from(transaction.serialize());
-    //return sendAndConfirmRawTransaction(this.provider.connection, serialized)
-    //this.provider.wallet.signTransaction([transaction])
     return this.provider.connection
       .sendTransaction(transaction, opts)
       .catch((e) => {
@@ -339,13 +335,13 @@ export class SunriseStakeClient {
     }
 
     const instruction = await splitDeposit(
-      this.config, 
+      this.config,
       this.program,
       this.provider.publicKey,
       this.stakerGSolTokenAccount,
       lamports,
       this.marinade,
-      this.marinadeState,
+      this.marinadeState
     );
     transaction.add(instruction);
 
@@ -364,7 +360,7 @@ export class SunriseStakeClient {
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
       this.stakerGSolTokenAccount
     );
-    const instructionArray = new Array<TransactionInstruction>;
+    const instructionArray = new Array<TransactionInstruction>();
 
     if (!gsolTokenAccount) {
       const createUserTokenAccount = this.createGSolTokenAccountIx();
@@ -372,25 +368,30 @@ export class SunriseStakeClient {
     }
 
     const instruction = await splitDeposit(
-      this.config, 
+      this.config,
       this.program,
       this.provider.publicKey,
       this.stakerGSolTokenAccount,
       lamports,
       this.marinade,
-      this.marinadeState,
+      this.marinadeState
     );
     instructionArray.push(instruction);
 
-    const managerDetails = await this.details().then((res) => res.managerDetails);
-    if (managerDetails === undefined ) throw new Error("Manager account not initialized");
+    const managerDetails = await this.details().then(
+      (res) => res.managerDetails
+    );
+    if (managerDetails === undefined)
+      throw new Error("Manager account not initialized");
 
-    const marinadeLookup = await this.provider.connection.getAddressLookupTable(
-      managerDetails.marinadeLookup).then((res) => res.value);
-    const splLookup = await this.provider.connection.getAddressLookupTable(
-      managerDetails.splLookup).then((res) => res.value);
+    const marinadeLookup = await this.provider.connection
+      .getAddressLookupTable(managerDetails.marinadeLookup)
+      .then((res) => res.value);
+    const splLookup = await this.provider.connection
+      .getAddressLookupTable(managerDetails.splLookup)
+      .then((res) => res.value);
 
-    if (marinadeLookup === null || splLookup == null ) 
+    if (marinadeLookup === null || splLookup == null)
       throw new Error("Lookup tables do not exist");
 
     const hash = await this.provider.connection.getLatestBlockhash();
@@ -400,9 +401,7 @@ export class SunriseStakeClient {
       instructions: instructionArray,
     }).compileToV0Message([marinadeLookup, splLookup]);
 
-  
     const transaction = new VersionedTransaction(message);
-    //transaction.sign([]);
 
     return transaction;
   }
@@ -852,7 +851,11 @@ export class SunriseStakeClient {
       throw new Error("init not called");
     }
 
-    const transaction = await initializeV2Accounts(this.config, this.program, this.provider.publicKey);
+    const transaction = await initializeV2Accounts(
+      this.config,
+      this.program,
+      this.provider.publicKey
+    );
     return transaction;
   }
 
@@ -861,9 +864,15 @@ export class SunriseStakeClient {
       throw new Error("init not called");
     }
 
-    let recentSlot = slot ? slot : await getValidRecentSlot(this.provider.connection);
+    const recentSlot =
+      slot ?? (await getValidRecentSlot(this.provider.connection));
 
-    const transaction = await createSplLookup(this.config, this.program, this.provider.publicKey, recentSlot);
+    const transaction = await createSplLookup(
+      this.config,
+      this.program,
+      this.provider.publicKey,
+      recentSlot
+    );
     return transaction;
   }
 
@@ -872,27 +881,47 @@ export class SunriseStakeClient {
       throw new Error("init not called");
     }
 
-    let recentSlot = slot ? slot : await getValidRecentSlot(this.provider.connection);
-    
-    const transaction = await createMarinadeLookup(this.config, this.program, this.provider.publicKey, recentSlot);
+    const recentSlot =
+      slot ?? (await getValidRecentSlot(this.provider.connection));
+
+    const transaction = await createMarinadeLookup(
+      this.config,
+      this.program,
+      this.provider.publicKey,
+      recentSlot
+    );
     return transaction;
   }
 
-  public async extendMarinadeLookup(addresses: PublicKey[]): Promise<TransactionInstruction> {
+  public async extendMarinadeLookup(
+    addresses: PublicKey[]
+  ): Promise<TransactionInstruction> {
     if (!this.config) {
       throw new Error("init not called");
     }
 
-    const transaction = await ExtendMarinadeLookup(this.config, this.program, addresses, this.provider.publicKey);
+    const transaction = await ExtendMarinadeLookup(
+      this.config,
+      this.program,
+      addresses,
+      this.provider.publicKey
+    );
     return transaction;
   }
 
-  public async extendSplLookup(addresses: PublicKey[]): Promise<TransactionInstruction> {
+  public async extendSplLookup(
+    addresses: PublicKey[]
+  ): Promise<TransactionInstruction> {
     if (!this.config) {
       throw new Error("init not called");
     }
 
-    const transaction = await ExtendSplLookup(this.config, this.program, addresses, this.provider.publicKey);
+    const transaction = await ExtendSplLookup(
+      this.config,
+      this.program,
+      addresses,
+      this.provider.publicKey
+    );
     return transaction;
   }
 
@@ -901,7 +930,12 @@ export class SunriseStakeClient {
       throw new Error("init not called");
     }
 
-    const transaction = await RegisterPool(this.config, this.program, poolAccount, this.provider.publicKey);
+    const transaction = await RegisterPool(
+      this.config,
+      this.program,
+      poolAccount,
+      this.provider.publicKey
+    );
     return transaction;
   }
 
@@ -1204,10 +1238,12 @@ export class SunriseStakeClient {
       },
     };
 
-    let managerDetails: Details["managerDetails"] = undefined;
+    let managerDetails: Details["managerDetails"];
 
-    let manager = await findManagerAccount(this.config)[0];
-    let managerAccount = await this.provider.connection.getAccountInfo(manager);
+    const manager = findManagerAccount(this.config)[0];
+    const managerAccount = await this.provider.connection.getAccountInfo(
+      manager
+    );
 
     if (managerAccount !== null) {
       const info = await this.program.account.manager.fetch(manager);
