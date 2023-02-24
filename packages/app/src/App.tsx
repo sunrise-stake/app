@@ -15,9 +15,12 @@ import React, { type FC, useMemo } from "react";
 import { Route, Routes, Link, useLocation } from "react-router-dom";
 
 import { SunriseProvider } from "./common/context/sunriseStakeContext";
-import { StakingApp } from "./staking/StakingApp";
 import { Layout } from "./common/partials/Layout";
-import { IntroApp } from "./intro/IntroApp";
+import { HubApp } from "./hub/HubApp";
+import { ForestApp } from "./forest/ForestApp";
+import { GrowApp } from "./grow/GrowApp";
+import { LockingApp } from "./locking/LockingApp";
+import { StakingApp } from "./staking/StakingApp";
 require("./solana-wallet-adapter.css");
 
 const App: FC = () => {
@@ -45,8 +48,11 @@ const App: FC = () => {
             <SunriseProvider>
               <Layout>
                 <Routes location={location}>
-                  <Route path="/" element={<IntroApp />} />
+                  <Route path="/" element={<HubApp />} />
                   <Route path="/stake" element={<StakingApp />} />
+                  <Route path="/forest" element={<ForestApp />} />
+                  <Route path="/grow" element={<GrowApp />} />
+                  <Route path="/lock" element={<LockingApp />} />
                   <Route
                     path="/*"
                     element={
