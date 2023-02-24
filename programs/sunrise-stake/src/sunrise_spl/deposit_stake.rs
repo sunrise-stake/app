@@ -98,17 +98,13 @@ pub struct SplDepositStake<'info> {
     /// CHECK:
     pub native_stake_program: AccountInfo<'info>,
     /// CHECK:
+    #[account(address = spl_stake_pool::ID)]
     pub stake_pool_program: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
 }
 
 impl<'info> SplDepositStake<'info> {
-    fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, spl_stake_pool::ID);
-        Ok(())
-    }
-
     fn authorize_stake_pool(&self, instructions: &[Instruction]) -> Result<()> {
         let authorize_staker_ix = &instructions[0];
         let authorize_withdrawer_ix = &instructions[1];
@@ -126,8 +122,6 @@ impl<'info> SplDepositStake<'info> {
     }
 
     pub fn deposit_stake(&mut self) -> Result<()> {
-        self.check_stake_pool_program()?;
-
         let stake_account_info =
             try_from_slice_unchecked::<StakeState>(&self.stake_account.data.borrow())?;
         let stake_amount = match stake_account_info.delegation() {

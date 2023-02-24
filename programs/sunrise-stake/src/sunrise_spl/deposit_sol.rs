@@ -80,7 +80,6 @@ pub struct SplDepositSol<'info> {
 }
 
 impl<'info> SplDepositSol<'info> {
-
     pub fn deposit_sol(&mut self, amount: u64) -> Result<()> {
         invoke(
             &spl_stake_pool::instruction::deposit_sol(

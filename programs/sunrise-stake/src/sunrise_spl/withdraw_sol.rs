@@ -75,19 +75,13 @@ pub struct SplWithdrawSol<'info> {
     /// CHECK:
     pub stake_pool_program: AccountInfo<'info>,
     /// CHECK:
+    #[account(address = spl_stake_pool::ID)]
     pub native_stake_program: AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
 }
 
 impl<'info> SplWithdrawSol<'info> {
-    fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, spl_stake_pool::ID);
-        Ok(())
-    }
-
     pub fn withdraw_sol(&mut self, lamports: u64) -> Result<()> {
-        self.check_stake_pool_program()?;
-
         let bump = self.state.bsol_authority_bump;
         let state_key = self.state.to_account_info().key;
         let signer_seeds = &[state_key.as_ref(), utils::seeds::BSOL_ACCOUNT, &[bump]];
