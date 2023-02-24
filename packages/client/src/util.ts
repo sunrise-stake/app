@@ -6,6 +6,7 @@ import {
   type TokenAmount,
   type Transaction,
   LAMPORTS_PER_SOL,
+  AddressLookupTableProgram,
 } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { AnchorProvider, BN } from "@project-serum/anchor";
@@ -17,6 +18,7 @@ import {
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Details } from "./types/Details";
 import { MAX_NUM_PRECISION } from "./constants";
+import {STAKE_POOL_PROGRAM_ID} from "./constants";
 
 // zero bn number
 export const ZERO = new BN(0);
@@ -33,6 +35,7 @@ export const enum ProgramDerivedAddressSeed {
   ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
   LOCK_ACCOUNT = "lock_account",
   LOCK_TOKEN_ACCOUNT = "lock_token_account",
+  MANAGER_ACCOUNT = "manager",
 }
 
 export interface SunriseStakeConfig {
@@ -131,6 +134,52 @@ export const findLockTokenAccount = (
     ProgramDerivedAddressSeed.LOCK_TOKEN_ACCOUNT,
     [authority.toBuffer()]
   );
+
+export const findManagerAccount = (
+  config: SunriseStakeConfig,
+): [PublicKey, number] => 
+  findProgramDerivedAddress(config, ProgramDerivedAddressSeed.MANAGER_ACCOUNT);
+
+export const findGenericTokenAccountAuthority = (
+  config: SunriseStakeConfig
+): [PublicKey, number] => 
+  findBSolTokenAccountAuthority(config);
+
+export const findLookupTableAccount = async (
+  authority: PublicKey,
+  slot: number,
+): Promise<[PublicKey, number]> => 
+  PublicKey.findProgramAddressSync([authority.toBuffer(), new BN(slot).toBuffer('le', 8)], AddressLookupTableProgram.programId);
+
+export const findSplPoolDepositAuthority = (
+  poolAccount: PublicKey,
+): [PublicKey, number] =>
+  PublicKey.findProgramAddressSync([poolAccount.toBuffer(), Buffer.from("deposit")],
+  STAKE_POOL_PROGRAM_ID
+  );
+
+export const findSplPoolWithdrawAuthority = (
+  poolAccount: PublicKey,
+): [PublicKey, number] =>
+  PublicKey.findProgramAddressSync([poolAccount.toBuffer(), Buffer.from("withdraw")],
+  STAKE_POOL_PROGRAM_ID
+  );
+
+export const findAssociatedTokenAddress = async ( 
+  mint: PublicKey,
+  owner: PublicKey,
+): Promise<PublicKey> =>
+  await anchor.utils.token.associatedAddress({ mint, owner });
+
+
+export const getValidRecentSlot = async (
+  connection: Connection
+): Promise<number> => {
+  const currentSlot = await connection.getSlot();
+    // To make sure our slot is valid
+  const slots = await connection.getBlocks(currentSlot - 200, undefined, "confirmed");
+  return slots[0]
+}
 
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {

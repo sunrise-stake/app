@@ -14,8 +14,8 @@ url = "https://api.apr.dev"
 cluster = "localnet"
 wallet = "packages/tests/fixtures/id.json"
 
-#[test]
-#startup_wait = 60000
+[test]
+startup_wait = 60000
 
 [scripts]
 test = "yarn test:anchor"

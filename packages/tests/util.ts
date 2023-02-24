@@ -246,6 +246,15 @@ export const getBlazeSolDepositFee = async (
   return depositFee;
 };
 
+export const getValidRecentSlotsForTest = async (
+  client: SunriseStakeClient
+): Promise<number[]> => {
+  const currentSlot = await client.provider.connection.getSlot();
+    // To make sure our slot is valid
+  const slots = await client.provider.connection.getBlocks(currentSlot - 10, undefined, "confirmed");
+  return slots
+}
+
 export const initializeStakeAccount = async (
   client: SunriseStakeClient,
   stakeAccount: Keypair,

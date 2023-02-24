@@ -83,3 +83,5 @@ export const EMPTY_EPOCH_REPORT: EpochReportAccount = {
   tickets: new BN(0),
   totalOrderedLamports: new BN(0),
 };
+
+export const LOOKUP_WIDTH = 11;

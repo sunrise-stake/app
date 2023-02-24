@@ -9,8 +9,11 @@ import {
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
-  Transaction,
-  type TransactionInstruction,
+  Transaction, TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+  sendAndConfirmTransaction,
+  sendAndConfirmRawTransaction,
 } from "@solana/web3.js";
 import {
   type Balance,
@@ -18,8 +21,10 @@ import {
   findAllTickets,
   findBSolTokenAccountAuthority,
   findEpochReportAccount,
-  findGSolMintAuthority,
+  findGSolMintAuthority, 
   findMSolTokenAccountAuthority,
+  findManagerAccount,
+  getValidRecentSlot,
   logKeys,
   marinadeTargetReached,
   type Options,
@@ -70,8 +75,18 @@ import {
   blazeWithdrawSol,
   blazeWithdrawStake,
 } from "./blaze";
+import {
+  initializeV2Accounts,
+  createSplLookup,
+  createMarinadeLookup,
+  ExtendSplLookup,
+  ExtendMarinadeLookup,
+  RegisterPool,
+  splitDeposit,
+} from "./generic";
 import { type BlazeState } from "./types/Solblaze";
-import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
+import { getStakePoolAccount, type StakePool } from "./decode_pool";
+import { toSol } from "@sunrisestake/app/src/lib/util";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
 import {
   getLockAccount,
@@ -83,6 +98,7 @@ import {
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
+export { getSplAddresses } from "./generic";
 
 // export all types
 export * from "./types/sunrise_stake";
@@ -95,6 +111,7 @@ export * from "./types/Solblaze";
 export * from "./constants";
 
 export { toSol } from "./util";
+
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -228,6 +245,22 @@ export class SunriseStakeClient {
       });
   }
 
+  public async sendAndConfirmV0Transaction(
+    transaction: VersionedTransaction,
+    signers?: Signer[],
+    opts?: ConfirmOptions
+  ): Promise<string> {
+    //let serialized = Buffer.from(transaction.serialize());
+    //return sendAndConfirmRawTransaction(this.provider.connection, serialized)
+    //this.provider.wallet.signTransaction([transaction])
+    return this.provider.connection
+      .sendTransaction(transaction, opts)
+      .catch((e) => {
+        this.log(e.logs);
+        throw e;
+      });
+  }
+
   createGSolTokenAccountIx(): TransactionInstruction {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
@@ -282,6 +315,95 @@ export class SunriseStakeClient {
     );
 
     transaction.add(depositTx);
+
+    return transaction;
+  }
+
+  public async splitDeposit(lamports: BN): Promise<Transaction> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.stakerGSolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const transaction = new Transaction();
+
+    const gsolTokenAccount = await this.provider.connection.getAccountInfo(
+      this.stakerGSolTokenAccount
+    );
+
+    if (!gsolTokenAccount) {
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      transaction.add(createUserTokenAccount);
+    }
+
+    const instruction = await splitDeposit(
+      this.config, 
+      this.program,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      lamports,
+      this.marinade,
+      this.marinadeState,
+    );
+    transaction.add(instruction);
+
+    return transaction;
+  }
+
+  public async splitDepositV0(lamports: BN): Promise<VersionedTransaction> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.stakerGSolTokenAccount
+    )
+      throw new Error("init not called");
+
+    const gsolTokenAccount = await this.provider.connection.getAccountInfo(
+      this.stakerGSolTokenAccount
+    );
+    const instructionArray = new Array<TransactionInstruction>;
+
+    if (!gsolTokenAccount) {
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      instructionArray.push(createUserTokenAccount);
+    }
+
+    const instruction = await splitDeposit(
+      this.config, 
+      this.program,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      lamports,
+      this.marinade,
+      this.marinadeState,
+    );
+    instructionArray.push(instruction);
+
+    const managerDetails = await this.details().then((res) => res.managerDetails);
+    if (managerDetails === undefined ) throw new Error("Manager account not initialized");
+
+    const marinadeLookup = await this.provider.connection.getAddressLookupTable(
+      managerDetails.marinadeLookup).then((res) => res.value);
+    const splLookup = await this.provider.connection.getAddressLookupTable(
+      managerDetails.splLookup).then((res) => res.value);
+
+    if (marinadeLookup === null || splLookup == null ) 
+      throw new Error("Lookup tables do not exist");
+
+    const hash = await this.provider.connection.getLatestBlockhash();
+    const message = new TransactionMessage({
+      payerKey: this.provider.publicKey,
+      recentBlockhash: hash.blockhash,
+      instructions: instructionArray,
+    }).compileToV0Message([marinadeLookup, splLookup]);
+
+  
+    const transaction = new VersionedTransaction(message);
+    //transaction.sign([]);
 
     return transaction;
   }
@@ -680,7 +802,7 @@ export class SunriseStakeClient {
     return transaction;
   }
 
-  public async withdrawFromBlaze(amount: BN): Promise<string> {
+  public async withdrawFromBlaze(amount: BN): Promise<Transaction> {
     if (
       !this.blazeState ||
       !this.config ||
@@ -698,14 +820,13 @@ export class SunriseStakeClient {
       amount
     );
 
-    const transaction = new Transaction().add(withdrawIx);
-    return this.sendAndConfirmTransaction(transaction, []);
+    return new Transaction().add(withdrawIx);
   }
 
   public async withdrawStakeFromBlaze(
     newStakeAccount: PublicKey,
     amount: BN
-  ): Promise<string> {
+  ): Promise<Transaction> {
     if (
       !this.blazeState ||
       !this.config ||
@@ -724,8 +845,65 @@ export class SunriseStakeClient {
       amount
     );
 
-    const transaction = new Transaction().add(withdrawStakeIx);
-    return this.sendAndConfirmTransaction(transaction, []);
+    return new Transaction().add(withdrawStakeIx);
+  }
+
+  public async initializeV2(): Promise<Transaction> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
+    const transaction = await initializeV2Accounts(this.config, this.program, this.provider.publicKey);
+    return transaction;
+  }
+
+  public async initializeSplLookup(slot?: number): Promise<Transaction> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
+    let recentSlot = slot ? slot : await getValidRecentSlot(this.provider.connection);
+
+    const transaction = await createSplLookup(this.config, this.program, this.provider.publicKey, recentSlot);
+    return transaction;
+  }
+
+  public async initializeMarinadeLookup(slot?: number): Promise<Transaction> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
+    let recentSlot = slot ? slot : await getValidRecentSlot(this.provider.connection);
+    
+    const transaction = await createMarinadeLookup(this.config, this.program, this.provider.publicKey, recentSlot);
+    return transaction;
+  }
+
+  public async extendMarinadeLookup(addresses: PublicKey[]): Promise<TransactionInstruction> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
+    const transaction = await ExtendMarinadeLookup(this.config, this.program, addresses, this.provider.publicKey);
+    return transaction;
+  }
+
+  public async extendSplLookup(addresses: PublicKey[]): Promise<TransactionInstruction> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
+    const transaction = await ExtendSplLookup(this.config, this.program, addresses, this.provider.publicKey);
+    return transaction;
+  }
+
+  public async registerPool(poolAccount: PublicKey): Promise<Transaction> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
+    const transaction = await RegisterPool(this.config, this.program, poolAccount, this.provider.publicKey);
+    return transaction;
   }
 
   // This should be done only once per state, and must be signed by the update authority
@@ -1027,6 +1205,25 @@ export class SunriseStakeClient {
       },
     };
 
+    let managerDetails: Details["managerDetails"] = undefined;
+
+    let manager = await findManagerAccount(this.config)[0];
+    let managerAccount = await this.provider.connection.getAccountInfo(manager);
+
+    if (managerAccount !== null) {
+      const info = await this.program.account.manager.fetch(manager);
+      managerDetails = {
+        manager,
+        splLookup: info.splLookupTable,
+        marinadeLookup: info.marinadeLookupTable,
+        genericAuth: info.genericTokenAccountAuth,
+        marinadeWidth: info.marinadeLookupWidth,
+        splWidth: info.splLookupWidth,
+        splCount: info.splPoolCount,
+        splPools: info.splPools,
+      };
+    }
+
     const lockDetails: Details["lockDetails"] =
       lockAccountDetails.lockAccount &&
       lockAccountDetails.tokenAccount &&
@@ -1063,6 +1260,7 @@ export class SunriseStakeClient {
       lpDetails,
       bpDetails,
       lockDetails,
+      managerDetails,
     };
 
     const extractableYield =

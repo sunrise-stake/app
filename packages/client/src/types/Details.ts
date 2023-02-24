@@ -54,6 +54,16 @@ export interface Details {
     lockAccount: PublicKey;
     lockTokenAccount: PublicKey;
   };
+  managerDetails?: {
+    manager: PublicKey;
+    splLookup: PublicKey;
+    marinadeLookup: PublicKey;
+    genericAuth: PublicKey;
+    marinadeWidth: number;
+    splWidth: number;
+    splCount: number;
+    splPools: PublicKey[];
+  }
 }
 
 export interface WithdrawalFees {

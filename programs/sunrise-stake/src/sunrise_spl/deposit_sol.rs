@@ -72,6 +72,7 @@ pub struct SplDepositSol<'info> {
     /// CHECK: Checked by CPI to Spl Stake Program
     pub stake_pool_token_mint: AccountInfo<'info>,
     /// CHECK:
+    #[account(address = spl_stake_pool::ID)]
     pub stake_pool_program: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
@@ -79,14 +80,8 @@ pub struct SplDepositSol<'info> {
 }
 
 impl<'info> SplDepositSol<'info> {
-    fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, spl_stake_pool::ID);
-        Ok(())
-    }
 
     pub fn deposit_sol(&mut self, amount: u64) -> Result<()> {
-        self.check_stake_pool_program()?;
-
         invoke(
             &spl_stake_pool::instruction::deposit_sol(
                 &spl_stake_pool::ID,

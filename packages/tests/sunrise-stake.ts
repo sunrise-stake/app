@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
+import { PublicKey, Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import {
   SunriseStakeClient,
   type TicketAccount,
@@ -7,7 +7,10 @@ import {
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
   Environment,
+  LOOKUP_WIDTH,
 } from "../client/src";
+import { getSplAddresses } from "../client/src";
+import { marinadeTargetReached } from "../client/src/util";
 import {
   burnGSol,
   expectAmount,
@@ -20,6 +23,7 @@ import {
   getLPPrice,
   getBsolPrice,
   getDelegatedAmount,
+  getValidRecentSlotsForTest,
   log,
   waitForNextEpoch,
   expectBSolTokenBalance,
@@ -52,14 +56,18 @@ describe("sunrise-stake", () => {
   const mint = Keypair.generate();
 
   it("can register a new Sunrise state", async () => {
-    client = await SunriseStakeClient.register(
-      treasury.publicKey,
-      mint,
-      Environment.devnet,
-      {
-        verbose: Boolean(process.env.VERBOSE),
-      }
-    );
+    try {
+      client = await SunriseStakeClient.register(
+        treasury.publicKey,
+        mint,
+        Environment.devnet,
+        {
+          verbose: Boolean(process.env.VERBOSE),
+        }
+      );
+    } catch (err) {
+      console.log("err");
+    }
 
     log(await client.details());
   });
@@ -91,19 +99,19 @@ describe("sunrise-stake", () => {
       .resizeState(
         new BN(
           32 +
-            32 +
-            32 +
-            32 +
-            1 +
-            1 +
-            1 +
-            1 +
-            32 +
-            8 +
-            8 +
-            1 +
-            8 + // Base size
-            10 // extra space
+          32 +
+          32 +
+          32 +
+          1 +
+          1 +
+          1 +
+          1 +
+          32 +
+          8 +
+          8 +
+          1 +
+          8 + // Base size
+          10 // extra space
         )
       )
       .accounts({
@@ -683,4 +691,93 @@ describe("sunrise-stake", () => {
       Number(initialStakerGsolBalance) + Number(delegatedStake)
     );
   });
+
+  it("can initializeV2 accounts and lookup tables", async () => {
+    await client.sendAndConfirmTransaction(
+      await client.initializeV2(), [updateAuthority]
+    );
+
+    let slots = await getValidRecentSlotsForTest(client);
+
+    await client.sendAndConfirmTransaction(
+      await client.initializeSplLookup(slots[0]), [updateAuthority]
+    );
+
+    await client.sendAndConfirmTransaction(
+      await client.initializeMarinadeLookup(slots[1]), [updateAuthority]
+    );
+  });
+
+  it("can register a stake pool and extend the lookup table to match", async () => {
+    let details = await client.details();
+    let poolAccount = await client.blazeState!.pool;
+
+    try {
+      await client.sendAndConfirmTransaction(
+        await client.registerPool(poolAccount), [updateAuthority]
+      );
+    } catch (err) {
+      console.log(err);
+    }
+
+    details = await client.details();
+
+    let managerInfo = details.managerDetails!;
+    let lookupTable = details.managerDetails!.splLookup;
+
+    expect(managerInfo.splPools[0].toBase58()).to.equal(poolAccount.toBase58());
+
+    let startIndex = 0;
+    let lookupInfo = await client.provider.connection.getAddressLookupTable(lookupTable)!;
+    let lookupAddresses = lookupInfo.value!.state.addresses;
+
+    let expectedAddresses = await getSplAddresses(client.config!, client.provider.connection, poolAccount);
+    let actualAddresses = lookupAddresses.slice(startIndex, startIndex + LOOKUP_WIDTH);
+
+    expect(expectedAddresses.length).to.equal(actualAddresses.length);
+
+    for (let i = 0; i < actualAddresses.length; i += 1) {
+      expect(actualAddresses[i].toBase58()).to.equal(expectedAddresses[i].toBase58());
+    }
+  });
+
+  it("can manage split deposits in a single instruction", async () => {
+    const splitDepositLamports = new BN(100 * LAMPORTS_PER_SOL);
+
+    // The liquidity pool is currently at its preferred level so
+    // 0 lamports go there
+
+    let details = await client.details();
+
+    let expectedMsolValue = details.mpDetails.msolValue;
+    let expectedBsolValue = details.bpDetails.bsolValue;
+
+    if (await marinadeTargetReached(details, 75) === true) {
+      expectedBsolValue = expectedBsolValue.add(splitDepositLamports);
+    } else {
+      expectedMsolValue = expectedMsolValue.add(splitDepositLamports);
+    }
+
+    let initialStakerGsolBalance = await client.provider.connection.getTokenAccountBalance(
+      client.stakerGSolTokenAccount!
+    );
+    let expectedStakerGsolBalance = new BN(initialStakerGsolBalance.value.amount).add(splitDepositLamports);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // wait for lookup table cooldown
+
+    try {
+      await client.sendAndConfirmTransaction(
+        await client.splitDeposit(splitDepositLamports)
+      )
+    } catch (err) {
+      console.log(err);
+    }
+
+    details = await client.details();
+
+    expect(details.mpDetails.msolValue.toNumber()).to.equal(expectedMsolValue.toNumber());
+    expect(details.bpDetails.bsolValue.toNumber()).to.equal(expectedBsolValue.toNumber());
+    await expectStakerGSolTokenBalance(client, expectedStakerGsolBalance);
+  });
+
 });

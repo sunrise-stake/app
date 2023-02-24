@@ -437,7 +437,7 @@ fn total_lamports_under_control(marinade_state: &MarinadeState) -> u64 {
         .expect("Total SOLs under control overflow")
 }
 
-fn total_virtual_staked_lamports(marinade_state: &MarinadeState) -> u64 {
+pub fn total_virtual_staked_lamports(marinade_state: &MarinadeState) -> u64 {
     // if we get slashed it may be negative but we must use 0 instead
     total_lamports_under_control(marinade_state)
         .saturating_sub(marinade_state.circulating_ticket_balance) //tickets created -> cooling down lamports or lamports already in reserve and not claimed yet
@@ -540,6 +540,7 @@ impl<'a> From<&RecoverTickets<'a>> for CalculateExtractableYieldProperties<'a> {
         recover_tickets.to_owned().into()
     }
 }
+
 /// Calculate the current recoverable yield (in msol) from marinade.
 /// Recoverable yield is defined as the sol value of the msol + lp tokens
 /// that are not matched by gsol
@@ -605,7 +606,7 @@ impl LiquidityPoolBalance {
     }
 
     // The value of both legs of the liquidity pool balance in SOL
-    fn sol_value(&self, marinade_state: &MarinadeState) -> u64 {
+    pub fn sol_value(&self, marinade_state: &MarinadeState) -> u64 {
         let lamports = self.lamports;
         let msol = calc_lamports_from_msol_amount(marinade_state, self.msol).unwrap();
         lamports.checked_add(msol).expect("sol_value")

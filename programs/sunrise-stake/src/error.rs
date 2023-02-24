@@ -40,4 +40,7 @@ pub enum ErrorCode {
     LockAccountNotUpdated,
     #[msg("The lock account has already been updated to the current epoch. Cannot update twice in the same epoch.")]
     LockAccountAlreadyUpdated,
+    #[msg("Both lookup tables are already initialized")]
+    AlreadyAddedLookupTables,
+    CantAddAnyMorePools,
 }

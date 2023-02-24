@@ -2035,9 +2035,348 @@ export type SunriseStake = {
           "type": "string"
         }
       ]
+    },
+    {
+      "name": "initializeV2",
+      "docs": [
+        "Transaction V2 Instructions"
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "splTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Authority of all spl pool token accounts owned by sunrise."
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "createLookupTable",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lookupTableAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTableProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "slot",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "extendTable",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTableProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "addresses",
+          "type": {
+            "vec": "publicKey"
+          }
+        }
+      ]
+    },
+    {
+      "name": "registerPool",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "stakePool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "poolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "poolDepositAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "genericTokenAccountAuth",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sunrisePoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTableProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "splitDeposit",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "transferFrom",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "genericTokenAccountAuth",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "we use the same authority for all spl pool token accounts"
+          ]
+        },
+        {
+          "name": "mintGsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        },
+        {
+          "name": "marinadeOffset",
+          "type": "u8"
+        },
+        {
+          "name": "splOffset",
+          "type": "u8"
+        },
+        {
+          "name": "splPools",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
+    {
+      "name": "manager",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "marinadeLookupTable",
+            "type": "publicKey"
+          },
+          {
+            "name": "splLookupTable",
+            "type": "publicKey"
+          },
+          {
+            "name": "genericTokenAccountAuth",
+            "type": "publicKey"
+          },
+          {
+            "name": "marinadeLookupWidth",
+            "type": "u8"
+          },
+          {
+            "name": "splLookupWidth",
+            "type": "u8"
+          },
+          {
+            "name": "splPoolCount",
+            "type": "u8"
+          },
+          {
+            "name": "splPools",
+            "type": {
+              "array": [
+                "publicKey",
+                3
+              ]
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "state",
       "type": {
@@ -2352,6 +2691,15 @@ export type SunriseStake = {
       "code": 6018,
       "name": "LockAccountAlreadyUpdated",
       "msg": "The lock account has already been updated to the current epoch. Cannot update twice in the same epoch."
+    },
+    {
+      "code": 6019,
+      "name": "AlreadyAddedLookupTables",
+      "msg": "Both lookup tables are already initialized"
+    },
+    {
+      "code": 6020,
+      "name": "CantAddAnyMorePools"
     }
   ]
 };
@@ -4393,9 +4741,348 @@ export const IDL: SunriseStake = {
           "type": "string"
         }
       ]
+    },
+    {
+      "name": "initializeV2",
+      "docs": [
+        "Transaction V2 Instructions"
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "splTokenAccountAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Authority of all spl pool token accounts owned by sunrise."
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "createLookupTable",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lookupTableAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTableProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "slot",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "extendTable",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTableProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "addresses",
+          "type": {
+            "vec": "publicKey"
+          }
+        }
+      ]
+    },
+    {
+      "name": "registerPool",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "stakePool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "poolWithdrawAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "poolDepositAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "genericTokenAccountAuth",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sunrisePoolTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupTableProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "splitDeposit",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "transferFrom",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "genericTokenAccountAuth",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "we use the same authority for all spl pool token accounts"
+          ]
+        },
+        {
+          "name": "mintGsolTo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakePoolProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        },
+        {
+          "name": "marinadeOffset",
+          "type": "u8"
+        },
+        {
+          "name": "splOffset",
+          "type": "u8"
+        },
+        {
+          "name": "splPools",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
+    {
+      "name": "manager",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "marinadeLookupTable",
+            "type": "publicKey"
+          },
+          {
+            "name": "splLookupTable",
+            "type": "publicKey"
+          },
+          {
+            "name": "genericTokenAccountAuth",
+            "type": "publicKey"
+          },
+          {
+            "name": "marinadeLookupWidth",
+            "type": "u8"
+          },
+          {
+            "name": "splLookupWidth",
+            "type": "u8"
+          },
+          {
+            "name": "splPoolCount",
+            "type": "u8"
+          },
+          {
+            "name": "splPools",
+            "type": {
+              "array": [
+                "publicKey",
+                3
+              ]
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "state",
       "type": {
@@ -4710,6 +5397,15 @@ export const IDL: SunriseStake = {
       "code": 6018,
       "name": "LockAccountAlreadyUpdated",
       "msg": "The lock account has already been updated to the current epoch. Cannot update twice in the same epoch."
+    },
+    {
+      "code": 6019,
+      "name": "AlreadyAddedLookupTables",
+      "msg": "Both lookup tables are already initialized"
+    },
+    {
+      "code": 6020,
+      "name": "CantAddAnyMorePools"
     }
   ]
 };
