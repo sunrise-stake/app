@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { CarbonRecovered, Spinner } from "../common/components";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
 
-const IntroApp: FC = () => {
+const HubApp: FC = () => {
   const wallet = useWallet();
   const navigate = useNavigate();
   const { details } = useSunriseStake();
@@ -61,4 +61,4 @@ const IntroApp: FC = () => {
   );
 };
 
-export { IntroApp };
+export { HubApp };
