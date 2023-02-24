@@ -2,9 +2,9 @@ import type BN from "bn.js";
 import React, { useState } from "react";
 import { FiArrowUpRight } from "react-icons/fi";
 
-import { useModal } from "../hooks";
-import { AmountInput, Button, Spinner } from "./";
-import { DepositWarningModal } from "./modals";
+import { useModal } from "../../common/hooks";
+import { AmountInput, Button, Spinner } from "../../common/components";
+import { DepositWarningModal } from "../../common/components/modals";
 
 interface StakeFormProps {
   deposit: (amount: string) => Promise<any>;
