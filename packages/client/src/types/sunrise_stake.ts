@@ -2352,6 +2352,11 @@ export type SunriseStake = {
       "code": 6018,
       "name": "LockAccountAlreadyUpdated",
       "msg": "The lock account has already been updated to the current epoch. Cannot update twice in the same epoch."
+    },
+    {
+      "code": 6019,
+      "name": "CannotUnlockUntilNextEpoch",
+      "msg": "The lock account was locked this epoch - wait at least one epoch before unlocking"
     }
   ]
 };
@@ -4710,6 +4715,11 @@ export const IDL: SunriseStake = {
       "code": 6018,
       "name": "LockAccountAlreadyUpdated",
       "msg": "The lock account has already been updated to the current epoch. Cannot update twice in the same epoch."
+    },
+    {
+      "code": 6019,
+      "name": "CannotUnlockUntilNextEpoch",
+      "msg": "The lock account was locked this epoch - wait at least one epoch before unlocking"
     }
   ]
 };

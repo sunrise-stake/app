@@ -163,45 +163,6 @@ describe("sunrise-stake", () => {
     await expectStakerGSolTokenBalance(client, depositLamports.toNumber());
   });
 
-  it("can lock sol", async () => {
-    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
-
-    // the gsol balance has dropped by the amount locked
-    const balance = await client.balance();
-    expect(Number(balance.gsolBalance.amount)).to.equal(
-      depositLamports.sub(lockLamports).toNumber()
-    );
-  });
-
-  it("cannot re-lock", async () => {
-    const shouldFail = client.sendAndConfirmTransaction(
-      await client.lockGSol(lockLamports)
-    );
-
-    return expect(shouldFail).to.be.rejected;
-  });
-
-  it("can unlock sol", async () => {
-    await client.sendAndConfirmTransaction(await client.unlockGSol());
-
-    // the gsol balance has gone back to the original value
-    const balance = await client.balance();
-    expect(Number(balance.gsolBalance.amount)).to.equal(
-      depositLamports.toNumber()
-    );
-  });
-
-  it("can lock and unlock again", async () => {
-    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
-    await client.sendAndConfirmTransaction(await client.unlockGSol());
-
-    // the gsol balance remained as it was
-    const balance = await client.balance();
-    expect(Number(balance.gsolBalance.amount)).to.equal(
-      depositLamports.toNumber()
-    );
-  });
-
   it("can deposit to blaze", async () => {
     await getBalance(client);
     const bsolPrice = await getBsolPrice(client);
@@ -248,6 +209,28 @@ describe("sunrise-stake", () => {
 
   it("locks sol for the next epoch", async () => {
     await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
+  });
+
+  it("cannot re-lock", async () => {
+    const shouldFail = client.sendAndConfirmTransaction(
+      await client.lockGSol(lockLamports)
+    );
+
+    return expect(shouldFail).to.be.rejected;
+  });
+
+  it("cannot unlock sol this epoch", async () => {
+    const shouldFail = client.sendAndConfirmTransaction(
+      await client.unlockGSol()
+    );
+
+    return expect(shouldFail).to.be.rejected;
+
+    // // the gsol balance has gone back to the original value
+    // const balance = await client.balance();
+    // expect(Number(balance.gsolBalance.amount)).to.equal(
+    //   depositLamports.toNumber()
+    // );
   });
 
   it("no yield to extract yet", async () => {

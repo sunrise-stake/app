@@ -845,7 +845,11 @@ export class SunriseStakeClient {
   public async extractYield(): Promise<string> {
     const instruction = await this.extractYieldIx();
     const transaction = new Transaction().add(instruction);
+    transaction.feePayer = this.staker;
+    // const res = await this.provider.connection.simulateTransaction(transaction);
+    // console.log(res)
 
+    // throw new Error("Disable");
     return this.sendAndConfirmTransaction(transaction);
   }
 
