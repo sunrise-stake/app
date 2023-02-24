@@ -285,7 +285,7 @@ const StakeDashboard: FC = () => {
             <div className="mx-auto sm:mx-0 items-center">
               <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
                 <span className="font-bold text-sm sm:text-lg">
-                  {details != null &&
+                  {details !== undefined &&
                     toFixedWithPrecision(
                       toSol(new BN(details.balances.gsolSupply.amount)),
                       2
@@ -341,7 +341,7 @@ const StakeDashboard: FC = () => {
         })}
       </div>
       <div className="relative z-10 flex flex-col gap-8 mb-8 justify-center">
-        {details?.lockDetails && (
+        {details !== undefined && (
           <LockedGSol
             lockDetails={details.lockDetails}
             epochReport={details.epochReport}

@@ -14,7 +14,7 @@ import { debounce } from "./utils";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const stage =
-  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ||
+  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
 
 export class SunriseClientWrapper {
@@ -122,7 +122,7 @@ export class SunriseClientWrapper {
 
     const { extractableYield } = await this.client.details();
 
-    if (extractableYield.gtn(MINIMUM_EXTRACTABLE_YIELD)) {
+    if (extractableYield.gtn(MINIMUM_EXTRACTABLE_YIELD) === true) {
       const extractYieldIx = await this.client.extractYieldIx();
       instructions.push(extractYieldIx);
     }
