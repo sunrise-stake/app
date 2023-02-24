@@ -19,7 +19,7 @@ import { Layout } from "./common/partials/Layout";
 import { HubApp } from "./hub/HubApp";
 import { ForestApp } from "./forest/ForestApp";
 import { GrowApp } from "./grow/GrowApp";
-import { LockingApp } from "./locking/LockingApp";
+import { LockingApp } from "./locking/pages/LockingApp";
 import { StakingApp } from "./staking/StakingApp";
 require("./solana-wallet-adapter.css");
 
