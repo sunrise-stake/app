@@ -16,8 +16,8 @@
         "build": "yarn workspaces run build",
         "app:build": "yarn workspace @sunrisestake/app build",
         "app:start": "yarn workspace @sunrisestake/app start",
-        "report:mainnet": "REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node packages/scripts/get.ts",
-        "report:devnet": "REACT_APP_SOLANA_NETWORK=devnet yarn ts-node packages/scripts/get.ts"
+        "report:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node packages/scripts/get.ts",
+        "report:devnet": "cross-env REACT_APP_SOLANA_NETWORK=devnet yarn ts-node packages/scripts/get.ts"
     },
     "dependencies": {
         "@project-serum/anchor": "^0.26.0",
@@ -31,6 +31,7 @@
         "@typescript-eslint/eslint-plugin": "^5.50.0",
         "@typescript-eslint/parser": "^5.50.0",
         "chai": "^4.3.4",
+        "cross-env": "^7.0.3",
         "eslint": "^8.33.0",
         "eslint-config-prettier": "^8.6.0",
         "eslint-config-standard-with-typescript": "^34.0.0",

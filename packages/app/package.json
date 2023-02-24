@@ -53,7 +53,7 @@
     "web-vitals": "^3.0.2"
   },
   "scripts": {
-    "start": "BROWSER=none react-app-rewired start",
+    "start": "cross-env BROWSER=none react-app-rewired start",
     "build": "dotenv -e .env.${STAGE:-development} react-app-rewired build",
     "lint": "eslint -c ./.eslintrc.yml --ext .ts,.tsx src",
     "test": "react-app-rewired test",
@@ -78,6 +78,7 @@
     ]
   },
   "devDependencies": {
-    "@marinade.finance/marinade-ts-sdk": "^4.0.4"
+    "@marinade.finance/marinade-ts-sdk": "^4.0.4",
+    "cross-env": "^7.0.3"
   }
 }
