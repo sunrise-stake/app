@@ -1,6 +1,10 @@
 import { toSol, type Details } from "@sunrisestake/client";
-import { type FC } from "react";
-import { Button, Panel } from "../../common/components";
+import { useCallback, useState, type FC } from "react";
+import { Button, Panel, Spinner } from "../../common/components";
+import {
+  NotificationType,
+  notifyTransaction,
+} from "../../common/components/notifications";
 import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { toFixedWithPrecision } from "../../common/utils";
@@ -13,6 +17,37 @@ const LockingApp: FC = () => {
     client: SunriseClientWrapper | undefined;
     details: Details | undefined;
   } = useSunriseStake();
+
+  const [isBusy, setIsBusy] = useState(false);
+  const [needsUpdate] = useState(() => {
+    if (!details?.lockDetails) return false;
+    return (
+      details.lockDetails.updatedToEpoch.toNumber() < details.currentEpoch.epoch
+    );
+  });
+
+  const handleError = useCallback((error: Error) => {
+    notifyTransaction({
+      type: NotificationType.error,
+      message: "Transaction failed",
+      description: error.message,
+    });
+    console.error(error);
+  }, []);
+
+  const unlock = useCallback(async () => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
+    return client
+      .unlockGSol()
+      .then((tx) => {
+        notifyTransaction({
+          type: NotificationType.success,
+          message: "Deposit successful",
+          txid: tx,
+        });
+      })
+      .catch(handleError);
+  }, [client]);
 
   return (
     <div className="container mx-auto flex flex-col justify-start items-center">
@@ -28,10 +63,25 @@ const LockingApp: FC = () => {
       <div className="w-[20%] h-[20%] bg-green m-8">My Tree</div>
       <div className="w-[20%] h-[20%] bg-green m-8">Impact NFT</div>
       <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
-        <Button variant="primary" className="mr-4">
-          Upgrade
+        <Button variant="primary" className="mr-4" disabled={!needsUpdate}>
+          Update
         </Button>
-        <Button variant="secondary">Unlock</Button>
+        <Button
+          variant="secondary"
+          disabled={isBusy}
+          onClick={() => {
+            setIsBusy(true);
+            unlock().finally(() => {
+              setIsBusy(false);
+            });
+          }}
+        >
+          {isBusy ? (
+            <Spinner className="sm:ml-0 sm:mr-5 px-2 rounded" />
+          ) : (
+            "Unlock"
+          )}
+        </Button>
       </Panel>
       {details?.lockDetails && (
         <div>
