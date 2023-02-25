@@ -14,7 +14,7 @@ const StakingApp: FC = () => {
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div className="container grow mx-auto px-8">
+      <div className="container grow px-8">
         <StakeDashboard />
       </div>
     </div>
