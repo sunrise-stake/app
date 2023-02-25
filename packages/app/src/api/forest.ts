@@ -1,8 +1,18 @@
 import { PublicKey } from "@solana/web3.js";
 import { addUp, round } from "../common/utils";
+import mintStub from "./stubs/mints.json";
+import sendingStub from "./stubs/sendings.json";
+import receiptStub from "./stubs/receipts.json";
 
-const MONGODB_API_URL = process.env.MONGODB_API_URL ?? "";
-const MONGODB_READ_TOKEN = process.env.MONGODB_READ_TOKEN ?? "";
+const STUB_DB = true;
+const STUBS = {
+  mints: mintStub,
+  sender: sendingStub,
+  recipient: receiptStub,
+};
+
+const MONGODB_API_URL = process.env.REACT_APP_MONGODB_API_URL ?? "";
+const MONGODB_READ_TOKEN = process.env.REACT_APP_MONGODB_READ_TOKEN ?? "";
 
 interface MintResponse {
   timestamp: string;
@@ -53,11 +63,16 @@ const makeMint = (mint: MintResponse): Mint => ({
 });
 
 const getDBData = async <T>(
-  collection: string,
+  collection: "mints" | "transfers",
   type: "recipient" | "sender",
   address: PublicKey
-): Promise<MongoResponse<T>> =>
-  fetch(`${MONGODB_API_URL}/action/find`, {
+): Promise<MongoResponse<T>> => {
+  if (STUB_DB) {
+    return (
+      collection === "mints" ? STUBS.mints : STUBS[type]
+    ) as MongoResponse<T>;
+  }
+  return fetch(`${MONGODB_API_URL}/action/find`, {
     method: "POST",
     headers: {
       "api-key": MONGODB_READ_TOKEN,
@@ -72,12 +87,13 @@ const getDBData = async <T>(
       },
     }),
   }).then(async (resp) => resp.json());
+};
 
 const getAccountMints = async (address: PublicKey): Promise<Mint[]> =>
   getDBData<MintResponse>("mints", "recipient", address)
     .then((resp) => resp.documents)
     .then((mints) => mints.map(makeMint));
-const getAccountReceivals = async (address: PublicKey): Promise<Transfer[]> =>
+const getAccountReceipts = async (address: PublicKey): Promise<Transfer[]> =>
   getDBData<TransferResponse>("transfers", "recipient", address)
     .then((resp) => resp.documents)
     .then((transfers) => transfers.map(makeTransfer));
@@ -119,31 +135,27 @@ interface Totals {
   amountSent: number;
   amountTotal: number;
   countMints: number;
-  countReceivals: number;
+  countReceipts: number;
   countSendings: number;
   uniqueSenders: PublicKey[];
   uniqueRecipients: PublicKey[];
 }
 const getTotals = (
   mints: Mint[],
-  receivals: Transfer[],
+  receipts: Transfer[],
   sendings: Transfer[]
 ): Totals => {
   const amountMinted = round(addUp("amount", mints));
-  const amountReceived = round(addUp("amount", receivals));
+  const amountReceived = round(addUp("amount", receipts));
   const amountSent = round(addUp("amount", sendings));
   const amountTotal = round(amountMinted + amountReceived - amountSent);
 
   const countMints = mints.length;
-  const countReceivals = receivals.filter(
-    (r) => r.sender !== r.recipient
-  ).length;
-  const countSendings = receivals.filter(
-    (s) => s.sender !== s.recipient
-  ).length;
+  const countReceipts = receipts.filter((r) => r.sender !== r.recipient).length;
+  const countSendings = receipts.filter((s) => s.sender !== s.recipient).length;
 
   const uniqueSenders = new Set<PublicKey>();
-  receivals.forEach((r) =>
+  receipts.forEach((r) =>
     r.sender !== r.recipient ? uniqueSenders.add(r.sender) : null
   );
 
@@ -158,7 +170,7 @@ const getTotals = (
     amountSent,
     amountTotal,
     countMints,
-    countReceivals,
+    countReceipts,
     countSendings,
     uniqueRecipients: Array.from(uniqueRecipients),
     uniqueSenders: Array.from(uniqueSenders),
@@ -170,7 +182,7 @@ export interface Forest {
   mints: Mint[];
   sent: Transfer[];
   received: Transfer[];
-  neighbors: Record<string, Neighbour>;
+  neighbors: Array<Record<string, Neighbour>>;
   totals: Totals;
 }
 // Get the forest for an address.
@@ -179,15 +191,14 @@ export const getForest = async (
   address: PublicKey,
   level: 1
 ): Promise<Forest> => {
-  const [mints, received, sent] = await Promise.all([
-    getAccountMints(address),
-    getAccountReceivals(address),
-    getAccountSendings(address),
-  ]);
-  const neighbors = getNeighbors(sent);
-
   // TODO iterate over level
   console.log("getting level", level);
+  const [mints, received, sent] = await Promise.all([
+    getAccountMints(address),
+    getAccountReceipts(address),
+    getAccountSendings(address),
+  ]);
+  const neighborsLevel1 = getNeighbors(sent);
 
   const totals = getTotals(mints, received, sent);
 
@@ -196,7 +207,7 @@ export const getForest = async (
     mints,
     sent,
     received,
-    neighbors,
+    neighbors: [neighborsLevel1],
     totals,
   };
 };

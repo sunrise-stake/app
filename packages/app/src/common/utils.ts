@@ -84,6 +84,10 @@ const addUp = <K extends string, T extends { [key in K]: number }>(
 const round = (number: number, decimals: number = 2): number =>
   parseFloat(number.toFixed(decimals));
 
+const range = (start: number, end: number): number[] =>
+  Array.from({ length: end - start + 1 }, (_, i) => start + i);
+const rangeTo = (end: number): number[] => range(0, end);
+
 export {
   addUp,
   round,
@@ -98,4 +102,5 @@ export {
   toBN,
   toFixedWithPrecision,
   walletIsConnected,
+  rangeTo,
 };
