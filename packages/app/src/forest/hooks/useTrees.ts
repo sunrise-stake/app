@@ -13,6 +13,7 @@ export const useTrees = (): {
 
   useEffect(() => {
     void (async () => {
+      console.log("useTrees", wallet.publicKey?.toBase58());
       if (wallet.connected && wallet.publicKey) {
         const forest = await getForest(wallet.publicKey, 1);
 
@@ -26,7 +27,7 @@ export const useTrees = (): {
             z: 0,
           },
           metadata: {
-            // TODO
+            level: 0,
           },
         });
       }

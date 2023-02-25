@@ -77,6 +77,9 @@ function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
   };
 }
 
+const toShortBase58 = (address: PublicKey): string =>
+  `${address.toBase58().slice(0, 4)}…${address.toBase58().slice(-4)}`;
+
 const addUp = <K extends string, T extends { [key in K]: number }>(
   key: K,
   arr: T[]
@@ -103,4 +106,5 @@ export {
   toFixedWithPrecision,
   walletIsConnected,
   rangeTo,
+  toShortBase58,
 };

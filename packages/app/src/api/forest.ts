@@ -49,14 +49,14 @@ interface Neighbour {
   amountTotal: number;
 }
 
-const makeTransfer = (transfer: TransferResponse): Transfer => ({
+const buildTransferRecord = (transfer: TransferResponse): Transfer => ({
   timestamp: new Date(transfer.timestamp),
   sender: new PublicKey(transfer.sender),
   recipient: new PublicKey(transfer.recipient),
   amount: transfer.amount,
 });
 
-const makeMint = (mint: MintResponse): Mint => ({
+const buildMintRecord = (mint: MintResponse): Mint => ({
   timestamp: new Date(mint.timestamp),
   recipient: new PublicKey(mint.recipient),
   amount: mint.amount,
@@ -92,15 +92,15 @@ const getDBData = async <T>(
 const getAccountMints = async (address: PublicKey): Promise<Mint[]> =>
   getDBData<MintResponse>("mints", "recipient", address)
     .then((resp) => resp.documents)
-    .then((mints) => mints.map(makeMint));
+    .then((mints) => mints.map(buildMintRecord));
 const getAccountReceipts = async (address: PublicKey): Promise<Transfer[]> =>
   getDBData<TransferResponse>("transfers", "recipient", address)
     .then((resp) => resp.documents)
-    .then((transfers) => transfers.map(makeTransfer));
+    .then((transfers) => transfers.map(buildTransferRecord));
 const getAccountSendings = async (address: PublicKey): Promise<Transfer[]> =>
   getDBData<TransferResponse>("transfers", "sender", address)
     .then((resp) => resp.documents)
-    .then((transfers) => transfers.map(makeTransfer));
+    .then((transfers) => transfers.map(buildTransferRecord));
 
 const getNeighbors = (sendings: Transfer[]): Record<string, Neighbour> => {
   const neighbors: Record<string, Neighbour> = {};

@@ -36,3 +36,18 @@ input[type=number]::-webkit-outer-spin-button {
 .appearance-textfield {
   appearance: textfield;
 }
+
+
+/* TODO TEMP do properly with tailwind or whatever */
+.tree {
+  margin-top: 25px;
+  font-size: 21px;
+  text-align: center;
+
+  animation: fadein 2s;
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
