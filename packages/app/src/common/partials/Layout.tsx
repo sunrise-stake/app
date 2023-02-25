@@ -19,7 +19,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
     <div className="flex flex-col min-h-screen">
       <Toaster />
       <header>
-        <div className="container flex justify-end mx-auto py-4">
+        <div className="container flex justify-end mx-auto px-2 py-4">
           <WalletMultiButton startIcon={<FaWallet size={"28px"} />}>
             {!wallet.connected ? (
               <div className="hidden sm:block">Connect Wallet</div>

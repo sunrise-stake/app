@@ -28,14 +28,14 @@ const HubApp: FC = () => {
         >
           <div className="text-center">
             <img
-              className="block sm:hidden w-auto h-16 mx-auto mb-3"
+              className="block w-auto h-16 mx-auto mb-3"
               src={"./logo.png"}
               alt="Sunrise"
             />
-            <h2 className="text-green-bright font-bold text-6xl">
+            <h2 className="text-green-light font-bold text-6xl">
               Sunrise Stake
             </h2>
-            <h3 className="mb-16 text-white font-normal text-lg sm:text-3xl">
+            <h3 className="mb-16 font-normal text-lg sm:text-3xl">
               Offset emissions while you sleep.
             </h3>
           </div>
@@ -49,11 +49,6 @@ const HubApp: FC = () => {
               <span className="hidden sm:block"> reducing CO2 emissions</span>
             </WalletMultiButton>
           </div>
-          <img
-            className="h-25 w-auto py-2 hidden sm:block"
-            src={"./logo.png"}
-            alt="Sunrise"
-          />
           <CarbonRecovered />
         </div>
       )}

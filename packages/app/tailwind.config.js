@@ -3,21 +3,22 @@
 const defaultTheme = require("tailwindcss/defaultTheme");
 
 module.exports = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+  content: ["./src/**/*.{js,jsx,ts,tsx}","./public/index.html"],
   theme: {
     extend: {
       colors: {
-        background: "#181818",
-        inset: "#313131",
-        outset: "#3f3e3e",
-        "inset-border": "#3e3e3e",
+        black: "#1e1e1e",
+        blue: "#7bcefa",
         green: "#2e8555",
         "green-light": "#4aa172",
         "green-bright": "#52dc90",
-        blue: "#7bcefa",
+        background: "#ffffff",
+        foreground: "#1e1e1e",
+        inset: "#313131",
+        outset: "#3f3e3e",
+        "inset-border": "#3e3e3e",
         danger: "#bf5a5a",
         ticket: "#d6a241",
-        textColor: "#ffffff",
         warning: "f9c23c",
       },
       fontFamily: {

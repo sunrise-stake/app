@@ -9,7 +9,7 @@ interface Props {
 const InfoBox: FC<Props> = ({ children, className }) => (
   <div
     className={clx(
-      "bg-green-light/30 border border-green-light backdrop-blur-md",
+      "bg-green-light/20 border border-green-light backdrop-blur-md text-green-light",
       className
     )}
   >
