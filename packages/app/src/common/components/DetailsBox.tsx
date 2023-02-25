@@ -23,7 +23,7 @@ const DetailEntry: FC<DetailEntryProps> = ({
 }) => (
   <div className="flex flex-row justify-between">
     <div className="flex flex-row gap-2">
-      <div className="text-gray-100 text-sm sm:text-lg">{label}</div>
+      <div className="text-sm sm:text-lg">{label}</div>
       <TooltipPopover>{tooltip}</TooltipPopover>
     </div>
     <div className="font-bold text-sm sm:text-lg">
@@ -92,10 +92,10 @@ const DetailsBox: FC<Props> = ({ className }) => {
           });
         }}
         className={clx(
-          "transition duration-700 flex w-full justify-between rounded-t-md px-4 py-1 text-left text-sm font-medium text-white ",
+          "transition duration-700 flex w-full justify-between rounded-t-md px-4 py-1 bg-green text-left text-sm font-medium text-white ",
           {
             "rounded-t-md backdrop-blur-sm": isShowing,
-            "rounded-md bg-inset": !isShowing,
+            "rounded-md": !isShowing,
           }
         )}
       >
@@ -120,7 +120,7 @@ const DetailsBox: FC<Props> = ({ className }) => {
       >
         <hr
           className={clx(
-            "-mt-1 h-{0.5px} transition-all duration-700 mb-2  w-full bg-white",
+            "-mt-1 h-{0.5px} transition-all duration-700 mb-2 w-full bg-white",
             {
               "transform opacity-0": !isShowing,
               "transform opacity-100": isShowing,
