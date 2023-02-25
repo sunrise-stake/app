@@ -77,7 +77,16 @@ function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
   };
 }
 
+const addUp = <K extends string, T extends { [key in K]: number }>(
+  key: K,
+  arr: T[]
+): number => arr.reduce((acc, val) => acc + val[key], 0);
+const round = (number: number, decimals: number = 2): number =>
+  parseFloat(number.toFixed(decimals));
+
 export {
+  addUp,
+  round,
   ZERO,
   CARBON_PRICE_USD_CENTS_PER_TONNE,
   SOL_PRICE_USD_CENTS,
