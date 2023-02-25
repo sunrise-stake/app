@@ -1,10 +1,11 @@
 # Sunrise Stake
 
-- [What is Sunrise Stake?](#what-is-sunrise-stake-)
-- [How it works](#how-it-works)
-- [Treasury spending](#treasury-spending)
-- [Quick Start](#quick-start)
-- [Deployed Addresses:](#deployed-addresses-)
+* [What is Sunrise Stake?](#what-is-sunrise-stake)
+* [How it works](#how-it-works)
+* [Treasury spending](#treasury-spending)
+* [Quick Start](#quick-start)
+* [Deployed Addresses:](#deployed-addresses-)
+
 
 ## What is Sunrise Stake?
 
@@ -82,7 +83,7 @@ in order to maintain a 10% liquidity pool balance.
 
 ![rebalancing_white.png](/doc/rebalancing_white.png)
 
-## Ttreasury spending
+## Treasury spending
 
 Sunrise spends the yield earned through staking on purchasing
 and burning carbon tokens to offset carbon emissions for its users.
@@ -117,15 +118,17 @@ Until sufficient liquidity is present on Solana for NCT, Sunrise is maintaining 
 
 ## Quick Start
 
+Install [solana](https://docs.solana.com/cli/install-solana-cli-tools).
+
 ```shell
 $ yarn
-$ anchor build
-$ anchor localnet
+$ yarn program:build
+$ yarn build
+$ yarn anchor localnet
 ```
 and in another shell.
 ```shell
-$ cd packages/app
-$ yarn start
+$ yarn app:start
 ```
 
 To run the tests, __close__ the validator in the first shell and run
