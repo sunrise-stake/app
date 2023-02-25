@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background: bottom left no-repeat fixed url("../public/background.png");
+  background: bottom center no-repeat fixed url("../public/background.png");
 }
 
 .AlphaRibbon:after{
