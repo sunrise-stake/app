@@ -1359,6 +1359,10 @@ export class SunriseStakeClient {
       this.config.treasury
     );
 
+    const holdingAccountBalancePromise = this.provider.connection.getBalance(
+      this.env.holdingAccount
+    );
+
     const [
       gsolBalance,
       gsolSupply,
@@ -1366,6 +1370,7 @@ export class SunriseStakeClient {
       lpBalance,
       treasuryBalance,
       bsolLamportsBalance,
+      holdingAccountBalance,
     ] = await Promise.all([
       gsolBalancePromise,
       gsolSupplyPromise,
@@ -1373,6 +1378,7 @@ export class SunriseStakeClient {
       liqPoolBalancePromise,
       treasuryBalancePromise,
       bsolLamportsBalancePromise,
+      holdingAccountBalancePromise,
     ]);
 
     return {
@@ -1383,6 +1389,7 @@ export class SunriseStakeClient {
       liqPoolBalance: lpBalance.value,
       treasuryBalance,
       bsolBalance: bsolLamportsBalance.value,
+      holdingAccountBalance,
     };
   }
 
