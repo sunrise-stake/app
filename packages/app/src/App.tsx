@@ -21,6 +21,7 @@ import { ForestApp } from "./forest/ForestApp";
 import { GrowApp } from "./grow/GrowApp";
 import { LockingApp } from "./locking/LockingApp";
 import { StakingApp } from "./staking/StakingApp";
+import { BGImageProvider } from "./common/context/BGImageContext";
 require("./solana-wallet-adapter.css");
 
 const App: FC = () => {
@@ -46,31 +47,33 @@ const App: FC = () => {
         <WalletProvider wallets={wallets}>
           <WalletModalProvider>
             <SunriseProvider>
-              <Layout>
-                <Routes location={location}>
-                  <Route path="/" element={<HubApp />} />
-                  <Route path="/stake" element={<StakingApp />} />
-                  <Route path="/forest" element={<ForestApp />} />
-                  <Route path="/grow" element={<GrowApp />} />
-                  <Route path="/lock" element={<LockingApp />} />
-                  <Route
-                    path="/*"
-                    element={
-                      <div className="flex flex-col min-h-screen justify-center items-center">
-                        <p className="text-2xl font-bold">
-                          Oh, oh. You&apos;ve got lost in the woods... 🐺
-                        </p>
-                        <Link
-                          className="mt-2 px-5 py-3 border-2 border-green rounded-lg leading-6 text-green text-xl"
-                          to="/"
-                        >
-                          Back home
-                        </Link>
-                      </div>
-                    }
-                  />
-                </Routes>
-              </Layout>
+              <BGImageProvider>
+                <Layout>
+                  <Routes location={location}>
+                    <Route path="/" element={<HubApp />} />
+                    <Route path="/stake" element={<StakingApp />} />
+                    <Route path="/forest" element={<ForestApp />} />
+                    <Route path="/grow" element={<GrowApp />} />
+                    <Route path="/lock" element={<LockingApp />} />
+                    <Route
+                      path="/*"
+                      element={
+                        <div className="flex flex-col min-h-screen justify-center items-center">
+                          <p className="text-2xl font-bold">
+                            Oh, oh. You&apos;ve got lost in the woods... 🐺
+                          </p>
+                          <Link
+                            className="mt-2 px-5 py-3 border-2 border-green rounded-lg leading-6 text-green text-xl"
+                            to="/"
+                          >
+                            Back home
+                          </Link>
+                        </div>
+                      }
+                    />
+                  </Routes>
+                </Layout>
+              </BGImageProvider>
             </SunriseProvider>
           </WalletModalProvider>
         </WalletProvider>

@@ -2,16 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background: bottom center no-repeat fixed url("../public/background.png");
-}
-
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
   -webkit-appearance: none;
 }
 
 @layer components {
+  .BGImage {
+    background: bottom center no-repeat fixed url("../public/background.png");
+  }
+
   @keyframes float-up-down {
     0% {
       transform: translateY(0);

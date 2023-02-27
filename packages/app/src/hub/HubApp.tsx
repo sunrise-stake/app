@@ -8,7 +8,9 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { Link } from "react-router-dom";
 import { Button, Spinner } from "../common/components";
+import { useBGImage } from "../common/context/BGImageContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { HubIntro } from "./components/HubIntro";
 import { NavArrow } from "./components/NavArrow";
@@ -32,6 +34,7 @@ const HubApp: FC = () => {
   const [introLeft, updateIntroLeft] = useState(false);
   const [showHub, updateShowHub] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
+  const [, updateShowBGImage] = useBGImage();
 
   useEffect(() => {
     updateShowIntro(true);
@@ -46,6 +49,7 @@ const HubApp: FC = () => {
       // TODO: Remove timeout!
       setTimeout(() => {
         updateShowHub(true);
+        updateShowBGImage(false);
       }, 3000);
   }, [gsolBalance, introLeft]);
 
@@ -102,9 +106,11 @@ const HubApp: FC = () => {
           showHubNav ? "opacity-100" : "opacity-0"
         )}
       >
-        <Button>
-          {!isNullish(gsolBalance) ? "My Stake" : "Stake to grow your tree"}
-        </Button>
+        <Link to="/stake">
+          <Button>
+            {!isNullish(gsolBalance) ? "My Stake" : "Stake to grow your tree"}
+          </Button>
+        </Link>
         <button className="w-full mt-2">
           <NavArrow direction="down" className="mx-auto" />
           Lock
