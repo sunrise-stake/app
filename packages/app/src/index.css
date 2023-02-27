@@ -11,6 +11,54 @@ input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
 
-.appearance-textfield {
-  appearance: textfield;
+@layer components {
+  @keyframes float-up-down {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(32px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  .FloatingTree {
+    animation: 4s ease-in-out infinite float-up-down;
+  }
+  
+  .appearance-textfield {
+    appearance: textfield;
+  }
+}
+
+.NavArrow {
+  font-size: 0;
+  line-height: 0;
+  width: 0;
+}
+
+.NavArrowUp {
+  border-bottom: 20px solid #4aa172;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+
+.NavArrowDown {
+  border-top: 20px solid #4aa172;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+
+.NavArrowLeft {
+  border-top: 10px solid transparent;
+  border-right: 20px solid #4aa172;
+  border-bottom: 10px solid transparent;
+}
+
+.NavArrowRight {
+  border-top: 10px solid transparent;
+  border-left: 20px solid #4aa172;
+  border-bottom: 10px solid transparent;
 }
