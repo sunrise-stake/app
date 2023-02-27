@@ -109,6 +109,10 @@ export const lockGSol = async (
 
   const preInstructions: TransactionInstruction[] = [];
 
+  const impactNFTAccounts = {
+
+  }
+
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {
     const initLockAccount = await program.methods

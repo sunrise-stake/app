@@ -28,6 +28,10 @@ program = "packages/tests/fixtures/marinade_finance.so"
 address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 program = "packages/tests/fixtures/blaze/spl_stake_pool.so"
 
+[[test.genesis]]
+address = "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
+program = "packages/tests/fixtures/impact_nft.so"
+
 [test.validator]
 slots_per_epoch = "32"
 

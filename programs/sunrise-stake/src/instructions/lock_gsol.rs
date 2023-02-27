@@ -2,7 +2,12 @@ use crate::error::ErrorCode;
 use crate::state::{EpochReportAccount, LockAccount, State};
 use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, LOCK_TOKEN_ACCOUNT};
 use crate::utils::token::transfer_to;
+use impact_nft_cpi::cpi::accounts::{MintNft};
+use impact_nft_cpi::cpi::{mint_nft as cpi_mint_nft};
+use impact_nft_cpi::program::ImpactNft;
+use impact_nft_cpi::{GlobalState as ImpactNftState};
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts, Clone)]
@@ -55,6 +60,31 @@ pub struct LockGSol<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
+
+    /// IMPACT NFT ACCOUNTS
+    pub impact_nft_program: Program<'info, ImpactNft>,
+    pub impact_nft_state: Account<'info, ImpactNftState>,
+    /// CHECK: (TODO) checked in impact nft program
+    pub token_metadata_program: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
+        constraint = nft_mint.mint_authority == COption::Some(nft_mint_authority.key()),
+    )]
+    pub nft_mint: Box<Account<'info, Mint>>,
+    /// CHECK: (TODO) checked in impact nft program
+    pub nft_mint_authority: UncheckedAccount<'info>,
+    /// CHECK: (TODO) checked in impact nft program
+    pub nft_metadata: UncheckedAccount<'info>,
+    /// CHECK: May be uninitialized - if so, it will be initialized by the impact nft program
+    #[account(mut)]
+    pub nft_holder_token_account: UncheckedAccount<'info>,
+    /// CHECK: (TODO) checked in impact nft program
+    pub nft_master_edition: UncheckedAccount<'info>,
+    /// CHECK: (TODO) checked in impact nft program
+    pub offset_metadata: UncheckedAccount<'info>,
+    /// CHECK: (TODO) checked in impact nft program
+    pub offset_tiers: UncheckedAccount<'info>,
 }
 
 pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
@@ -70,7 +100,29 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
     ctx.accounts.lock_account.updated_to_epoch = Some(ctx.accounts.clock.epoch);
     ctx.accounts.lock_account.sunrise_yield_at_start =
         ctx.accounts.epoch_report_account.all_extractable_yield();
-    // TODO create or update NFT to 0:
+
+    // Mint NFT if not present
+    if *ctx.accounts.nft_holder_token_account.owner != ctx.accounts.token_program.key() {
+        let cpi_accounts = MintNft {
+            payer: ctx.accounts.payer.to_account_info(),
+            mint_authority: ctx.accounts.nft_mint_authority.to_account_info(),
+            mint: ctx.accounts.nft_mint.to_account_info(),
+            metadata: ctx.accounts.nft_metadata.to_account_info(),
+            token_account: ctx.accounts.nft_holder_token_account.to_account_info(),
+            master_edition: ctx.accounts.nft_master_edition.to_account_info(),
+            offset_tiers: ctx.accounts.offset_tiers.to_account_info(),
+            offset_metadata: ctx.accounts.offset_metadata.to_account_info(),
+            global_state: ctx.accounts.impact_nft_state.to_account_info(),
+            rent: ctx.accounts.rent.to_account_info(),
+            token_metadata_program: ctx.accounts.token_metadata_program.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        cpi_mint_nft(cpi_ctx, 0, "tmp".to_owned(), "tmp".to_owned())?; // TODO
+    }
 
     Ok(())
 }
