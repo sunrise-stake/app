@@ -1,82 +1,22 @@
-import { Transition } from "@headlessui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useState, type FC } from "react";
-import { CarbonRecovered } from "../common/components";
+import { HubIntro } from "./components/HubIntro";
 
 const HubApp: FC = () => {
   const wallet = useWallet();
+  const [showIntro, updateShowIntro] = useState(false);
 
-  // For unknown reasons it doesn't work without this
-  const [show, updateShow] = useState(false);
   useEffect(() => {
-    updateShow(true);
+    updateShowIntro(true);
   }, []);
 
   useEffect(() => {
-    if (wallet.connected) updateShow(false);
+    if (wallet.connected) updateShowIntro(false);
   }, [wallet.connected]);
 
   return (
     <div className="flex flex-col items-center justify-center container text-center">
-      <Transition show={show}>
-        <Transition.Child
-          as="img"
-          className="block w-auto h-16 mx-auto mb-3"
-          src="./logo.png"
-          alt="Sunrise"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          enter="transition-opacity ease-in duration-1000 delay-1000"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-          leave="transition-opacity ease-out duration-500"
-        />
-        <Transition.Child
-          as="h1"
-          className="text-green-light font-bold text-6xl"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          enter="transition-opacity ease-in duration-1000"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-          leave="transition-opacity ease-out duration-500"
-        >
-          Sunrise Stake
-        </Transition.Child>
-        <Transition.Child
-          enterFrom="translate-y-8"
-          enterTo="translate-y-0"
-          enter="transition-transform duration-1000 delay-1000"
-        >
-          <Transition.Child
-            as="h2"
-            className="mb-16 font-normal text-lg sm:text-3xl"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            enter="transition-opacity ease-in duration-1000 delay-1000"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-            leave="transition-opacity ease-out duration-500"
-          >
-            Offset emissions while you sleep.
-          </Transition.Child>
-        </Transition.Child>
-        <Transition.Child
-          className="mb-12"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          enter="transition-opacity ease-in duration-1000 delay-[2s]"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-          leave="transition-opacity ease-out duration-500"
-        >
-          <WalletMultiButton>
-            Start reducing CO<sub>2</sub>&nbsp;emissions
-          </WalletMultiButton>
-          <CarbonRecovered />
-        </Transition.Child>
-      </Transition>
+      <HubIntro show={showIntro} />
     </div>
   );
 };
