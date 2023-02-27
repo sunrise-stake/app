@@ -165,8 +165,8 @@ const StakeDashboard: FC = () => {
           src={"./logo.png"}
           alt="Sunrise"
         />
-        <h2 className="text-green-bright font-bold text-6xl">Sunrise Stake</h2>
-        <h3 className="mb-16 text-white font-normal text-3xl">
+        <h2 className="text-green-light font-bold text-6xl">Sunrise Stake</h2>
+        <h3 className="mb-16 font-normal text-3xl">
           Offset emissions while you sleep.
         </h3>
       </div>
@@ -224,7 +224,7 @@ const StakeDashboard: FC = () => {
           </Button>
         </Panel>
       </div>
-      <Panel className="p-10 rounded-lg">
+      <Panel className="p-10 rounded-lg backdrop-blur-sm">
         {!client && (
           <div className="flex flex-col items-center m-4">
             <h1 className="text-3xl text-center">Loading...</h1>
@@ -267,7 +267,6 @@ const StakeDashboard: FC = () => {
                 <span className="text-xs font-bold">gSOL</span>
               </div>
 
-              {/* <br /> */}
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
                 <div className="text-xs sm:text-sm">Your Stake</div>
                 <TooltipPopover>{tooltips.yourStake}</TooltipPopover>
