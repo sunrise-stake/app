@@ -1,13 +1,13 @@
 import { toSol, type Details } from "@sunrisestake/client";
 import { useCallback, useState, type FC } from "react";
-import { Button, Panel, Spinner } from "../../common/components";
+import { Button, LockForm, Panel, Spinner } from "../../common/components";
 import {
   NotificationType,
   notifyTransaction,
 } from "../../common/components/notifications";
 import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
-import { toFixedWithPrecision } from "../../common/utils";
+import { solToLamports, toFixedWithPrecision } from "../../common/utils";
 
 const LockingApp: FC = () => {
   const {
@@ -34,6 +34,14 @@ const LockingApp: FC = () => {
     });
     console.error(error);
   }, []);
+
+  const lock = useCallback(
+    async (amount: string) => {
+      if (!client) return Promise.reject(new Error("Client not initialized"));
+      await client.lockGSol(solToLamports(amount));
+    },
+    [client]
+  );
 
   const unlock = useCallback(async () => {
     if (!client) return Promise.reject(new Error("Client not initialized"));
@@ -62,34 +70,41 @@ const LockingApp: FC = () => {
       )}
       <div className="w-[20%] h-[20%] bg-green m-8">My Tree</div>
       <div className="w-[20%] h-[20%] bg-green m-8">Impact NFT</div>
-      <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
-        <Button variant="primary" className="mr-4" disabled={!needsUpdate}>
-          Update
-        </Button>
-        <Button
-          variant="secondary"
-          disabled={isBusy}
-          onClick={() => {
-            setIsBusy(true);
-            unlock().finally(() => {
-              setIsBusy(false);
-            });
-          }}
-        >
-          {isBusy ? (
-            <Spinner className="sm:ml-0 sm:mr-5 px-2 rounded" />
-          ) : (
-            "Unlock"
-          )}
-        </Button>
-      </Panel>
-      {details?.lockDetails && (
-        <div>
-          Locked -{" "}
-          {toFixedWithPrecision(toSol(details.lockDetails?.amountLocked))} gSol
-        </div>
+
+      {details?.lockDetails ? (
+        <>
+          {" "}
+          <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
+            <Button variant="primary" className="mr-4" disabled={!needsUpdate}>
+              Update
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={isBusy}
+              onClick={() => {
+                setIsBusy(true);
+                unlock().finally(() => {
+                  setIsBusy(false);
+                });
+              }}
+            >
+              {isBusy ? (
+                <Spinner className="sm:ml-0 sm:mr-5 px-2 rounded" />
+              ) : (
+                "Unlock"
+              )}
+            </Button>
+          </Panel>
+          <div className="font-bold">
+            Locked -{" "}
+            {toFixedWithPrecision(toSol(details.lockDetails?.amountLocked))}{" "}
+            gSol
+          </div>
+        </>
+      ) : (
+        <LockForm lock={lock} />
       )}
-      <div className="mt-32">Lock your gSOL for **** to reach level 1</div>
+      <div className="mt-24">Lock your gSOL for **** to reach level 1</div>
     </div>
   );
 };
