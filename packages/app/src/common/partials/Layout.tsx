@@ -1,5 +1,3 @@
-import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC, type ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 import {
@@ -7,29 +5,22 @@ import {
   FaGithub,
   FaGlobeAmericas,
   FaTwitter,
-  FaWallet,
 } from "react-icons/fa";
 
 import { Panel } from "../components/Panel";
 
 const Layout: FC<{ children: ReactNode }> = ({ children }) => {
-  const wallet = useWallet();
-
   return (
     <div className="flex flex-col min-h-screen">
       <Toaster />
       <header>
-        <div className="container flex justify-end mx-auto px-2 py-4">
-          <WalletMultiButton startIcon={<FaWallet size={"28px"} />}>
-            {!wallet.connected ? (
-              <div className="hidden sm:block">Connect Wallet</div>
-            ) : null}
-          </WalletMultiButton>
-        </div>
+        <audio className="fixed top-0 right-0" loop autoPlay controls>
+          <source src="meydan-surreal-forest.mp3" type="audio/mpeg" />
+        </audio>
       </header>
       <main className="grow flex">{children}</main>
       <footer>
-        <div className="container mx-auto text-center">
+        <div className="hidden container text-center">
           <Panel className="inline-flex my-4 px-8 py-2 rounded-lg backdrop-blur-sm">
             <a
               className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"

@@ -1,58 +1,83 @@
+import { Transition } from "@headlessui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useEffect, type FC } from "react";
-import { useNavigate } from "react-router-dom";
-
-import { CarbonRecovered, Spinner } from "../common/components";
-import { useSunriseStake } from "../common/context/sunriseStakeContext";
+import { useEffect, useState, type FC } from "react";
+import { CarbonRecovered } from "../common/components";
 
 const HubApp: FC = () => {
   const wallet = useWallet();
-  const navigate = useNavigate();
-  const { details } = useSunriseStake();
+
+  // For unknown reasons it doesn't work without this
+  const [show, updateShow] = useState(false);
+  useEffect(() => {
+    updateShow(true);
+  }, []);
 
   useEffect(() => {
-    if (wallet.connected) navigate("/stake");
+    if (wallet.connected) updateShow(false);
   }, [wallet.connected]);
 
   return (
-    <>
-      {details == null ? (
-        <div className="flex justify-center items-center m-2 mx-auto">
-          <Spinner />
-        </div>
-      ) : (
-        <div
-          style={{ maxWidth: "864px" }}
-          className="flex flex-col items-center justify-center mx-auto"
+    <div className="flex flex-col items-center justify-center container text-center">
+      <Transition show={show}>
+        <Transition.Child
+          as="img"
+          className="block w-auto h-16 mx-auto mb-3"
+          src="./logo.png"
+          alt="Sunrise"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          enter="transition-opacity ease-in duration-1000 delay-1000"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+          leave="transition-opacity ease-out duration-500"
+        />
+        <Transition.Child
+          as="h1"
+          className="text-green-light font-bold text-6xl"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          enter="transition-opacity ease-in duration-1000"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+          leave="transition-opacity ease-out duration-500"
         >
-          <div className="text-center">
-            <img
-              className="block w-auto h-16 mx-auto mb-3"
-              src={"./logo.png"}
-              alt="Sunrise"
-            />
-            <h2 className="text-green-light font-bold text-6xl">
-              Sunrise Stake
-            </h2>
-            <h3 className="mb-16 font-normal text-lg sm:text-3xl">
-              Offset emissions while you sleep.
-            </h3>
-          </div>
-          <p className="mb-12 hidden sm:block">
-            Invest in the future by using your staking rewards to support
-            climate projects.
-          </p>
-          <div className="hover:brightness-75 mb-12">
-            <WalletMultiButton>
-              Start&nbsp;
-              <span className="hidden sm:block"> reducing CO2 emissions</span>
-            </WalletMultiButton>
-          </div>
+          Sunrise Stake
+        </Transition.Child>
+        <Transition.Child
+          enterFrom="translate-y-8"
+          enterTo="translate-y-0"
+          enter="transition-transform duration-1000 delay-1000"
+        >
+          <Transition.Child
+            as="h2"
+            className="mb-16 font-normal text-lg sm:text-3xl"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            enter="transition-opacity ease-in duration-1000 delay-1000"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+            leave="transition-opacity ease-out duration-500"
+          >
+            Offset emissions while you sleep.
+          </Transition.Child>
+        </Transition.Child>
+        <Transition.Child
+          className="mb-12"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          enter="transition-opacity ease-in duration-1000 delay-[2s]"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+          leave="transition-opacity ease-out duration-500"
+        >
+          <WalletMultiButton>
+            Start reducing CO<sub>2</sub>&nbsp;emissions
+          </WalletMultiButton>
           <CarbonRecovered />
-        </div>
-      )}
-    </>
+        </Transition.Child>
+      </Transition>
+    </div>
   );
 };
 
