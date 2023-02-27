@@ -37,7 +37,8 @@ const HubApp: FC = () => {
   const [, updateShowBGImage] = useBGImage();
 
   useEffect(() => {
-    updateShowIntro(true);
+    if (!wallet.connected) updateShowIntro(true);
+    else updateIntroLeft(true);
   }, []);
 
   useEffect(() => {
