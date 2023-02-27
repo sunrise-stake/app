@@ -114,7 +114,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
             />
             {mode === "LOCK" && (
               <button
-                className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md m-auto"
+                className="text-blue hover:bg-outset hover:cursor-pointer m-auto px-1 rounded-md absolute bottom-5 left-20"
                 onClick={() => {
                   if (balance) {
                     updateAmount(
@@ -127,7 +127,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
               </button>
             )}
             <input
-              className="appearance-textfield grow w-full border-none bg-transparent text-3xl text-right"
+              className="appearance-textfield grow border-none bg-transparent text-3xl text-right px-1 w-24"
               type="number"
               min="0"
               max={balance ? toFixedWithPrecision(toSol(balance)) : "0"}
