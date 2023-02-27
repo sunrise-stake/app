@@ -2,6 +2,7 @@ import { toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import React, { useCallback } from "react";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
+import clx from "classnames";
 
 import {
   getDigits,
@@ -79,31 +80,52 @@ const AmountInput: React.FC<AmountInputProps> = ({
 
   return (
     <div className={className}>
-      <div className="flex flex-row justify-between p-8 my-auto bg-background">
+      <div
+        className={clx("flex flex-row justify-between my-auto bg-background", {
+          "p-8": mode !== "LOCK",
+          "p-2": mode === "LOCK",
+        })}
+      >
         <div className="grow my-auto">
-          <div className="text-right">
-            Balance:{" "}
-            <button
-              className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md"
-              onClick={() => {
-                if (balance) {
-                  updateAmount(
-                    toFixedWithPrecision(
-                      mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
-                    ).toString()
-                  );
-                }
-              }}
-            >
-              {balance ? toFixedWithPrecision(toSol(balance)) : "-"} {token}
-            </button>
-          </div>
+          {mode !== "LOCK" && (
+            <div className="text-right">
+              Balance:{" "}
+              <button
+                className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md"
+                onClick={() => {
+                  if (balance) {
+                    updateAmount(
+                      toFixedWithPrecision(
+                        mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
+                      ).toString()
+                    );
+                  }
+                }}
+              >
+                {balance ? toFixedWithPrecision(toSol(balance)) : "-"} {token}
+              </button>
+            </div>
+          )}
           <div className="flex">
             <img
               src={`${token}.png`}
               className="h-12 my-auto pr-2"
               alt="token"
             />
+            {mode === "LOCK" && (
+              <button
+                className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md m-auto"
+                onClick={() => {
+                  if (balance) {
+                    updateAmount(
+                      toFixedWithPrecision(toSol(balance)).toString()
+                    );
+                  }
+                }}
+              >
+                max
+              </button>
+            )}
             <input
               className="appearance-textfield grow w-full border-none bg-transparent text-3xl text-right"
               type="number"
@@ -113,6 +135,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
               value={amount}
               onChange={handleChange}
             />
+
             <div>
               <button
                 className="block"
