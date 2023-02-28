@@ -22,6 +22,7 @@ import { GrowApp } from "./grow/GrowApp";
 import { LockingApp } from "./locking/LockingApp";
 import { StakingApp } from "./staking/StakingApp";
 import { BGImageProvider } from "./common/context/BGImageContext";
+import { EventRouter } from "./common/container/EventRouter";
 require("./solana-wallet-adapter.css");
 
 const App: FC = () => {
@@ -49,6 +50,10 @@ const App: FC = () => {
             <SunriseProvider>
               <BGImageProvider>
                 <Layout>
+                  <EventRouter
+                    location={location}
+                    routes={[{ path: "/*", onMatch: console.log }]}
+                  />
                   <Routes location={location}>
                     <Route path="/" element={<HubApp />} />
                     <Route path="/stake" element={<StakingApp />} />
