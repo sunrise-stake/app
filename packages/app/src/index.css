@@ -12,6 +12,40 @@ input[type=number]::-webkit-outer-spin-button {
     background: bottom center no-repeat fixed url("../public/background.png");
   }
 
+  .AppGrid {
+    display: grid;
+    overflow: hidden;
+    height: 100vh;
+    grid-template-areas:
+      "Lost Forest Hub Usage"
+      ". . Staking ."
+      ". . Locking .";
+    grid-template-columns: 100% 100% 100% 100%;
+    grid-template-rows: 100% 100% 100% 100%;
+    gap: 0;
+  }
+  .App {
+    overflow: auto;
+  }
+  .LostApp {
+    grid-area: Lost;
+  }
+  .ForestApp {
+    grid-area: Forest;
+  }
+  .HubApp {
+    grid-area: Hub;
+  }
+  .UsageApp {
+    grid-area: Usage;
+  }
+  .StakingApp {
+    grid-area: Staking;
+  }
+  .LockingApp {
+    grid-area: Locking;
+  }
+
   @keyframes float-up-down {
     0% {
       transform: translateY(0);

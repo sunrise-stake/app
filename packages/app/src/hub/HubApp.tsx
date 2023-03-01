@@ -18,7 +18,9 @@ import { NavArrow } from "./components/NavArrow";
 const isNullish = (val: any): boolean =>
   val === null || val === undefined || val === 0;
 
-const HubApp: FC = () => {
+const HubApp: FC<
+  { className?: string } & React.HTMLAttributes<HTMLElement>
+> = ({ className, ...rest }) => {
   const wallet = useWallet();
 
   const { details } = useSunriseStake();
@@ -55,7 +57,13 @@ const HubApp: FC = () => {
   }, [gsolBalance, introLeft]);
 
   return (
-    <div className="flex flex-col items-center justify-center container text-center">
+    <div
+      className={clx(
+        "flex flex-col items-center justify-center container text-center",
+        className
+      )}
+      {...rest}
+    >
       <HubIntro
         show={showIntro}
         onLeft={() => {
@@ -64,7 +72,8 @@ const HubApp: FC = () => {
       />
       <Spinner className={introLeft && !showHub ? "block" : "hidden"} />
       <div className="flex">
-        <button
+        <Link
+          to="/forest"
           className={clx(
             "flex flex-col justify-center transition-opacity ease-in duration-500",
             showHubNav ? "opacity-100" : "opacity-0"
@@ -72,7 +81,7 @@ const HubApp: FC = () => {
         >
           <NavArrow direction="left" className="mx-auto" />
           Forest
-        </button>
+        </Link>
         <Transition className="mb-8" show={showHub}>
           <Transition.Child
             as="img"
@@ -91,7 +100,8 @@ const HubApp: FC = () => {
             enter="transition-opacity ease-in duration-500"
           />
         </Transition>
-        <button
+        <Link
+          to="/grow"
           className={clx(
             "flex flex-col justify-center transition-opacity ease-in duration-500",
             showHubNav ? "opacity-100" : "opacity-0"
@@ -99,7 +109,7 @@ const HubApp: FC = () => {
         >
           <NavArrow direction="right" className="mx-auto" />
           Use
-        </button>
+        </Link>
       </div>
       <div
         className={clx(
@@ -112,10 +122,10 @@ const HubApp: FC = () => {
             {!isNullish(gsolBalance) ? "My Stake" : "Stake to grow your tree"}
           </Button>
         </Link>
-        <button className="w-full mt-2">
+        <Link to="/lock" className="block w-full mt-2">
           <NavArrow direction="down" className="mx-auto" />
           Lock
-        </button>
+        </Link>
       </div>
     </div>
   );

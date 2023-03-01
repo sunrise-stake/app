@@ -12,7 +12,7 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
 import React, { type FC, useMemo } from "react";
-import { Route, Routes, Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { SunriseProvider } from "./common/context/sunriseStakeContext";
 import { Layout } from "./common/partials/Layout";
@@ -52,31 +52,86 @@ const App: FC = () => {
                 <Layout>
                   <EventRouter
                     location={location}
-                    routes={[{ path: "/*", onMatch: console.log }]}
+                    routes={[
+                      {
+                        path: "/",
+                        onMatch: () => {
+                          document
+                            .getElementById("hub-app")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        },
+                      },
+                      {
+                        path: "/forest",
+                        onMatch: () => {
+                          document
+                            .getElementById("forest-app")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        },
+                      },
+                      {
+                        path: "/grow",
+                        onMatch: () => {
+                          document
+                            .getElementById("grow-app")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        },
+                      },
+                      {
+                        path: "/lock",
+                        onMatch: () => {
+                          document
+                            .getElementById("locking-app")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        },
+                      },
+                      {
+                        path: "/stake",
+                        onMatch: () => {
+                          document
+                            .getElementById("staking-app")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        },
+                      },
+                      {
+                        path: "/grow",
+                        onMatch: () => {
+                          document
+                            .getElementById("grow-app")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        },
+                      },
+                      {
+                        path: "/*",
+                        onMatch: () => {
+                          document
+                            .getElementById("lost-app")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        },
+                      },
+                    ]}
                   />
-                  <Routes location={location}>
-                    <Route path="/" element={<HubApp />} />
-                    <Route path="/stake" element={<StakingApp />} />
-                    <Route path="/forest" element={<ForestApp />} />
-                    <Route path="/grow" element={<GrowApp />} />
-                    <Route path="/lock" element={<LockingApp />} />
-                    <Route
-                      path="/*"
-                      element={
-                        <div className="flex flex-col min-h-screen justify-center items-center">
-                          <p className="text-2xl font-bold">
-                            Oh, oh. You&apos;ve got lost in the woods... 🐺
-                          </p>
-                          <Link
-                            className="mt-2 px-5 py-3 border-2 border-green rounded-lg leading-6 text-green text-xl"
-                            to="/"
-                          >
-                            Back home
-                          </Link>
-                        </div>
-                      }
-                    />
-                  </Routes>
+                  <div className="AppGrid">
+                    <ForestApp id="forest-app" className="App ForestApp" />
+                    <GrowApp id="grow-app" className="App GrowApp" />
+                    <HubApp id="hub-app" className="App HubApp" />
+                    <LockingApp id="locking-app" className="App LockingApp" />
+                    <StakingApp id="staking-app" className="App StakingApp" />
+                    <div
+                      id="lost-app"
+                      className="App LostApp flex flex-col min-h-screen justify-center items-center"
+                    >
+                      <p className="text-2xl font-bold">
+                        Oh, oh. You&apos;ve got lost in the woods... 🐺
+                      </p>
+                      <Link
+                        className="mt-2 px-5 py-3 border-2 border-green rounded-lg leading-6 text-green text-xl"
+                        to="/"
+                      >
+                        Back home
+                      </Link>
+                    </div>
+                  </div>
                 </Layout>
               </BGImageProvider>
             </SunriseProvider>
