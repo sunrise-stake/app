@@ -165,13 +165,6 @@ const StakeDashboard: FC = () => {
           ← Back
         </Link>
       </div>
-      <div className="text-center">
-        <img
-          className="w-auto h-16 mx-auto mb-3"
-          src={"./logo.png"}
-          alt="Sunrise"
-        />
-      </div>
       <div className="flex">
         <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
           <Button

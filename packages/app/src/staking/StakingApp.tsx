@@ -16,8 +16,11 @@ const StakingApp: FC<
   }, [wallet.connected]);
 
   return (
-    <div className={clx("flex flex-col items-center", className)} {...rest}>
-      <div className="container grow px-8">
+    <div
+      className={clx("flex flex-col items-center justify-center", className)}
+      {...rest}
+    >
+      <div className="container">
         <StakeDashboard />
       </div>
     </div>
