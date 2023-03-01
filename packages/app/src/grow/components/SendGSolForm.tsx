@@ -1,5 +1,5 @@
 import clx from "classnames";
-import { useCallback, useState, type FC } from "react";
+import { useState, type FC } from "react";
 import { AmountInput, Button, Spinner } from "../../common/components";
 import { GiPresent } from "react-icons/gi";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -36,7 +36,7 @@ const SendGSolForm: FC = () => {
   console.log("Connection:", connection);
   console.log("Sender:", senderPubkey?.toBase58());
 
-  const transferGSol = useCallback(async () => {
+  const transferGSol = async (): Promise<void> => {
     console.log("Transfering gSOL");
     console.log("Details:", details);
     console.log("Sender", senderPubkey?.toBase58());
@@ -95,7 +95,7 @@ const SendGSolForm: FC = () => {
       })
       .catch(handleError);
     console.log("Transfer signature:", signature);
-  }, [recipientAddress, senderPubkey, details]);
+  };
 
   return (
     <div
