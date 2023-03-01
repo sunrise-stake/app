@@ -12,7 +12,7 @@ const LockingApp: FC<
     >
       <h2>Lock.</h2>
       <Link to="invalid" className="block text-green">
-        Invalid link...
+        A invalid link...
       </Link>
     </div>
   );
