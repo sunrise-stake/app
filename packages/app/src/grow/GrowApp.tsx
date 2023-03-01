@@ -6,7 +6,7 @@ const GrowApp: FC<
 > = ({ className, ...rest }) => {
   return (
     <div
-      className={clx("container flex justify-center items-center", className)}
+      className={clx("flex justify-center items-center", className)}
       {...rest}
     >
       <h2>Grow.</h2>

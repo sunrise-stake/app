@@ -16,10 +16,7 @@ const StakingApp: FC<
   }, [wallet.connected]);
 
   return (
-    <div
-      className={clx("w-full flex flex-col items-center", className)}
-      {...rest}
-    >
+    <div className={clx("flex flex-col items-center", className)} {...rest}>
       <div className="container grow px-8">
         <StakeDashboard />
       </div>

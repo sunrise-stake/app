@@ -59,7 +59,7 @@ const HubApp: FC<
   return (
     <div
       className={clx(
-        "flex flex-col items-center justify-center container text-center",
+        "flex flex-col items-center justify-center text-center",
         className
       )}
       {...rest}
