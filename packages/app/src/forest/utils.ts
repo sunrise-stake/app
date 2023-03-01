@@ -3,7 +3,23 @@ import { type PublicKey } from "@solana/web3.js";
 
 const IMAGE_COUNT = 1; // only one tree image per level and species at the moment
 
-const JITTER_RANGE = 0.2; // 10% jitter in tree placement
+// Tree-placement constants
+// the radius is the distance from the source tree to the neighbours,
+// or the difference between each layer (in pixels)
+const RADIUS = 400;
+
+// the height is the vertical distance between each layer (in pixels)
+// if zero, the trees are placed on a flat plane, and will appear behind each other
+// to avoid obscuring trees, we set a positive value here, so neighbours appear slight higher than the source tree
+const HEIGHT = 100;
+
+// the part of the circle along which neighbours are placed - in radians
+// 2PI = trees are fully surrounding the source tree
+// PI = trees are placed on a semi-circle behind the source tree
+const ARC = Math.PI * 0.8;
+
+// 10% jitter in tree placement
+const JITTER_RANGE = 0.2;
 
 const MINUTE_IN_MS = 60 * 1000;
 const HOUR_IN_MS = 60 * MINUTE_IN_MS;
@@ -51,28 +67,14 @@ const calculateTranslation = (
   totalInLayer: number,
   indexInLayer: number
 ): Translation => {
-  // the radius is the distance from the source tree to the neighbours,
-  // or the difference between each layer (in pixels)
-  const radius = 400;
-
-  // the height is the vertical distance between each layer (in pixels)
-  // if zero, the trees are placed on a flat plane, and will appear behind each other
-  // to avoid obscuring trees, we set a positive value here, so neighbours appear slight higher than the source tree
-  const height = 80;
-
-  // the part of the circle along which neighbours are placed - in radians
-  // 2PI = trees are fully surrounding the source tree
-  // PI = trees are placed on a semi-circle behind the source tree
-  const arc = Math.PI * 0.8;
-
   // spreadSegment is the angle between each neighbour
   // if there is only one neighbour, it is placed in the middle of the arc (and spreadSegment is not used)
-  const spreadSegment = totalInLayer > 1 ? arc / (totalInLayer - 1) : arc;
+  const spreadSegment = totalInLayer > 1 ? ARC / (totalInLayer - 1) : ARC;
 
   // the starting angle is the angle at which the first neighbour is placed
   // the angle is measured from the positive x-axis, so it should be 90 degrees minus half the arc
   // if the arc is a semi-circle, this will be 0 degrees, which is directly to the right of the source tree
-  const startingAngle = Math.PI / 2 - arc / 2;
+  const startingAngle = Math.PI / 2 - ARC / 2;
 
   // now we have all the values, we can calculate the position of each neighbour
 
@@ -81,13 +83,19 @@ const calculateTranslation = (
   // we need to make sure the angle is between 0 and 2PI because the Math.sin and Math.cos functions only work with positive values
   const normalisedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
 
-  const jitter = Math.random() * JITTER_RANGE - JITTER_RANGE / 2;
+  const jitterAngle = Math.random() * JITTER_RANGE - JITTER_RANGE / 2;
 
-  const x = Math.floor(Math.cos(normalisedAngle + jitter) * radius * layer);
-  const y = Math.floor(-Math.sin(normalisedAngle + jitter) * height * layer);
-  const z = Math.floor(-Math.sin(normalisedAngle + jitter) * radius * layer);
+  const x = Math.floor(
+    Math.cos(normalisedAngle + jitterAngle) * RADIUS * layer
+  );
+  const y = Math.floor(
+    -Math.sin(normalisedAngle + jitterAngle) * HEIGHT * layer
+  );
+  const z = Math.floor(
+    -Math.sin(normalisedAngle + jitterAngle) * RADIUS * layer
+  );
   console.log(
-    `${indexInLayer}: arc ${arc} - spreadSegment ${spreadSegment} - angle ${angle} (${normalisedAngle}) - x: ${x}, y: ${y}, z: ${z}`
+    `${indexInLayer}: arc ${ARC} - spreadSegment ${spreadSegment} - angle ${angle} (${normalisedAngle}) - x: ${x}, y: ${y}, z: ${z}`
   );
 
   return { x, y, z };
