@@ -123,7 +123,7 @@ const SendGSolForm: FC<Props> = ({ className }) => {
             setRecipientAddress(e.target.value);
           }}
           value={recipientAddress}
-          placeholder="Address or SOL name"
+          placeholder="Address"
         />
         <Button
           onClick={() => {
