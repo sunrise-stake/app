@@ -1,4 +1,5 @@
 import { type FC } from "react";
+import clx from "classnames";
 import { PartnerApp } from "./components/PartnerApp";
 import { SendGSolForm } from "./components/SendGSolForm";
 
@@ -6,7 +7,13 @@ const GrowApp: FC<
   { className?: string } & React.HTMLAttributes<HTMLElement>
 > = ({ className, ...rest }) => {
   return (
-    <div className="container flex flex-col justify-start items-start sm:items-center">
+    <div
+      className={clx(
+        "container flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
+        className
+      )}
+      {...rest}
+    >
       <h2 className="font-bold text-xl">Partners</h2>
       <div className="flex">
         <PartnerApp className="p-8 rounded-md mr-4">

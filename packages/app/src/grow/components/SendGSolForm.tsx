@@ -19,11 +19,7 @@ import {
   notifyTransaction,
 } from "../../common/components/notifications";
 
-interface Props {
-  className?: string;
-}
-
-const SendGSolForm: FC<Props> = ({ className }) => {
+const SendGSolForm: FC = () => {
   const [amount, setAmount] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [isBusy, setIsBusy] = useState(false);
@@ -41,9 +37,13 @@ const SendGSolForm: FC<Props> = ({ className }) => {
   console.log("Sender:", senderPubkey?.toBase58());
 
   const transferGSol = useCallback(async () => {
+    console.log("Transfering gSOL");
+    console.log("Details:", details);
+    console.log("Sender", senderPubkey?.toBase58());
     if (!senderPubkey || !details) {
       return;
     }
+
     let recipientPubkey;
     try {
       recipientPubkey = new PublicKey(recipientAddress);
@@ -95,13 +95,12 @@ const SendGSolForm: FC<Props> = ({ className }) => {
       })
       .catch(handleError);
     console.log("Transfer signature:", signature);
-  }, [recipientAddress]);
+  }, [recipientAddress, senderPubkey, details]);
 
   return (
     <div
       className={clx(
-        "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md w-full sm:w-[60%] md:w-[40%]",
-        className
+        "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md w-full sm:w-[60%] md:w-[40%]"
       )}
     >
       <div className="flex flex-col">
