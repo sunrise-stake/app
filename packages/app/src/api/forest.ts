@@ -1,10 +1,14 @@
-import { PublicKey } from "@solana/web3.js";
-import { addUp, round } from "../common/utils";
+import { type Connection, PublicKey } from "@solana/web3.js";
+import { addUp, memoise, round, settledPromises } from "../common/utils";
 import mintStub from "./stubs/mints.json";
 import sendingStub from "./stubs/sendings.json";
 import receiptStub from "./stubs/receipts.json";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 
-const STUB_DB = true;
+const STUB_DB = false;
 const STUBS = {
   mints: mintStub,
   sender: sendingStub,
@@ -13,6 +17,7 @@ const STUBS = {
 
 const MONGODB_API_URL = process.env.REACT_APP_MONGODB_API_URL ?? "";
 const MONGODB_READ_TOKEN = process.env.REACT_APP_MONGODB_READ_TOKEN ?? "";
+const MAX_FOREST_DEPTH = 1; // the number of levels of tree neighbours to fetch and show
 
 interface MintResponse {
   timestamp: string;
@@ -44,9 +49,27 @@ interface Transfer {
   amount: number;
 }
 
-interface Neighbour {
-  firstSendingDate: Date;
-  amountTotal: number;
+// A treeNode is the representation of an account's balance and activity
+// We call it TreeNode instead of Tree, because a "tree" in computer science
+// is usually a collection of nodes, and we don't want to confuse the two.
+export interface TreeNode {
+  address: PublicKey;
+  mints: Mint[];
+  sent: Transfer[];
+  received: Transfer[];
+  totals: Totals;
+  startDate: Date;
+  parent?: {
+    tree: TreeNode;
+    relationship: "PARENT_IS_SENDER" | "PARENT_IS_RECIPIENT";
+    relationshipStartDate: Date;
+  };
+}
+
+// A forest is a tree with neighbours
+export interface Forest {
+  tree: TreeNode;
+  neighbours: Forest[];
 }
 
 const buildTransferRecord = (transfer: TransferResponse): Transfer => ({
@@ -102,34 +125,65 @@ const getAccountSendings = async (address: PublicKey): Promise<Transfer[]> =>
     .then((resp) => resp.documents)
     .then((transfers) => transfers.map(buildTransferRecord));
 
-const getNeighbors = (sendings: Transfer[]): Record<string, Neighbour> => {
-  const neighbors: Record<string, Neighbour> = {};
-  sendings.forEach((sending) => {
-    if (sending.sender === sending.recipient) return;
-
-    if (neighbors[sending.recipient.toString()] === undefined) {
-      neighbors[sending.recipient.toString()] = {
-        firstSendingDate: sending.timestamp,
-        amountTotal: sending.amount,
-      };
-      return;
-    }
-
-    if (
-      sending.timestamp.getTime() <
-      neighbors[sending.recipient.toString()].firstSendingDate.getTime()
+// Given a set of transfers, return the first transfer for each sender-recipient pair
+const filterFirstTransfersForSenderAndRecipient = (
+  transfers: Transfer[]
+): Transfer[] => {
+  const toKey = (transfer: Transfer): string =>
+    `${transfer.sender.toString()}-${transfer.recipient.toString()}`;
+  const firstTransfers: Record<string, Transfer> = {};
+  transfers.forEach((transfer) => {
+    const key = toKey(transfer);
+    if (firstTransfers[key] === undefined) {
+      firstTransfers[key] = transfer;
+    } else if (
+      transfer.timestamp.getTime() < firstTransfers[key].timestamp.getTime()
     ) {
-      neighbors[sending.recipient.toString()].firstSendingDate =
-        sending.timestamp;
+      firstTransfers[key] = transfer;
     }
-
-    neighbors[sending.recipient.toString()].amountTotal += sending.amount;
   });
 
-  return neighbors;
+  return Object.values(firstTransfers);
+};
+
+const getNeighbours = async (
+  connection: Connection, // TODO wrap everything in a class so we don't have to pass this around
+  sendings: Transfer[],
+  receipts: Transfer[],
+  depth: number,
+  parent: TreeNode
+): Promise<Forest[]> => {
+  if (depth < 0) return [];
+
+  const sendingNeighboursPromise = Promise.allSettled(
+    sendings.map(async (sending) =>
+      getForest(connection, sending.recipient, depth, {
+        tree: parent,
+        relationship: "PARENT_IS_SENDER",
+        relationshipStartDate: sending.timestamp,
+      })
+    )
+  );
+
+  const receiptNeighboursPromise = Promise.allSettled(
+    receipts.map(async (receipt) =>
+      getForest(connection, receipt.sender, depth, {
+        tree: parent,
+        relationship: "PARENT_IS_RECIPIENT",
+        relationshipStartDate: receipt.timestamp,
+      })
+    )
+  );
+
+  // TODO deal with rejected promises
+  const sendingNeighbours = settledPromises(await sendingNeighboursPromise);
+  const receiptNeighbours = settledPromises(await receiptNeighboursPromise);
+
+  return [...sendingNeighbours, ...receiptNeighbours];
 };
 
 interface Totals {
+  currentBalance: number;
   amountMinted: number;
   amountReceived: number;
   amountSent: number;
@@ -141,6 +195,7 @@ interface Totals {
   uniqueRecipients: PublicKey[];
 }
 const getTotals = (
+  currentBalance: number,
   mints: Mint[],
   receipts: Transfer[],
   sendings: Transfer[]
@@ -165,6 +220,7 @@ const getTotals = (
   );
 
   return {
+    currentBalance,
     amountMinted,
     amountReceived,
     amountSent,
@@ -177,37 +233,76 @@ const getTotals = (
   };
 };
 
-export interface Forest {
-  address: PublicKey;
-  mints: Mint[];
-  sent: Transfer[];
-  received: Transfer[];
-  neighbors: Array<Record<string, Neighbour>>;
-  totals: Totals;
-}
+// TODO move this to the client and pass in a client instead of a connection
+// also, create a service that listens to accounts and updates the state, rather than
+// retrieving the state on every request
+const getGsolBalance = async (
+  address: PublicKey,
+  connection: Connection
+): Promise<number> => {
+  // TODO remove hard-coded gsol mint and get from the state
+  const gsolMint = new PublicKey("gso1xA56hacfgTHTF4F7wN5r4jbnJsKh99vR595uybA");
+  const tokenAccount = PublicKey.findProgramAddressSync(
+    [address.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), gsolMint.toBuffer()],
+    ASSOCIATED_TOKEN_PROGRAM_ID
+  )[0];
+  const balance = await connection.getTokenAccountBalance(tokenAccount);
+  return balance.value.uiAmount ?? 0;
+};
+
+const memoisedGetGsolBalance = memoise(
+  (address) => address.toBase58(),
+  getGsolBalance
+);
+
+const earliest = (thingsWithTimestamp: Array<{ timestamp: Date }>): Date => {
+  const dates = thingsWithTimestamp.map((m) => m.timestamp);
+  return dates.reduce((a, b) => (a < b ? a : b), new Date());
+};
+
 // Get the forest for an address.
 // At present, only one level of distance from the source address is supported
 export const getForest = async (
+  connection: Connection,
   address: PublicKey,
-  level: 1
+  depth: number = MAX_FOREST_DEPTH,
+  parent?: TreeNode["parent"]
 ): Promise<Forest> => {
-  // TODO iterate over level
-  console.log("getting level", level);
-  const [mints, received, sent] = await Promise.all([
+  if (depth < 0) throw new Error("Depth must be greater than or equal to 0");
+  if (depth > MAX_FOREST_DEPTH)
+    throw new Error(`Depth must be less than ${MAX_FOREST_DEPTH}`);
+
+  console.log("getting depth", depth);
+  const [currentBalance, mints, received, sent] = await Promise.all([
+    memoisedGetGsolBalance(address, connection),
     getAccountMints(address),
     getAccountReceipts(address),
     getAccountSendings(address),
   ]);
-  const neighborsLevel1 = getNeighbors(sent);
+  const totals = getTotals(currentBalance, mints, received, sent);
+  const startDate = earliest(mints);
 
-  const totals = getTotals(mints, received, sent);
-
-  return {
+  const treeNode: TreeNode = {
     address,
     mints,
     sent,
     received,
-    neighbors: [neighborsLevel1],
     totals,
+    startDate,
+    parent,
+  };
+
+  // recursion happens here:
+  const neighbours = await getNeighbours(
+    connection,
+    filterFirstTransfersForSenderAndRecipient(sent),
+    filterFirstTransfersForSenderAndRecipient(received),
+    depth - 1,
+    treeNode
+  );
+
+  return {
+    tree: treeNode,
+    neighbours,
   };
 };

@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { forestToComponents, type TreeComponent } from "../utils";
 import { getForest } from "../../api/forest";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 export const useTrees = (): {
   myTree: TreeComponent | undefined;
   neighbours: TreeComponent[];
 } => {
   const wallet = useWallet();
+  const { connection } = useConnection();
   const [neighbours, setNeighbours] = useState<TreeComponent[]>([]);
   const [myTree, setMyTree] = useState<TreeComponent>();
 
@@ -15,21 +16,17 @@ export const useTrees = (): {
     void (async () => {
       console.log("useTrees", wallet.publicKey?.toBase58());
       if (wallet.connected && wallet.publicKey) {
-        const forest = await getForest(wallet.publicKey, 1);
+        console.log("Getting forest..." + new Date().toISOString());
+        const forest = await getForest(connection, wallet.publicKey);
+        console.log("Got forest. " + new Date().toISOString());
 
-        setNeighbours(forestToComponents(forest));
+        const components = forestToComponents(forest);
 
-        setMyTree({
-          address: wallet.publicKey,
-          translate: {
-            x: 0,
-            y: 0,
-            z: 0,
-          },
-          metadata: {
-            level: 0,
-          },
-        });
+        console.log("forest", forest);
+        console.log("components", components);
+
+        setMyTree(components[0]);
+        setNeighbours(components.slice(1));
       }
     })();
   }, [wallet.publicKey?.toBase58()]);

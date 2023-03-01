@@ -91,6 +91,29 @@ const range = (start: number, end: number): number[] =>
   Array.from({ length: end - start + 1 }, (_, i) => start + i);
 const rangeTo = (end: number): number[] => range(0, end);
 
+const settledPromises = <T>(results: Array<PromiseSettledResult<T>>): T[] =>
+  results
+    .filter(
+      (result): result is PromiseFulfilledResult<T> =>
+        result.status === "fulfilled"
+    )
+    .map((result) => result.value);
+
+// TODO remove this and maintain a list of balances in state, which get updated by a separate process
+const memoise = <T extends (...args: any[]) => any>(
+  withKey: (...args: any[]) => string,
+  fn: T
+): T => {
+  const cache = new Map<string, ReturnType<T>>();
+  return ((...args: any[]) => {
+    const key = withKey(...args);
+    if (cache.has(key)) return cache.get(key);
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  }) as T;
+};
+
 export {
   addUp,
   round,
@@ -100,6 +123,7 @@ export {
   type UIMode,
   debounce,
   getDigits,
+  settledPromises,
   solToCarbon,
   solToLamports,
   toBN,
@@ -107,4 +131,5 @@ export {
   walletIsConnected,
   rangeTo,
   toShortBase58,
+  memoise,
 };

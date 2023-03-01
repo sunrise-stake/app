@@ -1,9 +1,9 @@
-import { type FC } from "react";
+import { type CSSProperties, type FC } from "react";
 import { useTrees } from "./hooks/useTrees";
 import { type TreeComponent } from "./utils";
 import { toShortBase58 } from "../common/utils";
 
-const Tree: FC<{ details: TreeComponent; style?: React.CSSProperties }> = ({
+const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
   style = {},
 }) => (
@@ -13,16 +13,13 @@ const Tree: FC<{ details: TreeComponent; style?: React.CSSProperties }> = ({
       display: "block",
       position: "absolute",
       transform: `translate3d(${details.translate.x}px, ${details.translate.y}px, ${details.translate.z}px)`,
-      filter: `blur(${details.metadata.level}px) grayscale(40%) brightness(1.5)`,
+      filter: `blur(${details.metadata.layer}px) grayscale(40%) brightness(1.5)`,
       width: "200px",
-      animationDelay: `${details.metadata.level}s`,
+      animationDelay: `${details.metadata.layer}s`,
       ...style,
     }}
   >
-    <img
-      src="https://cdn.pixabay.com/photo/2014/12/22/00/07/tree-576847__480.png"
-      alt={details.address.toBase58()}
-    />
+    <img src={details.imageUri} alt={details.address.toBase58()} />
     <p>{toShortBase58(details.address)}</p>
   </li>
 );
