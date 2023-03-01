@@ -2,7 +2,9 @@ import { type FC } from "react";
 import { PartnerApp } from "./components/PartnerApp";
 import { SendGSolForm } from "./components/SendGSolForm";
 
-const GrowApp: FC = () => {
+const GrowApp: FC<
+  { className?: string } & React.HTMLAttributes<HTMLElement>
+> = ({ className, ...rest }) => {
   return (
     <div className="container flex flex-col justify-start items-start sm:items-center">
       <h2 className="font-bold text-xl">Partners</h2>

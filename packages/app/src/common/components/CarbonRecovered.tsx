@@ -5,8 +5,9 @@ import { toFixedWithPrecision } from "../utils";
 
 const CarbonRecovered: FC = () => {
   const { totalCarbon } = useCarbon();
+
   return totalCarbon !== undefined ? (
-    <div className="flex flex-col justify-center items-center mb-12 text-green">
+    <div className="flex flex-col justify-center items-center my-6 text-green">
       <h4 className="flex-auto font-medium center leading-tight text-1xl grid-row">
         so far
       </h4>
@@ -17,9 +18,7 @@ const CarbonRecovered: FC = () => {
         carbon recovered
       </h4>
     </div>
-  ) : (
-    <></>
-  ); // TODO loading screen
+  ) : null;
 };
 
 export { CarbonRecovered };
