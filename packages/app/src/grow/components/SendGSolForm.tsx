@@ -10,7 +10,7 @@ import {
   getAssociatedTokenAddress,
   getAccount,
 } from "@solana/spl-token";
-import { solToLamports, ZERO } from "../../common/utils";
+import { handleError, solToLamports, ZERO } from "../../common/utils";
 import { type Details } from "@sunrisestake/client";
 import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import BN from "bn.js";
@@ -39,15 +39,6 @@ const SendGSolForm: FC<Props> = ({ className }) => {
   const { connection } = useConnection();
   console.log("Connection:", connection);
   console.log("Sender:", senderPubkey?.toBase58());
-
-  const handleError = (error: Error): void => {
-    notifyTransaction({
-      type: NotificationType.error,
-      message: "Transaction failed",
-      description: error.message,
-    });
-    console.error(error);
-  };
 
   const transferGSol = useCallback(async () => {
     if (!senderPubkey || !details) {
@@ -96,7 +87,11 @@ const SendGSolForm: FC<Props> = ({ className }) => {
     );
     const signature = sendTransaction(transaction, connection)
       .then((tx) => {
-        console.log(tx);
+        notifyTransaction({
+          type: NotificationType.success,
+          message: "Transfer successful",
+          txid: tx,
+        });
       })
       .catch(handleError);
     console.log("Transfer signature:", signature);
@@ -123,11 +118,12 @@ const SendGSolForm: FC<Props> = ({ className }) => {
         />
         <div className="font-semibold text-xl mb-2">To</div>
         <input
-          className="mb-4 rounded-md text-lg py-3 px-4"
+          className="mb-4 rounded-md text-lg py-3 px-4 placeholder:text-sm"
           onChange={(e) => {
             setRecipientAddress(e.target.value);
           }}
           value={recipientAddress}
+          placeholder="Address or SOL name"
         />
         <Button
           onClick={() => {
