@@ -3,6 +3,8 @@ import { type PublicKey } from "@solana/web3.js";
 
 const IMAGE_COUNT = 1; // only one tree image per level and species at the moment
 
+const JITTER_RANGE = 0.2; // 10% jitter in tree placement
+
 const MINUTE_IN_MS = 60 * 1000;
 const HOUR_IN_MS = 60 * MINUTE_IN_MS;
 const DAY_IN_MS = 24 * HOUR_IN_MS;
@@ -51,12 +53,12 @@ const calculateTranslation = (
 ): Translation => {
   // the radius is the distance from the source tree to the neighbours,
   // or the difference between each layer (in pixels)
-  const radius = 300;
+  const radius = 400;
 
   // the height is the vertical distance between each layer (in pixels)
   // if zero, the trees are placed on a flat plane, and will appear behind each other
   // to avoid obscuring trees, we set a positive value here, so neighbours appear slight higher than the source tree
-  const height = 50;
+  const height = 80;
 
   // the part of the circle along which neighbours are placed - in radians
   // 2PI = trees are fully surrounding the source tree
@@ -79,9 +81,11 @@ const calculateTranslation = (
   // we need to make sure the angle is between 0 and 2PI because the Math.sin and Math.cos functions only work with positive values
   const normalisedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
 
-  const x = Math.floor(Math.cos(normalisedAngle) * radius * layer);
-  const y = Math.floor(-Math.sin(normalisedAngle) * height * layer);
-  const z = Math.floor(-Math.sin(normalisedAngle) * radius * layer);
+  const jitter = Math.random() * JITTER_RANGE - JITTER_RANGE / 2;
+
+  const x = Math.floor(Math.cos(normalisedAngle + jitter) * radius * layer);
+  const y = Math.floor(-Math.sin(normalisedAngle + jitter) * height * layer);
+  const z = Math.floor(-Math.sin(normalisedAngle + jitter) * radius * layer);
   console.log(
     `${indexInLayer}: arc ${arc} - spreadSegment ${spreadSegment} - angle ${angle} (${normalisedAngle}) - x: ${x}, y: ${y}, z: ${z}`
   );
@@ -114,7 +118,9 @@ const calculateTreeType = (tree: TreeNode): TreeType => {
 };
 
 const treeImageUri = (treeType: TreeType): string => {
-  return `https://api.sunrisestake.com/assets/tree/Tree0${treeType.level}0${treeType.species}.png`;
+  console.log(treeType);
+  return `https://api.sunrisestake.com/assets/tree/Tree0000.png`;
+  // return `https://api.sunrisestake.com/assets/tree/Tree0${treeType.level}0${treeType.species}.png`;
 };
 
 const treeNodeToComponent = (
@@ -133,41 +139,57 @@ const treeNodeToComponent = (
 });
 
 export const forestToComponents = (forest: Forest): TreeComponent[] => {
-  const recursiveForestToComponents = (
-    forest: Forest,
-    layer: number,
-    indexInLayer: number,
-    totalInLayer: number,
-    existingComponents: TreeComponent[]
-  ): void => {
-    // add this tree
-    console.log(
-      "Adding tree ",
-      forest.tree.address.toBase58(),
-      "to layer:",
-      layer,
-      "at index: ",
-      indexInLayer,
-      "of",
-      totalInLayer
-    );
-    existingComponents.push(
-      treeNodeToComponent(forest.tree, layer, indexInLayer, totalInLayer)
+  const recursiveForestToFlatTrees = (
+    queue: Array<{ forest: Forest; layer: number }>,
+    result: TreeNode[][]
+  ): TreeNode[][] => {
+    if (queue.length === 0) return result;
+    const { forest: nextInQueue, layer: currentLayer } = queue.shift() as {
+      forest: Forest;
+      layer: number;
+    };
+    const map = nextInQueue.neighbours.map((neighbour) => ({
+      forest: neighbour,
+      layer: currentLayer + 1,
+    }));
+    queue.push(...map);
+
+    if (currentLayer >= result.length) result.push([]);
+    result[currentLayer].push(
+      ...nextInQueue.neighbours.map((neighbour) => neighbour.tree)
     );
 
-    // add a component for each neighbour
-    forest.neighbours.forEach((neighbour, indexInLayer) => {
-      recursiveForestToComponents(
-        neighbour,
-        layer + 1,
-        indexInLayer,
-        forest.neighbours.length,
-        existingComponents
-      );
-    });
+    console.log("currentLayer", currentLayer);
+    console.log("queue", queue);
+    console.log("result", result);
+
+    return recursiveForestToFlatTrees(queue, result);
   };
 
-  const components: TreeComponent[] = [];
-  recursiveForestToComponents(forest, 0, 0, 1, components);
-  return components;
+  const flatTrees = recursiveForestToFlatTrees(
+    [{ forest, layer: 1 }],
+    [[forest.tree]]
+  );
+  console.log("flatTrees", flatTrees);
+
+  return flatTrees.flatMap((treesInLayer, layer) =>
+    treesInLayer.map((tree, indexInLayer) => {
+      console.log(
+        "Adding tree ",
+        forest.tree.address.toBase58(),
+        "to layer:",
+        layer,
+        "at index: ",
+        indexInLayer,
+        "of",
+        treesInLayer.length
+      );
+      return treeNodeToComponent(
+        tree,
+        layer,
+        indexInLayer,
+        treesInLayer.length
+      );
+    })
+  );
 };

@@ -34,7 +34,6 @@ const ForestApp: FC<
       className={clx("flex justify-center items-center", className)}
       {...rest}
     >
-      <h2>Forest.</h2>
       <ul
         style={{
           listStyle: "none",
