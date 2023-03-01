@@ -20,8 +20,8 @@ input[type=number]::-webkit-outer-spin-button {
       "Lost Forest Hub Usage"
       ". . Staking ."
       ". . Locking .";
-    grid-template-columns: 100% 100% 100% 100%;
-    grid-template-rows: 100% 100% 100% 100%;
+    grid-template-columns: 100vw 100vw 100vw 100vw;
+    grid-template-rows: 100vh 100vh 100vh;
     gap: 0;
   }
   .App {
