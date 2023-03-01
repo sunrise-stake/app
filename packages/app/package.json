@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@headlessui/react": "^1.7.4",
+    "@headlessui/react": "^1.7.12",
     "@heroicons/react": "^2.0.13",
     "@metaplex-foundation/js": "^0.17.12",
     "@popperjs/core": "^2.11.6",

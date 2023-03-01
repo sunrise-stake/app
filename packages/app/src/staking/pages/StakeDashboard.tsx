@@ -32,6 +32,7 @@ import { useCarbon } from "../../common/hooks/useCarbon";
 import { tooltips } from "../../common/content/tooltips";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
+import { Link } from "react-router-dom";
 
 const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -159,16 +160,10 @@ const StakeDashboard: FC = () => {
 
   return (
     <div style={{ maxWidth: "620px" }} className="mx-auto relative">
-      <div className="text-center">
-        <img
-          className="block sm:hidden w-auto h-16 mx-auto mb-3"
-          src={"./logo.png"}
-          alt="Sunrise"
-        />
-        <h2 className="text-green-bright font-bold text-6xl">Sunrise Stake</h2>
-        <h3 className="mb-16 text-white font-normal text-3xl">
-          Offset emissions while you sleep.
-        </h3>
+      <div>
+        <Link className="text-green-light" to="/">
+          ← Back
+        </Link>
       </div>
       <div className="flex">
         <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
@@ -224,7 +219,7 @@ const StakeDashboard: FC = () => {
           </Button>
         </Panel>
       </div>
-      <Panel className="p-10 rounded-lg">
+      <Panel className="p-10 rounded-lg backdrop-blur-sm">
         {!client && (
           <div className="flex flex-col items-center m-4">
             <h1 className="text-3xl text-center">Loading...</h1>
@@ -267,7 +262,6 @@ const StakeDashboard: FC = () => {
                 <span className="text-xs font-bold">gSOL</span>
               </div>
 
-              {/* <br /> */}
               <div className="flex flex-col-reverse gap-2 items-center sm:flex-row">
                 <div className="text-xs sm:text-sm">Your Stake</div>
                 <TooltipPopover>{tooltips.yourStake}</TooltipPopover>

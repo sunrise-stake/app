@@ -1,63 +1,133 @@
+import { Transition } from "@headlessui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useEffect, type FC } from "react";
-import { useNavigate } from "react-router-dom";
-
-import { CarbonRecovered, Spinner } from "../common/components";
+import clx from "classnames";
+import {
+  useEffect,
+  useState,
+  type FC,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import { Link } from "react-router-dom";
+import { Button, Spinner } from "../common/components";
+import { useBGImage } from "../common/context/BGImageContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
+import { HubIntro } from "./components/HubIntro";
+import { NavArrow } from "./components/NavArrow";
 
-const HubApp: FC = () => {
+const isNullish = (val: any): boolean =>
+  val === null || val === undefined || val === 0;
+
+const HubApp: FC<
+  { className?: string } & React.HTMLAttributes<HTMLElement>
+> = ({ className, ...rest }) => {
   const wallet = useWallet();
-  const navigate = useNavigate();
+
   const { details } = useSunriseStake();
+  const [gsolBalance, updateGsolBalance]: [
+    number | null | undefined,
+    Dispatch<SetStateAction<number | null | undefined>>
+  ] = useState<number | null | undefined>(undefined);
+  useEffect(() => {
+    updateGsolBalance(details?.balances.gsolBalance.uiAmount ?? undefined);
+  }, [details?.balances?.gsolBalance]);
+
+  const [showIntro, updateShowIntro] = useState(false);
+  const [introLeft, updateIntroLeft] = useState(false);
+  const [showHub, updateShowHub] = useState(false);
+  const [showHubNav, updateShowHubNav] = useState(false);
+  const [, updateShowBGImage] = useBGImage();
 
   useEffect(() => {
-    if (wallet.connected) navigate("/stake");
+    if (!wallet.connected) updateShowIntro(true);
+    else updateIntroLeft(true);
+  }, []);
+
+  useEffect(() => {
+    if (wallet.connected) updateShowIntro(false);
   }, [wallet.connected]);
 
+  useEffect(() => {
+    if (introLeft && gsolBalance !== undefined)
+      // TODO: Remove timeout!
+      setTimeout(() => {
+        updateShowHub(true);
+        updateShowBGImage(false);
+      }, 3000);
+  }, [gsolBalance, introLeft]);
+
   return (
-    <>
-      {details == null ? (
-        <div className="flex justify-center items-center m-2">
-          <Spinner />
-        </div>
-      ) : (
-        <div
-          style={{ maxWidth: "864px" }}
-          className="flex flex-col items-center justify-center mx-auto"
-        >
-          <div className="text-center">
-            <img
-              className="block sm:hidden w-auto h-16 mx-auto mb-3"
-              src={"./logo.png"}
-              alt="Sunrise"
-            />
-            <h2 className="text-green-bright font-bold text-6xl">
-              Sunrise Stake
-            </h2>
-            <h3 className="mb-16 text-white font-normal text-lg sm:text-3xl">
-              Offset emissions while you sleep.
-            </h3>
-          </div>
-          <p className="mb-12 hidden sm:block">
-            Invest in the future by using your staking rewards to support
-            climate projects.
-          </p>
-          <div className="hover:brightness-75 mb-12">
-            <WalletMultiButton>
-              Start&nbsp;
-              <span className="hidden sm:block"> reducing CO2 emissions</span>
-            </WalletMultiButton>
-          </div>
-          <img
-            className="h-25 w-auto py-2 hidden sm:block"
-            src={"./logo.png"}
-            alt="Sunrise"
-          />
-          <CarbonRecovered />
-        </div>
+    <div
+      className={clx(
+        "flex flex-col items-center justify-center text-center",
+        className
       )}
-    </>
+      {...rest}
+    >
+      <HubIntro
+        show={showIntro}
+        onLeft={() => {
+          updateIntroLeft(true);
+        }}
+      />
+      <Spinner className={introLeft && !showHub ? "block" : "hidden"} />
+      <div className="flex">
+        <Link
+          to="/forest"
+          className={clx(
+            "flex flex-col justify-center transition-opacity ease-in duration-500",
+            showHubNav ? "opacity-100" : "opacity-0"
+          )}
+        >
+          <NavArrow direction="left" className="mx-auto" />
+          Forest
+        </Link>
+        <Transition className="mb-8" show={showHub}>
+          <Transition.Child
+            as="img"
+            src={
+              // TODO: "Dry tree" case
+              gsolBalance === null || gsolBalance === 0
+                ? "/placeholder-sapling.png"
+                : "/placeholder-tree.png"
+            }
+            className={!isNullish(gsolBalance) ? "FloatingTree" : "blur-[2px]"}
+            onClick={() => {
+              updateShowHubNav(true);
+            }}
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            enter="transition-opacity ease-in duration-500"
+          />
+        </Transition>
+        <Link
+          to="/grow"
+          className={clx(
+            "flex flex-col justify-center transition-opacity ease-in duration-500",
+            showHubNav ? "opacity-100" : "opacity-0"
+          )}
+        >
+          <NavArrow direction="right" className="mx-auto" />
+          Use
+        </Link>
+      </div>
+      <div
+        className={clx(
+          "w-full text-center transition-opacity ease-in duration-500",
+          showHubNav ? "opacity-100" : "opacity-0"
+        )}
+      >
+        <Link to="/stake">
+          <Button>
+            {!isNullish(gsolBalance) ? "My Stake" : "Stake to grow your tree"}
+          </Button>
+        </Link>
+        <Link to="/lock" className="block w-full mt-2">
+          <NavArrow direction="down" className="mx-auto" />
+          Lock
+        </Link>
+      </div>
+    </div>
   );
 };
 

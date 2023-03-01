@@ -1,10 +1,13 @@
 import { useWallet } from "@solana/wallet-adapter-react";
+import clx from "classnames";
 import React, { useEffect, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StakeDashboard } from "./pages/StakeDashboard";
 
-const StakingApp: FC = () => {
+const StakingApp: FC<
+  { className?: string } & React.HTMLAttributes<HTMLElement>
+> = ({ className, ...rest }) => {
   const wallet = useWallet();
   const navigate = useNavigate();
 
@@ -13,8 +16,11 @@ const StakingApp: FC = () => {
   }, [wallet.connected]);
 
   return (
-    <div className="w-full flex flex-col items-center">
-      <div className="container grow mx-auto px-8">
+    <div
+      className={clx("flex flex-col items-center justify-center", className)}
+      {...rest}
+    >
+      <div className="container">
         <StakeDashboard />
       </div>
     </div>

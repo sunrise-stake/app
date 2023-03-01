@@ -1,3 +1,4 @@
+import clx from "classnames";
 import { type CSSProperties, type FC } from "react";
 import { useTrees } from "./hooks/useTrees";
 import { type TreeComponent } from "./utils";
@@ -24,11 +25,15 @@ const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   </li>
 );
 
-const ForestApp: FC = () => {
+const ForestApp: FC<
+  { className?: string } & React.HTMLAttributes<HTMLElement>
+> = ({ className, ...rest }) => {
   const { myTree, neighbours } = useTrees();
-
   return (
-    <div className="container mx-auto flex justify-center items-center">
+    <div
+      className={clx("flex justify-center items-center", className)}
+      {...rest}
+    >
       <h2>Forest.</h2>
       <ul
         style={{
