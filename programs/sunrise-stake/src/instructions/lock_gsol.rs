@@ -68,8 +68,8 @@ pub struct LockGSol<'info> {
     pub token_metadata_program: UncheckedAccount<'info>,
 
     #[account(
-        mut,
-        constraint = nft_mint.mint_authority == COption::Some(nft_mint_authority.key()),
+    mut,
+    constraint = nft_mint.mint_authority == COption::Some(nft_mint_authority.key()),
     )]
     pub nft_mint: Box<Account<'info, Mint>>,
     /// CHECK: (TODO) checked in impact nft program

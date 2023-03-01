@@ -1,5 +1,5 @@
 import {
-  findEpochReportAccount,
+  findEpochReportAccount, findImpactNFTAuthority,
   findLockAccount,
   findLockTokenAccount,
   type SunriseStakeConfig,
@@ -109,8 +109,19 @@ export const lockGSol = async (
 
   const preInstructions: TransactionInstruction[] = [];
 
+  // accounts should be derived from the mint contract SDK
+  // TODO potentially move this entire function into a mint contract SDK
   const impactNFTAccounts = {
-
+    impactNftProgram: anchor.web3.PublicKey.default, // TODO
+    impactNftState: anchor.web3.PublicKey.default, // TODO
+    tokenMetadataProgram: anchor.web3.PublicKey.default, // TODO
+    nftMintAuthority: findImpactNFTAuthority(config),
+    nftMint: anchor.web3.PublicKey.default, // TODO
+    nftMetadata: anchor.web3.PublicKey.default, // TODO
+    nftHolderTokenAccount: anchor.web3.PublicKey.default, // TODO
+    nftMasterEdition: anchor.web3.PublicKey.default, // TODO
+    offsetMetadata: anchor.web3.PublicKey.default, // TODO
+    offsetTiers: anchor.web3.PublicKey.default, // TODO
   }
 
   // the user has never locked before - they need a lock account and a lock token account
@@ -125,6 +136,7 @@ export const lockGSol = async (
         lockGsolAccount: tokenAccountAddress,
         systemProgram: SystemProgram.programId,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        ...impactNFTAccounts
       })
       .instruction();
 

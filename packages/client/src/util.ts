@@ -21,6 +21,11 @@ import { MAX_NUM_PRECISION } from "./constants";
 // zero bn number
 export const ZERO = new BN(0);
 
+export const PROGRAM_ID = new PublicKey(
+    "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
+);
+
+
 export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
   lamports.div(new BN(10).pow(new BN(precision))).toNumber() /
   (LAMPORTS_PER_SOL / 10 ** precision);
@@ -33,6 +38,7 @@ export const enum ProgramDerivedAddressSeed {
   ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
   LOCK_ACCOUNT = "lock_account",
   LOCK_TOKEN_ACCOUNT = "lock_token_account",
+  IMPACT_NFT_AUTHORITY = "impact_nft_authority",
 }
 
 export interface SunriseStakeConfig {
@@ -132,6 +138,11 @@ export const findLockTokenAccount = (
     [authority.toBuffer()]
   );
 
+export const findImpactNFTAuthority = (
+    config: SunriseStakeConfig,
+): [PublicKey, number] =>
+    findProgramDerivedAddress(config, ProgramDerivedAddressSeed.IMPACT_NFT_AUTHORITY);
+
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
     instruction.keys.forEach((key, i) => {
@@ -163,11 +174,6 @@ export interface Balance {
   treasuryBalance: number;
   bsolBalance: TokenAmount;
 }
-
-export const PROGRAM_ID = new PublicKey(
-  "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
-);
-
 export const ZERO_BALANCE = {
   value: {
     amount: "0",
