@@ -1,6 +1,6 @@
 import clx from "classnames";
 import { toSol, type Details } from "@sunrisestake/client";
-import { useCallback, useState, type FC } from "react";
+import { useCallback, useEffect, useState, type FC } from "react";
 import { Button, LockForm, Panel, Spinner } from "../common/components";
 import {
   NotificationType,
@@ -21,13 +21,25 @@ const LockingApp: FC<
     details: Details | undefined;
   } = useSunriseStake();
 
-  const [isBusy, setIsBusy] = useState(false);
-  const [needsUpdate] = useState(() => {
+  const [isBusyUnlock, setIsBusyUnlock] = useState(false);
+  const [isBusyUpdate, setIsBusyUpdate] = useState(false);
+  const [needsUpdate, setNeedsUpdate] = useState(() => {
     if (!details?.lockDetails) return false;
     return (
       details.lockDetails.updatedToEpoch.toNumber() < details.currentEpoch.epoch
     );
   });
+
+  useEffect(() => {
+    if (!details?.lockDetails) {
+      setNeedsUpdate(false);
+    } else {
+      setNeedsUpdate(
+        details.lockDetails.updatedToEpoch.toNumber() <
+          details.currentEpoch.epoch
+      );
+    }
+  }, [details]);
 
   const handleError = useCallback((error: Error) => {
     notifyTransaction({
@@ -41,7 +53,16 @@ const LockingApp: FC<
   const lock = useCallback(
     async (amount: string) => {
       if (!client) return Promise.reject(new Error("Client not initialized"));
-      await client.lockGSol(solToLamports(amount));
+      return client
+        .lockGSol(solToLamports(amount))
+        .then((tx) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: "Locking successful",
+            txid: tx,
+          });
+        })
+        .catch(handleError);
     },
     [client]
   );
@@ -53,7 +74,21 @@ const LockingApp: FC<
       .then((tx) => {
         notifyTransaction({
           type: NotificationType.success,
-          message: "Deposit successful",
+          message: "Unlocking successful",
+          txid: tx,
+        });
+      })
+      .catch(handleError);
+  }, [client]);
+
+  const updateLockAccount = useCallback(async () => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
+    return client
+      .updateLockAccount()
+      .then((tx) => {
+        notifyTransaction({
+          type: NotificationType.success,
+          message: "Unlocking successful",
           txid: tx,
         });
       })
@@ -84,20 +119,34 @@ const LockingApp: FC<
         <>
           {" "}
           <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
-            <Button variant="primary" className="mr-4" disabled={!needsUpdate}>
-              Update
-            </Button>
             <Button
-              variant="secondary"
-              disabled={isBusy}
+              variant="primary"
+              className="mr-4"
+              disabled={!needsUpdate}
               onClick={() => {
-                setIsBusy(true);
-                unlock().finally(() => {
-                  setIsBusy(false);
+                setIsBusyUpdate(true);
+                updateLockAccount().finally(() => {
+                  setIsBusyUpdate(false);
                 });
               }}
             >
-              {isBusy ? (
+              {isBusyUpdate ? (
+                <Spinner className="sm:ml-0 sm:mr-5 px-2 rounded" />
+              ) : (
+                "Update"
+              )}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={isBusyUnlock}
+              onClick={() => {
+                setIsBusyUnlock(true);
+                unlock().finally(() => {
+                  setIsBusyUnlock(false);
+                });
+              }}
+            >
+              {isBusyUnlock ? (
                 <Spinner className="sm:ml-0 sm:mr-5 px-2 rounded" />
               ) : (
                 "Unlock"
