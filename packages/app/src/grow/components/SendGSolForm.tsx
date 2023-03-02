@@ -104,17 +104,6 @@ const SendGSolForm: FC = () => {
       )}
     >
       <div className="flex flex-col">
-        <div className="font-semibold text-xl mb-2">Send gSOL</div>
-        <AmountInput
-          className="mb-5"
-          token="gSOL"
-          balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
-          amount={amount}
-          setAmount={setAmount}
-          setValid={setIsValid}
-          mode="UNSTAKE"
-          variant="small"
-        />
         <div className="font-semibold text-xl mb-2">To</div>
         <input
           className="mb-4 rounded-md text-lg py-3 px-4 placeholder:text-sm"
@@ -124,24 +113,38 @@ const SendGSolForm: FC = () => {
           value={recipientAddress}
           placeholder="Address"
         />
-        <Button
-          onClick={() => {
-            setIsBusy(true);
-            transferGSol().finally(() => {
-              setIsBusy(false);
-            });
-          }}
-          disabled={isBusy || !isValid}
-        >
-          <div className="flex gap-2 w-full justify-center items-center">
-            {isBusy ? (
-              <Spinner size="1rem" className="mr-1" />
-            ) : (
-              <GiPresent size={32} />
-            )}
-            Send
-          </div>
-        </Button>
+        <div className="font-semibold text-xl mb-2">Send gSOL</div>
+        <div className="flex items-center gap-4">
+          <AmountInput
+            className="basis-3/4"
+            token="gSOL"
+            balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
+            amount={amount}
+            setAmount={setAmount}
+            setValid={setIsValid}
+            mode="UNSTAKE"
+            variant="small"
+          />
+
+          <Button
+            onClick={() => {
+              setIsBusy(true);
+              transferGSol().finally(() => {
+                setIsBusy(false);
+              });
+            }}
+            disabled={isBusy || !isValid}
+          >
+            <div className="flex gap-2 w-full justify-center items-center">
+              {isBusy ? (
+                <Spinner size="1rem" className="mr-1" />
+              ) : (
+                <GiPresent size={32} />
+              )}
+              Send
+            </div>
+          </Button>
+        </div>
       </div>
     </div>
   );
