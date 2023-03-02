@@ -33,13 +33,8 @@ const SendGSolForm: FC = () => {
 
   const { publicKey: senderPubkey, sendTransaction } = useWallet();
   const { connection } = useConnection();
-  console.log("Connection:", connection);
-  console.log("Sender:", senderPubkey?.toBase58());
 
   const transferGSol = async (): Promise<void> => {
-    console.log("Transfering gSOL");
-    console.log("Details:", details);
-    console.log("Sender", senderPubkey?.toBase58());
     if (!senderPubkey || !details) {
       return;
     }
