@@ -6,12 +6,12 @@ const IMAGE_COUNT = 1; // only one tree image per level and species at the momen
 // Tree-placement constants
 // the radius is the distance from the source tree to the neighbours,
 // or the difference between each layer (in pixels)
-const RADIUS = 350;
+const RADIUS = 400;
 
 // the height is the vertical distance between each layer (in pixels)
 // if zero, the trees are placed on a flat plane, and will appear behind each other
 // to avoid obscuring trees, we set a positive value here, so neighbours appear slight higher than the source tree
-const HEIGHT = 300;
+const HEIGHT = 400;
 
 // the part of the circle along which neighbours are placed - in radians
 // 2PI = trees are fully surrounding the source tree
@@ -24,22 +24,18 @@ const JITTER_RANGE = 0.2;
 const MINUTE_IN_MS = 60 * 1000;
 const HOUR_IN_MS = 60 * MINUTE_IN_MS;
 const DAY_IN_MS = 24 * HOUR_IN_MS;
-// const WEEK_IN_MS = 7 * DAY_IN_MS;
+const WEEK_IN_MS = 7 * DAY_IN_MS;
 const MONTH_IN_MS = 30 * DAY_IN_MS;
-// const YEAR_IN_MS = 365 * DAY_IN_MS;
+const YEAR_IN_MS = 365 * DAY_IN_MS;
 
+// TODO temp
 enum Species {
   Oak = 0,
   Pine = 1,
   Maple = 2,
 }
-
-enum Level {
-  Seedling = 0,
-  Sapling = 1,
-  Juvenile = 2,
-  Mature = 3,
-}
+// This is marginally less hacky than Object.keys(Species).length / 2
+const SPECIES_COUNT = 3;
 
 interface Translation {
   x: number;
@@ -48,7 +44,7 @@ interface Translation {
 }
 
 interface TreeType {
-  level: Level;
+  level: number;
   species: Species;
   instance: number;
 }
@@ -101,23 +97,32 @@ const calculateTranslation = (
   return { x, y, z };
 };
 
-// Converts a balance in lamports to a tree level
-const balanceAndAgeToLevel = (balance: number, start: Date): Level => {
+// Converts a balance's start date to a level
+// TODO consider making this a linear or curved function of the age rather than a bunch of if statements
+const balanceAndAgeToLevel = (balance: number, start: Date): number => {
   if (start > new Date(Date.now() - 6 * HOUR_IN_MS)) {
-    return Level.Seedling;
+    return 1;
   } else if (start > new Date(Date.now() - 1 * DAY_IN_MS)) {
     // TODO extend these times later after testing is complete
-    return Level.Sapling;
+    return 2;
+  } else if (start > new Date(Date.now() - 1 * WEEK_IN_MS)) {
+    return 3;
   } else if (start > new Date(Date.now() - 1 * MONTH_IN_MS)) {
-    return Level.Juvenile;
+    return 4;
+  } else if (start > new Date(Date.now() - 3 * MONTH_IN_MS)) {
+    return 5;
+  } else if (start > new Date(Date.now() - 6 * YEAR_IN_MS)) {
+    return 6;
+  } else if (start > new Date(Date.now() - 6 * YEAR_IN_MS)) {
+    return 7;
   } else {
-    return Level.Mature;
+    return 8;
   }
 };
 
 const calculateTreeType = (tree: TreeNode): TreeType => {
   const instance = tree.address.toBuffer()[31] % IMAGE_COUNT;
-  const species = tree.address.toBuffer()[30] % Object.values(Species).length;
+  const species = (tree.address.toBuffer()[30] % SPECIES_COUNT) + 1;
   const level = balanceAndAgeToLevel(
     tree.totals.currentBalance,
     tree.startDate

@@ -9,6 +9,8 @@ import {
 
 const ZERO = new BN(0);
 
+export const ASSETS = "https://api.sunrisestake.com/assets/tree/";
+
 const toBN = (n: number): BN => new BN(`${n}`);
 
 const walletIsConnected = (

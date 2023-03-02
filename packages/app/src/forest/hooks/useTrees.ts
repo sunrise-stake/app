@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { forestToComponents, type TreeComponent } from "../utils";
-import { getForest } from "../../api/forest";
+import { getForest, MAX_FOREST_DEPTH } from "../../api/forest";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
-export const useTrees = (): {
+export const useTrees = (
+  depth: number = MAX_FOREST_DEPTH
+): {
   myTree: TreeComponent | undefined;
   neighbours: TreeComponent[];
 } => {
@@ -17,7 +19,7 @@ export const useTrees = (): {
       console.log("useTrees", wallet.publicKey?.toBase58());
       if (wallet.connected && wallet.publicKey) {
         console.log("Getting forest..." + new Date().toISOString());
-        const forest = await getForest(connection, wallet.publicKey);
+        const forest = await getForest(connection, wallet.publicKey, depth);
         console.log("Got forest. " + new Date().toISOString());
 
         const components = forestToComponents(forest);

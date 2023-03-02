@@ -14,6 +14,8 @@ import { useBGImage } from "../common/context/BGImageContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { HubIntro } from "./components/HubIntro";
 import { NavArrow } from "./components/NavArrow";
+import { DynamicTree } from "../common/components/tree/DynamicTree";
+import { useTrees } from "../forest/hooks/useTrees";
 
 const isNullish = (val: any): boolean =>
   val === null || val === undefined || val === 0;
@@ -38,6 +40,8 @@ const HubApp: FC<
   const [showHubNav, updateShowHubNav] = useState(false);
   const [, updateShowBGImage] = useBGImage();
 
+  const { myTree } = useTrees();
+
   useEffect(() => {
     if (!wallet.connected) updateShowIntro(true);
     else updateIntroLeft(true);
@@ -48,13 +52,13 @@ const HubApp: FC<
   }, [wallet.connected]);
 
   useEffect(() => {
-    if (introLeft && gsolBalance !== undefined)
+    if (introLeft && myTree)
       // TODO: Remove timeout!
       setTimeout(() => {
         updateShowHub(true);
         updateShowBGImage(false);
       }, 3000);
-  }, [gsolBalance, introLeft]);
+  }, [myTree, introLeft]);
 
   return (
     <div
@@ -82,24 +86,38 @@ const HubApp: FC<
           <NavArrow direction="left" className="mx-auto" />
           Forest
         </Link>
-        <Transition className="mb-8" show={showHub}>
-          <Transition.Child
-            as="img"
-            src={
-              // TODO: "Dry tree" case
-              gsolBalance === null || gsolBalance === 0
-                ? "/placeholder-sapling.png"
-                : "/placeholder-tree.png"
-            }
-            className={!isNullish(gsolBalance) ? "FloatingTree" : "blur-[2px]"}
-            onClick={() => {
-              updateShowHubNav(true);
-            }}
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            enter="transition-opacity ease-in duration-500"
-          />
-        </Transition>
+        {myTree && (
+          <Transition className="mb-8" show={showHub}>
+            <Transition.Child
+              // as={DynamicTree}
+              // details={myTree}
+              // src={
+              //   // TODO: "Dry tree" case
+              //   gsolBalance === null || gsolBalance === 0
+              //     ? "/placeholder-sapling.png"
+              //     : "/placeholder-tree.png"
+              // }
+              // className={!isNullish(gsolBalance) ? "FloatingTree" : "blur-[2px]"}
+              // onClick={() => {
+              //   updateShowHubNav(true);
+              // }}
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              enter="transition-opacity ease-in duration-500"
+            />
+            <DynamicTree
+              details={myTree}
+              className="FloatingTree"
+              onClick={() => {
+                updateShowHubNav(true);
+              }}
+              style={{
+                // TODO TEMP - move them into classes
+                width: "300px",
+              }}
+            />
+          </Transition>
+        )}
         <Link
           to="/grow"
           className={clx(

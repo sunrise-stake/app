@@ -3,6 +3,7 @@ import { type CSSProperties, type FC } from "react";
 import { useTrees } from "./hooks/useTrees";
 import { type TreeComponent } from "./utils";
 import { toShortBase58 } from "../common/utils";
+import { DynamicTree } from "../common/components/tree/DynamicTree";
 
 const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -14,13 +15,14 @@ const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
       display: "block",
       position: "absolute",
       transform: `translate3d(${details.translate.x}px, ${details.translate.y}px, ${details.translate.z}px)`,
-      filter: `blur(${details.metadata.layer}px) grayscale(40%) brightness(1.5)`,
-      width: "200px",
+      filter: `blur(${details.metadata.layer * 2}px) grayscale(40%)`,
+      width: "300px",
+      left: "-50px",
       animationDelay: `${details.metadata.layer}s`,
       ...style,
     }}
   >
-    <img src={details.imageUri} alt={details.address.toBase58()} />
+    <DynamicTree details={details} />
     <p>{toShortBase58(details.address)}</p>
   </li>
 );

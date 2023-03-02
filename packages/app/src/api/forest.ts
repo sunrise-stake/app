@@ -17,7 +17,7 @@ const STUBS = {
 
 const MONGODB_API_URL = process.env.REACT_APP_MONGODB_API_URL ?? "";
 const MONGODB_READ_TOKEN = process.env.REACT_APP_MONGODB_READ_TOKEN ?? "";
-const MAX_FOREST_DEPTH = 2; // the number of levels of tree neighbours to fetch and show
+export const MAX_FOREST_DEPTH = 2; // the number of levels of tree neighbours to fetch and show
 
 interface MintResponse {
   timestamp: string;
