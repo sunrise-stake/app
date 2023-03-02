@@ -1,5 +1,5 @@
 .wallet-adapter-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   padding: 1rem 2rem;
   border: none;
@@ -34,7 +34,7 @@
 .wallet-adapter-button-start-icon,
 .wallet-adapter-button-end-icon img,
 .wallet-adapter-button-start-icon img {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   width: 24px;
@@ -239,6 +239,7 @@
 .wallet-adapter-modal-list .wallet-adapter-button-start-icon,
 .wallet-adapter-modal-list .wallet-adapter-button-end-icon img,
 .wallet-adapter-modal-list .wallet-adapter-button-start-icon img {
+  display: flex;
   width: 28px;
   height: 28px;
 }

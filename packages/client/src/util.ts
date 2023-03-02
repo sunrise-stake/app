@@ -173,6 +173,7 @@ export interface Balance {
   liqPoolBalance: TokenAmount;
   treasuryBalance: number;
   bsolBalance: TokenAmount;
+  holdingAccountBalance: number;
 }
 export const ZERO_BALANCE = {
   value: {
