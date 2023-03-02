@@ -29,6 +29,7 @@ import { LockingApp } from "./locking/LockingApp";
 import { StakingApp } from "./staking/StakingApp";
 import { BGImageProvider } from "./common/context/BGImageContext";
 import { EventRouter } from "./common/container/EventRouter";
+import { debounce } from "./common/utils";
 require("./solana-wallet-adapter.css");
 
 const App: FC = () => {
@@ -55,8 +56,15 @@ const App: FC = () => {
     lost: useRef<null | HTMLDivElement>(null),
     staking: useRef<null | HTMLDivElement>(null),
   };
-  const [, setCurrentRouteApp] =
+  const [currentRouteApp, setCurrentRouteApp] =
     useState<null | MutableRefObject<null | HTMLDivElement>>(null);
+  window.addEventListener(
+    "resize",
+    debounce(() => {
+      currentRouteApp?.current?.scrollIntoView();
+    }, 100),
+    { passive: true }
+  );
 
   return (
     <>
