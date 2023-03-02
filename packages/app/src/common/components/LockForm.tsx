@@ -25,6 +25,7 @@ const LockForm: React.FC<LockFormProps> = ({ lock }) => {
         setAmount={setAmount}
         setValid={setValid}
         mode="LOCK"
+        variant="small"
       />
       <Button
         onClick={() => {
