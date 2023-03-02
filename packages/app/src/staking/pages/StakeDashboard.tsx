@@ -32,6 +32,7 @@ import { useCarbon } from "../../common/hooks/useCarbon";
 import { tooltips } from "../../common/content/tooltips";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
+import { Link } from "react-router-dom";
 
 const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -159,16 +160,10 @@ const StakeDashboard: FC = () => {
 
   return (
     <div style={{ maxWidth: "620px" }} className="mx-auto relative">
-      <div className="text-center">
-        <img
-          className="block sm:hidden w-auto h-16 mx-auto mb-3"
-          src={"./logo.png"}
-          alt="Sunrise"
-        />
-        <h2 className="text-green-light font-bold text-6xl">Sunrise Stake</h2>
-        <h3 className="mb-16 font-normal text-3xl">
-          Offset emissions while you sleep.
-        </h3>
+      <div>
+        <Link className="text-green-light" to="/">
+          ← Back
+        </Link>
       </div>
       <div className="flex">
         <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
