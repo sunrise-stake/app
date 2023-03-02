@@ -6,17 +6,17 @@ const IMAGE_COUNT = 1; // only one tree image per level and species at the momen
 // Tree-placement constants
 // the radius is the distance from the source tree to the neighbours,
 // or the difference between each layer (in pixels)
-const RADIUS = 400;
+const RADIUS = 350;
 
 // the height is the vertical distance between each layer (in pixels)
 // if zero, the trees are placed on a flat plane, and will appear behind each other
 // to avoid obscuring trees, we set a positive value here, so neighbours appear slight higher than the source tree
-const HEIGHT = 100;
+const HEIGHT = 300;
 
 // the part of the circle along which neighbours are placed - in radians
 // 2PI = trees are fully surrounding the source tree
 // PI = trees are placed on a semi-circle behind the source tree
-const ARC = Math.PI * 0.8;
+const ARC = Math.PI * 0.9;
 
 // 10% jitter in tree placement
 const JITTER_RANGE = 0.2;

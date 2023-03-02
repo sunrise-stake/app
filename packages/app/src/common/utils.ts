@@ -2,6 +2,10 @@ import { LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
 import { type SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
 import { MAX_NUM_PRECISION } from "@sunrisestake/client";
 import BN from "bn.js";
+import {
+  NotificationType,
+  notifyTransaction,
+} from "./components/notifications";
 
 const ZERO = new BN(0);
 
@@ -77,6 +81,15 @@ function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
   };
 }
 
+const handleError = (error: Error): void => {
+  notifyTransaction({
+    type: NotificationType.error,
+    message: "Transaction failed",
+    description: error.message,
+  });
+  console.error(error);
+};
+
 const toShortBase58 = (address: PublicKey): string =>
   `${address.toBase58().slice(0, 4)}…${address.toBase58().slice(-4)}`;
 
@@ -132,4 +145,5 @@ export {
   rangeTo,
   toShortBase58,
   memoise,
+  handleError,
 };
