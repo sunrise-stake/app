@@ -1,17 +1,21 @@
 import clx from "classnames";
-import { type FC } from "react";
+import { forwardRef, type ForwardRefRenderFunction } from "react";
 
-const ForestApp: FC<
+const _ForestApp: ForwardRefRenderFunction<
+  HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }) => {
+> = ({ className, ...rest }, ref) => {
   return (
     <div
       className={clx("flex justify-center items-center", className)}
       {...rest}
+      ref={ref}
     >
       <h2>Forest.</h2>
     </div>
   );
 };
+
+const ForestApp = forwardRef(_ForestApp);
 
 export { ForestApp };

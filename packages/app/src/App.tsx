@@ -11,7 +11,13 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
-import React, { type FC, useMemo } from "react";
+import {
+  type FC,
+  type MutableRefObject,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { SunriseProvider } from "./common/context/sunriseStakeContext";
@@ -41,6 +47,16 @@ const App: FC = () => {
     []
   );
   const location = useLocation();
+  const appRefs = {
+    forest: useRef<null | HTMLDivElement>(null),
+    grow: useRef<null | HTMLDivElement>(null),
+    hub: useRef<null | HTMLDivElement>(null),
+    locking: useRef<null | HTMLDivElement>(null),
+    lost: useRef<null | HTMLDivElement>(null),
+    staking: useRef<null | HTMLDivElement>(null),
+  };
+  const [, setCurrentRouteApp] =
+    useState<null | MutableRefObject<null | HTMLDivElement>>(null);
 
   return (
     <>
@@ -56,70 +72,89 @@ const App: FC = () => {
                       {
                         path: "/",
                         onMatch: () => {
-                          document
-                            .getElementById("hub-app")
-                            ?.scrollIntoView({ behavior: "smooth" });
+                          appRefs.hub.current?.scrollIntoView({
+                            behavior: "smooth",
+                          });
+                          setCurrentRouteApp(appRefs.hub);
                         },
                       },
                       {
                         path: "/forest",
                         onMatch: () => {
-                          document
-                            .getElementById("forest-app")
-                            ?.scrollIntoView({ behavior: "smooth" });
+                          appRefs.forest.current?.scrollIntoView({
+                            behavior: "smooth",
+                          });
+                          setCurrentRouteApp(appRefs.forest);
                         },
                       },
                       {
                         path: "/grow",
                         onMatch: () => {
-                          document
-                            .getElementById("grow-app")
-                            ?.scrollIntoView({ behavior: "smooth" });
+                          appRefs.grow.current?.scrollIntoView({
+                            behavior: "smooth",
+                          });
+                          setCurrentRouteApp(appRefs.grow);
                         },
                       },
                       {
                         path: "/lock",
                         onMatch: () => {
-                          document
-                            .getElementById("locking-app")
-                            ?.scrollIntoView({ behavior: "smooth" });
+                          appRefs.locking.current?.scrollIntoView({
+                            behavior: "smooth",
+                          });
+                          setCurrentRouteApp(appRefs.locking);
                         },
                       },
                       {
                         path: "/stake",
                         onMatch: () => {
-                          document
-                            .getElementById("staking-app")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        },
-                      },
-                      {
-                        path: "/grow",
-                        onMatch: () => {
-                          document
-                            .getElementById("grow-app")
-                            ?.scrollIntoView({ behavior: "smooth" });
+                          appRefs.staking.current?.scrollIntoView({
+                            behavior: "smooth",
+                          });
+                          setCurrentRouteApp(appRefs.staking);
                         },
                       },
                       {
                         path: "/*",
                         onMatch: () => {
-                          document
-                            .getElementById("lost-app")
-                            ?.scrollIntoView({ behavior: "smooth" });
+                          appRefs.lost.current?.scrollIntoView({
+                            behavior: "smooth",
+                          });
+                          setCurrentRouteApp(appRefs.lost);
                         },
                       },
                     ]}
                   />
                   <div className="AppGrid">
-                    <ForestApp id="forest-app" className="App ForestApp" />
-                    <GrowApp id="grow-app" className="App GrowApp" />
-                    <HubApp id="hub-app" className="App HubApp" />
-                    <LockingApp id="locking-app" className="App LockingApp" />
-                    <StakingApp id="staking-app" className="App StakingApp" />
+                    <ForestApp
+                      id="forest-app"
+                      className="App ForestApp"
+                      ref={appRefs.forest}
+                    />
+                    <GrowApp
+                      id="grow-app"
+                      className="App GrowApp"
+                      ref={appRefs.grow}
+                    />
+                    <HubApp
+                      id="hub-app"
+                      className="App HubApp"
+                      ref={appRefs.hub}
+                    />
+                    <LockingApp
+                      id="locking-app"
+                      className="App LockingApp"
+                      ref={appRefs.locking}
+                    />
+                    <StakingApp
+                      id="staking-app"
+                      className="App StakingApp"
+                      ref={appRefs.staking}
+                    />
                     <div
                       id="lost-app"
                       className="App LostApp flex flex-col min-h-screen justify-center items-center"
+                      ref={appRefs.lost}
                     >
                       <p className="text-2xl font-bold">
                         Oh, oh. You&apos;ve got lost in the woods... 🐺
