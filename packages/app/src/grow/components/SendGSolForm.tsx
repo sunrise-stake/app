@@ -134,6 +134,7 @@ const SendGSolForm: FC = () => {
               });
             }}
             disabled={isBusy || !isValid}
+            size="sm"
           >
             <div className="flex gap-2 w-full justify-center items-center">
               {isBusy ? (
