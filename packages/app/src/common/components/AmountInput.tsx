@@ -134,7 +134,6 @@ const AmountInput: React.FC<AmountInputProps> = ({
               value={amount}
               onChange={handleChange}
             />
-
             <div>
               <button
                 className="block"
