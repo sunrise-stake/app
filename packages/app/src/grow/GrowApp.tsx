@@ -10,7 +10,7 @@ const _GrowApp: ForwardRefRenderFunction<
   return (
     <div
       className={clx(
-        "container flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
+        "flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
         className
       )}
       ref={ref}
