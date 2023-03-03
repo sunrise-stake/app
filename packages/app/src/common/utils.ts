@@ -9,7 +9,7 @@ import {
 
 const ZERO = new BN(0);
 
-export const ASSETS = "https://api.sunrisestake.com/assets/tree/";
+export const ASSETS = "https://api.sunrisestake.com/assets/tree/lores/";
 
 const toBN = (n: number): BN => new BN(`${n}`);
 
