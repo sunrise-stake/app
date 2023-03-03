@@ -1,5 +1,6 @@
 import {
-  findEpochReportAccount, findImpactNFTAuthority,
+  findEpochReportAccount,
+  findImpactNFTAuthority,
   findLockAccount,
   findLockTokenAccount,
   type SunriseStakeConfig,
@@ -122,7 +123,7 @@ export const lockGSol = async (
     nftMasterEdition: anchor.web3.PublicKey.default, // TODO
     offsetMetadata: anchor.web3.PublicKey.default, // TODO
     offsetTiers: anchor.web3.PublicKey.default, // TODO
-  }
+  };
 
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {
@@ -136,7 +137,7 @@ export const lockGSol = async (
         lockGsolAccount: tokenAccountAddress,
         systemProgram: SystemProgram.programId,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        ...impactNFTAccounts
+        ...impactNFTAccounts,
       })
       .instruction();
 

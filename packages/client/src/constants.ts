@@ -10,7 +10,7 @@ export const STAKE_POOL_PROGRAM_ID = new PublicKey(
 );
 
 export const IMPACT_NFT_PROGRAM_ID = new PublicKey(
-    "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
+  "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
 );
 
 interface BlazeConfig {

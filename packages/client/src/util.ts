@@ -22,9 +22,8 @@ import { MAX_NUM_PRECISION } from "./constants";
 export const ZERO = new BN(0);
 
 export const PROGRAM_ID = new PublicKey(
-    "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
+  "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
 );
-
 
 export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
   lamports.div(new BN(10).pow(new BN(precision))).toNumber() /
@@ -139,9 +138,12 @@ export const findLockTokenAccount = (
   );
 
 export const findImpactNFTAuthority = (
-    config: SunriseStakeConfig,
+  config: SunriseStakeConfig
 ): [PublicKey, number] =>
-    findProgramDerivedAddress(config, ProgramDerivedAddressSeed.IMPACT_NFT_AUTHORITY);
+  findProgramDerivedAddress(
+    config,
+    ProgramDerivedAddressSeed.IMPACT_NFT_AUTHORITY
+  );
 
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
