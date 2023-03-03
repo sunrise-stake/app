@@ -52,7 +52,10 @@ const _ForestApp: ForwardRefRenderFunction<
       >
         {myTree && <Tree details={myTree} />}
         {neighbours?.map((tree) => (
-          <Tree key={tree.address.toBase58()} details={tree} />
+          <Tree
+            key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
+            details={tree}
+          />
         ))}
       </ul>
     </div>
