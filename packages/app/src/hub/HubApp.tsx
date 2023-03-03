@@ -1,26 +1,19 @@
-import { Transition } from "@headlessui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import clx from "classnames";
 import {
   useEffect,
   useState,
   type ForwardRefRenderFunction,
-  type Dispatch,
-  type SetStateAction,
   forwardRef,
 } from "react";
 import { Link } from "react-router-dom";
 import { Button, Spinner } from "../common/components";
 import { useBGImage } from "../common/context/BGImageContext";
-import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { HubIntro } from "./components/HubIntro";
 import { NavArrow } from "./components/NavArrow";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useTrees } from "../forest/hooks/useTrees";
 import { useCarbon } from "../common/hooks";
-
-const isNullish = (val: any): boolean =>
-  val === null || val === undefined || val === 0;
 
 const _HubApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -28,20 +21,12 @@ const _HubApp: ForwardRefRenderFunction<
 > = ({ className, ...rest }, ref) => {
   const wallet = useWallet();
 
-  const { details } = useSunriseStake();
-  const [gsolBalance, updateGsolBalance]: [
-    number | null | undefined,
-    Dispatch<SetStateAction<number | null | undefined>>
-  ] = useState<number | null | undefined>(undefined);
-  useEffect(() => {
-    updateGsolBalance(details?.balances.gsolBalance.uiAmount ?? undefined);
-  }, [details?.balances?.gsolBalance]);
-
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
   const [showHub, updateShowHub] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
   const [, updateShowBGImage] = useBGImage();
+  const [stakeButtonMessage, updateStakeButtonMessage] = useState("My Stake");
 
   const { myTree } = useTrees();
   const { totalCarbon } = useCarbon();
@@ -61,6 +46,13 @@ const _HubApp: ForwardRefRenderFunction<
       updateShowBGImage(false);
     }
   }, [myTree, introLeft]);
+
+  useEffect(() => {
+    if (myTree?.metadata.type.translucent === true)
+      updateStakeButtonMessage("Stake to restore your tree");
+    else if (myTree?.metadata.type.level === 0)
+      updateStakeButtonMessage("Stake to grow your tree");
+  }, [myTree]);
 
   return (
     <div
@@ -97,32 +89,15 @@ const _HubApp: ForwardRefRenderFunction<
             Forest
           </Link>
           {myTree && (
-            <Transition className="mb-8" show={showHub}>
-              <Transition.Child
-                // as={DynamicTree}
-                // details={myTree}
-                // src={
-                //   // TODO: "Dry tree" case
-                //   gsolBalance === null || gsolBalance === 0
-                //     ? "/placeholder-sapling.png"
-                //     : "/placeholder-tree.png"
-                // }
-                // className={!isNullish(gsolBalance) ? "FloatingTree" : "blur-[2px]"}
-                // onClick={() => {
-                //   updateShowHubNav(true);
-                // }}
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                enter="transition-opacity ease-in duration-500"
-              />
-              <DynamicTree
-                details={myTree}
-                className="FloatingTree"
-                onClick={() => {
-                  updateShowHubNav(true);
-                }}
-              />
-            </Transition>
+            <DynamicTree
+              details={myTree}
+              className={`FloatingTree mb-8${
+                myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
+              }`}
+              onClick={() => {
+                updateShowHubNav(true);
+              }}
+            />
           )}
           <Link
             to="/grow"
@@ -142,9 +117,7 @@ const _HubApp: ForwardRefRenderFunction<
           )}
         >
           <Link to="/stake">
-            <Button>
-              {!isNullish(gsolBalance) ? "My Stake" : "Stake to grow your tree"}
-            </Button>
+            <Button>{stakeButtonMessage}</Button>
           </Link>
           <Link to="/lock" className="block w-full mt-2">
             <NavArrow direction="down" className="mx-auto" />
