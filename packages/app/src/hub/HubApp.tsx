@@ -17,6 +17,7 @@ import { HubIntro } from "./components/HubIntro";
 import { NavArrow } from "./components/NavArrow";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useTrees } from "../forest/hooks/useTrees";
+import { useCarbon } from "../common/hooks";
 
 const isNullish = (val: any): boolean =>
   val === null || val === undefined || val === 0;
@@ -43,23 +44,22 @@ const _HubApp: ForwardRefRenderFunction<
   const [, updateShowBGImage] = useBGImage();
 
   const { myTree } = useTrees();
+  const { totalCarbon } = useCarbon();
 
   useEffect(() => {
-    if (!wallet.connected) updateShowIntro(true);
-    else updateIntroLeft(true);
-  }, []);
+    if (!wallet.connected && totalCarbon !== undefined) updateShowIntro(true);
+    else if (wallet.connected) updateIntroLeft(true);
+  }, [totalCarbon]);
 
   useEffect(() => {
     if (wallet.connected) updateShowIntro(false);
   }, [wallet.connected]);
 
   useEffect(() => {
-    if (introLeft && myTree)
-      // TODO: Remove timeout!
-      setTimeout(() => {
-        updateShowHub(true);
-        updateShowBGImage(false);
-      }, 3000);
+    if (introLeft && myTree) {
+      updateShowHub(true);
+      updateShowBGImage(false);
+    }
   }, [myTree, introLeft]);
 
   return (
@@ -77,7 +77,13 @@ const _HubApp: ForwardRefRenderFunction<
           updateIntroLeft(true);
         }}
       />
-      <Spinner className={introLeft && !showHub ? "block" : "hidden"} />
+      <Spinner
+        className={
+          (introLeft && !showHub) || totalCarbon === undefined
+            ? "block"
+            : "hidden"
+        }
+      />
       <div className="flex">
         <Link
           to="/forest"
