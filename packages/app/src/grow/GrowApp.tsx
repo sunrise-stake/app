@@ -9,8 +9,8 @@ import { toSol, type Details } from "@sunrisestake/client";
 import BN from "bn.js";
 import { ZERO } from "../common/utils";
 import { Keypair } from "@solana/web3.js";
-import { Link } from "react-router-dom";
 import { Transition } from "@headlessui/react";
+import { useScript } from "../common/hooks";
 
 export interface Charity {
   name: string;
@@ -26,6 +26,8 @@ const _GrowApp: ForwardRefRenderFunction<
   }: {
     details: Details | undefined;
   } = useSunriseStake();
+
+  useScript("//embed.typeform.com/next/embed.js");
 
   const [charity, setCharity] = useState<Charity | undefined>();
   const [recipientAddress, setRecipientAddress] = useState("");
@@ -95,12 +97,14 @@ const _GrowApp: ForwardRefRenderFunction<
       </h2>
       <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl0">
         <div className="flex overflow-x-scroll gap-4 pb-4">
-          <Link
-            to="https://330nr99ktxd.typeform.com/to/jED1M4XU"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            data-tf-popup="ycDtkUgC"
+            data-tf-opacity="100"
+            data-tf-size="100"
+            data-tf-iframe-props="title=Partner Contacts"
+            data-tf-transitive-search-params
+            data-tf-medium="snippet"
           >
-            {" "}
             <div className="hover:cursor-pointer">
               <InfoBox className="p-8 rounded-md w-40 h-30">
                 <div className="text-green text-xl font-medium text-center">
@@ -108,14 +112,14 @@ const _GrowApp: ForwardRefRenderFunction<
                 </div>
               </InfoBox>
             </div>
-          </Link>
+          </button>
           {partnerApps.map((app) => {
             return (
               <div
                 className="hover:cursor-pointer"
                 key={app}
                 onClick={() => {
-                  toast("Coming soon!", { position: "top-center" });
+                  toast("Coming so0n!", { position: "top-center" });
                 }}
               >
                 <InfoBox className="p-8 rounded-md w-40 h-30">
