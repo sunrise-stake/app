@@ -96,3 +96,18 @@ input[type=number]::-webkit-outer-spin-button {
   border-left: 20px solid #4aa172;
   border-bottom: 10px solid transparent;
 }
+
+
+/* TODO TEMP do properly with tailwind or whatever */
+.tree {
+  margin-top: 25px;
+  font-size: 21px;
+  text-align: center;
+
+  animation: fadein 2s;
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
