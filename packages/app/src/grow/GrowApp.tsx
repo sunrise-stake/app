@@ -73,7 +73,12 @@ const _GrowApp: ForwardRefRenderFunction<
       <Transition className="mb-8" show={true}>
         <Transition.Child
           as="img"
-          src={"/placeholder-tree.png"}
+          src={
+            details?.balances.gsolBalance === null ||
+            details?.balances.gsolBalance.uiAmount === 0
+              ? "/placeholder-sapling.png"
+              : "/placeholder-tree.png"
+          }
           className={"FloatingTree"}
           enterFrom="opacity-0"
           enterTo="opacity-100"
