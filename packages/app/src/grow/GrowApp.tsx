@@ -1,23 +1,24 @@
-import { type FC } from "react";
+import { forwardRef, type ForwardRefRenderFunction } from "react";
 import clx from "classnames";
 import { SendGSolForm } from "./components/SendGSolForm";
 import { InfoBox } from "../common/components";
 import { toast } from "react-hot-toast";
 import { AiOutlineArrowRight } from "react-icons/ai";
 
-const GrowApp: FC<
+const _GrowApp: ForwardRefRenderFunction<
+  HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }) => {
+> = ({ className, ...rest }, ref) => {
   // These will be fetch from some data base
   const charityApps = Array.from({ length: 10 }, (x, i) => i);
   const partnerApps = Array.from({ length: 10 }, (x, i) => i);
-
   return (
     <div
       className={clx(
-        "container flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
+        "flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
         className
       )}
+      ref={ref}
       {...rest}
     >
       <h1 className="font-bold text-3xl text-green mb-16">Grow your forest</h1>
@@ -89,5 +90,7 @@ const GrowApp: FC<
     </div>
   );
 };
+
+const GrowApp = forwardRef(_GrowApp);
 
 export { GrowApp };
