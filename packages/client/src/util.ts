@@ -37,7 +37,7 @@ export const enum ProgramDerivedAddressSeed {
   ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
   LOCK_ACCOUNT = "lock_account",
   LOCK_TOKEN_ACCOUNT = "lock_token_account",
-  IMPACT_NFT_AUTHORITY = "impact_nft_authority",
+  IMPACT_NFT_MINT_AUTHORITY = "impact_nft_mint_authority",
 }
 
 export interface SunriseStakeConfig {
@@ -72,6 +72,7 @@ const findProgramDerivedAddress = (
     Buffer.from(seed),
     ...extraSeeds,
   ];
+  console.log("seeds", seeds.map(s => s.toJSON()), "for address ", PublicKey.findProgramAddressSync(seeds, config.programId))
   return PublicKey.findProgramAddressSync(seeds, config.programId);
 };
 
@@ -137,12 +138,12 @@ export const findLockTokenAccount = (
     [authority.toBuffer()]
   );
 
-export const findImpactNFTAuthority = (
+export const findImpactNFTMintAuthority = (
   config: SunriseStakeConfig
 ): [PublicKey, number] =>
   findProgramDerivedAddress(
     config,
-    ProgramDerivedAddressSeed.IMPACT_NFT_AUTHORITY
+    ProgramDerivedAddressSeed.IMPACT_NFT_MINT_AUTHORITY
   );
 
 export const logKeys = (transaction: Transaction): void => {

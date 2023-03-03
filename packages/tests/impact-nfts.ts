@@ -9,6 +9,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { depositLamports, lockLamports } from "./constants";
 import * as anchor from "@coral-xyz/anchor";
+import {findImpactNFTMintAuthority} from "../client/src/util";
 
 chai.use(chaiAsPromised);
 
@@ -45,27 +46,35 @@ describe.only("sunrise-stake Impact NFTs", () => {
 
     impactNftStateAddress = findImpactNftPda(
       Seed.GlobalState,
-      client.provider.publicKey
+        findImpactNFTMintAuthority(client.config!)[0]
     );
 
     log("Impact NFT state address: " + impactNftStateAddress.toBase58());
   });
 
   it("can initialise the impact nft state", async () => {
-    await client.program.methods
+      if (!client.config) throw new Error("Client not initialised");
+
+      const accounts = {
+          state: client.env.state,
+          payer: client.provider.publicKey,
+          updateAuthority: client.provider.publicKey,
+          impactNftMintAuthority: findImpactNFTMintAuthority(client.config)[0],
+          impactNftState: impactNftStateAddress,
+          impactNftProgram: IMPACT_NFT_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+      };
+
+      log(accounts)
+
+      await client.program.methods
       .initImpactNftState(8)
-      .accounts({
-        state: client.env.state,
-        payer: client.provider.publicKey,
-        updateAuthority: client.provider.publicKey,
-        impactNftState: impactNftStateAddress,
-        impactNftProgram: IMPACT_NFT_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-      })
+      .accounts(accounts)
       .rpc();
   });
 
   it("can mint an impact nft when locking gSOL", async () => {
-    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
+      const [transaction, keypair] = await client.lockGSol(lockLamports);
+      await client.sendAndConfirmTransaction(transaction, [keypair]);
   });
 });

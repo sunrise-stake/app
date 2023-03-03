@@ -1,10 +1,11 @@
 import {
-  findEpochReportAccount,
+  findEpochReportAccount, findImpactNFTAuthority, findImpactNFTMintAuthority,
   findLockAccount,
   findLockTokenAccount,
   type SunriseStakeConfig,
 } from "./util";
 import {
+  Keypair,
   type PublicKey,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
@@ -101,7 +102,7 @@ export const lockGSol = async (
   sourceGSolTokenAccount: PublicKey,
   impactNFTConfig: EnvironmentConfig["impactNFT"],
   lamports: BN
-): Promise<Transaction> => {
+): Promise<[Transaction, Keypair]> => {
   const { lockAccountAddress, tokenAccountAddress, lockAccount } =
     await getLockAccount(config, program, authority);
   const [epochReportAccount] = findEpochReportAccount(config);
@@ -112,15 +113,26 @@ export const lockGSol = async (
 
   const preInstructions: TransactionInstruction[] = [];
 
-  // accounts should be derived from the mint contract SDK
-  // TODO potentially move this entire function into a mint contract SDK
+  const mintAuthority = findImpactNFTMintAuthority(config)[0];
   const impactNFTAccounts = await ImpactNftClient.getMintNftAccounts(
-    impactNFTConfig.authority, // authority of the impact nft program state - TODO change to the actual impact nft state address itself
-    authority // holder
+      mintAuthority,
+      authority // holder
   );
+
   const allImpactNFTAccounts = {
-    ...impactNFTAccounts,
+    impactNftProgram: impactNFTAccounts.PROGRAM_ID,
+    tokenMetadataProgram: impactNFTAccounts.TOKEN_METADATA_PROGRAM_ID,
+    impactNftState: impactNFTAccounts.globalState,
+    nftMint: impactNFTAccounts.mint.publicKey,
+    nftMintAuthority: mintAuthority,
+    nftMetadata: impactNFTAccounts.metadata,
+    nftHolderTokenAccount: impactNFTAccounts.userTokenAccount,
+    nftMasterEdition: impactNFTAccounts.masterEdition,
+    offsetMetadata: impactNFTAccounts.offsetMetadata,
+    offsetTiers: impactNFTAccounts.offsetTiers
   };
+
+  console.log("global state address", allImpactNFTAccounts.impactNftState)
 
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {
@@ -134,7 +146,6 @@ export const lockGSol = async (
         lockGsolAccount: tokenAccountAddress,
         systemProgram: SystemProgram.programId,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        ...allImpactNFTAccounts,
       })
       .instruction();
 
@@ -153,13 +164,16 @@ export const lockGSol = async (
     tokenProgram: TOKEN_PROGRAM_ID,
     rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     clock: SYSVAR_CLOCK_PUBKEY,
+    ...allImpactNFTAccounts,
   };
 
-  return program.methods
+  const transaction = await program.methods
     .lockGsol(lamports)
     .accounts(accounts)
     .preInstructions(preInstructions)
     .transaction();
+
+  return [transaction, impactNFTAccounts.mint];
 };
 
 export const updateLockAccount = async (

@@ -1393,7 +1393,7 @@ export class SunriseStakeClient {
     };
   }
 
-  public async lockGSol(lamports: BN): Promise<Transaction> {
+  public async lockGSol(lamports: BN): Promise<[Transaction, Keypair]> {
     if (
       !this.stakerGSolTokenAccount ||
       !this.config ||
@@ -1410,7 +1410,7 @@ export class SunriseStakeClient {
       transaction.add(recoverInstruction);
     }
 
-    const lockTx = await lockGSol(
+    const [lockTx, signer] = await lockGSol(
       this.config,
       this.program,
       this.staker,
@@ -1421,7 +1421,7 @@ export class SunriseStakeClient {
 
     transaction.add(lockTx);
 
-    return transaction;
+    return [transaction, signer];
   }
 
   public async updateLockAccount(): Promise<Transaction> {

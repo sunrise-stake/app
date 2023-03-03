@@ -1,6 +1,6 @@
 use crate::error::ErrorCode;
 use crate::state::{EpochReportAccount, LockAccount, State};
-use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, LOCK_TOKEN_ACCOUNT};
+use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, IMPACT_NFT_MINT_AUTHORITY, LOCK_TOKEN_ACCOUNT};
 use crate::utils::token::transfer_to;
 use impact_nft_cpi::cpi::accounts::{MintNft};
 use impact_nft_cpi::cpi::{mint_nft as cpi_mint_nft};
@@ -69,13 +69,17 @@ pub struct LockGSol<'info> {
     pub token_metadata_program: UncheckedAccount<'info>,
     pub associated_token_program: Program<'info, AssociatedToken>,
 
+    // #[account(
+    // mut,
+    // constraint = nft_mint.mint_authority == COption::Some(nft_mint_authority.key()),
+    // )]
+    pub nft_mint: Signer<'info>,
     #[account(
-    mut,
-    constraint = nft_mint.mint_authority == COption::Some(nft_mint_authority.key()),
+        mut,
+        seeds = [state.key().as_ref(), IMPACT_NFT_MINT_AUTHORITY],
+        bump, // TODO Move to state object?
     )]
-    pub nft_mint: Box<Account<'info, Mint>>,
-    /// CHECK: (TODO) checked in impact nft program
-    pub nft_mint_authority: UncheckedAccount<'info>,
+    pub nft_mint_authority: SystemAccount<'info>,
     /// CHECK: (TODO) checked in impact nft program
     pub nft_metadata: UncheckedAccount<'info>,
     /// CHECK: May be uninitialized - if so, it will be initialized by the impact nft program
@@ -103,6 +107,16 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
     ctx.accounts.lock_account.sunrise_yield_at_start =
         ctx.accounts.epoch_report_account.all_extractable_yield();
 
+    msg!("Minting NFT on impact nft program");
+    let state_address = ctx.accounts.state.key();
+    let seeds = &[
+        state_address.as_ref(),
+        IMPACT_NFT_MINT_AUTHORITY,
+        &[*ctx.bumps.get("nft_mint_authority").unwrap()],
+    ];
+    msg!("Seeds: {:?}", seeds);
+    let pda_signer = &[&seeds[..]];
+
     // Mint NFT if not present
     if *ctx.accounts.nft_holder_token_account.owner != ctx.accounts.token_program.key() {
         let cpi_accounts = MintNft {
@@ -123,7 +137,8 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
             associated_token_program: ctx.accounts.associated_token_program.to_account_info(),
         };
         let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts)
+            .with_signer(pda_signer);
 
         cpi_mint_nft(cpi_ctx, 0, "tmp".to_owned(), "tmp".to_owned())?; // TODO
     }

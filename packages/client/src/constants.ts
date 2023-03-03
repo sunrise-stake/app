@@ -42,7 +42,7 @@ export const Environment: Record<
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
     impactNFT: {
-      authority: PublicKey.default, // TODO
+      authority: new PublicKey("48V9nmW9awiR9BmihdGhUL3ZpYJ8MCgGeUoSWbtqjicv")  // TODO Tmp- will be replaced with a state address
     },
   },
   // TODO placeholders

@@ -1515,8 +1515,8 @@ export type SunriseStake = {
         },
         {
           "name": "nftMint",
-          "isMut": true,
-          "isSigner": false
+          "isMut": false,
+          "isSigner": true
         },
         {
           "name": "nftMintAuthority",
@@ -2109,8 +2109,13 @@ export type SunriseStake = {
         },
         {
           "name": "updateAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": true
+        },
+        {
+          "name": "impactNftMintAuthority",
+          "isMut": false,
+          "isSigner": false
         },
         {
           "name": "impactNftState",
@@ -3977,8 +3982,8 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "nftMint",
-          "isMut": true,
-          "isSigner": false
+          "isMut": false,
+          "isSigner": true
         },
         {
           "name": "nftMintAuthority",
@@ -4571,8 +4576,13 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "updateAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": true
+        },
+        {
+          "name": "impactNftMintAuthority",
+          "isMut": false,
+          "isSigner": false
         },
         {
           "name": "impactNftState",

@@ -6,11 +6,6 @@
       "name": "createGlobalState",
       "accounts": [
         {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
           "name": "payer",
           "isMut": true,
           "isSigner": true
@@ -18,7 +13,7 @@
         {
           "name": "globalState",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "systemProgram",
@@ -45,7 +40,7 @@
         },
         {
           "name": "globalState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -68,6 +63,11 @@
       "accounts": [
         {
           "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -133,7 +133,7 @@
           "isSigner": true
         },
         {
-          "name": "mintAuthority",
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -222,7 +222,7 @@
       "name": "updateNft",
       "accounts": [
         {
-          "name": "mintAuthority",
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -283,13 +283,6 @@
           {
             "name": "levels",
             "type": "u16"
-          },
-          {
-            "name": "bump",
-            "docs": [
-              "number of levels, can probably be capped at u8 or u16"
-            ],
-            "type": "u8"
           }
         ]
       }
