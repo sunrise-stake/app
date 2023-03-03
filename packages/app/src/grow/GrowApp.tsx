@@ -60,13 +60,15 @@ const _GrowApp: ForwardRefRenderFunction<
   return (
     <div
       className={clx(
-        "flex flex-col justify-start items-start sm:justify-center sm:items-center p-8 ",
+        "flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
         className
       )}
       ref={ref}
       {...rest}
     >
-      <h1 className="font-bold text-3xl text-green mb-16">Grow your forest</h1>
+      <h1 className="font-bold text-3xl text-green my-16 pt-32">
+        Grow your forest
+      </h1>
       <h2 className="flex font-bold text-xl items-center gap-4 mb-8">
         Partners{" "}
         <AiOutlineArrowRight
@@ -75,38 +77,40 @@ const _GrowApp: ForwardRefRenderFunction<
           }}
         />
       </h2>
-      <div className="flex overflow-scroll gap-4 pb-8 items-stretch w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
-        <Link
-          to="https://330nr99ktxd.typeform.com/to/jED1M4XU"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {" "}
-          <div className="hover:cursor-pointer">
-            <InfoBox className="p-8 rounded-md w-40 h-30">
-              <div className="text-green text-xl font-medium text-center">
-                Your App here
-              </div>
-            </InfoBox>
-          </div>
-        </Link>
-        {partnerApps.map((app) => {
-          return (
-            <div
-              className="hover:cursor-pointer"
-              key={app}
-              onClick={() => {
-                toast("Coming soon!", { position: "top-center" });
-              }}
-            >
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl0">
+        <div className="flex overflow-x-scroll gap-4 pb-4">
+          <Link
+            to="https://330nr99ktxd.typeform.com/to/jED1M4XU"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {" "}
+            <div className="hover:cursor-pointer">
               <InfoBox className="p-8 rounded-md w-40 h-30">
                 <div className="text-green text-xl font-medium text-center">
-                  Partner App
+                  Your App here
                 </div>
               </InfoBox>
             </div>
-          );
-        })}
+          </Link>
+          {partnerApps.map((app) => {
+            return (
+              <div
+                className="hover:cursor-pointer"
+                key={app}
+                onClick={() => {
+                  toast("Coming soon!", { position: "top-center" });
+                }}
+              >
+                <InfoBox className="p-8 rounded-md w-40 h-30">
+                  <div className="text-green text-xl font-medium text-center">
+                    Partner App
+                  </div>
+                </InfoBox>
+              </div>
+            );
+          })}
+        </div>
       </div>
       <h2 className="font-bold text-xl mt-8 mb-4">Transfer gSOL</h2>
       <SendGSolForm
@@ -130,26 +134,28 @@ const _GrowApp: ForwardRefRenderFunction<
         />
       </h2>
 
-      <div className="flex overflow-scroll gap-4 pb-8  w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
-        {charityApps.map((charity) => {
-          return (
-            <div
-              className="hover:cursor-pointer"
-              key={charity.name}
-              onClick={() => {
-                setCharity(charity);
-                setRecipientAddress(charity.walletAddress);
-                toast("Coming soon!", { position: "bottom-center" });
-              }}
-            >
-              <InfoBox className="p-8 rounded-md w-40 h-30">
-                <div className="text-green text-xl font-medium text-center">
-                  {charity.name}
-                </div>
-              </InfoBox>
-            </div>
-          );
-        })}
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
+        <div className="flex overflow-x-scroll gap-4 pb-8">
+          {charityApps.map((charity) => {
+            return (
+              <div
+                className="hover:cursor-pointer"
+                key={charity.name}
+                onClick={() => {
+                  setCharity(charity);
+                  setRecipientAddress(charity.walletAddress);
+                  toast("Coming soon!", { position: "bottom-center" });
+                }}
+              >
+                <InfoBox className="p-8 rounded-md w-40 h-30">
+                  <div className="text-green text-xl font-medium text-center">
+                    {charity.name}
+                  </div>
+                </InfoBox>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
