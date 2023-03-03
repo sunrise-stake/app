@@ -17,6 +17,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useLayoutEffect,
 } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -65,6 +66,10 @@ const App: FC = () => {
     }, 100),
     { passive: true }
   );
+
+  useLayoutEffect(() => {
+    appRefs.hub.current?.scrollIntoView();
+  }, [appRefs.hub]);
 
   return (
     <>
