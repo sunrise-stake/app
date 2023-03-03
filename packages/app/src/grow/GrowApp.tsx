@@ -9,6 +9,7 @@ import { toSol, type Details } from "@sunrisestake/client";
 import BN from "bn.js";
 import { ZERO } from "../common/utils";
 import { Keypair } from "@solana/web3.js";
+import { Link } from "react-router-dom";
 
 export interface Charity {
   name: string;
@@ -75,18 +76,20 @@ const _GrowApp: ForwardRefRenderFunction<
         />
       </h2>
       <div className="flex overflow-scroll gap-4 pb-8 items-stretch w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
-        <div
-          className="hover:cursor-pointer"
-          onClick={() => {
-            toast("Will open a form");
-          }}
+        <Link
+          to="https://330nr99ktxd.typeform.com/to/jED1M4XU"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          <InfoBox className="p-8 rounded-md w-40 h-30">
-            <div className="text-green text-xl font-medium text-center">
-              Your App here
-            </div>
-          </InfoBox>
-        </div>
+          {" "}
+          <div className="hover:cursor-pointer">
+            <InfoBox className="p-8 rounded-md w-40 h-30">
+              <div className="text-green text-xl font-medium text-center">
+                Your App here
+              </div>
+            </InfoBox>
+          </div>
+        </Link>
         {partnerApps.map((app) => {
           return (
             <div
