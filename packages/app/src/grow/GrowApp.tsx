@@ -10,6 +10,7 @@ import BN from "bn.js";
 import { ZERO } from "../common/utils";
 import { Keypair } from "@solana/web3.js";
 import { Link } from "react-router-dom";
+import { Transition } from "@headlessui/react";
 
 export interface Charity {
   name: string;
@@ -66,9 +67,19 @@ const _GrowApp: ForwardRefRenderFunction<
       ref={ref}
       {...rest}
     >
-      <h1 className="font-bold text-3xl text-green my-16 pt-32">
+      <h1 className="font-bold text-3xl text-green mt-96 pt-96">
         Grow your forest
       </h1>
+      <Transition className="mb-8" show={true}>
+        <Transition.Child
+          as="img"
+          src={"/placeholder-tree.png"}
+          className={"FloatingTree"}
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          enter="transition-opacity ease-in duration-500"
+        />
+      </Transition>
       <h2 className="flex font-bold text-xl items-center gap-4 mb-8">
         Partners{" "}
         <AiOutlineArrowRight
