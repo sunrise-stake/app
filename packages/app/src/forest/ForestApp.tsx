@@ -1,10 +1,14 @@
 import clx from "classnames";
-import { type CSSProperties, type FC } from "react";
+import {
+  type CSSProperties,
+  type FC,
+  forwardRef,
+  type ForwardRefRenderFunction,
+} from "react";
 import { useTrees } from "./hooks/useTrees";
 import { type TreeComponent } from "./utils";
 import { toShortBase58 } from "../common/utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { forwardRef, type ForwardRefRenderFunction } from "react";
 
 const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -27,7 +31,6 @@ const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
     <p>{toShortBase58(details.address)}</p>
   </li>
 );
-
 
 const _ForestApp: ForwardRefRenderFunction<
   HTMLDivElement,
