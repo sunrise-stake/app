@@ -1,4 +1,4 @@
-import { forwardRef, type ForwardRefRenderFunction } from "react";
+import { forwardRef, useState, type ForwardRefRenderFunction } from "react";
 import clx from "classnames";
 import { SendGSolForm } from "./components/SendGSolForm";
 import { InfoBox } from "../common/components";
@@ -8,6 +8,12 @@ import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { toSol, type Details } from "@sunrisestake/client";
 import BN from "bn.js";
 import { ZERO } from "../common/utils";
+import { Keypair } from "@solana/web3.js";
+
+export interface Charity {
+  name: string;
+  walletAddress: string;
+}
 
 const _GrowApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -19,8 +25,36 @@ const _GrowApp: ForwardRefRenderFunction<
     details: Details | undefined;
   } = useSunriseStake();
 
+  const [charity, setCharity] = useState<Charity | undefined>();
+  const [recipientAddress, setRecipientAddress] = useState("");
+
   // These will be fetch from some data base
-  const charityApps = Array.from({ length: 10 }, (x, i) => i);
+  const charityApps = [
+    {
+      name: "Green Glow",
+      walletAddress: Keypair.generate().publicKey.toBase58(),
+    },
+    {
+      name: "Project Green",
+      walletAddress: Keypair.generate().publicKey.toBase58(),
+    },
+    {
+      name: "Animal Kingdom",
+      walletAddress: Keypair.generate().publicKey.toBase58(),
+    },
+    {
+      name: "Cool Ocean",
+      walletAddress: Keypair.generate().publicKey.toBase58(),
+    },
+    {
+      name: "Clean Earth",
+      walletAddress: Keypair.generate().publicKey.toBase58(),
+    },
+    {
+      name: "Bee Responsive",
+      walletAddress: Keypair.generate().publicKey.toBase58(),
+    },
+  ];
   const partnerApps = Array.from({ length: 10 }, (x, i) => i);
   return (
     <div
@@ -71,8 +105,13 @@ const _GrowApp: ForwardRefRenderFunction<
           );
         })}
       </div>
-      <h2 className="font-bold text-xl mt-8 mb-4">Gift a tree</h2>
-      <SendGSolForm className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl" />
+      <h2 className="font-bold text-xl mt-8 mb-4">Transfer gSOL</h2>
+      <SendGSolForm
+        className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl"
+        charity={charity}
+        recipient={recipientAddress}
+        setRecipient={setRecipientAddress}
+      />
       <div className="flex gap-2 w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl mt-4">
         Balance:{" "}
         <div className="text-green font-bold">
@@ -89,18 +128,20 @@ const _GrowApp: ForwardRefRenderFunction<
       </h2>
 
       <div className="flex overflow-scroll gap-4 pb-8  w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
-        {charityApps.map((app) => {
+        {charityApps.map((charity) => {
           return (
             <div
               className="hover:cursor-pointer"
-              key={app}
+              key={charity.name}
               onClick={() => {
+                setCharity(charity);
+                setRecipientAddress(charity.walletAddress);
                 toast("Coming soon!", { position: "bottom-center" });
               }}
             >
               <InfoBox className="p-8 rounded-md w-40 h-30">
                 <div className="text-green text-xl font-medium text-center">
-                  Charity App
+                  {charity.name}
                 </div>
               </InfoBox>
             </div>

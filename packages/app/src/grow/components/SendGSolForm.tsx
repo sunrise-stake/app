@@ -18,14 +18,23 @@ import {
   NotificationType,
   notifyTransaction,
 } from "../../common/components/notifications";
+import { type Charity } from "../GrowApp";
 
 interface Props {
+  charity?: Charity;
+  recipient: string;
+  setRecipient: (recipient: string) => void;
   className?: string;
 }
 
-const SendGSolForm: FC<Props> = ({ className }) => {
+const SendGSolForm: FC<Props> = ({
+  className,
+  charity,
+  recipient,
+  setRecipient,
+}) => {
   const [amount, setAmount] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
+
   const [isBusy, setIsBusy] = useState(false);
   const [isValid, setIsValid] = useState(false);
 
@@ -45,7 +54,7 @@ const SendGSolForm: FC<Props> = ({ className }) => {
 
     let recipientPubkey;
     try {
-      recipientPubkey = new PublicKey(recipientAddress);
+      recipientPubkey = new PublicKey(recipient);
     } catch (e) {
       handleError(e as Error);
       console.log(e);
@@ -104,13 +113,18 @@ const SendGSolForm: FC<Props> = ({ className }) => {
       )}
     >
       <div className="flex flex-col">
-        <div className="font-semibold text-xl mb-2">To</div>
+        <div className="font-semibold text-xl mb-2">
+          To{" "}
+          <span className="font-normal text-lg text-green">
+            {charity?.name}
+          </span>
+        </div>
         <input
-          className="mb-4 rounded-md text-lg py-3 px-4 placeholder:text-sm"
+          className="mb-4 rounded-md text-sm xl:text-lg py-3 px-4 placeholder:text-sm"
           onChange={(e) => {
-            setRecipientAddress(e.target.value);
+            setRecipient(e.target.value);
           }}
-          value={recipientAddress}
+          value={recipient}
           placeholder="Address"
         />
         <div className="font-semibold text-xl mb-2">Send gSOL</div>
