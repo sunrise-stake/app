@@ -7,6 +7,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+import { ZERO_BALANCE } from "@sunrisestake/client/dist/util";
 
 const STUB_DB = false;
 const STUBS = {
@@ -246,7 +247,12 @@ const getGsolBalance = async (
     [address.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), gsolMint.toBuffer()],
     ASSOCIATED_TOKEN_PROGRAM_ID
   )[0];
-  const balance = await connection.getTokenAccountBalance(tokenAccount);
+  let balance;
+  try {
+    balance = await connection.getTokenAccountBalance(tokenAccount);
+  } catch {
+    balance = ZERO_BALANCE;
+  }
   return balance.value.uiAmount ?? 0;
 };
 
