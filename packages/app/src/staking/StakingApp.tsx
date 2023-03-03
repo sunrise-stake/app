@@ -1,13 +1,14 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import clx from "classnames";
-import React, { useEffect, type FC } from "react";
+import { type ForwardRefRenderFunction, forwardRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { StakeDashboard } from "./pages/StakeDashboard";
 
-const StakingApp: FC<
+const _StakingApp: ForwardRefRenderFunction<
+  HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }) => {
+> = ({ className, ...rest }, ref) => {
   const wallet = useWallet();
   const navigate = useNavigate();
 
@@ -18,6 +19,7 @@ const StakingApp: FC<
   return (
     <div
       className={clx("flex flex-col items-center justify-center", className)}
+      ref={ref}
       {...rest}
     >
       <div className="container">
@@ -26,5 +28,7 @@ const StakingApp: FC<
     </div>
   );
 };
+
+const StakingApp = forwardRef(_StakingApp);
 
 export { StakingApp };

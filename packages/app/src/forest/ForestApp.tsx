@@ -4,6 +4,7 @@ import { useTrees } from "./hooks/useTrees";
 import { type TreeComponent } from "./utils";
 import { toShortBase58 } from "../common/utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
+import { forwardRef, type ForwardRefRenderFunction } from "react";
 
 const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -27,14 +28,17 @@ const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   </li>
 );
 
-const ForestApp: FC<
+
+const _ForestApp: ForwardRefRenderFunction<
+  HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }) => {
+> = ({ className, ...rest }, ref) => {
   const { myTree, neighbours } = useTrees();
   return (
     <div
       className={clx("flex justify-center items-center", className)}
       {...rest}
+      ref={ref}
     >
       <ul
         style={{
@@ -51,5 +55,7 @@ const ForestApp: FC<
     </div>
   );
 };
+
+const ForestApp = forwardRef(_ForestApp);
 
 export { ForestApp };

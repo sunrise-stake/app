@@ -1,6 +1,12 @@
 import clx from "classnames";
 import { toSol, type Details } from "@sunrisestake/client";
-import { useCallback, useEffect, useState, type FC } from "react";
+import {
+  forwardRef,
+  type ForwardRefRenderFunction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { Button, LockForm, Panel, Spinner } from "../common/components";
 import {
   NotificationType,
@@ -10,9 +16,10 @@ import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 import { solToLamports, toFixedWithPrecision } from "../common/utils";
 
-const LockingApp: FC<
+const _LockingApp: ForwardRefRenderFunction<
+  HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }) => {
+> = ({ className, ...rest }, ref) => {
   const {
     client,
     details,
@@ -101,6 +108,7 @@ const LockingApp: FC<
         "container mx-auto flex flex-col justify-start items-center",
         className
       )}
+      ref={ref}
       {...rest}
     >
       {!client && (
@@ -166,5 +174,7 @@ const LockingApp: FC<
     </div>
   );
 };
+
+const LockingApp = forwardRef(_LockingApp);
 
 export { LockingApp };

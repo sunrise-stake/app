@@ -1,17 +1,19 @@
-import { type FC } from "react";
+import { forwardRef, type ForwardRefRenderFunction } from "react";
 import clx from "classnames";
 import { PartnerApp } from "./components/PartnerApp";
 import { SendGSolForm } from "./components/SendGSolForm";
 
-const GrowApp: FC<
+const _GrowApp: ForwardRefRenderFunction<
+  HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }) => {
+> = ({ className, ...rest }, ref) => {
   return (
     <div
       className={clx(
-        "container flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
+        "flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
         className
       )}
+      ref={ref}
       {...rest}
     >
       <h2 className="font-bold text-xl">Partners</h2>
@@ -43,5 +45,7 @@ const GrowApp: FC<
     </div>
   );
 };
+
+const GrowApp = forwardRef(_GrowApp);
 
 export { GrowApp };

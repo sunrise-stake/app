@@ -4,9 +4,10 @@ import clx from "classnames";
 import {
   useEffect,
   useState,
-  type FC,
+  type ForwardRefRenderFunction,
   type Dispatch,
   type SetStateAction,
+  forwardRef,
 } from "react";
 import { Link } from "react-router-dom";
 import { Button, Spinner } from "../common/components";
@@ -20,9 +21,10 @@ import { useTrees } from "../forest/hooks/useTrees";
 const isNullish = (val: any): boolean =>
   val === null || val === undefined || val === 0;
 
-const HubApp: FC<
+const _HubApp: ForwardRefRenderFunction<
+  HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }) => {
+> = ({ className, ...rest }, ref) => {
   const wallet = useWallet();
 
   const { details } = useSunriseStake();
@@ -66,6 +68,7 @@ const HubApp: FC<
         "flex flex-col items-center justify-center text-center",
         className
       )}
+      ref={ref}
       {...rest}
     >
       <HubIntro
@@ -126,7 +129,7 @@ const HubApp: FC<
           )}
         >
           <NavArrow direction="right" className="mx-auto" />
-          Use
+          Grow
         </Link>
       </div>
       <div
@@ -148,5 +151,7 @@ const HubApp: FC<
     </div>
   );
 };
+
+const HubApp = forwardRef(_HubApp);
 
 export { HubApp };
