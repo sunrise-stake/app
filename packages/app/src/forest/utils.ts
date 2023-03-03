@@ -47,6 +47,7 @@ interface TreeType {
   level: number;
   species: Species;
   instance: number;
+  translucent: boolean;
 }
 
 export interface TreeComponent {
@@ -120,14 +121,21 @@ const balanceAndAgeToLevel = (balance: number, start: Date): number => {
   }
 };
 
+const hadGSol = (tree: TreeNode): boolean =>
+  tree.totals.currentBalance > 0 ||
+  tree.mints.length > 0 ||
+  tree.sent.length > 0 ||
+  tree.received.length > 0;
+
 const calculateTreeType = (tree: TreeNode): TreeType => {
   const instance = tree.address.toBuffer()[31] % IMAGE_COUNT;
   const species = (tree.address.toBuffer()[30] % SPECIES_COUNT) + 1;
-  const level = balanceAndAgeToLevel(
-    tree.totals.currentBalance,
-    tree.startDate
-  );
-  return { instance, species, level };
+  const didHaveGSol = hadGSol(tree);
+  const translucent = didHaveGSol && tree.totals.currentBalance === 0;
+  const level = didHaveGSol
+    ? balanceAndAgeToLevel(tree.totals.amountTotal, tree.startDate)
+    : 0;
+  return { instance, species, level, translucent };
 };
 
 const treeImageUri = (treeType: TreeType): string => {
