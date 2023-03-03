@@ -1,4 +1,5 @@
 import { Transition } from "@headlessui/react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC, type ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 import {
@@ -6,19 +7,20 @@ import {
   FaGithub,
   FaGlobeAmericas,
   FaTwitter,
+  FaWallet,
 } from "react-icons/fa";
 
 import { Panel } from "../components/Panel";
-import { useBGImage } from "../context/BGImageContext";
+import { useZenMode } from "../context/ZenModeContext";
 
 const Layout: FC<{ children: ReactNode }> = ({ children }) => {
-  const [showBGImage] = useBGImage();
+  const [showBGImage] = useZenMode();
 
   return (
     <>
       <Transition
         className="BGImage -z-10 fixed top-0 left-0 w-screen h-screen"
-        show={showBGImage}
+        show={showBGImage.showBGImage}
         unmount={false}
         enterFrom="translate-y-[317px]"
         enterTo="translate-y-0"
@@ -27,12 +29,27 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         leaveTo="translate-y-[317px]"
         leave="transition-transform duration-500"
       />
+      <Transition
+        className="z-10 fixed top-0 right-0 mt-1 mr-1"
+        show={showBGImage.showWallet}
+        unmount={false}
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        enter="transition-opacity duration-500"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+        leave="transition-opacity duration-500"
+      >
+        <WalletMultiButton>
+          <FaWallet />
+        </WalletMultiButton>
+      </Transition>
       <div className="flex flex-col min-h-screen">
         <Toaster />
         <header>
-          <audio className="fixed top-0 right-0" loop autoPlay controls>
+          {/* <audio className="fixed top-0 right-0" loop autoPlay controls>
             <source src="meydan-surreal-forest.mp3" type="audio/mpeg" />
-          </audio>
+          </audio> */}
         </header>
         <main className="grow flex">{children}</main>
         <footer>

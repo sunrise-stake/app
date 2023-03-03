@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Link } from "react-router-dom";
 import { Button, Spinner } from "../common/components";
-import { useBGImage } from "../common/context/BGImageContext";
+import { useZenMode } from "../common/context/ZenModeContext";
 import { HubIntro } from "./components/HubIntro";
 import { NavArrow } from "./components/NavArrow";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
@@ -25,7 +25,7 @@ const _HubApp: ForwardRefRenderFunction<
   const [introLeft, updateIntroLeft] = useState(false);
   const [showHub, updateShowHub] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
-  const [, updateShowBGImage] = useBGImage();
+  const [, updateShowBGImage] = useZenMode();
   const [stakeButtonMessage, updateStakeButtonMessage] = useState("My Stake");
 
   const { myTree } = useTrees();
@@ -43,7 +43,7 @@ const _HubApp: ForwardRefRenderFunction<
   useEffect(() => {
     if (introLeft && myTree) {
       updateShowHub(true);
-      updateShowBGImage(false);
+      updateShowBGImage({ showBGImage: false, showWallet: false });
     }
   }, [myTree, introLeft]);
 
