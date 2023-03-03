@@ -19,7 +19,11 @@ import {
   notifyTransaction,
 } from "../../common/components/notifications";
 
-const SendGSolForm: FC = () => {
+interface Props {
+  className?: string;
+}
+
+const SendGSolForm: FC<Props> = ({ className }) => {
   const [amount, setAmount] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [isBusy, setIsBusy] = useState(false);
@@ -95,7 +99,8 @@ const SendGSolForm: FC = () => {
   return (
     <div
       className={clx(
-        "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md w-full sm:w-[60%] md:w-[40%]"
+        "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md",
+        className
       )}
     >
       <div className="flex flex-col">
@@ -122,6 +127,7 @@ const SendGSolForm: FC = () => {
           />
 
           <Button
+            className="basis-1/4"
             onClick={() => {
               setIsBusy(true);
               transferGSol().finally(() => {
