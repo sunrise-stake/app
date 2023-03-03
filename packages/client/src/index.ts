@@ -1,6 +1,6 @@
 import { IDL, type SunriseStake } from "./types/sunrise_stake";
-import * as anchor from "@project-serum/anchor";
-import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { type AnchorProvider, Program, utils } from "@coral-xyz/anchor";
 import {
   type ConfirmOptions,
   Keypair,
@@ -1415,6 +1415,7 @@ export class SunriseStakeClient {
       this.program,
       this.staker,
       this.stakerGSolTokenAccount,
+      this.env.impactNFT,
       lamports
     );
 

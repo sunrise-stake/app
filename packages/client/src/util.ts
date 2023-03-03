@@ -7,8 +7,8 @@ import {
   type Transaction,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
-import * as anchor from "@project-serum/anchor";
-import { AnchorProvider, BN } from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import {
   type MarinadeState,
   MarinadeUtils,

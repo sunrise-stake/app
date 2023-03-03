@@ -1509,6 +1509,11 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "nftMint",
           "isMut": true,
           "isSigner": false
@@ -3962,6 +3967,11 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "tokenMetadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
         },

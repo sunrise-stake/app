@@ -8,7 +8,7 @@ import { log } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { depositLamports, lockLamports } from "./constants";
-import * as anchor from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
 
 chai.use(chaiAsPromised);
 
@@ -22,7 +22,7 @@ enum Seed {
   GlobalState = "global_state",
 }
 
-describe("sunrise-stake Impact NFTs", () => {
+describe.only("sunrise-stake Impact NFTs", () => {
   let client: SunriseStakeClient;
 
   const treasury = Keypair.generate();

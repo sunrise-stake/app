@@ -1,7 +1,7 @@
 import { SunriseStakeClient } from "../app/src/lib/client/";
 import { PublicKey } from "@solana/web3.js";
 import "./util";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 import BN from "bn.js";
 
 const [stateAddress, amountStr] = process.argv.slice(2);

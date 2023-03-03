@@ -13,11 +13,7 @@ import {
   type SunriseStakeConfig,
 } from "./util";
 import { STAKE_POOL_PROGRAM_ID } from "./constants";
-import {
-  type AnchorProvider,
-  type Program,
-  utils,
-} from "@project-serum/anchor";
+import { type AnchorProvider, type Program, utils } from "@coral-xyz/anchor";
 import { type SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { type BlazeState } from "./types/Solblaze";

@@ -23,6 +23,9 @@ export interface EnvironmentConfig {
   holdingAccount: PublicKey;
   percentageStakeToMarinade: number;
   blaze: BlazeConfig;
+  impactNFT: {
+    authority: PublicKey;
+  };
 }
 export const Environment: Record<
   WalletAdapterNetwork | "localnet",
@@ -38,6 +41,9 @@ export const Environment: Record<
       pool: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
+    impactNFT: {
+      authority: PublicKey.default, // TODO
+    },
   },
   // TODO placeholders
   testnet: {
@@ -47,6 +53,9 @@ export const Environment: Record<
     blaze: {
       pool: PublicKey.default,
       bsolMint: PublicKey.default,
+    },
+    impactNFT: {
+      authority: PublicKey.default, // TODO
     },
   },
   devnet: {
@@ -59,6 +68,9 @@ export const Environment: Record<
       pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
+    impactNFT: {
+      authority: PublicKey.default, // TODO
+    },
   },
   localnet: {
     state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
@@ -69,6 +81,9 @@ export const Environment: Record<
     blaze: {
       pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
+    },
+    impactNFT: {
+      authority: PublicKey.default, // TODO
     },
   },
 };

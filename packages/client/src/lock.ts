@@ -1,6 +1,5 @@
 import {
   findEpochReportAccount,
-  findImpactNFTAuthority,
   findLockAccount,
   findLockTokenAccount,
   type SunriseStakeConfig,
@@ -13,8 +12,8 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import { type LockAccount } from "./types/LockAccount";
-import * as anchor from "@project-serum/anchor";
-import { type Program } from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { type Program } from "@coral-xyz/anchor";
 import { type SunriseStake } from "./types/sunrise_stake";
 import {
   type Account as TokenAccount,
@@ -22,6 +21,8 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import type BN from "bn.js";
+import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
+import { type EnvironmentConfig } from "./constants";
 
 interface GetLockTokenAccountResult {
   address: PublicKey;
@@ -98,6 +99,7 @@ export const lockGSol = async (
   program: Program<SunriseStake>,
   authority: PublicKey,
   sourceGSolTokenAccount: PublicKey,
+  impactNFTConfig: EnvironmentConfig["impactNFT"],
   lamports: BN
 ): Promise<Transaction> => {
   const { lockAccountAddress, tokenAccountAddress, lockAccount } =
@@ -112,17 +114,12 @@ export const lockGSol = async (
 
   // accounts should be derived from the mint contract SDK
   // TODO potentially move this entire function into a mint contract SDK
-  const impactNFTAccounts = {
-    impactNftProgram: anchor.web3.PublicKey.default, // TODO
-    impactNftState: anchor.web3.PublicKey.default, // TODO
-    tokenMetadataProgram: anchor.web3.PublicKey.default, // TODO
-    nftMintAuthority: findImpactNFTAuthority(config),
-    nftMint: anchor.web3.PublicKey.default, // TODO
-    nftMetadata: anchor.web3.PublicKey.default, // TODO
-    nftHolderTokenAccount: anchor.web3.PublicKey.default, // TODO
-    nftMasterEdition: anchor.web3.PublicKey.default, // TODO
-    offsetMetadata: anchor.web3.PublicKey.default, // TODO
-    offsetTiers: anchor.web3.PublicKey.default, // TODO
+  const impactNFTAccounts = await ImpactNftClient.getMintNftAccounts(
+    impactNFTConfig.authority, // authority of the impact nft program state - TODO change to the actual impact nft state address itself
+    authority // holder
+  );
+  const allImpactNFTAccounts = {
+    ...impactNFTAccounts,
   };
 
   // the user has never locked before - they need a lock account and a lock token account
@@ -137,7 +134,7 @@ export const lockGSol = async (
         lockGsolAccount: tokenAccountAddress,
         systemProgram: SystemProgram.programId,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        ...impactNFTAccounts,
+        ...allImpactNFTAccounts,
       })
       .instruction();
 

@@ -1,6 +1,6 @@
 import { SunriseStakeClient } from "../client/src";
 import "./util";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 (async () => {

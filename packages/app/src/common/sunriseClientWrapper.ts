@@ -7,7 +7,7 @@ import {
   type Environment,
 } from "@sunrisestake/client";
 import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 import type BN from "bn.js";
 import { type AnchorWallet } from "@solana/wallet-adapter-react";
 import { debounce } from "./utils";

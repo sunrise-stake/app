@@ -1,5 +1,5 @@
 import "./util";
-import { AnchorProvider, Program } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import BN from "bn.js";
 import { SystemProgram } from "@solana/web3.js";
 import {

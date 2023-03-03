@@ -8,6 +8,7 @@ use impact_nft_cpi::program::ImpactNft;
 use impact_nft_cpi::{GlobalState as ImpactNftState};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts, Clone)]
@@ -66,6 +67,7 @@ pub struct LockGSol<'info> {
     pub impact_nft_state: Account<'info, ImpactNftState>,
     /// CHECK: (TODO) checked in impact nft program
     pub token_metadata_program: UncheckedAccount<'info>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 
     #[account(
     mut,
@@ -108,7 +110,8 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
             mint_authority: ctx.accounts.nft_mint_authority.to_account_info(),
             mint: ctx.accounts.nft_mint.to_account_info(),
             metadata: ctx.accounts.nft_metadata.to_account_info(),
-            token_account: ctx.accounts.nft_holder_token_account.to_account_info(),
+            mint_nft_to_owner: ctx.accounts.payer.to_account_info(),
+            mint_nft_to: ctx.accounts.nft_holder_token_account.to_account_info(),
             master_edition: ctx.accounts.nft_master_edition.to_account_info(),
             offset_tiers: ctx.accounts.offset_tiers.to_account_info(),
             offset_metadata: ctx.accounts.offset_metadata.to_account_info(),
@@ -117,6 +120,7 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
             token_metadata_program: ctx.accounts.token_metadata_program.to_account_info(),
             system_program: ctx.accounts.system_program.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),
+            associated_token_program: ctx.accounts.associated_token_program.to_account_info(),
         };
         let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
