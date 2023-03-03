@@ -71,12 +71,6 @@ const _HubApp: ForwardRefRenderFunction<
       ref={ref}
       {...rest}
     >
-      <HubIntro
-        show={showIntro}
-        onLeft={() => {
-          updateIntroLeft(true);
-        }}
-      />
       <Spinner
         className={
           (introLeft && !showHub) || totalCarbon === undefined
@@ -84,75 +78,79 @@ const _HubApp: ForwardRefRenderFunction<
             : "hidden"
         }
       />
-      <div className="flex">
-        <Link
-          to="/forest"
+      <HubIntro
+        show={showIntro}
+        onLeft={() => {
+          updateIntroLeft(true);
+        }}
+      />
+      <div className={introLeft ? "block" : "hidden"}>
+        <div className="flex">
+          <Link
+            to="/forest"
+            className={clx(
+              "flex flex-col justify-center transition-opacity ease-in duration-500",
+              showHubNav ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <NavArrow direction="left" className="mx-auto" />
+            Forest
+          </Link>
+          {myTree && (
+            <Transition className="mb-8" show={showHub}>
+              <Transition.Child
+                // as={DynamicTree}
+                // details={myTree}
+                // src={
+                //   // TODO: "Dry tree" case
+                //   gsolBalance === null || gsolBalance === 0
+                //     ? "/placeholder-sapling.png"
+                //     : "/placeholder-tree.png"
+                // }
+                // className={!isNullish(gsolBalance) ? "FloatingTree" : "blur-[2px]"}
+                // onClick={() => {
+                //   updateShowHubNav(true);
+                // }}
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                enter="transition-opacity ease-in duration-500"
+              />
+              <DynamicTree
+                details={myTree}
+                className="FloatingTree"
+                onClick={() => {
+                  updateShowHubNav(true);
+                }}
+              />
+            </Transition>
+          )}
+          <Link
+            to="/grow"
+            className={clx(
+              "flex flex-col justify-center transition-opacity ease-in duration-500",
+              showHubNav ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <NavArrow direction="right" className="mx-auto" />
+            Grow
+          </Link>
+        </div>
+        <div
           className={clx(
-            "flex flex-col justify-center transition-opacity ease-in duration-500",
+            "w-full text-center transition-opacity ease-in duration-500",
             showHubNav ? "opacity-100" : "opacity-0"
           )}
         >
-          <NavArrow direction="left" className="mx-auto" />
-          Forest
-        </Link>
-        {myTree && (
-          <Transition className="mb-8" show={showHub}>
-            <Transition.Child
-              // as={DynamicTree}
-              // details={myTree}
-              // src={
-              //   // TODO: "Dry tree" case
-              //   gsolBalance === null || gsolBalance === 0
-              //     ? "/placeholder-sapling.png"
-              //     : "/placeholder-tree.png"
-              // }
-              // className={!isNullish(gsolBalance) ? "FloatingTree" : "blur-[2px]"}
-              // onClick={() => {
-              //   updateShowHubNav(true);
-              // }}
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              enter="transition-opacity ease-in duration-500"
-            />
-            <DynamicTree
-              details={myTree}
-              className="FloatingTree"
-              onClick={() => {
-                updateShowHubNav(true);
-              }}
-              style={{
-                // TODO TEMP - move them into classes
-                width: "300px",
-              }}
-            />
-          </Transition>
-        )}
-        <Link
-          to="/grow"
-          className={clx(
-            "flex flex-col justify-center transition-opacity ease-in duration-500",
-            showHubNav ? "opacity-100" : "opacity-0"
-          )}
-        >
-          <NavArrow direction="right" className="mx-auto" />
-          Grow
-        </Link>
-      </div>
-      <div
-        className={clx(
-          "w-full text-center transition-opacity ease-in duration-500",
-          showHubNav ? "opacity-100" : "opacity-0"
-        )}
-      >
-        <Link to="/stake">
-          <Button>
-            {!isNullish(gsolBalance) ? "My Stake" : "Stake to grow your tree"}
-          </Button>
-        </Link>
-        <Link to="/lock" className="block w-full mt-2">
-          <NavArrow direction="down" className="mx-auto" />
-          Lock
-        </Link>
+          <Link to="/stake">
+            <Button>
+              {!isNullish(gsolBalance) ? "My Stake" : "Stake to grow your tree"}
+            </Button>
+          </Link>
+          <Link to="/lock" className="block w-full mt-2">
+            <NavArrow direction="down" className="mx-auto" />
+            Lock
+          </Link>
+        </div>
       </div>
     </div>
   );

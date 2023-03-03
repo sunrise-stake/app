@@ -117,7 +117,7 @@ export const DynamicTree: FC<{
 
   return (
     <div onClick={onClick} className={className} style={style}>
-      <Island style={{ position: "relative" }}>{components}</Island>
+      <Island>{components}</Island>
     </div>
   );
 };
