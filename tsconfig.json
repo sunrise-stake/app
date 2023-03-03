@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "types": ["mocha", "chai"],
-    "lib": ["es2015"],
+    "lib": ["ESNext"],
     "module": "commonjs",
     "target": "es6",
     "esModuleInterop": true,
