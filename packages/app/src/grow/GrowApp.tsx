@@ -1,6 +1,14 @@
-import { forwardRef, useState, type ForwardRefRenderFunction } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import {
+  forwardRef,
+  useEffect,
+  useState,
+  type ForwardRefRenderFunction,
+} from "react";
 import clx from "classnames";
+import { useNavigate } from "react-router-dom";
 import { SendGSolForm } from "./components/SendGSolForm";
+import { useZenMode } from "../common/context/ZenModeContext";
 import { InfoBox } from "../common/components";
 import { toast } from "react-hot-toast";
 import { AiOutlineArrowRight } from "react-icons/ai";
@@ -19,13 +27,16 @@ export interface Charity {
 
 const _GrowApp: ForwardRefRenderFunction<
   HTMLDivElement,
-  { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }, ref) => {
+  { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
+> = ({ className, active = false, ...rest }, ref) => {
   const {
     details,
   }: {
     details: Details | undefined;
   } = useSunriseStake();
+  const navigate = useNavigate();
+  const wallet = useWallet();
+  const [, updateZenMode] = useZenMode();
 
   useScript("//embed.typeform.com/next/embed.js");
 
@@ -60,6 +71,18 @@ const _GrowApp: ForwardRefRenderFunction<
     },
   ];
   const partnerApps = Array.from({ length: 10 }, (x, i) => i);
+
+  useEffect(() => {
+    if (!wallet.connected) navigate("/");
+  }, [wallet.connected]);
+
+  useEffect(() => {
+    updateZenMode({
+      showBGImage: active,
+      showWallet: active,
+    });
+  }, [active]);
+
   return (
     <div
       className={clx(

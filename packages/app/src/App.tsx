@@ -28,7 +28,7 @@ import { ForestApp } from "./forest/ForestApp";
 import { GrowApp } from "./grow/GrowApp";
 import { LockingApp } from "./locking/LockingApp";
 import { StakingApp } from "./staking/StakingApp";
-import { BGImageProvider } from "./common/context/BGImageContext";
+import { ZenModeProvider } from "./common/context/ZenModeContext";
 import { EventRouter } from "./common/container/EventRouter";
 import { debounce } from "./common/utils";
 require("./solana-wallet-adapter.css");
@@ -77,7 +77,7 @@ const App: FC = () => {
         <WalletProvider wallets={wallets}>
           <WalletModalProvider>
             <SunriseProvider>
-              <BGImageProvider>
+              <ZenModeProvider>
                 <Layout>
                   <EventRouter
                     location={location}
@@ -148,6 +148,7 @@ const App: FC = () => {
                       id="grow-app"
                       className="App GrowApp"
                       ref={appRefs.grow}
+                      active={currentRouteApp === appRefs.grow}
                     />
                     <HubApp
                       id="hub-app"
@@ -158,11 +159,13 @@ const App: FC = () => {
                       id="locking-app"
                       className="App LockingApp"
                       ref={appRefs.locking}
+                      active={currentRouteApp === appRefs.locking}
                     />
                     <StakingApp
                       id="staking-app"
                       className="App StakingApp"
                       ref={appRefs.staking}
+                      active={currentRouteApp === appRefs.staking}
                     />
                     <div
                       id="lost-app"
@@ -181,7 +184,7 @@ const App: FC = () => {
                     </div>
                   </div>
                 </Layout>
-              </BGImageProvider>
+              </ZenModeProvider>
             </SunriseProvider>
           </WalletModalProvider>
         </WalletProvider>

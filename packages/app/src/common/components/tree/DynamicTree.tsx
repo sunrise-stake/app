@@ -1,7 +1,6 @@
 import { type CSSProperties, type FC } from "react";
 import { type TreeComponent } from "../../../forest/utils";
 import { Island } from "./Island";
-import { Mulch } from "./Mulch";
 import { TreeImage } from "./TreeImage";
 
 // Use this key to determine the level of each tree (max 3 trees)
@@ -81,10 +80,6 @@ export const DynamicTree: FC<{
 
   console.log("MY TREE", details.metadata);
 
-  if (level === 0) {
-    return <Mulch />;
-  }
-
   const treeImages = [];
   const treeLevels = [
     firstTreeLevel(level),
@@ -92,7 +87,9 @@ export const DynamicTree: FC<{
     thirdTreeLevel(level),
   ];
 
-  treeImages.push(`TREE_0${species}-0${treeLevels[0]}.png`);
+  treeImages.push(
+    level > 0 ? `TREE_0${species}-0${treeLevels[0]}.png` : "_MULCHBAG.png"
+  );
   if (treeLevels[1] > 0) {
     treeImages.push(`TREE_0${species}-0${treeLevels[1]}.png`);
   }
