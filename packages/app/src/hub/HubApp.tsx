@@ -33,12 +33,10 @@ const _HubApp: ForwardRefRenderFunction<
 
   useEffect(() => {
     if (!wallet.connected && totalCarbon !== undefined) updateShowIntro(true);
-    else if (wallet.connected) updateIntroLeft(true);
-  }, [totalCarbon]);
-
-  useEffect(() => {
-    updateShowIntro(!wallet.connected);
-  }, [wallet.connected]);
+    else if (wallet.connected) {
+      updateShowIntro(false);
+    }
+  }, [totalCarbon, wallet.connected]);
 
   useEffect(() => {
     if (introLeft && myTree) {
