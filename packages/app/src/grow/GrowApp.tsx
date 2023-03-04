@@ -1,12 +1,31 @@
-import { forwardRef, type ForwardRefRenderFunction } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { forwardRef, useEffect, type ForwardRefRenderFunction } from "react";
 import clx from "classnames";
+import { useNavigate } from "react-router-dom";
+
 import { PartnerApp } from "./components/PartnerApp";
 import { SendGSolForm } from "./components/SendGSolForm";
+import { useZenMode } from "../common/context/ZenModeContext";
 
 const _GrowApp: ForwardRefRenderFunction<
   HTMLDivElement,
-  { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }, ref) => {
+  { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
+> = ({ className, active = false, ...rest }, ref) => {
+  const navigate = useNavigate();
+  const wallet = useWallet();
+  const [, updateZenMode] = useZenMode();
+
+  useEffect(() => {
+    if (!wallet.connected) navigate("/");
+  }, [wallet.connected]);
+
+  useEffect(() => {
+    updateZenMode({
+      showBGImage: active,
+      showWallet: active,
+    });
+  }, [active]);
+
   return (
     <div
       className={clx(

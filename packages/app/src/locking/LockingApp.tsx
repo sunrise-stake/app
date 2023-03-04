@@ -1,4 +1,5 @@
 import clx from "classnames";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { toSol, type Details } from "@sunrisestake/client";
 import {
   forwardRef,
@@ -7,19 +8,37 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { Button, LockForm, Panel, Spinner } from "../common/components";
 import {
   NotificationType,
   notifyTransaction,
 } from "../common/components/notifications";
+import { useZenMode } from "../common/context/ZenModeContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 import { solToLamports, toFixedWithPrecision } from "../common/utils";
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
-  { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }, ref) => {
+  { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
+> = ({ className, active = false, ...rest }, ref) => {
+  const navigate = useNavigate();
+  const wallet = useWallet();
+  const [, updateZenMode] = useZenMode();
+
+  useEffect(() => {
+    if (!wallet.connected) navigate("/");
+  }, [wallet.connected]);
+
+  useEffect(() => {
+    updateZenMode({
+      showBGImage: active,
+      showWallet: active,
+    });
+  }, [active]);
+
   const {
     client,
     details,

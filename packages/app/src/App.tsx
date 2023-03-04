@@ -148,6 +148,7 @@ const App: FC = () => {
                       id="grow-app"
                       className="App GrowApp"
                       ref={appRefs.grow}
+                      active={currentRouteApp === appRefs.grow}
                     />
                     <HubApp
                       id="hub-app"
@@ -158,11 +159,13 @@ const App: FC = () => {
                       id="locking-app"
                       className="App LockingApp"
                       ref={appRefs.locking}
+                      active={currentRouteApp === appRefs.locking}
                     />
                     <StakingApp
                       id="staking-app"
                       className="App StakingApp"
                       ref={appRefs.staking}
+                      active={currentRouteApp === appRefs.staking}
                     />
                     <div
                       id="lost-app"

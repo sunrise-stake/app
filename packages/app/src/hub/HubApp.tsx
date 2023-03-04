@@ -37,7 +37,7 @@ const _HubApp: ForwardRefRenderFunction<
   }, [totalCarbon]);
 
   useEffect(() => {
-    if (wallet.connected) updateShowIntro(false);
+    updateShowIntro(!wallet.connected);
   }, [wallet.connected]);
 
   useEffect(() => {
@@ -76,7 +76,7 @@ const _HubApp: ForwardRefRenderFunction<
           updateIntroLeft(true);
         }}
       />
-      <div className={introLeft ? "block" : "hidden"}>
+      <div className={introLeft && wallet?.connected ? "block" : "hidden"}>
         <div className="flex">
           <Link
             to="/forest"
