@@ -33,7 +33,7 @@ const HubIntro: FC<{
       />
       <Transition.Child
         as="h1"
-        className="text-green-light font-bold text-6xl"
+        className="text-green-light font-bold text-4xl sm:text-6xl"
         enterFrom="opacity-0"
         enterTo="opacity-100"
         enter="transition-opacity ease-in duration-1000"

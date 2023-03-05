@@ -3,18 +3,27 @@ import clx from "classnames";
 import { type ForwardRefRenderFunction, forwardRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useZenMode } from "../common/context/ZenModeContext";
 import { StakeDashboard } from "./pages/StakeDashboard";
 
 const _StakingApp: ForwardRefRenderFunction<
   HTMLDivElement,
-  { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }, ref) => {
-  const wallet = useWallet();
+  { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
+> = ({ className, active = false, ...rest }, ref) => {
   const navigate = useNavigate();
+  const wallet = useWallet();
+  const [, updateZenMode] = useZenMode();
 
   useEffect(() => {
     if (!wallet.connected) navigate("/");
   }, [wallet.connected]);
+
+  useEffect(() => {
+    updateZenMode({
+      showBGImage: active,
+      showWallet: active,
+    });
+  }, [active]);
 
   return (
     <div
