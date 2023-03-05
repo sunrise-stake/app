@@ -4,14 +4,13 @@ import {
   Environment,
   IMPACT_NFT_PROGRAM_ID,
 } from "../client/src";
-import {impactNFTLevels, log} from "./util";
+import { impactNFTLevels, log } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { depositLamports, lockLamports } from "./constants";
 import * as anchor from "@coral-xyz/anchor";
 import { findImpactNFTMintAuthority } from "../client/src/util";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
-import BN from "bn.js";
 
 chai.use(chaiAsPromised);
 

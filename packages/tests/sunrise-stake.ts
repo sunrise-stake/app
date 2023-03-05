@@ -23,7 +23,8 @@ import {
   log,
   waitForNextEpoch,
   expectBSolTokenBalance,
-  initializeStakeAccount, impactNFTLevels,
+  initializeStakeAccount,
+  impactNFTLevels,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -39,8 +40,8 @@ import {
   unstakeLamportsExceedLPBalance,
   unstakeLamportsUnderLPBalance,
 } from "./constants";
-import {ImpactNftClient} from "@sunrisestake/impact-nft-client";
-import {findImpactNFTMintAuthority} from "@sunrisestake/client/dist/util";
+import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
+import { findImpactNFTMintAuthority } from "@sunrisestake/client/dist/util";
 
 chai.use(chaiAsPromised);
 
@@ -119,12 +120,14 @@ describe("sunrise-stake", () => {
   });
 
   it("can create an impactNFT state with the mint authority derived from the sunrise state", async () => {
-    const impactNftMintAuthority = findImpactNFTMintAuthority(client.config!)[0];
+    const impactNftMintAuthority = findImpactNFTMintAuthority(
+      client.config!
+    )[0];
     const levelCount = 8;
     const levels = impactNFTLevels(levelCount);
     const impactNftClient = await ImpactNftClient.register(
-        impactNftMintAuthority,
-        levelCount
+      impactNftMintAuthority,
+      levelCount
     );
 
     if (!impactNftClient.stateAddress)
@@ -135,7 +138,7 @@ describe("sunrise-stake", () => {
     // set the newly-generated impactNft state in the client config
     // so that it can be looked up in the next test
     client.config!.impactNFTStateAddress = impactNftClient.stateAddress;
-  })
+  });
 
   it("returns zero extractable yield if no SOL has been staked", async () => {
     const { extractableYield } = await client.details();

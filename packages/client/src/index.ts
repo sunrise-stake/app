@@ -884,7 +884,7 @@ export class SunriseStakeClient {
     const ticketFee = rentForOrderUnstakeTicket;
     let totalFee = new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE);
 
-    this.log("base fee for order unstake: ", totalFee.toString())
+    this.log("base fee for order unstake: ", totalFee.toString());
 
     if (amountBeingLiquidUnstaked.lte(ZERO)) {
       return {
@@ -923,17 +923,17 @@ export class SunriseStakeClient {
 
     this.log({
       withdrawalLamports: withdrawalLamports.toString(),
-        lpSolShare: lpSolShare.toString(),
+      lpSolShare: lpSolShare.toString(),
       amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
       marinadeUnstake: marinadeUnstake.toString(),
-        blazeUnstake: blazeUnstake.toString(),
+      blazeUnstake: blazeUnstake.toString(),
       marinadeUnstakeFee: marinadeUnstakeFee.toString(),
-        blazeUnstakeFee: blazeUnstakeFee.toString(),
-        liquidUnstakeFee: liquidUnstakeFee.toString(),
+      blazeUnstakeFee: blazeUnstakeFee.toString(),
+      liquidUnstakeFee: liquidUnstakeFee.toString(),
       msolValue: msolValue.toString(),
-        bsolValue: bsolValue.toString(),
+      bsolValue: bsolValue.toString(),
       totalFee: totalFee.toString(),
-    })
+    });
 
     return {
       liquidUnstakeFee,
