@@ -1,14 +1,16 @@
 use crate::error::ErrorCode;
 use crate::state::{EpochReportAccount, LockAccount, State};
-use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, IMPACT_NFT_MINT_AUTHORITY, IMPACT_NFT_MINT_ACCOUNT, LOCK_TOKEN_ACCOUNT};
+use crate::utils::seeds::{
+    EPOCH_REPORT_ACCOUNT, IMPACT_NFT_MINT_ACCOUNT, IMPACT_NFT_MINT_AUTHORITY, LOCK_TOKEN_ACCOUNT,
+};
 use crate::utils::token::transfer_to;
-use impact_nft_cpi::cpi::accounts::{MintNft};
-use impact_nft_cpi::cpi::{mint_nft as cpi_mint_nft};
-use impact_nft_cpi::program::ImpactNft;
-use impact_nft_cpi::{GlobalState as ImpactNftState};
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
+use impact_nft_cpi::cpi::accounts::MintNft;
+use impact_nft_cpi::cpi::mint_nft as cpi_mint_nft;
+use impact_nft_cpi::program::ImpactNft;
+use impact_nft_cpi::GlobalState as ImpactNftState;
 
 #[derive(Accounts, Clone)]
 #[instruction(lamports: u64)]
@@ -117,14 +119,22 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
         IMPACT_NFT_MINT_AUTHORITY,
         &[*ctx.bumps.get("nft_mint_authority").unwrap()],
     ];
-    msg!("Mint authority {:?} seeds: {:?}", ctx.accounts.nft_mint_authority.key(), mint_authority_seeds);
+    msg!(
+        "Mint authority {:?} seeds: {:?}",
+        ctx.accounts.nft_mint_authority.key(),
+        mint_authority_seeds
+    );
     let mint_seeds = &[
         state_address.as_ref(),
         IMPACT_NFT_MINT_ACCOUNT,
         ctx.accounts.authority.key.as_ref(),
         &[*ctx.bumps.get("nft_mint").unwrap()],
     ];
-    msg!("Mint {:?} seeds: {:?}", ctx.accounts.nft_mint.key(), mint_seeds);
+    msg!(
+        "Mint {:?} seeds: {:?}",
+        ctx.accounts.nft_mint.key(),
+        mint_seeds
+    );
     let pda_signer = &[&mint_authority_seeds[..], &mint_seeds[..]];
 
     // Mint NFT if not present
@@ -147,8 +157,7 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
             associated_token_program: ctx.accounts.associated_token_program.to_account_info(),
         };
         let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts)
-            .with_signer(pda_signer);
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(pda_signer);
 
         cpi_mint_nft(cpi_ctx, 0)?;
     } else {
