@@ -1,5 +1,7 @@
 import {
-  findEpochReportAccount, findImpactNFTAuthority, findImpactNFTMintAuthority,
+  findEpochReportAccount,
+  findImpactNFTMint,
+  findImpactNFTMintAuthority,
   findLockAccount,
   findLockTokenAccount,
   type SunriseStakeConfig,
@@ -102,7 +104,7 @@ export const lockGSol = async (
   sourceGSolTokenAccount: PublicKey,
   impactNFTConfig: EnvironmentConfig["impactNFT"],
   lamports: BN
-): Promise<[Transaction, Keypair]> => {
+): Promise<Transaction> => {
   const { lockAccountAddress, tokenAccountAddress, lockAccount } =
     await getLockAccount(config, program, authority);
   const [epochReportAccount] = findEpochReportAccount(config);
@@ -114,25 +116,27 @@ export const lockGSol = async (
   const preInstructions: TransactionInstruction[] = [];
 
   const mintAuthority = findImpactNFTMintAuthority(config)[0];
-  const impactNFTAccounts = await ImpactNftClient.getMintNftAccounts(
-      mintAuthority,
-      authority // holder
+  const mint = await findImpactNFTMint(config, authority)[0];
+  const impactNftClient = await ImpactNftClient.get(
+    config.impactNftStateAddress
+  );
+  const impactNftAccounts = impactNftClient.getMintNftAccounts(
+    mint,
+    authority // holder
   );
 
   const allImpactNFTAccounts = {
-    impactNftProgram: impactNFTAccounts.PROGRAM_ID,
-    tokenMetadataProgram: impactNFTAccounts.TOKEN_METADATA_PROGRAM_ID,
-    impactNftState: impactNFTAccounts.globalState,
-    nftMint: impactNFTAccounts.mint.publicKey,
+    impactNftProgram: impactNftAccounts.program,
+    tokenMetadataProgram: impactNftAccounts.tokenMetadataProgram,
+    impactNftState: config.impactNftStateAddress,
+    nftMint: mint,
     nftMintAuthority: mintAuthority,
-    nftMetadata: impactNFTAccounts.metadata,
-    nftHolderTokenAccount: impactNFTAccounts.userTokenAccount,
-    nftMasterEdition: impactNFTAccounts.masterEdition,
-    offsetMetadata: impactNFTAccounts.offsetMetadata,
-    offsetTiers: impactNFTAccounts.offsetTiers
+    nftMetadata: impactNftAccounts.metadata,
+    nftHolderTokenAccount: impactNftAccounts.userTokenAccount,
+    nftMasterEdition: impactNftAccounts.masterEdition,
+    offsetMetadata: impactNftAccounts.offsetMetadata,
+    offsetTiers: impactNftAccounts.offsetTiers,
   };
-
-  console.log("global state address", allImpactNFTAccounts.impactNftState)
 
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {
@@ -167,13 +171,13 @@ export const lockGSol = async (
     ...allImpactNFTAccounts,
   };
 
-  const transaction = await program.methods
+  console.log("lockGSol accounts", accounts);
+
+  return program.methods
     .lockGsol(lamports)
     .accounts(accounts)
     .preInstructions(preInstructions)
     .transaction();
-
-  return [transaction, impactNFTAccounts.mint];
 };
 
 export const updateLockAccount = async (

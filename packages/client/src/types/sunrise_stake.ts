@@ -1515,17 +1515,17 @@ export type SunriseStake = {
         },
         {
           "name": "nftMint",
-          "isMut": false,
-          "isSigner": true
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "nftMintAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "nftMetadata",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1535,12 +1535,12 @@ export type SunriseStake = {
         },
         {
           "name": "nftMasterEdition",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "offsetMetadata",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2091,52 +2091,6 @@ export type SunriseStake = {
         {
           "name": "extractedYield",
           "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "initImpactNftState",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "updateAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "impactNftMintAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "impactNftState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "impactNftProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "levels",
-          "type": "u16"
         }
       ]
     }
@@ -3982,17 +3936,17 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "nftMint",
-          "isMut": false,
-          "isSigner": true
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "nftMintAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "nftMetadata",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -4002,12 +3956,12 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "nftMasterEdition",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "offsetMetadata",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -4558,52 +4512,6 @@ export const IDL: SunriseStake = {
         {
           "name": "extractedYield",
           "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "initImpactNftState",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "updateAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "impactNftMintAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "impactNftState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "impactNftProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "levels",
-          "type": "u16"
         }
       ]
     }

@@ -14,7 +14,7 @@ import { debounce } from "./utils";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const stage =
-  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ||
+  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
 
 export class SunriseClientWrapper {

@@ -17,6 +17,7 @@ import {
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Details } from "./types/Details";
 import { MAX_NUM_PRECISION } from "./constants";
+import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
 
 // zero bn number
 export const ZERO = new BN(0);
@@ -38,6 +39,7 @@ export const enum ProgramDerivedAddressSeed {
   LOCK_ACCOUNT = "lock_account",
   LOCK_TOKEN_ACCOUNT = "lock_token_account",
   IMPACT_NFT_MINT_AUTHORITY = "impact_nft_mint_authority",
+  IMPACT_NFT_MINT_ACCOUNT = "impact_nft_mint_account",
 }
 
 export interface SunriseStakeConfig {
@@ -51,6 +53,7 @@ export interface SunriseStakeConfig {
   liqPoolMinProportion: number;
 
   options: Options;
+  impactNftStateAddress: PublicKey;
 }
 
 // Return the type of an element in an array
@@ -72,7 +75,12 @@ const findProgramDerivedAddress = (
     Buffer.from(seed),
     ...extraSeeds,
   ];
-  console.log("seeds", seeds.map(s => s.toJSON()), "for address ", PublicKey.findProgramAddressSync(seeds, config.programId))
+  console.log(
+    "seeds",
+    seeds.map((s) => s.toJSON()),
+    "for address ",
+    PublicKey.findProgramAddressSync(seeds, config.programId)
+  );
   return PublicKey.findProgramAddressSync(seeds, config.programId);
 };
 
@@ -144,6 +152,16 @@ export const findImpactNFTMintAuthority = (
   findProgramDerivedAddress(
     config,
     ProgramDerivedAddressSeed.IMPACT_NFT_MINT_AUTHORITY
+  );
+
+export const findImpactNFTMint = (
+  config: SunriseStakeConfig,
+  authority: PublicKey
+): [PublicKey, number] =>
+  findProgramDerivedAddress(
+    config,
+    ProgramDerivedAddressSeed.IMPACT_NFT_MINT_ACCOUNT,
+    [authority.toBuffer()]
   );
 
 export const logKeys = (transaction: Transaction): void => {

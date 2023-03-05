@@ -11,6 +11,11 @@
           "isSigner": true
         },
         {
+          "name": "adminAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": true
@@ -25,7 +30,7 @@
         {
           "name": "input",
           "type": {
-            "defined": "GlobalStateInput"
+            "defined": "GlobalStateCreateInput"
           }
         }
       ]
@@ -34,18 +39,13 @@
       "name": "updateGlobalState",
       "accounts": [
         {
-          "name": "authority",
-          "isMut": true,
+          "name": "adminAuthority",
+          "isMut": false,
           "isSigner": true
         },
         {
           "name": "globalState",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
           "isSigner": false
         }
       ],
@@ -53,7 +53,7 @@
         {
           "name": "input",
           "type": {
-            "defined": "GlobalStateInput"
+            "defined": "GlobalStateUpdateInput"
           }
         }
       ]
@@ -62,8 +62,8 @@
       "name": "createOffsetTiers",
       "accounts": [
         {
-          "name": "authority",
-          "isMut": true,
+          "name": "adminAuthority",
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -73,7 +73,7 @@
         },
         {
           "name": "globalState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -100,13 +100,13 @@
       "name": "updateOffsetTiers",
       "accounts": [
         {
-          "name": "authority",
-          "isMut": true,
+          "name": "adminAuthority",
+          "isMut": false,
           "isSigner": true
         },
         {
           "name": "globalState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -133,8 +133,8 @@
           "isSigner": true
         },
         {
-          "name": "authority",
-          "isMut": true,
+          "name": "mintAuthority",
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -189,12 +189,12 @@
         },
         {
           "name": "globalState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "offsetTiers",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -207,14 +207,6 @@
         {
           "name": "offsetAmount",
           "type": "u64"
-        },
-        {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "symbol",
-          "type": "string"
         }
       ]
     },
@@ -222,8 +214,8 @@
       "name": "updateNft",
       "accounts": [
         {
-          "name": "authority",
-          "isMut": true,
+          "name": "mintAuthority",
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -248,12 +240,12 @@
         },
         {
           "name": "globalState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "offsetTiers",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -277,7 +269,11 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "authority",
+            "name": "adminAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintAuthority",
             "type": "publicKey"
           },
           {
@@ -292,10 +288,6 @@
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "authority",
-            "type": "publicKey"
-          },
           {
             "name": "levels",
             "type": {
@@ -317,14 +309,6 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "authority",
-            "type": "publicKey"
-          },
-          {
-            "name": "mint",
-            "type": "publicKey"
-          },
-          {
             "name": "offset",
             "type": "u64"
           },
@@ -338,12 +322,32 @@
   ],
   "types": [
     {
-      "name": "GlobalStateInput",
+      "name": "GlobalStateCreateInput",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "authority",
+            "name": "mintAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "levels",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalStateUpdateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "adminAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintAuthority",
             "type": "publicKey"
           },
           {
@@ -368,6 +372,14 @@
           {
             "name": "uri",
             "type": "string"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
           }
         ]
       }
@@ -377,10 +389,6 @@
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "authority",
-            "type": "publicKey"
-          },
           {
             "name": "levels",
             "type": {
@@ -396,21 +404,26 @@
   "errors": [
     {
       "code": 6000,
-      "name": "InvalidUpdateAuthority",
-      "msg": "Wrong update authority for offset state"
+      "name": "InvalidAdminAuthority",
+      "msg": "Wrong admin authority for offset state"
     },
     {
       "code": 6001,
+      "name": "InvalidMintAuthority",
+      "msg": "Wrong mint authority for offset state"
+    },
+    {
+      "code": 6002,
       "name": "InvalidOffsetMetadata",
       "msg": "Invalid offset metadata pda"
     },
     {
-      "code": 6002,
+      "code": 6003,
       "name": "NoOffsetTiers",
       "msg": "Invalid offset tiers pda"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "InvalidUpdateForMint",
       "msg": "Invalid update for mint"
     }

@@ -155,13 +155,6 @@ pub mod sunrise_stake {
     ) -> Result<()> {
         init_epoch_report_handler(ctx, extracted_yield)
     }
-
-    pub fn init_impact_nft_state<'info>(
-        ctx: Context<'_, '_, '_, 'info, InitImpactNftState<'info>>,
-        levels: u16,
-    ) -> Result<()> {
-        init_impact_nft_state_handler(ctx, levels)
-    }
 }
 
 #[allow(dead_code)]

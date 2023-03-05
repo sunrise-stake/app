@@ -3614,9 +3614,16 @@
     eventemitter3 "^4.0.7"
     uuid "^8.3.2"
 
-"@sunrisestake/impact-nft-client@file:./sunrisestake-impact-nft-client-v0.0.1-alpha.0.tgz":
-  version "0.0.1-alpha.0"
-  resolved "file:./sunrisestake-impact-nft-client-v0.0.1-alpha.0.tgz#ca391a6aac166c5a2c87ee99b23e4ad093745cd4"
+"@sunrisestake/impact-nft-client@./sunrisestake-impact-nft-client-v0.0.1-alpha.1.tgz":
+  version "0.0.1-alpha.1"
+  resolved "./sunrisestake-impact-nft-client-v0.0.1-alpha.1.tgz#9fd86c22c484d9ae3ab20eb48888e3bae1dba2f9"
+  dependencies:
+    "@coral-xyz/anchor" "^0.26.0"
+    "@solana/spl-token" "^0.3.7"
+
+"@sunrisestake/impact-nft-client@file:./sunrisestake-impact-nft-client-v0.0.1-alpha.2.tgz":
+  version "0.0.1-alpha.2"
+  resolved "file:./sunrisestake-impact-nft-client-v0.0.1-alpha.2.tgz#ab3c87919b08c68a6e9bd2cb5ef1d2f84263d29b"
   dependencies:
     "@coral-xyz/anchor" "^0.26.0"
     "@solana/spl-token" "^0.3.7"

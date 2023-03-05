@@ -24,7 +24,7 @@ export interface EnvironmentConfig {
   percentageStakeToMarinade: number;
   blaze: BlazeConfig;
   impactNFT: {
-    authority: PublicKey;
+    state: PublicKey;
   };
 }
 export const Environment: Record<
@@ -42,7 +42,7 @@ export const Environment: Record<
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
     impactNFT: {
-      authority: new PublicKey("48V9nmW9awiR9BmihdGhUL3ZpYJ8MCgGeUoSWbtqjicv")  // TODO Tmp- will be replaced with a state address
+      state: PublicKey.default, // TODO Tmp- will be replaced with a state address
     },
   },
   // TODO placeholders
@@ -55,7 +55,7 @@ export const Environment: Record<
       bsolMint: PublicKey.default,
     },
     impactNFT: {
-      authority: PublicKey.default, // TODO
+      state: PublicKey.default, // TODO
     },
   },
   devnet: {
@@ -69,7 +69,7 @@ export const Environment: Record<
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
     impactNFT: {
-      authority: PublicKey.default, // TODO
+      state: PublicKey.default, // TODO
     },
   },
   localnet: {
@@ -83,7 +83,7 @@ export const Environment: Record<
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
     impactNFT: {
-      authority: PublicKey.default, // TODO
+      state: PublicKey.default, // TODO
     },
   },
 };

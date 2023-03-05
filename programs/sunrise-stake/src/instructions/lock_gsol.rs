@@ -1,13 +1,12 @@
 use crate::error::ErrorCode;
 use crate::state::{EpochReportAccount, LockAccount, State};
-use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, IMPACT_NFT_MINT_AUTHORITY, LOCK_TOKEN_ACCOUNT};
+use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, IMPACT_NFT_MINT_AUTHORITY, IMPACT_NFT_MINT_ACCOUNT, LOCK_TOKEN_ACCOUNT};
 use crate::utils::token::transfer_to;
 use impact_nft_cpi::cpi::accounts::{MintNft};
 use impact_nft_cpi::cpi::{mint_nft as cpi_mint_nft};
 use impact_nft_cpi::program::ImpactNft;
 use impact_nft_cpi::{GlobalState as ImpactNftState};
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
@@ -69,11 +68,12 @@ pub struct LockGSol<'info> {
     pub token_metadata_program: UncheckedAccount<'info>,
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    // #[account(
-    // mut,
-    // constraint = nft_mint.mint_authority == COption::Some(nft_mint_authority.key()),
-    // )]
-    pub nft_mint: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [state.key().as_ref(), IMPACT_NFT_MINT_ACCOUNT, authority.key().as_ref()],
+        bump, // TODO Move to state object?
+    )]
+    pub nft_mint: SystemAccount<'info>,
     #[account(
         mut,
         seeds = [state.key().as_ref(), IMPACT_NFT_MINT_AUTHORITY],
@@ -81,13 +81,16 @@ pub struct LockGSol<'info> {
     )]
     pub nft_mint_authority: SystemAccount<'info>,
     /// CHECK: (TODO) checked in impact nft program
+    #[account(mut)]
     pub nft_metadata: UncheckedAccount<'info>,
     /// CHECK: May be uninitialized - if so, it will be initialized by the impact nft program
     #[account(mut)]
     pub nft_holder_token_account: UncheckedAccount<'info>,
     /// CHECK: (TODO) checked in impact nft program
+    #[account(mut)]
     pub nft_master_edition: UncheckedAccount<'info>,
     /// CHECK: (TODO) checked in impact nft program
+    #[account(mut)]
     pub offset_metadata: UncheckedAccount<'info>,
     /// CHECK: (TODO) checked in impact nft program
     pub offset_tiers: UncheckedAccount<'info>,
@@ -109,13 +112,20 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
 
     msg!("Minting NFT on impact nft program");
     let state_address = ctx.accounts.state.key();
-    let seeds = &[
+    let mint_authority_seeds = &[
         state_address.as_ref(),
         IMPACT_NFT_MINT_AUTHORITY,
         &[*ctx.bumps.get("nft_mint_authority").unwrap()],
     ];
-    msg!("Seeds: {:?}", seeds);
-    let pda_signer = &[&seeds[..]];
+    msg!("Mint authority {:?} seeds: {:?}", ctx.accounts.nft_mint_authority.key(), mint_authority_seeds);
+    let mint_seeds = &[
+        state_address.as_ref(),
+        IMPACT_NFT_MINT_ACCOUNT,
+        ctx.accounts.authority.key.as_ref(),
+        &[*ctx.bumps.get("nft_mint").unwrap()],
+    ];
+    msg!("Mint {:?} seeds: {:?}", ctx.accounts.nft_mint.key(), mint_seeds);
+    let pda_signer = &[&mint_authority_seeds[..], &mint_seeds[..]];
 
     // Mint NFT if not present
     if *ctx.accounts.nft_holder_token_account.owner != ctx.accounts.token_program.key() {
@@ -124,7 +134,7 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
             mint_authority: ctx.accounts.nft_mint_authority.to_account_info(),
             mint: ctx.accounts.nft_mint.to_account_info(),
             metadata: ctx.accounts.nft_metadata.to_account_info(),
-            mint_nft_to_owner: ctx.accounts.payer.to_account_info(),
+            mint_nft_to_owner: ctx.accounts.authority.to_account_info(),
             mint_nft_to: ctx.accounts.nft_holder_token_account.to_account_info(),
             master_edition: ctx.accounts.nft_master_edition.to_account_info(),
             offset_tiers: ctx.accounts.offset_tiers.to_account_info(),
@@ -140,7 +150,9 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts)
             .with_signer(pda_signer);
 
-        cpi_mint_nft(cpi_ctx, 0, "tmp".to_owned(), "tmp".to_owned())?; // TODO
+        cpi_mint_nft(cpi_ctx, 0)?;
+    } else {
+        msg!("NFT already minted");
     }
 
     Ok(())

@@ -149,6 +149,7 @@ export class SunriseStakeClient {
       updateAuthority: sunriseStakeState.updateAuthority,
       liqPoolProportion: sunriseStakeState.liqPoolProportion,
       liqPoolMinProportion: sunriseStakeState.liqPoolMinProportion,
+      impactNftStateAddress: this.env.impactNFT.state,
       options: this.options,
     };
 
@@ -1127,6 +1128,7 @@ export class SunriseStakeClient {
       treasury,
       liqPoolProportion: DEFAULT_LP_PROPORTION,
       liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      impactNftStateAddress: this.env.impactNFT.state,
       options,
     };
     const marinadeConfig = new MarinadeConfig({
@@ -1393,7 +1395,7 @@ export class SunriseStakeClient {
     };
   }
 
-  public async lockGSol(lamports: BN): Promise<[Transaction, Keypair]> {
+  public async lockGSol(lamports: BN): Promise<Transaction> {
     if (
       !this.stakerGSolTokenAccount ||
       !this.config ||
@@ -1410,7 +1412,7 @@ export class SunriseStakeClient {
       transaction.add(recoverInstruction);
     }
 
-    const [lockTx, signer] = await lockGSol(
+    const lockTx = await lockGSol(
       this.config,
       this.program,
       this.staker,
@@ -1421,7 +1423,7 @@ export class SunriseStakeClient {
 
     transaction.add(lockTx);
 
-    return [transaction, signer];
+    return transaction;
   }
 
   public async updateLockAccount(): Promise<Transaction> {
