@@ -329,4 +329,4 @@ export const impactNFTLevels = (levelCount: number) => {
     name: `sunriseStake${i}`,
     symbol: `sun${i}`,
   }));
-}
+};
