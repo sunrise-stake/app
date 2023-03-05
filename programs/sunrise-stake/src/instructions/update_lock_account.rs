@@ -45,9 +45,6 @@ pub struct UpdateLockAccount<'info> {
     pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
-    pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
-    pub rent: Sysvar<'info, Rent>,
 
     /// IMPACT NFT ACCOUNTS
     pub impact_nft_program: Program<'info, ImpactNft>,
