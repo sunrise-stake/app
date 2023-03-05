@@ -349,6 +349,8 @@ describe("sunrise-stake", () => {
   });
 
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
+    await waitForNextEpoch(client);
+
     log("Before big unstake");
     const details = await client.details();
 

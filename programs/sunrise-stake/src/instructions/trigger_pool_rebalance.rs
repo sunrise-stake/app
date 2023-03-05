@@ -114,7 +114,11 @@ pub fn trigger_pool_rebalance_handler<'info>(
     index: u64,
     order_unstake_ticket_account_bump: u8,
 ) -> Result<()> {
-    msg!("Checking liq_pool pool balance");
+    msg!(
+        "Checking liq_pool pool balance - epoch {}, clock epoch: {}",
+        _epoch,
+        ctx.accounts.clock.epoch
+    );
     let calculate_pool_balance_props = ctx.accounts.deref().into();
     let amounts = marinade::calculate_pool_balance_amounts(&calculate_pool_balance_props, 0)?;
 
