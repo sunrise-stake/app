@@ -321,3 +321,12 @@ export async function getDelegatedAmount(
   const delegation = parsedData?.info?.stake?.delegation.stake ?? null;
   return new BN(delegation);
 }
+
+export const impactNFTLevels = (levelCount: number) => {
+  return [...Array(levelCount).keys()].map((i) => ({
+    offset: new BN(100 * (i + 1)),
+    uri: "http://example.test",
+    name: `sunriseStake${i}`,
+    symbol: `sun${i}`,
+  }));
+}

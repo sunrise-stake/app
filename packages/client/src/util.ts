@@ -17,7 +17,11 @@ import {
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Details } from "./types/Details";
 import { MAX_NUM_PRECISION } from "./constants";
-import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
+import {
+  getAccount,
+  getAssociatedTokenAddressSync,
+  type Account as TokenAccount,
+} from "@solana/spl-token";
 
 // zero bn number
 export const ZERO = new BN(0);
@@ -53,7 +57,7 @@ export interface SunriseStakeConfig {
   liqPoolMinProportion: number;
 
   options: Options;
-  impactNftStateAddress: PublicKey;
+  impactNFTStateAddress: PublicKey;
 }
 
 // Return the type of an element in an array
@@ -75,12 +79,6 @@ const findProgramDerivedAddress = (
     Buffer.from(seed),
     ...extraSeeds,
   ];
-  console.log(
-    "seeds",
-    seeds.map((s) => s.toJSON()),
-    "for address ",
-    PublicKey.findProgramAddressSync(seeds, config.programId)
-  );
   return PublicKey.findProgramAddressSync(seeds, config.programId);
 };
 
@@ -170,6 +168,45 @@ export const logKeys = (transaction: Transaction): void => {
       console.log(j, i, key.pubkey.toBase58());
     });
   });
+};
+
+export const getTokenAccountNullable = async (
+  connection: Connection,
+  tokenAccountAddress: PublicKey
+): Promise<TokenAccount | null> => {
+  return getAccount(connection, tokenAccountAddress).catch((error) => {
+    if (error.name === "TokenAccountNotFoundError") {
+      return null;
+    }
+    throw error;
+  });
+};
+
+interface NFTSummary {
+  mint: PublicKey;
+  tokenAccount: PublicKey;
+  exists: boolean;
+}
+export const getImpactNFT = async (
+  config: SunriseStakeConfig,
+  authority: PublicKey,
+  provider: AnchorProvider
+): Promise<NFTSummary> => {
+  const impactNFTMint = findImpactNFTMint(config, authority)[0];
+  const tokenAccountAddress = getAssociatedTokenAddressSync(
+    impactNFTMint,
+    authority
+  );
+  const tokenAccount = await getTokenAccountNullable(
+    provider.connection,
+    tokenAccountAddress
+  );
+
+  return {
+    mint: impactNFTMint,
+    tokenAccount: tokenAccountAddress,
+    exists: (tokenAccount?.amount ?? 0) > 0,
+  };
 };
 
 export const confirm = (connection: Connection) => async (txSig: string) =>

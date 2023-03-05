@@ -4,10 +4,10 @@ import {
   findImpactNFTMintAuthority,
   findLockAccount,
   findLockTokenAccount,
+  getTokenAccountNullable,
   type SunriseStakeConfig,
 } from "./util";
 import {
-  Keypair,
   type PublicKey,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
@@ -16,11 +16,10 @@ import {
 } from "@solana/web3.js";
 import { type LockAccount } from "./types/LockAccount";
 import * as anchor from "@coral-xyz/anchor";
-import { type Program } from "@coral-xyz/anchor";
+import { type AnchorProvider, type Program } from "@coral-xyz/anchor";
 import { type SunriseStake } from "./types/sunrise_stake";
 import {
   type Account as TokenAccount,
-  getAccount,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import type BN from "bn.js";
@@ -38,12 +37,9 @@ const getLockTokenAccount = async (
 ): Promise<GetLockTokenAccountResult> => {
   const [address] = findLockTokenAccount(config, authority);
 
-  const account = await getAccount(program.provider.connection, address).catch(
-    (e) => {
-      // safer than instanceof
-      if (e.name === "TokenAccountNotFoundError") return null;
-      throw e;
-    }
+  const account = await getTokenAccountNullable(
+    program.provider.connection,
+    address
   );
 
   return { address, account };
@@ -116,11 +112,12 @@ export const lockGSol = async (
   const preInstructions: TransactionInstruction[] = [];
 
   const mintAuthority = findImpactNFTMintAuthority(config)[0];
-  const mint = await findImpactNFTMint(config, authority)[0];
-  const impactNftClient = await ImpactNftClient.get(
-    config.impactNftStateAddress
+  const mint = findImpactNFTMint(config, authority)[0];
+  const impactNFTClient = await ImpactNftClient.get(
+    program.provider as AnchorProvider,
+    config.impactNFTStateAddress
   );
-  const impactNftAccounts = impactNftClient.getMintNftAccounts(
+  const impactNftAccounts = impactNFTClient.getMintNftAccounts(
     mint,
     authority // holder
   );
@@ -128,7 +125,7 @@ export const lockGSol = async (
   const allImpactNFTAccounts = {
     impactNftProgram: impactNftAccounts.program,
     tokenMetadataProgram: impactNftAccounts.tokenMetadataProgram,
-    impactNftState: config.impactNftStateAddress,
+    impactNftState: config.impactNFTStateAddress,
     nftMint: mint,
     nftMintAuthority: mintAuthority,
     nftMetadata: impactNftAccounts.metadata,
@@ -170,8 +167,6 @@ export const lockGSol = async (
     clock: SYSVAR_CLOCK_PUBKEY,
     ...allImpactNFTAccounts,
   };
-
-  console.log("lockGSol accounts", accounts);
 
   return program.methods
     .lockGsol(lamports)
