@@ -2,6 +2,7 @@ use crate::state::{EpochReportAccount, State};
 use crate::utils::marinade;
 use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT};
 use crate::utils::system;
+use crate::error::ErrorCode;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
@@ -96,7 +97,7 @@ pub struct TriggerPoolRebalance<'info> {
     mut,
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
     bump = epoch_report_account.bump,
-    constraint = epoch == clock.epoch
+    constraint = epoch == clock.epoch @ ErrorCode::InvalidEpochReportAccount,
     )]
     pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 

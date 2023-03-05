@@ -442,9 +442,13 @@ export class SunriseStakeClient {
       throw new Error("No epoch report account found during recoverTickets");
     }
 
+    this.log(`Current epoch: ${currentEpoch.epoch}, epoch report epoch: ${epochReport.epoch.toNumber()}`)
     if (currentEpoch.epoch === epochReport.epoch.toNumber()) {
       // nothing to do here - the report account is for the current epoch, so we cannot recover any tickets yet
+      this.log("Skipping recoverTickets, epoch report is for current epoch")
       return null;
+    } else {
+      this.log("Updating epoch report account and recovering tickets from previous epoch")
     }
 
     // get a list of all the open delayed unstake tickets that can now be recovered
