@@ -1,4 +1,4 @@
-import * as anchor from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import {
   Metaplex,
@@ -10,7 +10,7 @@ import {
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import * as fs from "fs";
 import os from "os";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 
 const name = "Sunrise gSOL";
 const description = "Sunrise Stake Green SOL Token";

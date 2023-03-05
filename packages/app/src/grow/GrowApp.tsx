@@ -155,7 +155,9 @@ const _GrowApp: ForwardRefRenderFunction<
           })}
         </div>
       </div>
-      <h2 className="font-bold text-xl mt-8 mb-4">Transfer gSOL</h2>
+      <h2 className="font-bold text-xl mt-8 mb-4">
+        Invite someone to your forest...
+      </h2>
       <SendGSolForm
         className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl"
         charity={charity}

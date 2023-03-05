@@ -19,6 +19,7 @@ import { useZenMode } from "../common/context/ZenModeContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 import { solToLamports, toFixedWithPrecision } from "../common/utils";
+import { ImpactNFT } from "./ImpactNFT";
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -140,7 +141,11 @@ const _LockingApp: ForwardRefRenderFunction<
         </div>
       )}
       <div className="w-[20%] h-[20%] bg-green m-8">My Tree</div>
-      <div className="w-[20%] h-[20%] bg-green m-8">Impact NFT</div>
+      <div className="w-[20%] h-[20%] m-8">
+        {details?.impactNFTDetails && (
+          <ImpactNFT details={details.impactNFTDetails} />
+        )}
+      </div>
 
       {details?.lockDetails ? (
         <>

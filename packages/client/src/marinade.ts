@@ -22,7 +22,7 @@ import {
   type MarinadeState,
   MarinadeUtils,
 } from "@sunrisestake/marinade-ts-sdk";
-import { type Program, utils } from "@project-serum/anchor";
+import { type Program, utils } from "@coral-xyz/anchor";
 import { type BlazeState } from "./types/Solblaze";
 import { type SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";

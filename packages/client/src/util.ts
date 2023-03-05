@@ -7,8 +7,8 @@ import {
   type Transaction,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
-import * as anchor from "@project-serum/anchor";
-import { AnchorProvider, BN } from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { AnchorProvider, BN } from "@coral-xyz/anchor";
 import {
   type MarinadeState,
   MarinadeUtils,
@@ -17,9 +17,18 @@ import {
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Details } from "./types/Details";
 import { MAX_NUM_PRECISION } from "./constants";
+import {
+  getAccount,
+  getAssociatedTokenAddressSync,
+  type Account as TokenAccount,
+} from "@solana/spl-token";
 
 // zero bn number
 export const ZERO = new BN(0);
+
+export const PROGRAM_ID = new PublicKey(
+  "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
+);
 
 export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
   lamports.div(new BN(10).pow(new BN(precision))).toNumber() /
@@ -33,6 +42,8 @@ export const enum ProgramDerivedAddressSeed {
   ORDER_UNSTAKE_TICKET_ACCOUNT = "order_unstake_ticket_account",
   LOCK_ACCOUNT = "lock_account",
   LOCK_TOKEN_ACCOUNT = "lock_token_account",
+  IMPACT_NFT_MINT_AUTHORITY = "impact_nft_mint_authority",
+  IMPACT_NFT_MINT_ACCOUNT = "impact_nft_mint_account",
 }
 
 export interface SunriseStakeConfig {
@@ -46,6 +57,7 @@ export interface SunriseStakeConfig {
   liqPoolMinProportion: number;
 
   options: Options;
+  impactNFTStateAddress: PublicKey;
 }
 
 // Return the type of an element in an array
@@ -132,12 +144,69 @@ export const findLockTokenAccount = (
     [authority.toBuffer()]
   );
 
+export const findImpactNFTMintAuthority = (
+  config: SunriseStakeConfig
+): [PublicKey, number] =>
+  findProgramDerivedAddress(
+    config,
+    ProgramDerivedAddressSeed.IMPACT_NFT_MINT_AUTHORITY
+  );
+
+export const findImpactNFTMint = (
+  config: SunriseStakeConfig,
+  authority: PublicKey
+): [PublicKey, number] =>
+  findProgramDerivedAddress(
+    config,
+    ProgramDerivedAddressSeed.IMPACT_NFT_MINT_ACCOUNT,
+    [authority.toBuffer()]
+  );
+
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
     instruction.keys.forEach((key, i) => {
       console.log(j, i, key.pubkey.toBase58());
     });
   });
+};
+
+export const getTokenAccountNullable = async (
+  connection: Connection,
+  tokenAccountAddress: PublicKey
+): Promise<TokenAccount | null> => {
+  return getAccount(connection, tokenAccountAddress).catch((error) => {
+    if (error.name === "TokenAccountNotFoundError") {
+      return null;
+    }
+    throw error;
+  });
+};
+
+interface NFTSummary {
+  mint: PublicKey;
+  tokenAccount: PublicKey;
+  exists: boolean;
+}
+export const getImpactNFT = async (
+  config: SunriseStakeConfig,
+  authority: PublicKey,
+  provider: AnchorProvider
+): Promise<NFTSummary> => {
+  const impactNFTMint = findImpactNFTMint(config, authority)[0];
+  const tokenAccountAddress = getAssociatedTokenAddressSync(
+    impactNFTMint,
+    authority
+  );
+  const tokenAccount = await getTokenAccountNullable(
+    provider.connection,
+    tokenAccountAddress
+  );
+
+  return {
+    mint: impactNFTMint,
+    tokenAccount: tokenAccountAddress,
+    exists: (tokenAccount?.amount ?? 0) > 0,
+  };
 };
 
 export const confirm = (connection: Connection) => async (txSig: string) =>
@@ -164,11 +233,6 @@ export interface Balance {
   bsolBalance: TokenAmount;
   holdingAccountBalance: number;
 }
-
-export const PROGRAM_ID = new PublicKey(
-  "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
-);
-
 export const ZERO_BALANCE = {
   value: {
     amount: "0",

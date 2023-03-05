@@ -7,6 +7,7 @@ import {
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
   Environment,
+  findImpactNFTMintAuthority,
 } from "../client/src";
 import {
   burnGSol,
@@ -24,6 +25,7 @@ import {
   waitForNextEpoch,
   expectBSolTokenBalance,
   initializeStakeAccount,
+  impactNFTLevels,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -39,6 +41,7 @@ import {
   unstakeLamportsExceedLPBalance,
   unstakeLamportsUnderLPBalance,
 } from "./constants";
+import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
 
 chai.use(chaiAsPromised);
 
@@ -114,6 +117,27 @@ describe("sunrise-stake", () => {
       })
       .signers([updateAuthority])
       .rpc();
+  });
+
+  it("can create an impactNFT state with the mint authority derived from the sunrise state", async () => {
+    const impactNftMintAuthority = findImpactNFTMintAuthority(
+      client.config!
+    )[0];
+    const levelCount = 8;
+    const levels = impactNFTLevels(levelCount);
+    const impactNftClient = await ImpactNftClient.register(
+      impactNftMintAuthority,
+      levelCount
+    );
+
+    if (!impactNftClient.stateAddress)
+      throw new Error("Impact NFT state not registered");
+
+    await impactNftClient.registerOffsetTiers(levels);
+
+    // set the newly-generated impactNft state in the client config
+    // so that it can be looked up in the next test
+    client.config!.impactNFTStateAddress = impactNftClient.stateAddress;
   });
 
   it("returns zero extractable yield if no SOL has been staked", async () => {
@@ -262,6 +286,7 @@ describe("sunrise-stake", () => {
       unstakeLamportsExceedLPBalance,
       details
     );
+    await client.report();
     log("total withdrawal fee: ", totalFee.toString());
 
     // The LP balance is ~18 SOL at this point
@@ -274,13 +299,12 @@ describe("sunrise-stake", () => {
     // 2.6e9 * 0.003 + 1503360 + 5000 = 9.1e6
     // Actual values: ((20000000000-17448456901)* 0,003) + 1503360 + 5000 = 9162989.297
     // Tolerance to allow for rounding issues
-
     // expectAmount(9162989, totalWithdrawalFee, 100);
 
     // Liquid unstake comes completely from blaze here, charged at 0.03% rather than marinade's 0.3%
     // Unsure about if the rebalance works the same as it did prior. If it does, the new value should be:
-    // ((20000000000-17448456901)* 0.0003) + 1503360 + (2 * 5000) = 2278822.9297
-    expectAmount(2278822, totalFee, 100);
+    // ((20000000000-17463623930)* 0.0003) + 1503360 + (2 * 5000) = 2_274_272.821
+    expectAmount(2_274_272, totalFee, 100);
   });
 
   // Triggers a liquid unstake from Blaze only (since its valuation is higher)
@@ -325,6 +349,8 @@ describe("sunrise-stake", () => {
   });
 
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
+    await waitForNextEpoch(client);
+
     log("Before big unstake");
     const details = await client.details();
 

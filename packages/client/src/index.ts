@@ -1,6 +1,6 @@
 import { IDL, type SunriseStake } from "./types/sunrise_stake";
-import * as anchor from "@project-serum/anchor";
-import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { type AnchorProvider, Program, utils } from "@coral-xyz/anchor";
 import {
   type ConfirmOptions,
   Keypair,
@@ -30,6 +30,8 @@ import {
   ZERO,
   ZERO_BALANCE,
   toSol,
+  findImpactNFTMintAuthority,
+  getImpactNFT,
 } from "./util";
 import {
   Marinade,
@@ -94,7 +96,7 @@ export * from "./types/Solblaze";
 // export all constants
 export * from "./constants";
 
-export { toSol } from "./util";
+export { toSol, findImpactNFTMintAuthority } from "./util";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -149,6 +151,7 @@ export class SunriseStakeClient {
       updateAuthority: sunriseStakeState.updateAuthority,
       liqPoolProportion: sunriseStakeState.liqPoolProportion,
       liqPoolMinProportion: sunriseStakeState.liqPoolMinProportion,
+      impactNFTStateAddress: this.env.impactNFT.state,
       options: this.options,
     };
 
@@ -439,9 +442,19 @@ export class SunriseStakeClient {
       throw new Error("No epoch report account found during recoverTickets");
     }
 
+    this.log(
+      `Current epoch: ${
+        currentEpoch.epoch
+      }, epoch report epoch: ${epochReport.epoch.toNumber()}`
+    );
     if (currentEpoch.epoch === epochReport.epoch.toNumber()) {
       // nothing to do here - the report account is for the current epoch, so we cannot recover any tickets yet
+      this.log("Skipping recoverTickets, epoch report is for current epoch");
       return null;
+    } else {
+      this.log(
+        "Updating epoch report account and recovering tickets from previous epoch"
+      );
     }
 
     // get a list of all the open delayed unstake tickets that can now be recovered
@@ -878,10 +891,10 @@ export class SunriseStakeClient {
 
     this.log("amount to order unstake: ", amountToOrderUnstake);
     this.log("rent for order unstake: ", rentForOrderUnstakeTicket);
-
     const ticketFee = rentForOrderUnstakeTicket;
-
     let totalFee = new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE);
+
+    this.log("base fee for order unstake: ", totalFee.toString());
 
     if (amountBeingLiquidUnstaked.lte(ZERO)) {
       return {
@@ -918,6 +931,20 @@ export class SunriseStakeClient {
 
     totalFee = totalFee.add(liquidUnstakeFee);
 
+    this.log({
+      withdrawalLamports: withdrawalLamports.toString(),
+      lpSolShare: lpSolShare.toString(),
+      amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
+      marinadeUnstake: marinadeUnstake.toString(),
+      blazeUnstake: blazeUnstake.toString(),
+      marinadeUnstakeFee: marinadeUnstakeFee.toString(),
+      blazeUnstakeFee: blazeUnstakeFee.toString(),
+      liquidUnstakeFee: liquidUnstakeFee.toString(),
+      msolValue: msolValue.toString(),
+      bsolValue: bsolValue.toString(),
+      totalFee: totalFee.toString(),
+    });
+
     return {
       liquidUnstakeFee,
       ticketFee,
@@ -949,6 +976,12 @@ export class SunriseStakeClient {
 
     const lockAccountPromise = await this.getLockAccount();
 
+    const impactNFTPromise = await getImpactNFT(
+      this.config,
+      this.staker,
+      this.provider
+    );
+
     const [
       currentEpoch,
       lpMintInfo,
@@ -956,6 +989,7 @@ export class SunriseStakeClient {
       lpMsolBalance,
       balances,
       lockAccountDetails,
+      impactNFT,
     ] = await Promise.all([
       currentEpochPromise,
       lpMintInfoPromise,
@@ -963,6 +997,7 @@ export class SunriseStakeClient {
       lpMsolBalancePromise,
       balancesPromise,
       lockAccountPromise,
+      impactNFTPromise,
     ]);
 
     const availableLiqPoolSolLegBalance = new BN(lpSolLegBalance).sub(
@@ -1046,6 +1081,15 @@ export class SunriseStakeClient {
           }
         : undefined;
 
+    const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
+      ? {
+          stateAddress: this.config.impactNFTStateAddress,
+          mintAuthority: findImpactNFTMintAuthority(this.config)[0],
+          mint: impactNFT.mint,
+          tokenAccount: impactNFT.tokenAccount,
+        }
+      : undefined;
+
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
       balances,
@@ -1067,6 +1111,7 @@ export class SunriseStakeClient {
       lpDetails,
       bpDetails,
       lockDetails,
+      impactNFTDetails,
     };
 
     const extractableYield =
@@ -1127,6 +1172,7 @@ export class SunriseStakeClient {
       treasury,
       liqPoolProportion: DEFAULT_LP_PROPORTION,
       liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      impactNFTStateAddress: this.env.impactNFT.state,
       options,
     };
     const marinadeConfig = new MarinadeConfig({
@@ -1415,6 +1461,7 @@ export class SunriseStakeClient {
       this.program,
       this.staker,
       this.stakerGSolTokenAccount,
+      this.env.impactNFT,
       lamports
     );
 

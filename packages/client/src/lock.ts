@@ -1,7 +1,10 @@
 import {
   findEpochReportAccount,
+  findImpactNFTMint,
+  findImpactNFTMintAuthority,
   findLockAccount,
   findLockTokenAccount,
+  getTokenAccountNullable,
   type SunriseStakeConfig,
 } from "./util";
 import {
@@ -12,15 +15,16 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import { type LockAccount } from "./types/LockAccount";
-import * as anchor from "@project-serum/anchor";
-import { type Program } from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { type AnchorProvider, type Program } from "@coral-xyz/anchor";
 import { type SunriseStake } from "./types/sunrise_stake";
 import {
   type Account as TokenAccount,
-  getAccount,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import type BN from "bn.js";
+import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
+import { type EnvironmentConfig } from "./constants";
 
 interface GetLockTokenAccountResult {
   address: PublicKey;
@@ -33,12 +37,9 @@ const getLockTokenAccount = async (
 ): Promise<GetLockTokenAccountResult> => {
   const [address] = findLockTokenAccount(config, authority);
 
-  const account = await getAccount(program.provider.connection, address).catch(
-    (e) => {
-      // safer than instanceof
-      if (e.name === "TokenAccountNotFoundError") return null;
-      throw e;
-    }
+  const account = await getTokenAccountNullable(
+    program.provider.connection,
+    address
   );
 
   return { address, account };
@@ -97,6 +98,7 @@ export const lockGSol = async (
   program: Program<SunriseStake>,
   authority: PublicKey,
   sourceGSolTokenAccount: PublicKey,
+  impactNFTConfig: EnvironmentConfig["impactNFT"],
   lamports: BN
 ): Promise<Transaction> => {
   const { lockAccountAddress, tokenAccountAddress, lockAccount } =
@@ -108,6 +110,30 @@ export const lockGSol = async (
   >[0];
 
   const preInstructions: TransactionInstruction[] = [];
+
+  const mintAuthority = findImpactNFTMintAuthority(config)[0];
+  const mint = findImpactNFTMint(config, authority)[0];
+  const impactNFTClient = await ImpactNftClient.get(
+    program.provider as AnchorProvider,
+    config.impactNFTStateAddress
+  );
+  const impactNftAccounts = impactNFTClient.getMintNftAccounts(
+    mint,
+    authority // holder
+  );
+
+  const allImpactNFTAccounts = {
+    impactNftProgram: impactNftAccounts.program,
+    tokenMetadataProgram: impactNftAccounts.tokenMetadataProgram,
+    impactNftState: config.impactNFTStateAddress,
+    nftMint: mint,
+    nftMintAuthority: mintAuthority,
+    nftMetadata: impactNftAccounts.metadata,
+    nftHolderTokenAccount: impactNftAccounts.userTokenAccount,
+    nftMasterEdition: impactNftAccounts.masterEdition,
+    offsetMetadata: impactNftAccounts.offsetMetadata,
+    offsetTiers: impactNftAccounts.offsetTiers,
+  };
 
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {
@@ -139,6 +165,7 @@ export const lockGSol = async (
     tokenProgram: TOKEN_PROGRAM_ID,
     rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     clock: SYSVAR_CLOCK_PUBKEY,
+    ...allImpactNFTAccounts,
   };
 
   return program.methods

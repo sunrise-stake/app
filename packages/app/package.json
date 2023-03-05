@@ -5,7 +5,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.12",
     "@heroicons/react": "^2.0.13",
-    "@metaplex-foundation/js": "^0.17.12",
+    "@metaplex-foundation/js": "^0.18.3",
     "@popperjs/core": "^2.11.6",
     "@solana/spl-token": "^0.3.6",
     "@solana/wallet-adapter-base": "^0.9.20",
@@ -28,6 +28,7 @@
     "assert": "^2.0.0",
     "autoprefixer": "^10.4.13",
     "bn.js": "^5.2.1",
+    "browserify-zlib": "^0.2.0",
     "bs58": "^5.0.0",
     "buffer": "^6.0.3",
     "classnames": "^2.3.2",

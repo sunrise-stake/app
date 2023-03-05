@@ -932,127 +932,6 @@ export type SunriseStake = {
       "args": []
     },
     {
-      "name": "initEpochReport",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "updateAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "marinadeState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "blazeState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "msolMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "gsolMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "bsolMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolSolLegPda",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolMsolLeg",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolTokenAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryMsolAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "getMsolFrom",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "getMsolFromAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "getBsolFrom",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "getBsolFromAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasury",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "epochReportAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "extractedYield",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "splDepositSol",
       "accounts": [
         {
@@ -1610,6 +1489,64 @@ export type SunriseStake = {
           "name": "rent",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "impactNftProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "IMPACT NFT ACCOUNTS"
+          ]
+        },
+        {
+          "name": "impactNftState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMintAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftHolderTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMasterEdition",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offsetMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offsetTiers",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -2033,6 +1970,127 @@ export type SunriseStake = {
         {
           "name": "symbol",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "initEpochReport",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "marinadeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "blazeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFrom",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "extractedYield",
+          "type": "u64"
         }
       ]
     }
@@ -3295,127 +3353,6 @@ export const IDL: SunriseStake = {
       "args": []
     },
     {
-      "name": "initEpochReport",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "updateAuthority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "marinadeState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "blazeState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "msolMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "gsolMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "bsolMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolSolLegPda",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolMsolLeg",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "liqPoolTokenAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryMsolAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "getMsolFrom",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "getMsolFromAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "getBsolFrom",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "getBsolFromAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasury",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "epochReportAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "extractedYield",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "splDepositSol",
       "accounts": [
         {
@@ -3973,6 +3910,64 @@ export const IDL: SunriseStake = {
           "name": "rent",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "impactNftProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "IMPACT NFT ACCOUNTS"
+          ]
+        },
+        {
+          "name": "impactNftState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMintAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftHolderTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMasterEdition",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offsetMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offsetTiers",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -4396,6 +4391,127 @@ export const IDL: SunriseStake = {
         {
           "name": "symbol",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "initEpochReport",
+      "accounts": [
+        {
+          "name": "state",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "marinadeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "blazeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "gsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bsolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "getMsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFrom",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "getBsolFromAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "epochReportAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "extractedYield",
+          "type": "u64"
         }
       ]
     }

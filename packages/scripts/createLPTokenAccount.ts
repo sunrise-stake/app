@@ -2,7 +2,7 @@
 import {Environment, SunriseStakeClient} from "../client/src";
 import { Transaction } from "@solana/web3.js";
 import "./util";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 import { createAssociatedTokenAccountIdempotentInstruction } from "@solana/spl-token";
 
 // Used to create the LP token account for a given sunrise instance
