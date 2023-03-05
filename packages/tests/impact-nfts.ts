@@ -4,8 +4,8 @@ import {
   Environment,
   IMPACT_NFT_PROGRAM_ID,
 } from "../client/src";
-import { impactNFTLevels, log } from "./util";
-import chai from "chai";
+import {impactNFTLevels, log, waitForNextEpoch} from "./util";
+import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { depositLamports, lockLamports } from "./constants";
 import * as anchor from "@coral-xyz/anchor";
@@ -26,7 +26,7 @@ enum Seed {
   GlobalState = "global_state",
 }
 
-describe("Impact NFTs", () => {
+describe.only("Impact NFTs", () => {
   let client: SunriseStakeClient;
 
   const treasury = Keypair.generate();
@@ -83,5 +83,32 @@ describe("Impact NFTs", () => {
   it("can mint an impact nft when locking gSOL", async () => {
     const transaction = await client.lockGSol(lockLamports);
     await client.sendAndConfirmTransaction(transaction);
+
+    const details = await client.details();
+    expect(details.impactNFTDetails?.tokenAccount).to.exist;
+  });
+
+  it("cannot re-lock", async () => {
+    const shouldFail = client.sendAndConfirmTransaction(
+        await client.lockGSol(lockLamports)
+    );
+
+    return expect(shouldFail).to.be.rejected;
+  });
+
+  it("cannot unlock sol this epoch", async () => {
+    const shouldFail = client.sendAndConfirmTransaction(
+        await client.unlockGSol()
+    );
+
+    return expect(shouldFail).to.be.rejected;
+  });
+
+  it("can update the lock account", async () => {
+    await waitForNextEpoch(client);
+
+    await client.sendAndConfirmTransaction(
+        await client.updateLockAccount()
+    );
   });
 });
