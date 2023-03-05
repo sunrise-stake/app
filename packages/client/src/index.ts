@@ -96,7 +96,7 @@ export * from "./types/Solblaze";
 // export all constants
 export * from "./constants";
 
-export { toSol } from "./util";
+export { toSol, findImpactNFTMintAuthority } from "./util";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
