@@ -18,10 +18,23 @@ import {
   NotificationType,
   notifyTransaction,
 } from "../../common/components/notifications";
+import { type Charity } from "../GrowApp";
 
-const SendGSolForm: FC = () => {
+interface Props {
+  charity?: Charity;
+  recipient: string;
+  setRecipient: (recipient: string) => void;
+  className?: string;
+}
+
+const SendGSolForm: FC<Props> = ({
+  className,
+  charity,
+  recipient,
+  setRecipient,
+}) => {
   const [amount, setAmount] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
+
   const [isBusy, setIsBusy] = useState(false);
   const [isValid, setIsValid] = useState(false);
 
@@ -41,7 +54,7 @@ const SendGSolForm: FC = () => {
 
     let recipientPubkey;
     try {
-      recipientPubkey = new PublicKey(recipientAddress);
+      recipientPubkey = new PublicKey(recipient);
     } catch (e) {
       handleError(e as Error);
       console.log(e);
@@ -95,48 +108,59 @@ const SendGSolForm: FC = () => {
   return (
     <div
       className={clx(
-        "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md w-full sm:w-[60%] md:w-[40%]"
+        "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md",
+        className
       )}
     >
       <div className="flex flex-col">
-        <div className="font-semibold text-xl mb-2">Send gSOL</div>
-        <AmountInput
-          className="mb-5"
-          token="gSOL"
-          balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
-          amount={amount}
-          setAmount={setAmount}
-          setValid={setIsValid}
-          mode="UNSTAKE"
-          variant="small"
-        />
-        <div className="font-semibold text-xl mb-2">To</div>
+        <div className="font-semibold text-xl mb-2">
+          To{" "}
+          <span className="font-normal text-lg text-green">
+            {charity?.name}
+          </span>
+        </div>
         <input
-          className="mb-4 rounded-md text-lg py-3 px-4 placeholder:text-sm"
+          className="mb-4 rounded-md text-sm xl:text-lg py-3 px-4 placeholder:text-sm"
           onChange={(e) => {
-            setRecipientAddress(e.target.value);
+            setRecipient(e.target.value);
           }}
-          value={recipientAddress}
+          value={recipient}
           placeholder="Address"
         />
-        <Button
-          onClick={() => {
-            setIsBusy(true);
-            transferGSol().finally(() => {
-              setIsBusy(false);
-            });
-          }}
-          disabled={isBusy || !isValid}
-        >
-          <div className="flex gap-2 w-full justify-center items-center">
-            {isBusy ? (
-              <Spinner size="1rem" className="mr-1" />
-            ) : (
-              <GiPresent size={32} />
-            )}
-            Send
-          </div>
-        </Button>
+        <div className="font-semibold text-xl mb-2">Send gSOL</div>
+        <div className="flex items-center gap-4">
+          <AmountInput
+            className="basis-3/4"
+            token="gSOL"
+            balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
+            amount={amount}
+            setAmount={setAmount}
+            setValid={setIsValid}
+            mode="UNSTAKE"
+            variant="small"
+          />
+
+          <Button
+            className="basis-1/4"
+            onClick={() => {
+              setIsBusy(true);
+              transferGSol().finally(() => {
+                setIsBusy(false);
+              });
+            }}
+            disabled={isBusy || !isValid}
+            size="sm"
+          >
+            <div className="flex gap-2 w-full justify-center items-center">
+              {isBusy ? (
+                <Spinner size="1rem" className="mr-1" />
+              ) : (
+                <GiPresent size={32} />
+              )}
+              Send
+            </div>
+          </Button>
+        </div>
       </div>
     </div>
   );
