@@ -1,3 +1,4 @@
+use crate::error::ErrorCode;
 use crate::state::{EpochReportAccount, State};
 use crate::utils::marinade;
 use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT};
