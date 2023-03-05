@@ -7,6 +7,7 @@ import {
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
   Environment,
+  findImpactNFTMintAuthority,
 } from "../client/src";
 import {
   burnGSol,
@@ -41,7 +42,6 @@ import {
   unstakeLamportsUnderLPBalance,
 } from "./constants";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
-import { findImpactNFTMintAuthority } from "@sunrisestake/client/dist/util";
 
 chai.use(chaiAsPromised);
 
