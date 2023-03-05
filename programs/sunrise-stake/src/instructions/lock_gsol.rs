@@ -77,7 +77,6 @@ pub struct LockGSol<'info> {
     )]
     pub nft_mint: SystemAccount<'info>,
     #[account(
-        mut,
         seeds = [state.key().as_ref(), IMPACT_NFT_MINT_AUTHORITY],
         bump, // TODO Move to state object?
     )]
