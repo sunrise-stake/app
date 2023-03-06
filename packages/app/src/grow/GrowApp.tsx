@@ -6,7 +6,7 @@ import {
   type ForwardRefRenderFunction,
 } from "react";
 import clx from "classnames";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { SendGSolForm } from "./components/SendGSolForm";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { InfoBox } from "../common/components";
@@ -92,9 +92,15 @@ const _GrowApp: ForwardRefRenderFunction<
       ref={ref}
       {...rest}
     >
-      <h1 className="font-bold text-3xl text-green sm:mt-96 sm:pt-96">
-        Grow your forest
-      </h1>
+      <div className="sm:mt-96 sm:pt-96">
+        <div className="flex w-full max-w-xl">
+          <Link className="text-green-light" to="/">
+            ← Back
+          </Link>
+        </div>
+        <h1 className="font-bold text-3xl text-green">Grow your forest</h1>
+      </div>
+
       <Transition className="mb-8" show={true}>
         <Transition.Child
           as="img"
@@ -118,7 +124,7 @@ const _GrowApp: ForwardRefRenderFunction<
           }}
         />
       </h2>
-      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl0">
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
         <div className="flex overflow-x-scroll gap-4 pb-4">
           <button
             data-tf-popup="ycDtkUgC"
@@ -178,7 +184,6 @@ const _GrowApp: ForwardRefRenderFunction<
           }}
         />
       </h2>
-
       <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
         <div className="flex overflow-x-scroll gap-4 pb-8">
           {charityApps.map((charity) => {

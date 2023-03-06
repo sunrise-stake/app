@@ -8,7 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import { Button, LockForm, Panel, Spinner } from "../common/components";
 import {
@@ -144,6 +144,11 @@ const _LockingApp: ForwardRefRenderFunction<
           ></div>
         </div>
       )}
+      <div className="flex w-full max-w-xl">
+        <Link className="text-green-light" to="/">
+          ← Back
+        </Link>
+      </div>
       <div className="w-[20%] h-[20%] bg-green m-8">My Tree</div>
       <div className="w-[20%] h-[20%] m-8">
         {details?.impactNFTDetails && (
