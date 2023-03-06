@@ -51,24 +51,7 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
       "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
     ),
     yieldControllerState: new PublicKey(
-        "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
-    ),
-    yieldControllerState: new PublicKey(
       "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
-    ),
-    percentageStakeToMarinade: 75,
-    blaze: {
-      pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
-      bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
-    },
-  },
-  localnet: {
-    state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
-    holdingAccount: new PublicKey(
-      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
-    ),
-    yieldControllerState: new PublicKey(
-        "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
     ),
     percentageStakeToMarinade: 75,
     blaze: {
@@ -89,6 +72,8 @@ export const SOLBLAZE_CONFIG = ActiveEnvironment.blaze;
 export const SUNRISE_STAKE_STATE = ActiveEnvironment.state;
 
 export const HOLDING_ACCOUNT = ActiveEnvironment.holdingAccount;
+
+export const YIELD_CONTROLLER_STATE = ActiveEnvironment.yieldControllerState;
 
 export const DEFAULT_LP_PROPORTION = 10;
 export const DEFAULT_LP_MIN_PROPORTION = 5;

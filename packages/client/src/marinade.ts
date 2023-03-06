@@ -247,20 +247,25 @@ export const liquidUnstake = async (
     marinadeProgram,
   };
 
-  const { instruction: rebalanceInstruction } = await triggerRebalance(
-    config,
-    marinade,
-    marinadeState,
-    program,
-    stateAddress,
-    staker
-  );
+  // Disable triggerRebalance - this allows the old client (with minimal additional changes)
+  // to be used against the new program
 
-  return program.methods
-    .liquidUnstake(lamports)
-    .accounts(accounts)
-    .postInstructions([rebalanceInstruction])
-    .transaction();
+  // const { instruction: rebalanceInstruction } = await triggerRebalance(
+  //   config,
+  //   marinade,
+  //   marinadeState,
+  //   program,
+  //   stateAddress,
+  //   staker
+  // );
+
+  return (
+    program.methods
+      .liquidUnstake(lamports)
+      .accounts(accounts)
+      // .postInstructions([rebalanceInstruction])
+      .transaction()
+  );
 };
 
 export const orders = async (

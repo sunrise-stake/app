@@ -21,9 +21,9 @@ const useCarbon = (): { totalCarbon: number | undefined } => {
       const extractableYield = details.extractableYield;
       const treasuryBalance = new BN(details.balances.treasuryBalance);
       // no longer used to calculate the amount - can be removed
-      const holdingAccountBalance = new BN(
-        details.balances.holdingAccountBalance
-      );
+      // const holdingAccountBalance = new BN(
+      //   details.balances.holdingAccountBalance
+      // );
       // this is the amount of carbon tokens burned so far by the protocol
       const totalTokensPurchased =
         yieldControllerState?.totalTokensPurchased ?? new BN(0);
@@ -41,7 +41,7 @@ const useCarbon = (): { totalCarbon: number | undefined } => {
       console.log({
         extractableYield: toSol(extractableYield),
         treasuryBalance: toSol(treasuryBalance),
-        holdingAccountBalance: toSol(holdingAccountBalance),
+        // holdingAccountBalance: toSol(holdingAccountBalance),
         totalLamportsWaiting: toSol(totalLamportsWaiting),
         totalTokensPurchased: totalTokensPurchased.toNumber(),
         totalCarbon: carbon,

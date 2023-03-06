@@ -14,7 +14,7 @@ import { debounce } from "./util";
 export class SunriseClientWrapper {
   public debouncedUpdate = debounce(this.triggerUpdate.bind(this), 1000);
   constructor(
-    private readonly client: SunriseStakeClient,
+    readonly client: SunriseStakeClient,
     private readonly detailsListener: ((details: Details) => void) | undefined,
     readonly readonlyWallet: boolean
   ) {
@@ -123,9 +123,5 @@ export class SunriseClientWrapper {
     return this.client.provider
       .sendAndConfirm(tx, [])
       .then(this.triggerUpdateAndReturn.bind(this));
-  }
-
-  get yieldControllerState(): PublicKey {
-    return this.client.env.yieldControllerState;
   }
 }
