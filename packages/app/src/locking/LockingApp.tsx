@@ -20,6 +20,7 @@ import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 import { solToLamports, toFixedWithPrecision } from "../common/utils";
 import { ImpactNFT } from "./ImpactNFT";
+import { IoChevronBackOutline } from "react-icons/io5";
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -144,9 +145,12 @@ const _LockingApp: ForwardRefRenderFunction<
           ></div>
         </div>
       )}
-      <div className="flex w-full max-w-xl">
-        <Link className="text-green-light" to="/">
-          ← Back
+      <div className="w-full mt-8">
+        <Link to="/" className="flex items-center text-green">
+          <div className="flex items-center nowrap">
+            <IoChevronBackOutline className="inline" size={24} />
+            <span>Back</span>
+          </div>
         </Link>
       </div>
       <div className="w-[20%] h-[20%] bg-green m-8">My Tree</div>

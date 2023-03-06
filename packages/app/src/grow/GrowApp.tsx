@@ -19,6 +19,7 @@ import { ZERO } from "../common/utils";
 import { Keypair } from "@solana/web3.js";
 import { Transition } from "@headlessui/react";
 import { useScript } from "../common/hooks";
+import { IoChevronBackOutline } from "react-icons/io5";
 
 export interface Charity {
   name: string;
@@ -93,9 +94,12 @@ const _GrowApp: ForwardRefRenderFunction<
       {...rest}
     >
       <div className="sm:mt-96 sm:pt-96">
-        <div className="flex w-full max-w-xl">
-          <Link className="text-green-light" to="/">
-            ← Back
+        <div>
+          <Link to="/" className="flex items-center text-green">
+            <div className="flex items-center nowrap">
+              <IoChevronBackOutline className="inline" size={24} />
+              <span>Back</span>
+            </div>
           </Link>
         </div>
         <h1 className="font-bold text-3xl text-green">Grow your forest</h1>
