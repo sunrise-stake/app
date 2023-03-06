@@ -252,7 +252,8 @@ impl LockAccount {
 
         let yield_accrued = (yield_accrued_with_unstake_fee * owner_locked_gsol_share) as u64;
 
-        self.yield_accrued_by_owner = self.yield_accrued_by_owner + yield_accrued;
+        self.yield_accrued_by_owner = self.yield_accrued_by_owner.checked_add(yield_accrued)
+            .unwrap();
 
         msg!("yield_accrued_by_owner: {}", self.yield_accrued_by_owner);
 

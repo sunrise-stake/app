@@ -1,12 +1,15 @@
 use crate::error::ErrorCode;
 use crate::state::{EpochReportAccount, LockAccount, State};
-use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, IMPACT_NFT_MINT_AUTHORITY, IMPACT_NFT_MINT_ACCOUNT, LOCK_ACCOUNT, LOCK_TOKEN_ACCOUNT};
-use impact_nft_cpi::cpi::accounts::UpdateNft;
-use impact_nft_cpi::cpi::{update_nft as cpi_update_nft};
-use impact_nft_cpi::program::ImpactNft;
-use impact_nft_cpi::{GlobalState as ImpactNftState};
+use crate::utils::seeds::{
+    EPOCH_REPORT_ACCOUNT, IMPACT_NFT_MINT_ACCOUNT, IMPACT_NFT_MINT_AUTHORITY, LOCK_ACCOUNT,
+    LOCK_TOKEN_ACCOUNT,
+};
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{Mint, TokenAccount};
+use impact_nft_cpi::cpi::accounts::UpdateNft;
+use impact_nft_cpi::cpi::update_nft as cpi_update_nft;
+use impact_nft_cpi::program::ImpactNft;
+use impact_nft_cpi::GlobalState as ImpactNftState;
 
 #[derive(Accounts, Clone)]
 pub struct UpdateLockAccount<'info> {
@@ -69,8 +72,6 @@ pub struct UpdateLockAccount<'info> {
 pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()> {
     ctx.accounts.lock_account.updated_to_epoch = Some(Clock::get().unwrap().epoch);
 
-    let yield_accrued_before = ctx.accounts.lock_account.yield_accrued_by_owner;
-
     ctx.accounts.lock_account.calculate_and_add_yield_accrued(
         &ctx.accounts.epoch_report_account,
         &ctx.accounts.lock_gsol_account,
@@ -84,7 +85,11 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
         IMPACT_NFT_MINT_AUTHORITY,
         &[*ctx.bumps.get("nft_mint_authority").unwrap()],
     ];
-    msg!("Mint authority {:?} seeds: {:?}", ctx.accounts.nft_mint_authority.key(), mint_authority_seeds);
+    msg!(
+        "Mint authority {:?} seeds: {:?}",
+        ctx.accounts.nft_mint_authority.key(),
+        mint_authority_seeds
+    );
     let pda_signer = &[&mint_authority_seeds[..]];
 
     let cpi_accounts = UpdateNft {
@@ -96,8 +101,7 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
         global_state: ctx.accounts.impact_nft_state.to_account_info(),
     };
     let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
-    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts)
-        .with_signer(pda_signer);
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(pda_signer);
 
     cpi_update_nft(cpi_ctx, ctx.accounts.lock_account.yield_accrued_by_owner)
 }
