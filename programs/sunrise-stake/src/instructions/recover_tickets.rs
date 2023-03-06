@@ -107,7 +107,6 @@ pub struct RecoverTickets<'info> {
     pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
-    pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub marinade_program: Program<'info, MarinadeFinance>,

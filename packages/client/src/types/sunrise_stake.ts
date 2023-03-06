@@ -793,11 +793,6 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1380,11 +1375,6 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
@@ -1405,22 +1395,40 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "clock",
+          "name": "impactNftProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "IMPACT NFT ACCOUNTS"
+          ]
+        },
+        {
+          "name": "impactNftState",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "systemProgram",
+          "name": "nftMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "nftMintAuthority",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "rent",
+          "name": "nftMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offsetMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offsetTiers",
           "isMut": false,
           "isSigner": false
         }
@@ -1520,7 +1528,7 @@ export type SunriseStake = {
         },
         {
           "name": "nftMintAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -3214,11 +3222,6 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -3801,11 +3804,6 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
@@ -3826,22 +3824,40 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "clock",
+          "name": "impactNftProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "IMPACT NFT ACCOUNTS"
+          ]
+        },
+        {
+          "name": "impactNftState",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "systemProgram",
+          "name": "nftMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
+          "name": "nftMintAuthority",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "rent",
+          "name": "nftMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offsetMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offsetTiers",
           "isMut": false,
           "isSigner": false
         }
@@ -3941,7 +3957,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "nftMintAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {

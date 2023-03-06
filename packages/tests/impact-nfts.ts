@@ -1,20 +1,24 @@
-import { Keypair, type PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
 import {
   SunriseStakeClient,
   Environment,
   IMPACT_NFT_PROGRAM_ID,
 } from "../client/src";
-import { impactNFTLevels, log } from "./util";
-import chai from "chai";
+import { burnGSol, log, waitForNextEpoch } from "./util";
+import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { depositLamports, lockLamports } from "./constants";
 import * as anchor from "@coral-xyz/anchor";
 import { findImpactNFTMintAuthority } from "../client/src/util";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
+import BN from "bn.js";
+import levels from "./impactNFTLevels.json";
 
 chai.use(chaiAsPromised);
 
 const LEVELS = 8;
+
+export const burnLamports = 10 * LAMPORTS_PER_SOL;
 
 const findImpactNftPda = (seed: Seed, authority: PublicKey) =>
   anchor.web3.PublicKey.findProgramAddressSync(
@@ -71,9 +75,13 @@ describe("Impact NFTs", () => {
     if (!impactNftClient.stateAddress)
       throw new Error("Impact NFT state not registered");
 
-    const levels = impactNFTLevels(LEVELS);
-
-    await impactNftClient.registerOffsetTiers(levels);
+    await impactNftClient.registerOffsetTiers(
+      levels.map((level) => ({
+        ...level,
+        // parse the offset string into a BN
+        offset: new BN(level.offset),
+      }))
+    );
 
     // set the newly-generated impactNft state in the client config
     // so that it can be looked up in the next test
@@ -83,5 +91,35 @@ describe("Impact NFTs", () => {
   it("can mint an impact nft when locking gSOL", async () => {
     const transaction = await client.lockGSol(lockLamports);
     await client.sendAndConfirmTransaction(transaction);
+
+    const details = await client.details();
+    expect(details.impactNFTDetails?.tokenAccount).to.exist;
+  });
+
+  it("cannot re-lock", async () => {
+    const shouldFail = client.sendAndConfirmTransaction(
+      await client.lockGSol(lockLamports)
+    );
+
+    return expect(shouldFail).to.be.rejected;
+  });
+
+  it("cannot unlock sol this epoch", async () => {
+    const shouldFail = client.sendAndConfirmTransactions(
+      await client.unlockGSol()
+    );
+
+    return expect(shouldFail).to.be.rejected;
+  });
+
+  it("can update the lock account and the impact nft", async () => {
+    // burn 10 gSOL so that there is some unclaimed yield for the crank operation to harvest
+    // Note - we have to do this as we do not have the ability to increase the msol value
+    await burnGSol(new BN(burnLamports), client);
+
+    // Switch to the next epoch so that the lock account can be updated and the yield applied
+    await waitForNextEpoch(client);
+
+    await client.sendAndConfirmTransactions(await client.updateLockAccount());
   });
 });

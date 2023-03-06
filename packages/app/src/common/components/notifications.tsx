@@ -14,12 +14,12 @@ export enum NotificationType {
   info = "info",
 }
 
-export function notifyTransaction(n: {
+export const notifyTransaction = (n: {
   type: NotificationType;
   message: string;
   description?: string;
   txid?: string;
-}): void {
+}): void => {
   toast.custom(
     (t) => (
       <div
@@ -98,7 +98,7 @@ export function notifyTransaction(n: {
       duration: 4000,
     }
   );
-}
+};
 
 export function notifyTweet(amount: string): void {
   toast.custom(

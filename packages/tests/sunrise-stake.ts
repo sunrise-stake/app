@@ -243,20 +243,6 @@ describe("sunrise-stake", () => {
     return expect(shouldFail).to.be.rejected;
   });
 
-  it("cannot unlock sol this epoch", async () => {
-    const shouldFail = client.sendAndConfirmTransaction(
-      await client.unlockGSol()
-    );
-
-    return expect(shouldFail).to.be.rejected;
-
-    // // the gsol balance has gone back to the original value
-    // const balance = await client.balance();
-    // expect(Number(balance.gsolBalance.amount)).to.equal(
-    //   depositLamports.toNumber()
-    // );
-  });
-
   it("no yield to extract yet", async () => {
     const { extractableYield } = await client.details();
     expectAmount(extractableYield, 0, 10);
@@ -439,7 +425,6 @@ describe("sunrise-stake", () => {
 
     // unfortunately with the test validator, it is impossible to move the epoch forward without just waiting.
     // we run the validator at 32 slots per epoch, so we "only" need to wait for ~12 seconds
-    // we wait 15 seconds to be safe
     // An alternative is to write rust tests using solana-program-test
     await waitForNextEpoch(client);
 
@@ -550,7 +535,7 @@ describe("sunrise-stake", () => {
   });
 
   it("can unlock sol (including a recoverTickets call)", async () => {
-    await client.sendAndConfirmTransaction(await client.unlockGSol());
+    await client.sendAndConfirmTransactions(await client.unlockGSol());
 
     // the epoch report has now been updated to the current epoch
     const currentEpoch = await client.provider.connection.getEpochInfo();
