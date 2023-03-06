@@ -3,7 +3,7 @@ import { type TicketAccount, type Details, toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import clx from "classnames";
 import { type FC, useCallback, useEffect, useState } from "react";
-import { FaLeaf, FaLock } from "react-icons/fa";
+import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 import { GiCircleForest } from "react-icons/gi";
 
@@ -19,8 +19,6 @@ import {
   Button,
   InfoBox,
   TooltipPopover,
-  LockForm,
-  LockedGSol,
 } from "../../common/components";
 import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import {
@@ -140,24 +138,6 @@ const StakeDashboard: FC = () => {
     [client, setBalances]
   );
 
-  const lock = useCallback(
-    async (amount: string) => {
-      if (!client) return Promise.reject(new Error("Client not initialized"));
-      await client.lockGSol(solToLamports(amount));
-    },
-    [client]
-  );
-
-  const unlock = useCallback(async () => {
-    if (!client) return Promise.reject(new Error("Client not initialized"));
-    await client.unlockGSol();
-  }, [client]);
-
-  const updateLockAccount = useCallback(async () => {
-    if (!client) return Promise.reject(new Error("Client not initialized"));
-    await client.updateLockAccount();
-  }, [client]);
-
   return (
     <div style={{ maxWidth: "620px" }} className="mx-auto relative">
       <div>
@@ -185,8 +165,9 @@ const StakeDashboard: FC = () => {
             />
           </Button>
           <Button
-            variant={mode === "UNSTAKE" ? "secondary" : "danger"}
+            variant={mode === "UNSTAKE" ? "danger" : "secondary"}
             size={"sm"}
+            className="mr-3 sm:mr-5"
             onClick={() => {
               setMode("UNSTAKE");
             }}
@@ -196,23 +177,6 @@ const StakeDashboard: FC = () => {
               className={clx(
                 "animate-fade-in inline ml-2 transition-opacity duration-500",
                 { hidden: mode !== "UNSTAKE" }
-              )}
-              size={24}
-            />
-          </Button>
-          <Button
-            variant={mode === "LOCK" ? "primary" : "secondary"}
-            size={"sm"}
-            className="ml-3 sm:ml-5"
-            onClick={() => {
-              setMode("LOCK");
-            }}
-          >
-            Lock
-            <FaLock
-              className={clx(
-                "animate-fade-in inline ml-2 transition-opacity duration-500",
-                { hidden: mode !== "LOCK" }
               )}
               size={24}
             />
@@ -239,7 +203,6 @@ const StakeDashboard: FC = () => {
             delayedWithdraw={delayedWithdraw}
           />
         )}
-        {mode === "LOCK" && <LockForm lock={lock} />}
       </Panel>
 
       <div className="relative z-30 grid gap-8 grid-cols-3 grid-rows-1 my-10 text-base">
@@ -333,17 +296,6 @@ const StakeDashboard: FC = () => {
             />
           );
         })}
-      </div>
-      <div className="relative z-10 flex flex-col gap-8 mb-8 justify-center">
-        {details?.lockDetails && (
-          <LockedGSol
-            lockDetails={details.lockDetails}
-            epochReport={details.epochReport}
-            currentEpoch={details.currentEpoch}
-            update={updateLockAccount}
-            unlock={unlock}
-          />
-        )}
       </div>
     </div>
   );
