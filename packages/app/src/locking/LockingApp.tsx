@@ -98,11 +98,13 @@ const _LockingApp: ForwardRefRenderFunction<
     if (!client) return Promise.reject(new Error("Client not initialized"));
     return client
       .unlockGSol()
-      .then((tx) => {
-        notifyTransaction({
-          type: NotificationType.success,
-          message: "Unlocking successful",
-          txid: tx,
+      .then((txes) => {
+        txes.forEach((tx: string) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: `Unlocking successful (tx: ${tx} of ${txes.length})`,
+            txid: tx,
+          });
         });
       })
       .catch(handleError);
@@ -112,11 +114,13 @@ const _LockingApp: ForwardRefRenderFunction<
     if (!client) return Promise.reject(new Error("Client not initialized"));
     return client
       .updateLockAccount()
-      .then((tx) => {
-        notifyTransaction({
-          type: NotificationType.success,
-          message: "Unlocking successful",
-          txid: tx,
+      .then((txes) => {
+        txes.forEach((tx: string) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: `Unlocking successful (tx: ${tx} of ${txes.length})`,
+            txid: tx,
+          });
         });
       })
       .catch(handleError);
