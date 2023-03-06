@@ -6,7 +6,7 @@ import {
   type ForwardRefRenderFunction,
 } from "react";
 import clx from "classnames";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { SendGSolForm } from "./components/SendGSolForm";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { InfoBox } from "../common/components";
@@ -19,6 +19,7 @@ import { ZERO } from "../common/utils";
 import { Keypair } from "@solana/web3.js";
 import { Transition } from "@headlessui/react";
 import { useScript } from "../common/hooks";
+import { IoChevronBackOutline } from "react-icons/io5";
 
 export interface Charity {
   name: string;
@@ -85,16 +86,22 @@ const _GrowApp: ForwardRefRenderFunction<
 
   return (
     <div
-      className={clx(
-        "flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
-        className
-      )}
+      className={clx("flex flex-col items-center pt-8", className)}
       ref={ref}
       {...rest}
     >
-      <h1 className="font-bold text-3xl text-green mt-96 pt-96">
-        Grow your forest
-      </h1>
+      {" "}
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
+        <Link to="/" className="flex items-center text-green">
+          <div className="flex items-center nowrap">
+            <IoChevronBackOutline className="inline" size={24} />
+            <span>Back</span>
+          </div>
+        </Link>
+      </div>
+      <div className="">
+        <h1 className="font-bold text-xl text-green-light">Grow your forest</h1>
+      </div>
       <Transition className="mb-8" show={true}>
         <Transition.Child
           as="img"
@@ -118,7 +125,7 @@ const _GrowApp: ForwardRefRenderFunction<
           }}
         />
       </h2>
-      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl0">
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
         <div className="flex overflow-x-scroll gap-4 pb-4">
           <button
             data-tf-popup="ycDtkUgC"
@@ -178,7 +185,6 @@ const _GrowApp: ForwardRefRenderFunction<
           }}
         />
       </h2>
-
       <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
         <div className="flex overflow-x-scroll gap-4 pb-8">
           {charityApps.map((charity) => {
