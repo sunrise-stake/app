@@ -9,6 +9,8 @@ import { useTrees } from "./hooks/useTrees";
 import { type TreeComponent } from "./utils";
 import { toShortBase58 } from "../common/utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
+import { IoChevronBackOutline } from "react-icons/io5";
+import { Link } from "react-router-dom";
 
 const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -39,7 +41,7 @@ const _ForestApp: ForwardRefRenderFunction<
   const { myTree, neighbours } = useTrees();
   return (
     <div
-      className={clx("flex justify-center items-center", className)}
+      className={clx("relative flex justify-center items-center", className)}
       {...rest}
       ref={ref}
     >
@@ -58,6 +60,16 @@ const _ForestApp: ForwardRefRenderFunction<
           />
         ))}
       </ul>
+      <div className="absolute top-0 left-0 mt-4">
+        <div className="container">
+          <Link to="/" className="flex items-center text-green">
+            <div className="flex items-center nowrap">
+              <IoChevronBackOutline className="inline" size={24} />
+              <span>Back</span>
+            </div>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };
