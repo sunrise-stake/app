@@ -165,7 +165,7 @@ const _LockingApp: ForwardRefRenderFunction<
           {" "}
           <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
             <Button
-              variant="primary"
+              color="primary"
               className="mr-4"
               disabled={!needsUpdate}
               onClick={() => {
@@ -182,7 +182,7 @@ const _LockingApp: ForwardRefRenderFunction<
               )}
             </Button>
             <Button
-              variant="secondary"
+              color="secondary"
               disabled={isBusyUnlock}
               onClick={() => {
                 setIsBusyUnlock(true);

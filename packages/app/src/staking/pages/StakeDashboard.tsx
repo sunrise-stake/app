@@ -152,7 +152,7 @@ const StakeDashboard: FC = () => {
       <div className="flex">
         <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
           <Button
-            variant={mode === "STAKE" ? "primary" : "secondary"}
+            color={mode === "STAKE" ? "primary" : "secondary"}
             size={"sm"}
             className="mr-3 sm:mr-5"
             onClick={() => {
@@ -169,7 +169,7 @@ const StakeDashboard: FC = () => {
             />
           </Button>
           <Button
-            variant={mode === "UNSTAKE" ? "danger" : "secondary"}
+            color={mode === "UNSTAKE" ? "danger" : "secondary"}
             size={"sm"}
             className="mr-3 sm:mr-5"
             onClick={() => {
