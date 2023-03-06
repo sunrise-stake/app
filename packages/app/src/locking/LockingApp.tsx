@@ -145,7 +145,7 @@ const _LockingApp: ForwardRefRenderFunction<
           ></div>
         </div>
       )}
-      <div className="w-full mt-8">
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl mt-8">
         <Link to="/" className="flex items-center text-green">
           <div className="flex items-center nowrap">
             <IoChevronBackOutline className="inline" size={24} />

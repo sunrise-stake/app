@@ -93,18 +93,18 @@ const _GrowApp: ForwardRefRenderFunction<
       ref={ref}
       {...rest}
     >
+      {" "}
       <div className="sm:mt-96 sm:pt-96">
-        <div>
-          <Link to="/" className="flex items-center text-green">
-            <div className="flex items-center nowrap">
-              <IoChevronBackOutline className="inline" size={24} />
-              <span>Back</span>
-            </div>
-          </Link>
-        </div>
         <h1 className="font-bold text-3xl text-green">Grow your forest</h1>
       </div>
-
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
+        <Link to="/" className="flex items-center text-green">
+          <div className="flex items-center nowrap">
+            <IoChevronBackOutline className="inline" size={24} />
+            <span>Back</span>
+          </div>
+        </Link>
+      </div>
       <Transition className="mb-8" show={true}>
         <Transition.Child
           as="img"
