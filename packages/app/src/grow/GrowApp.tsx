@@ -100,7 +100,7 @@ const _GrowApp: ForwardRefRenderFunction<
         </Link>
       </div>
       <div className="">
-        <h1 className="font-bold text-3xl text-green">Grow your forest</h1>
+        <h1 className="font-bold text-xl text-green-light">Grow your forest</h1>
       </div>
       <Transition className="mb-8" show={true}>
         <Transition.Child
