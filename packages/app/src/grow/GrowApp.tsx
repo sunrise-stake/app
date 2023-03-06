@@ -92,7 +92,7 @@ const _GrowApp: ForwardRefRenderFunction<
       ref={ref}
       {...rest}
     >
-      <h1 className="font-bold text-3xl text-green mt-96 pt-96">
+      <h1 className="font-bold text-3xl text-green sm:mt-96 sm:pt-96">
         Grow your forest
       </h1>
       <Transition className="mb-8" show={true}>
