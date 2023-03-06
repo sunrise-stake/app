@@ -5,21 +5,20 @@ import { toFixedWithPrecision } from "../utils";
 
 const CarbonRecovered: FC = () => {
   const { totalCarbon } = useCarbon();
+
   return totalCarbon !== undefined ? (
-    <div className="flex flex-col justify-center items-center mb-12">
-      <h4 className="flex-auto font-medium center leading-tight text-1xl grid-row text-white">
+    <div className="flex flex-col justify-center items-center my-6 text-green">
+      <h4 className="flex-auto font-medium center leading-tight text-1xl grid-row">
         so far
       </h4>
-      <h1 className="font-medium leading-tight text-4xl text-white">
+      <h1 className="font-medium leading-tight text-4xl">
         {toFixedWithPrecision(totalCarbon)} tCO₂E
       </h1>
-      <h4 className="flex-auto font-medium leading-tight text-xl text-white">
+      <h4 className="flex-auto font-medium leading-tight text-xl">
         carbon recovered
       </h4>
     </div>
-  ) : (
-    <></>
-  ); // TODO loading screen
+  ) : null;
 };
 
 export { CarbonRecovered };

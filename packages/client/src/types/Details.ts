@@ -54,6 +54,12 @@ export interface Details {
     lockAccount: PublicKey;
     lockTokenAccount: PublicKey;
   };
+  impactNFTDetails?: {
+    stateAddress: PublicKey;
+    mintAuthority: PublicKey;
+    mint: PublicKey;
+    tokenAccount: PublicKey;
+  };
 }
 
 export interface WithdrawalFees {

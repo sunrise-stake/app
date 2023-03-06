@@ -1,6 +1,6 @@
 import { SunriseStakeClient } from "../app/src/lib/client/";
 import "./util";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
 

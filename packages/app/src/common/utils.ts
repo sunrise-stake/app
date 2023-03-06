@@ -2,8 +2,14 @@ import { LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
 import { type SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
 import { MAX_NUM_PRECISION } from "@sunrisestake/client";
 import BN from "bn.js";
+import {
+  NotificationType,
+  notifyTransaction,
+} from "./components/notifications";
 
 const ZERO = new BN(0);
+
+export const ASSETS = "https://api.sunrisestake.com/assets/tree/lores/";
 
 const toBN = (n: number): BN => new BN(`${n}`);
 
@@ -93,14 +99,67 @@ function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
   };
 }
 
+const handleError = (error: Error): void => {
+  notifyTransaction({
+    type: NotificationType.error,
+    message: "Transaction failed",
+    description: error.message,
+  });
+  console.error(error);
+};
+
+const toShortBase58 = (address: PublicKey): string =>
+  `${address.toBase58().slice(0, 4)}…${address.toBase58().slice(-4)}`;
+
+const addUp = <K extends string, T extends { [key in K]: number }>(
+  key: K,
+  arr: T[]
+): number => arr.reduce((acc, val) => acc + val[key], 0);
+const round = (number: number, decimals: number = 2): number =>
+  parseFloat(number.toFixed(decimals));
+
+const range = (start: number, end: number): number[] =>
+  Array.from({ length: end - start + 1 }, (_, i) => start + i);
+const rangeTo = (end: number): number[] => range(0, end);
+
+const settledPromises = <T>(results: Array<PromiseSettledResult<T>>): T[] =>
+  results
+    .filter(
+      (result): result is PromiseFulfilledResult<T> =>
+        result.status === "fulfilled"
+    )
+    .map((result) => result.value);
+
+// TODO remove this and maintain a list of balances in state, which get updated by a separate process
+const memoise = <T extends (...args: any[]) => any>(
+  withKey: (...args: any[]) => string,
+  fn: T
+): T => {
+  const cache = new Map<string, ReturnType<T>>();
+  return ((...args: any[]) => {
+    const key = withKey(...args);
+    if (cache.has(key)) return cache.get(key);
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  }) as T;
+};
+
 export {
+  addUp,
+  round,
   ZERO,
   type UIMode,
   debounce,
   getDigits,
+  settledPromises,
   solToCarbon,
   solToLamports,
   toBN,
   toFixedWithPrecision,
   walletIsConnected,
+  rangeTo,
+  toShortBase58,
+  memoise,
+  handleError,
 };

@@ -1,7 +1,10 @@
 import {
   findEpochReportAccount,
+  findImpactNFTMint,
+  findImpactNFTMintAuthority,
   findLockAccount,
   findLockTokenAccount,
+  getTokenAccountNullable,
   type SunriseStakeConfig,
 } from "./util";
 import {
@@ -12,15 +15,16 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import { type LockAccount } from "./types/LockAccount";
-import * as anchor from "@project-serum/anchor";
-import { type Program } from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { type AnchorProvider, type Program } from "@coral-xyz/anchor";
 import { type SunriseStake } from "./types/sunrise_stake";
 import {
   type Account as TokenAccount,
-  getAccount,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import type BN from "bn.js";
+import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
+import { type EnvironmentConfig } from "./constants";
 
 interface GetLockTokenAccountResult {
   address: PublicKey;
@@ -33,12 +37,9 @@ const getLockTokenAccount = async (
 ): Promise<GetLockTokenAccountResult> => {
   const [address] = findLockTokenAccount(config, authority);
 
-  const account = await getAccount(program.provider.connection, address).catch(
-    (e) => {
-      // safer than instanceof
-      if (e.name === "TokenAccountNotFoundError") return null;
-      throw e;
-    }
+  const account = await getTokenAccountNullable(
+    program.provider.connection,
+    address
   );
 
   return { address, account };
@@ -92,11 +93,54 @@ export const getLockAccount = async (
   return { lockAccountAddress, tokenAccountAddress, lockAccount, tokenAccount };
 };
 
+interface ImpactNFTAccounts {
+  impactNftProgram: PublicKey;
+  tokenMetadataProgram: PublicKey;
+  impactNftState: PublicKey;
+  nftMint: PublicKey;
+  nftMintAuthority: PublicKey;
+  nftMetadata: PublicKey;
+  nftHolderTokenAccount: PublicKey;
+  nftMasterEdition: PublicKey;
+  offsetMetadata: PublicKey;
+  offsetTiers: PublicKey;
+}
+const getImpactNFTAccounts = async (
+  config: SunriseStakeConfig,
+  authority: PublicKey,
+  program: Program<SunriseStake>
+): Promise<ImpactNFTAccounts> => {
+  const nftMintAuthority = findImpactNFTMintAuthority(config)[0];
+  const nftMint = findImpactNFTMint(config, authority)[0];
+  const impactNFTClient = await ImpactNftClient.get(
+    program.provider as AnchorProvider,
+    config.impactNFTStateAddress
+  );
+  const impactNftAccounts = impactNFTClient.getMintNftAccounts(
+    nftMint,
+    authority // holder
+  );
+
+  return {
+    impactNftProgram: impactNftAccounts.program,
+    tokenMetadataProgram: impactNftAccounts.tokenMetadataProgram,
+    impactNftState: config.impactNFTStateAddress,
+    nftMint,
+    nftMintAuthority,
+    nftMetadata: impactNftAccounts.metadata,
+    nftHolderTokenAccount: impactNftAccounts.userTokenAccount,
+    nftMasterEdition: impactNftAccounts.masterEdition,
+    offsetMetadata: impactNftAccounts.offsetMetadata,
+    offsetTiers: impactNftAccounts.offsetTiers,
+  };
+};
+
 export const lockGSol = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
   authority: PublicKey,
   sourceGSolTokenAccount: PublicKey,
+  impactNFTConfig: EnvironmentConfig["impactNFT"],
   lamports: BN
 ): Promise<Transaction> => {
   const { lockAccountAddress, tokenAccountAddress, lockAccount } =
@@ -126,7 +170,11 @@ export const lockGSol = async (
 
     preInstructions.push(initLockAccount);
   }
-
+  const allImpactNFTAccounts = await getImpactNFTAccounts(
+    config,
+    authority,
+    program
+  );
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
@@ -139,6 +187,7 @@ export const lockGSol = async (
     tokenProgram: TOKEN_PROGRAM_ID,
     rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     clock: SYSVAR_CLOCK_PUBKEY,
+    ...allImpactNFTAccounts,
   };
 
   return program.methods
@@ -161,6 +210,11 @@ export const updateLockAccount = async (
     ReturnType<typeof program.methods.updateLockAccount>["accounts"]
   >[0];
 
+  const allImpactNFTAccounts = await getImpactNFTAccounts(
+    config,
+    authority,
+    program
+  );
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
@@ -168,11 +222,16 @@ export const updateLockAccount = async (
     lockGsolAccount: lockGSolTokenAccount,
     lockAccount,
     epochReportAccount,
-    systemProgram: SystemProgram.programId,
-    tokenProgram: TOKEN_PROGRAM_ID,
-    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-    clock: SYSVAR_CLOCK_PUBKEY,
+    impactNftProgram: allImpactNFTAccounts.impactNftProgram,
+    impactNftState: allImpactNFTAccounts.impactNftState,
+    nftMint: allImpactNFTAccounts.nftMint,
+    nftMintAuthority: allImpactNFTAccounts.nftMintAuthority,
+    nftMetadata: allImpactNFTAccounts.nftMetadata,
+    offsetMetadata: allImpactNFTAccounts.offsetMetadata,
+    offsetTiers: allImpactNFTAccounts.offsetTiers,
   };
+
+  console.log(accounts);
 
   return program.methods.updateLockAccount().accounts(accounts).transaction();
 };

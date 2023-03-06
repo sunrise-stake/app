@@ -65,13 +65,6 @@ pub mod sunrise_stake {
         extract_to_treasury_handler(ctx)
     }
 
-    pub fn init_epoch_report<'info>(
-        ctx: Context<'_, '_, '_, 'info, InitEpochReport<'info>>,
-        extracted_yield: u64,
-    ) -> Result<()> {
-        init_epoch_report_handler(ctx, extracted_yield)
-    }
-
     //////////////////////////////////////////
     // Blaze Stake Instructions
     /////////////////////////////////////////
@@ -154,6 +147,13 @@ pub mod sunrise_stake {
     ) -> Result<()> {
         msg!("Update Metadata for gSol");
         update_metadata_account(ctx.accounts, uri, name, symbol)
+    }
+
+    pub fn init_epoch_report<'info>(
+        ctx: Context<'_, '_, '_, 'info, InitEpochReport<'info>>,
+        extracted_yield: u64,
+    ) -> Result<()> {
+        init_epoch_report_handler(ctx, extracted_yield)
     }
 }
 

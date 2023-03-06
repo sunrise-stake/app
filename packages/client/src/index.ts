@@ -1,6 +1,6 @@
 import { IDL, type SunriseStake } from "./types/sunrise_stake";
-import * as anchor from "@project-serum/anchor";
-import { type AnchorProvider, Program, utils } from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { type AnchorProvider, Program, utils } from "@coral-xyz/anchor";
 import {
   type ConfirmOptions,
   Keypair,
@@ -8,7 +8,6 @@ import {
   type Signer,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
-  SYSVAR_RENT_PUBKEY,
   Transaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
@@ -30,6 +29,9 @@ import {
   ZERO,
   ZERO_BALANCE,
   toSol,
+  findImpactNFTMintAuthority,
+  getImpactNFT,
+  zip,
 } from "./util";
 import {
   Marinade,
@@ -94,7 +96,7 @@ export * from "./types/Solblaze";
 // export all constants
 export * from "./constants";
 
-export { toSol } from "./util";
+export { toSol, findImpactNFTMintAuthority } from "./util";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -149,6 +151,7 @@ export class SunriseStakeClient {
       updateAuthority: sunriseStakeState.updateAuthority,
       liqPoolProportion: sunriseStakeState.liqPoolProportion,
       liqPoolMinProportion: sunriseStakeState.liqPoolMinProportion,
+      impactNFTStateAddress: this.env.impactNFT.state,
       options: this.options,
     };
 
@@ -226,6 +229,30 @@ export class SunriseStakeClient {
         this.log(e.logs);
         throw e;
       });
+  }
+
+  /**
+   * Send and confirm multiple transactions in sequence
+   * @param transactions
+   * @param signers
+   * @param opts
+   */
+  public async sendAndConfirmTransactions(
+    transactions: Transaction[],
+    signers: Signer[][] = [],
+    opts?: ConfirmOptions
+  ): Promise<string[]> {
+    const txesWithSigners = zip(transactions, signers, []);
+    const txSigs: string[] = [];
+
+    this.log("Sending transactions: ", transactions.length);
+    for (const [tx, signers] of txesWithSigners) {
+      const txSig = await this.sendAndConfirmTransaction(tx, signers, opts);
+      this.log("Transaction sent: ", txSig);
+      txSigs.push(txSig);
+    }
+
+    return txSigs;
   }
 
   createGSolTokenAccountIx(): TransactionInstruction {
@@ -439,9 +466,19 @@ export class SunriseStakeClient {
       throw new Error("No epoch report account found during recoverTickets");
     }
 
+    this.log(
+      `Current epoch: ${
+        currentEpoch.epoch
+      }, epoch report epoch: ${epochReport.epoch.toNumber()}`
+    );
     if (currentEpoch.epoch === epochReport.epoch.toNumber()) {
       // nothing to do here - the report account is for the current epoch, so we cannot recover any tickets yet
+      this.log("Skipping recoverTickets, epoch report is for current epoch");
       return null;
+    } else {
+      this.log(
+        "Updating epoch report account and recovering tickets from previous epoch"
+      );
     }
 
     // get a list of all the open delayed unstake tickets that can now be recovered
@@ -489,7 +526,6 @@ export class SunriseStakeClient {
       systemProgram: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
       clock: SYSVAR_CLOCK_PUBKEY,
-      rent: SYSVAR_RENT_PUBKEY,
       marinadeProgram,
     };
 
@@ -878,10 +914,10 @@ export class SunriseStakeClient {
 
     this.log("amount to order unstake: ", amountToOrderUnstake);
     this.log("rent for order unstake: ", rentForOrderUnstakeTicket);
-
     const ticketFee = rentForOrderUnstakeTicket;
-
     let totalFee = new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE);
+
+    this.log("base fee for order unstake: ", totalFee.toString());
 
     if (amountBeingLiquidUnstaked.lte(ZERO)) {
       return {
@@ -918,6 +954,20 @@ export class SunriseStakeClient {
 
     totalFee = totalFee.add(liquidUnstakeFee);
 
+    this.log({
+      withdrawalLamports: withdrawalLamports.toString(),
+      lpSolShare: lpSolShare.toString(),
+      amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
+      marinadeUnstake: marinadeUnstake.toString(),
+      blazeUnstake: blazeUnstake.toString(),
+      marinadeUnstakeFee: marinadeUnstakeFee.toString(),
+      blazeUnstakeFee: blazeUnstakeFee.toString(),
+      liquidUnstakeFee: liquidUnstakeFee.toString(),
+      msolValue: msolValue.toString(),
+      bsolValue: bsolValue.toString(),
+      totalFee: totalFee.toString(),
+    });
+
     return {
       liquidUnstakeFee,
       ticketFee,
@@ -949,6 +999,12 @@ export class SunriseStakeClient {
 
     const lockAccountPromise = await this.getLockAccount();
 
+    const impactNFTPromise = await getImpactNFT(
+      this.config,
+      this.staker,
+      this.provider
+    );
+
     const [
       currentEpoch,
       lpMintInfo,
@@ -956,6 +1012,7 @@ export class SunriseStakeClient {
       lpMsolBalance,
       balances,
       lockAccountDetails,
+      impactNFT,
     ] = await Promise.all([
       currentEpochPromise,
       lpMintInfoPromise,
@@ -963,6 +1020,7 @@ export class SunriseStakeClient {
       lpMsolBalancePromise,
       balancesPromise,
       lockAccountPromise,
+      impactNFTPromise,
     ]);
 
     const availableLiqPoolSolLegBalance = new BN(lpSolLegBalance).sub(
@@ -1046,6 +1104,15 @@ export class SunriseStakeClient {
           }
         : undefined;
 
+    const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
+      ? {
+          stateAddress: this.config.impactNFTStateAddress,
+          mintAuthority: findImpactNFTMintAuthority(this.config)[0],
+          mint: impactNFT.mint,
+          tokenAccount: impactNFT.tokenAccount,
+        }
+      : undefined;
+
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
       balances,
@@ -1067,6 +1134,7 @@ export class SunriseStakeClient {
       lpDetails,
       bpDetails,
       lockDetails,
+      impactNFTDetails,
     };
 
     const extractableYield =
@@ -1127,6 +1195,7 @@ export class SunriseStakeClient {
       treasury,
       liqPoolProportion: DEFAULT_LP_PROPORTION,
       liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      impactNFTStateAddress: this.env.impactNFT.state,
       options,
     };
     const marinadeConfig = new MarinadeConfig({
@@ -1359,6 +1428,10 @@ export class SunriseStakeClient {
       this.config.treasury
     );
 
+    const holdingAccountBalancePromise = this.provider.connection.getBalance(
+      this.env.holdingAccount
+    );
+
     const [
       gsolBalance,
       gsolSupply,
@@ -1366,6 +1439,7 @@ export class SunriseStakeClient {
       lpBalance,
       treasuryBalance,
       bsolLamportsBalance,
+      holdingAccountBalance,
     ] = await Promise.all([
       gsolBalancePromise,
       gsolSupplyPromise,
@@ -1373,6 +1447,7 @@ export class SunriseStakeClient {
       liqPoolBalancePromise,
       treasuryBalancePromise,
       bsolLamportsBalancePromise,
+      holdingAccountBalancePromise,
     ]);
 
     return {
@@ -1383,6 +1458,7 @@ export class SunriseStakeClient {
       liqPoolBalance: lpBalance.value,
       treasuryBalance,
       bsolBalance: bsolLamportsBalance.value,
+      holdingAccountBalance,
     };
   }
 
@@ -1408,6 +1484,7 @@ export class SunriseStakeClient {
       this.program,
       this.staker,
       this.stakerGSolTokenAccount,
+      this.env.impactNFT,
       lamports
     );
 
@@ -1416,10 +1493,17 @@ export class SunriseStakeClient {
     return transaction;
   }
 
-  public async updateLockAccount(): Promise<Transaction> {
+  public async updateLockAccount(): Promise<Transaction[]> {
     if (!this.config) throw new Error("init not called");
 
-    const transaction = new Transaction();
+    // Before updating a lock account, the epoch report account must be updated to the current epoch,
+    // via a recoverTickets instruction.
+    // The first person to update their lock account this epoch will trigger this update before
+    // updating their lock account.
+    // However, combining a recoverTickets instruction and an updateLockAccount instruction into a
+    // single transaction results in a transaction that is too large.
+    // Therefore, we split the transaction into two parts
+    const transactions: Transaction[] = [];
 
     const currentEpoch = await this.provider.connection.getEpochInfo();
 
@@ -1429,7 +1513,7 @@ export class SunriseStakeClient {
     const recoverInstruction = await this.recoverTickets();
 
     if (recoverInstruction) {
-      transaction.add(recoverInstruction);
+      transactions.push(new Transaction().add(recoverInstruction));
     }
 
     const { lockAccount } = await this.getLockAccount();
@@ -1446,19 +1530,22 @@ export class SunriseStakeClient {
         this.staker
       );
 
-      transaction.add(updateTx);
+      transactions.push(updateTx);
     }
 
-    return transaction;
+    return transactions;
   }
 
-  public async unlockGSol(): Promise<Transaction> {
+  public async unlockGSol(): Promise<Transaction[]> {
     if (!this.config) throw new Error("init not called");
     if (!this.stakerGSolTokenAccount) throw new Error("No stake found");
 
     // Update a lock account if it has not been updated this epoch
-    const transaction = await this.updateLockAccount();
+    const transactions = await this.updateLockAccount();
 
+    // updateLockAccount returns an array of transactions.
+    // Theoretically, the unlock transaction could be combined with the update transaction
+    // TODO - combine the unlock transaction with the update transaction if possible
     const unlockTx = await unlockGSol(
       this.config,
       this.program,
@@ -1466,9 +1553,9 @@ export class SunriseStakeClient {
       this.stakerGSolTokenAccount
     );
 
-    transaction.add(unlockTx);
+    transactions.push(unlockTx);
 
-    return transaction;
+    return transactions;
   }
 
   public async getLockAccount(): Promise<GetLockAccountResult> {

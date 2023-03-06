@@ -7,3 +7,5 @@ pub const ORDER_UNSTAKE_TICKET_ACCOUNT: &[u8] = b"order_unstake_ticket_account";
 pub const EPOCH_REPORT_ACCOUNT: &[u8] = b"epoch_report";
 pub const LOCK_ACCOUNT: &[u8] = b"lock_account";
 pub const LOCK_TOKEN_ACCOUNT: &[u8] = b"lock_token_account";
+pub const IMPACT_NFT_MINT_AUTHORITY: &[u8] = b"impact_nft_mint_authority";
+pub const IMPACT_NFT_MINT_ACCOUNT: &[u8] = b"impact_nft_mint_account";

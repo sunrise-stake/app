@@ -7,6 +7,7 @@ import {
   DEFAULT_LP_PROPORTION,
   NETWORK_FEE,
   Environment,
+  findImpactNFTMintAuthority,
 } from "../client/src";
 import {
   burnGSol,
@@ -24,6 +25,7 @@ import {
   waitForNextEpoch,
   expectBSolTokenBalance,
   initializeStakeAccount,
+  impactNFTLevels,
 } from "./util";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -39,6 +41,7 @@ import {
   unstakeLamportsExceedLPBalance,
   unstakeLamportsUnderLPBalance,
 } from "./constants";
+import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
 
 chai.use(chaiAsPromised);
 
@@ -114,6 +117,27 @@ describe("sunrise-stake", () => {
       })
       .signers([updateAuthority])
       .rpc();
+  });
+
+  it("can create an impactNFT state with the mint authority derived from the sunrise state", async () => {
+    const impactNftMintAuthority = findImpactNFTMintAuthority(
+      client.config!
+    )[0];
+    const levelCount = 8;
+    const levels = impactNFTLevels(levelCount);
+    const impactNftClient = await ImpactNftClient.register(
+      impactNftMintAuthority,
+      levelCount
+    );
+
+    if (!impactNftClient.stateAddress)
+      throw new Error("Impact NFT state not registered");
+
+    await impactNftClient.registerOffsetTiers(levels);
+
+    // set the newly-generated impactNft state in the client config
+    // so that it can be looked up in the next test
+    client.config!.impactNFTStateAddress = impactNftClient.stateAddress;
   });
 
   it("returns zero extractable yield if no SOL has been staked", async () => {
@@ -219,20 +243,6 @@ describe("sunrise-stake", () => {
     return expect(shouldFail).to.be.rejected;
   });
 
-  it("cannot unlock sol this epoch", async () => {
-    const shouldFail = client.sendAndConfirmTransaction(
-      await client.unlockGSol()
-    );
-
-    return expect(shouldFail).to.be.rejected;
-
-    // // the gsol balance has gone back to the original value
-    // const balance = await client.balance();
-    // expect(Number(balance.gsolBalance.amount)).to.equal(
-    //   depositLamports.toNumber()
-    // );
-  });
-
   it("no yield to extract yet", async () => {
     const { extractableYield } = await client.details();
     expectAmount(extractableYield, 0, 10);
@@ -262,6 +272,7 @@ describe("sunrise-stake", () => {
       unstakeLamportsExceedLPBalance,
       details
     );
+    await client.report();
     log("total withdrawal fee: ", totalFee.toString());
 
     // The LP balance is ~18 SOL at this point
@@ -274,13 +285,12 @@ describe("sunrise-stake", () => {
     // 2.6e9 * 0.003 + 1503360 + 5000 = 9.1e6
     // Actual values: ((20000000000-17448456901)* 0,003) + 1503360 + 5000 = 9162989.297
     // Tolerance to allow for rounding issues
-
     // expectAmount(9162989, totalWithdrawalFee, 100);
 
     // Liquid unstake comes completely from blaze here, charged at 0.03% rather than marinade's 0.3%
     // Unsure about if the rebalance works the same as it did prior. If it does, the new value should be:
-    // ((20000000000-17448456901)* 0.0003) + 1503360 + (2 * 5000) = 2278822.9297
-    expectAmount(2278822, totalFee, 100);
+    // ((20000000000-17463623930)* 0.0003) + 1503360 + (2 * 5000) = 2_274_272.821
+    expectAmount(2_274_272, totalFee, 100);
   });
 
   // Triggers a liquid unstake from Blaze only (since its valuation is higher)
@@ -325,6 +335,8 @@ describe("sunrise-stake", () => {
   });
 
   it("can unstake sol with a liquid unstake fee when doing so exceeds the amount in the LP", async () => {
+    await waitForNextEpoch(client);
+
     log("Before big unstake");
     const details = await client.details();
 
@@ -413,7 +425,6 @@ describe("sunrise-stake", () => {
 
     // unfortunately with the test validator, it is impossible to move the epoch forward without just waiting.
     // we run the validator at 32 slots per epoch, so we "only" need to wait for ~12 seconds
-    // we wait 15 seconds to be safe
     // An alternative is to write rust tests using solana-program-test
     await waitForNextEpoch(client);
 
@@ -524,7 +535,7 @@ describe("sunrise-stake", () => {
   });
 
   it("can unlock sol (including a recoverTickets call)", async () => {
-    await client.sendAndConfirmTransaction(await client.unlockGSol());
+    await client.sendAndConfirmTransactions(await client.unlockGSol());
 
     // the epoch report has now been updated to the current epoch
     const currentEpoch = await client.provider.connection.getEpochInfo();

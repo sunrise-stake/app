@@ -7,14 +7,14 @@ import {
   type Environment,
 } from "@sunrisestake/client";
 import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 import type BN from "bn.js";
 import { type AnchorWallet } from "@solana/wallet-adapter-react";
 import { debounce } from "./utils";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const stage =
-  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ||
+  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
 
 export class SunriseClientWrapper {
@@ -148,19 +148,19 @@ export class SunriseClientWrapper {
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
-  async unlockGSol(): Promise<string> {
+  async unlockGSol(): Promise<string[]> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .unlockGSol()
-      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
+      .then(async (txes) => this.client.sendAndConfirmTransactions(txes))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
-  async updateLockAccount(): Promise<string> {
+  async updateLockAccount(): Promise<string[]> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .updateLockAccount()
-      .then(async (tx) => this.client.sendAndConfirmTransaction(tx));
+      .then(async (txes) => this.client.sendAndConfirmTransactions(txes));
   }
 
   internal(): SunriseStakeClient {

@@ -7,7 +7,7 @@ interface Props {
 }
 
 const Panel: FC<Props> = ({ children, className }) => (
-  <div className={clx("bg-inset/60 border border-inset-border", className)}>
+  <div className={clx("bg-inset/5 backdrop-blur-sm", className)}>
     {children}
   </div>
 );

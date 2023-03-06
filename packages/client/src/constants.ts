@@ -9,6 +9,10 @@ export const STAKE_POOL_PROGRAM_ID = new PublicKey(
   "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 );
 
+export const IMPACT_NFT_PROGRAM_ID = new PublicKey(
+  "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
+);
+
 interface BlazeConfig {
   pool: PublicKey;
   bsolMint: PublicKey;
@@ -19,6 +23,9 @@ export interface EnvironmentConfig {
   holdingAccount: PublicKey;
   percentageStakeToMarinade: number;
   blaze: BlazeConfig;
+  impactNFT: {
+    state: PublicKey;
+  };
 }
 export const Environment: Record<
   WalletAdapterNetwork | "localnet",
@@ -34,6 +41,9 @@ export const Environment: Record<
       pool: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
+    impactNFT: {
+      state: PublicKey.default, // TODO Tmp- will be replaced with a state address
+    },
   },
   // TODO placeholders
   testnet: {
@@ -43,6 +53,9 @@ export const Environment: Record<
     blaze: {
       pool: PublicKey.default,
       bsolMint: PublicKey.default,
+    },
+    impactNFT: {
+      state: PublicKey.default, // TODO
     },
   },
   devnet: {
@@ -55,6 +68,9 @@ export const Environment: Record<
       pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
+    impactNFT: {
+      state: new PublicKey("FqvDYfVm3YSEioe4ASaQ9QkH9g2CQLAUnxFKgxWBhqd3"),
+    },
   },
   localnet: {
     state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
@@ -65,6 +81,9 @@ export const Environment: Record<
     blaze: {
       pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
+    },
+    impactNFT: {
+      state: PublicKey.default, // TODO
     },
   },
 };
