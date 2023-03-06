@@ -6,11 +6,15 @@ import {
   type ForwardRefRenderFunction,
   forwardRef,
 } from "react";
+import {
+  IoChevronBackOutline,
+  IoChevronDownOutline,
+  IoChevronForwardOutline,
+} from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { Button, Spinner } from "../common/components";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { HubIntro } from "./components/HubIntro";
-import { NavArrow } from "./components/NavArrow";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useTrees } from "../forest/hooks/useTrees";
 import { useCarbon } from "../common/hooks";
@@ -55,7 +59,7 @@ const _HubApp: ForwardRefRenderFunction<
   return (
     <div
       className={clx(
-        "flex flex-col items-center justify-center text-center",
+        "flex flex-col items-center justify-center text-center text-green",
         className
       )}
       ref={ref}
@@ -79,12 +83,14 @@ const _HubApp: ForwardRefRenderFunction<
           <Link
             to="/forest"
             className={clx(
-              "flex flex-col justify-center transition-opacity ease-in duration-500",
+              "hidden md:flex  flex-col justify-center transition-opacity ease-in duration-500",
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <NavArrow direction="left" className="mx-auto" />
-            Forest
+            <div className="flex items-center nowrap">
+              <IoChevronBackOutline className="inline" size={24} />
+              <span>Forest</span>
+            </div>
           </Link>
           {myTree && (
             <DynamicTree
@@ -100,26 +106,48 @@ const _HubApp: ForwardRefRenderFunction<
           <Link
             to="/grow"
             className={clx(
-              "flex flex-col justify-center transition-opacity ease-in duration-500",
+              "hidden md:flex flex-col justify-center transition-opacity ease-in duration-500",
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <NavArrow direction="right" className="mx-auto" />
-            Grow
+            <div className="flex items-center nowrap">
+              <span>Grow</span>
+              <IoChevronForwardOutline className="inline" size={24} />
+            </div>
           </Link>
         </div>
         <div
           className={clx(
-            "w-full text-center transition-opacity ease-in duration-500",
+            "w-full mt-2 text-center transition-opacity ease-in duration-500",
             showHubNav ? "opacity-100" : "opacity-0"
           )}
         >
           <Link to="/stake">
             <Button>{stakeButtonMessage}</Button>
           </Link>
-          <Link to="/lock" className="block w-full mt-2">
-            <NavArrow direction="down" className="mx-auto" />
+          <div
+            className={clx(
+              "flex md:hidden justify-between my-4 transition-opacity ease-in duration-500",
+              showHubNav ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <Link to="/forest" className="flex items-center">
+              <div className="flex items-center nowrap">
+                <IoChevronBackOutline className="inline" size={24} />
+                <span>Forest</span>
+              </div>
+            </Link>
+            <Link to="/grow" className="flex items-center">
+              <div className="flex items-center nowrap">
+                <span>Grow</span>
+                <IoChevronForwardOutline className="inline" size={24} />
+              </div>
+            </Link>
+          </div>
+          <Link to="/lock" className="block w-full mt-4 leading-none">
             Lock
+            <br />
+            <IoChevronDownOutline className="inline-block" size={24} />
           </Link>
         </div>
       </div>
