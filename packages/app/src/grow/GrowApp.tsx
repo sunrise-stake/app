@@ -86,17 +86,11 @@ const _GrowApp: ForwardRefRenderFunction<
 
   return (
     <div
-      className={clx(
-        "flex flex-col justify-start items-start sm:justify-center sm:items-center p-8",
-        className
-      )}
+      className={clx("flex flex-col items-center pt-8", className)}
       ref={ref}
       {...rest}
     >
       {" "}
-      <div className="sm:mt-96 sm:pt-96">
-        <h1 className="font-bold text-3xl text-green">Grow your forest</h1>
-      </div>
       <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
         <Link to="/" className="flex items-center text-green">
           <div className="flex items-center nowrap">
@@ -104,6 +98,9 @@ const _GrowApp: ForwardRefRenderFunction<
             <span>Back</span>
           </div>
         </Link>
+      </div>
+      <div className="">
+        <h1 className="font-bold text-3xl text-green">Grow your forest</h1>
       </div>
       <Transition className="mb-8" show={true}>
         <Transition.Child
