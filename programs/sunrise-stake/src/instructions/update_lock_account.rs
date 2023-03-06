@@ -21,9 +21,8 @@ pub struct UpdateLockAccount<'info> {
 
     #[account(
     mut,
-    // close = payer,
     constraint = lock_account.start_epoch.is_some() @ ErrorCode::LockAccountNotLocked,
-    constraint = lock_account.updated_to_epoch.unwrap() < clock.epoch @ ErrorCode::LockAccountAlreadyUpdated,
+    constraint = lock_account.updated_to_epoch.unwrap() < Clock::get().unwrap().epoch @ ErrorCode::LockAccountAlreadyUpdated,
     seeds = [state.key().as_ref(), LOCK_ACCOUNT, authority.key().as_ref()],
     bump = lock_account.bump,
     )]
@@ -40,11 +39,9 @@ pub struct UpdateLockAccount<'info> {
     #[account(
     seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
     bump = epoch_report_account.bump,
-    constraint = epoch_report_account.epoch == clock.epoch @ ErrorCode::InvalidEpochReportAccount
+    constraint = epoch_report_account.epoch == Clock::get().unwrap().epoch @ ErrorCode::InvalidEpochReportAccount
     )]
     pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
-
-    pub clock: Sysvar<'info, Clock>,
 
     /// IMPACT NFT ACCOUNTS
     pub impact_nft_program: Program<'info, ImpactNft>,
@@ -62,7 +59,6 @@ pub struct UpdateLockAccount<'info> {
     /// CHECK: (TODO) checked in impact nft program
     #[account(mut)]
     pub nft_metadata: UncheckedAccount<'info>,
-    pub nft_holder_token_account: Account<'info, TokenAccount>,
     /// CHECK: (TODO) checked in impact nft program
     #[account(mut)]
     pub offset_metadata: UncheckedAccount<'info>,
@@ -71,7 +67,9 @@ pub struct UpdateLockAccount<'info> {
 }
 
 pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()> {
-    ctx.accounts.lock_account.updated_to_epoch = Some(ctx.accounts.clock.epoch);
+    ctx.accounts.lock_account.updated_to_epoch = Some(Clock::get().unwrap().epoch);
+
+    let yield_accrued_before = ctx.accounts.lock_account.yield_accrued_by_owner;
 
     ctx.accounts.lock_account.calculate_and_add_yield_accrued(
         &ctx.accounts.epoch_report_account,
@@ -93,7 +91,6 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
         mint_authority: ctx.accounts.nft_mint_authority.to_account_info(),
         mint: ctx.accounts.nft_mint.to_account_info(),
         metadata: ctx.accounts.nft_metadata.to_account_info(),
-        token_account: ctx.accounts.nft_holder_token_account.to_account_info(),
         offset_tiers: ctx.accounts.offset_tiers.to_account_info(),
         offset_metadata: ctx.accounts.offset_metadata.to_account_info(),
         global_state: ctx.accounts.impact_nft_state.to_account_info(),
@@ -102,5 +99,5 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts)
         .with_signer(pda_signer);
 
-    cpi_update_nft(cpi_ctx, 0)
+    cpi_update_nft(cpi_ctx, ctx.accounts.lock_account.yield_accrued_by_owner)
 }

@@ -118,22 +118,12 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
         IMPACT_NFT_MINT_AUTHORITY,
         &[*ctx.bumps.get("nft_mint_authority").unwrap()],
     ];
-    msg!(
-        "Mint authority {:?} seeds: {:?}",
-        ctx.accounts.nft_mint_authority.key(),
-        mint_authority_seeds
-    );
     let mint_seeds = &[
         state_address.as_ref(),
         IMPACT_NFT_MINT_ACCOUNT,
         ctx.accounts.authority.key.as_ref(),
         &[*ctx.bumps.get("nft_mint").unwrap()],
     ];
-    msg!(
-        "Mint {:?} seeds: {:?}",
-        ctx.accounts.nft_mint.key(),
-        mint_seeds
-    );
     let pda_signer = &[&mint_authority_seeds[..], &mint_seeds[..]];
 
     // Mint NFT if not present

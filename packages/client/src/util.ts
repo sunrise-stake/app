@@ -30,6 +30,12 @@ export const PROGRAM_ID = new PublicKey(
   "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
 );
 
+export const zip = <T, U>(a: T[], b: U[], defaultB: U): Array<[T, U]> =>
+  a.map((k, i) => {
+    if (b.length <= i) return [k, defaultB];
+    return [k, b[i]];
+  });
+
 export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
   lamports.div(new BN(10).pow(new BN(precision))).toNumber() /
   (LAMPORTS_PER_SOL / 10 ** precision);

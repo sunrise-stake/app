@@ -220,16 +220,11 @@
         },
         {
           "name": "mint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "metadata",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenAccount",
           "isMut": true,
           "isSigner": false
         },

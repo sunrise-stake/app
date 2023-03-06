@@ -1,0 +1,62 @@
+[
+  {
+    "offset": "0",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 0",
+    "symbol": "SUNRISE0"
+  },
+  {
+    "offset": "500000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 1",
+    "symbol": "SUNRISE1"
+  },
+  {
+    "offset": "26000000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 2",
+    "symbol": "SUNRISE2"
+  },
+  {
+    "offset": "260000000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 3",
+    "symbol": "SUNRISE3"
+  },
+  {
+    "offset": "1350000000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 4",
+    "symbol": "SUNRISE4"
+  },
+  {
+    "offset": "4800000000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 5",
+    "symbol": "SUNRISE5"
+  },
+  {
+    "offset": "13600000000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 6",
+    "symbol": "SUNRISE6"
+  },
+  {
+    "offset": "32800000000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 7",
+    "symbol": "SUNRISE7"
+  },
+  {
+    "offset": "70000000000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 8",
+    "symbol": "SUNRISE8"
+  },
+  {
+    "offset": "140000000000",
+    "uri": "http://example.test",
+    "name": "Sunrise Stake Impact Level 9",
+    "symbol": "SUNRISE9"
+  }
+]

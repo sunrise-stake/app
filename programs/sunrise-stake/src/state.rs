@@ -219,7 +219,7 @@ impl LockAccount {
         &mut self,
         epoch_report_account: &EpochReportAccount,
         locked_gsol_token_account: &Account<'_, TokenAccount>,
-    ) -> Result<()> {
+    ) -> Result<u64> {
         require_keys_eq!(
             self.state_address,
             epoch_report_account.state_address,
@@ -250,15 +250,15 @@ impl LockAccount {
 
         msg!("owner_locked_gsol_share: {}", owner_locked_gsol_share);
 
-        self.yield_accrued_by_owner = yield_accrued_with_unstake_fee
-            .mul_add(owner_locked_gsol_share, self.yield_accrued_by_owner as f64)
-            as u64;
+        let yield_accrued = (yield_accrued_with_unstake_fee * owner_locked_gsol_share) as u64;
+
+        self.yield_accrued_by_owner = self.yield_accrued_by_owner + yield_accrued;
 
         msg!("yield_accrued_by_owner: {}", self.yield_accrued_by_owner);
 
         // we are updated to this epoch
         self.updated_to_epoch = Some(epoch_report_account.epoch);
 
-        Ok(())
+        Ok(yield_accrued)
     }
 }

@@ -793,11 +793,6 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1400,11 +1395,6 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "impactNftProgram",
           "isMut": false,
           "isSigner": false,
@@ -1430,11 +1420,6 @@ export type SunriseStake = {
         {
           "name": "nftMetadata",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "nftHolderTokenAccount",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -3237,11 +3222,6 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -3844,11 +3824,6 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "impactNftProgram",
           "isMut": false,
           "isSigner": false,
@@ -3874,11 +3849,6 @@ export const IDL: SunriseStake = {
         {
           "name": "nftMetadata",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "nftHolderTokenAccount",
-          "isMut": false,
           "isSigner": false
         },
         {

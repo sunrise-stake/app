@@ -8,7 +8,6 @@ import {
   type Signer,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
-  SYSVAR_RENT_PUBKEY,
   Transaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
@@ -32,6 +31,7 @@ import {
   toSol,
   findImpactNFTMintAuthority,
   getImpactNFT,
+  zip,
 } from "./util";
 import {
   Marinade,
@@ -229,6 +229,30 @@ export class SunriseStakeClient {
         this.log(e.logs);
         throw e;
       });
+  }
+
+  /**
+   * Send and confirm multiple transactions in sequence
+   * @param transactions
+   * @param signers
+   * @param opts
+   */
+  public async sendAndConfirmTransactions(
+    transactions: Transaction[],
+    signers: Signer[][] = [],
+    opts?: ConfirmOptions
+  ): Promise<string[]> {
+    const txesWithSigners = zip(transactions, signers, []);
+    const txSigs: string[] = [];
+
+    this.log("Sending transactions: ", transactions.length);
+    for (const [tx, signers] of txesWithSigners) {
+      const txSig = await this.sendAndConfirmTransaction(tx, signers, opts);
+      this.log("Transaction sent: ", txSig);
+      txSigs.push(txSig);
+    }
+
+    return txSigs;
   }
 
   createGSolTokenAccountIx(): TransactionInstruction {
@@ -502,7 +526,6 @@ export class SunriseStakeClient {
       systemProgram: SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
       clock: SYSVAR_CLOCK_PUBKEY,
-      rent: SYSVAR_RENT_PUBKEY,
       marinadeProgram,
     };
 
@@ -1470,10 +1493,17 @@ export class SunriseStakeClient {
     return transaction;
   }
 
-  public async updateLockAccount(): Promise<Transaction> {
+  public async updateLockAccount(): Promise<Transaction[]> {
     if (!this.config) throw new Error("init not called");
 
-    const transaction = new Transaction();
+    // Before updating a lock account, the epoch report account must be updated to the current epoch,
+    // via a recoverTickets instruction.
+    // The first person to update their lock account this epoch will trigger this update before
+    // updating their lock account.
+    // However, combining a recoverTickets instruction and an updateLockAccount instruction into a
+    // single transaction results in a transaction that is too large.
+    // Therefore, we split the transaction into two parts
+    const transactions: Transaction[] = [];
 
     const currentEpoch = await this.provider.connection.getEpochInfo();
 
@@ -1483,7 +1513,7 @@ export class SunriseStakeClient {
     const recoverInstruction = await this.recoverTickets();
 
     if (recoverInstruction) {
-      transaction.add(recoverInstruction);
+      transactions.push(new Transaction().add(recoverInstruction));
     }
 
     const { lockAccount } = await this.getLockAccount();
@@ -1500,19 +1530,22 @@ export class SunriseStakeClient {
         this.staker
       );
 
-      transaction.add(updateTx);
+      transactions.push(updateTx);
     }
 
-    return transaction;
+    return transactions;
   }
 
-  public async unlockGSol(): Promise<Transaction> {
+  public async unlockGSol(): Promise<Transaction[]> {
     if (!this.config) throw new Error("init not called");
     if (!this.stakerGSolTokenAccount) throw new Error("No stake found");
 
     // Update a lock account if it has not been updated this epoch
-    const transaction = await this.updateLockAccount();
+    const transactions = await this.updateLockAccount();
 
+    // updateLockAccount returns an array of transactions.
+    // Theoretically, the unlock transaction could be combined with the update transaction
+    // TODO - combine the unlock transaction with the update transaction if possible
     const unlockTx = await unlockGSol(
       this.config,
       this.program,
@@ -1520,9 +1553,9 @@ export class SunriseStakeClient {
       this.stakerGSolTokenAccount
     );
 
-    transaction.add(unlockTx);
+    transactions.push(unlockTx);
 
-    return transaction;
+    return transactions;
   }
 
   public async getLockAccount(): Promise<GetLockAccountResult> {

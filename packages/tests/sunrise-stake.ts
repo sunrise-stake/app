@@ -533,7 +533,7 @@ describe("sunrise-stake", () => {
   });
 
   it("can unlock sol (including a recoverTickets call)", async () => {
-    await client.sendAndConfirmTransaction(await client.unlockGSol());
+    await client.sendAndConfirmTransactions(await client.unlockGSol());
 
     // the epoch report has now been updated to the current epoch
     const currentEpoch = await client.provider.connection.getEpochInfo();
