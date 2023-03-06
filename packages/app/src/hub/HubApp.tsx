@@ -123,7 +123,7 @@ const _HubApp: ForwardRefRenderFunction<
           )}
         >
           <Link to="/stake">
-            <Button>{stakeButtonMessage}</Button>
+            <Button variant="outline">{stakeButtonMessage}</Button>
           </Link>
           <div
             className={clx(
