@@ -16,9 +16,9 @@ const LockForm: React.FC<LockFormProps> = ({ lock }) => {
   const [isBusy, setIsBusy] = useState(false);
 
   return (
-    <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
+    <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
       <AmountInput
-        className="mr-4"
+        className="mr-4 basis-3/4"
         token="gSOL"
         balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
         amount={amount}
@@ -36,6 +36,7 @@ const LockForm: React.FC<LockFormProps> = ({ lock }) => {
         }}
         disabled={!valid || isBusy}
         className="mr-auto sm:mr-0 m-auto"
+        size="sm"
       >
         {isBusy ? <Spinner size="1rem" className="mr-1" /> : null}
         Lock <FiArrowDownLeft className="inline" size={24} />

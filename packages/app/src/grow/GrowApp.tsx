@@ -17,9 +17,10 @@ import { toSol, type Details } from "@sunrisestake/client";
 import BN from "bn.js";
 import { ZERO } from "../common/utils";
 import { Keypair } from "@solana/web3.js";
-import { Transition } from "@headlessui/react";
 import { useScript } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
+import { DynamicTree } from "../common/components/tree/DynamicTree";
+import { useTrees } from "../forest/hooks/useTrees";
 
 export interface Charity {
   name: string;
@@ -43,6 +44,7 @@ const _GrowApp: ForwardRefRenderFunction<
 
   const [charity, setCharity] = useState<Charity | undefined>();
   const [recipientAddress, setRecipientAddress] = useState("");
+  const { myTree } = useTrees();
 
   // These will be fetch from some data base
   const charityApps = [
@@ -102,21 +104,14 @@ const _GrowApp: ForwardRefRenderFunction<
       <div className="">
         <h1 className="font-bold text-xl text-green-light">Grow your forest</h1>
       </div>
-      <Transition className="mb-8" show={true}>
-        <Transition.Child
-          as="img"
-          src={
-            details?.balances.gsolBalance === null ||
-            details?.balances.gsolBalance.uiAmount === 0
-              ? "/placeholder-sapling.png"
-              : "/placeholder-tree.png"
-          }
-          className={"FloatingTree"}
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          enter="transition-opacity ease-in duration-500"
+      {myTree && (
+        <DynamicTree
+          details={myTree}
+          className={`FloatingTree mb-8${
+            myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
+          }`}
         />
-      </Transition>
+      )}
       <h2 className="flex font-bold text-xl items-center gap-4 mb-8">
         Partners{" "}
         <AiOutlineArrowRight
