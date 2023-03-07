@@ -4,7 +4,6 @@ import {
   type YieldControllerState,
   YieldControllerClient,
 } from "@sunrisestake/yield-controller";
-import { YIELD_CONTROLLER_STATE } from "@sunrisestake/client";
 
 export const useYieldController = (): YieldControllerState | undefined => {
   const { client } = useSunriseStake();
@@ -14,11 +13,11 @@ export const useYieldController = (): YieldControllerState | undefined => {
       if (!client) return;
       const yieldControllerClient = await YieldControllerClient.get(
         client.client.provider,
-        YIELD_CONTROLLER_STATE
+        client.yieldControllerState
       );
       yieldControllerClient.getState().then(setYieldState).catch(console.error);
     })();
-  }, [YIELD_CONTROLLER_STATE]);
+  }, [client?.yieldControllerState]);
 
   return yieldState;
 };

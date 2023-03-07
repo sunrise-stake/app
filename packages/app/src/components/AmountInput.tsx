@@ -5,6 +5,7 @@ import {
   solToLamports,
   toFixedWithPrecision,
   toSol,
+  type UIMode,
 } from "../lib/util";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 
@@ -15,7 +16,7 @@ interface AmountInputProps {
   amount: string;
   setAmount: (amountStr: string) => void;
   setValid: (valid: boolean) => void;
-  mode: "STAKE" | "UNSTAKE";
+  mode: UIMode;
 }
 
 const AmountInput: React.FC<AmountInputProps> = ({
@@ -97,7 +98,11 @@ const AmountInput: React.FC<AmountInputProps> = ({
             </button>
           </div>
           <div className="flex">
-            <img src={`${token}.png`} className="h-12 my-auto pr-2" />
+            <img
+              src={`${token}.png`}
+              className="h-12 my-auto pr-2"
+              alt="token"
+            />
             <input
               className="appearance-textfield grow w-full border-none bg-transparent text-3xl text-right"
               type="number"

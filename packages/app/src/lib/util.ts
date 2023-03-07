@@ -12,6 +12,8 @@ const walletIsConnected = (
 
 const MAX_NUM_PRECISION = 5;
 
+export type UIMode = "STAKE" | "UNSTAKE" | "LOCK";
+
 export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
   lamports.div(new BN(10).pow(new BN(precision))).toNumber() /
   (LAMPORTS_PER_SOL / 10 ** precision);
