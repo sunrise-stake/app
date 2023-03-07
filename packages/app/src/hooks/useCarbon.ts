@@ -26,7 +26,8 @@ const useCarbon = (): { totalCarbon: number | undefined } => {
       // );
       // this is the amount of carbon tokens burned so far by the protocol
       const totalTokensPurchased =
-        yieldControllerState?.totalTokensPurchased ?? new BN(0);
+        (yieldControllerState?.totalTokensPurchased ?? new BN(0)).toNumber() /
+        10 ** 8; // tokens purchased are stored on-chain in minor denomination
 
       // this is the current price set in the yield controller for buying carbon tokens
       // TODO use this instead of the hard-coded values to convert SOL to Carbon
@@ -35,15 +36,14 @@ const useCarbon = (): { totalCarbon: number | undefined } => {
       const totalLamportsWaiting = extractableYield.add(treasuryBalance);
 
       const carbon =
-        solToCarbon(toSol(totalLamportsWaiting)) +
-        totalTokensPurchased.toNumber();
+        solToCarbon(toSol(totalLamportsWaiting)) + totalTokensPurchased;
 
       console.log({
         extractableYield: toSol(extractableYield),
         treasuryBalance: toSol(treasuryBalance),
         // holdingAccountBalance: toSol(holdingAccountBalance),
         totalLamportsWaiting: toSol(totalLamportsWaiting),
-        totalTokensPurchased: totalTokensPurchased.toNumber(),
+        totalTokensPurchased,
         totalCarbon: carbon,
         prices: PRICES,
       });
@@ -53,7 +53,7 @@ const useCarbon = (): { totalCarbon: number | undefined } => {
 
       setTotalCarbon(normalizedCarbon);
     })();
-  }, [details]);
+  }, [details, yieldControllerState]);
 
   return { totalCarbon };
 };
