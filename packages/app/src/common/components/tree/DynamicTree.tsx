@@ -108,7 +108,6 @@ export const DynamicTree: FC<{
             ? {
                 position: "absolute",
                 bottom: "90px",
-                // left: left(index, treeImages.length),
                 height: "60px",
               }
             : {
