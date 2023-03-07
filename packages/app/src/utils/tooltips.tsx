@@ -3,7 +3,7 @@ export const tooltips = {
   totalStake: <>The sum of everyones staked SOL</>,
   offsetCO2: (
     <>
-      Tonnes of Carbon Dioxide or equivalent (tCO2e) offset by Sunrise so far.
+      Tonnes of Carbon Dioxide or equivalent (tCO₂E) offset by Sunrise so far.
       Note: This number includes yield that Sunrise has accrued, but not yet
       spent
     </>

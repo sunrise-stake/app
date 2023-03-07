@@ -124,4 +124,8 @@ export class SunriseClientWrapper {
       .sendAndConfirm(tx, [])
       .then(this.triggerUpdateAndReturn.bind(this));
   }
+
+  get yieldControllerState(): PublicKey {
+    return this.client.env.yieldControllerState;
+  }
 }

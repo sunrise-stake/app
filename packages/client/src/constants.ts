@@ -13,6 +13,7 @@ interface BlazeConfig {
 interface EnvironmentConfig {
   state: PublicKey;
   holdingAccount: PublicKey;
+  yieldControllerState: PublicKey;
   percentageStakeToMarinade: number;
   blaze: BlazeConfig;
 }
@@ -21,6 +22,9 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     state: new PublicKey("43m66crxGfXSJpmx5wXRoFuHubhHA1GCvtHgmHW6cM1P"),
     holdingAccount: new PublicKey(
       "shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn"
+    ),
+    yieldControllerState: new PublicKey(
+      "htGs6L3pCRxgfkJP2vLUdb9hVPtcE4mKsdWP4CnirQA"
     ),
     percentageStakeToMarinade: 200, // TODO TEMP fix
     blaze: {
@@ -33,6 +37,9 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"), // Warning obsolete
     holdingAccount: PublicKey.default,
     percentageStakeToMarinade: 75,
+    yieldControllerState: new PublicKey(
+      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
+    ),
     blaze: {
       pool: PublicKey.default,
       bsolMint: PublicKey.default,
@@ -42,6 +49,26 @@ export const Environment: Record<WalletAdapterNetwork, EnvironmentConfig> = {
     state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
     holdingAccount: new PublicKey(
       "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
+    ),
+    yieldControllerState: new PublicKey(
+        "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
+    ),
+    yieldControllerState: new PublicKey(
+      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
+    ),
+    percentageStakeToMarinade: 75,
+    blaze: {
+      pool: new PublicKey("azFVdHtAJN8BX3sbGAYkXvtdjdrT5U6rj9rovvUFos9"),
+      bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
+    },
+  },
+  localnet: {
+    state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
+    holdingAccount: new PublicKey(
+      "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
+    ),
+    yieldControllerState: new PublicKey(
+        "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
     ),
     percentageStakeToMarinade: 75,
     blaze: {
