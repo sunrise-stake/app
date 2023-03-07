@@ -213,7 +213,7 @@ describe("sunrise-stake", () => {
   // So after the previous deposit, the liquidity pool is at its minimum (5%)
   // Any subsequent liquid unstakes will trigger a rebalance
   // So to avoid this (in order to test feeless unstake)
-  // we deposit 10 more here, which shoudl go straight into the LP, bringing it back up to its maximum (10%)
+  // we deposit 10 more here, which should go straight into the LP, bringing it back up to its maximum (10%)
   it("deposits into the liquidity pool to rebalance the pools", async () => {
     await getBalance(client); // print balance before deposit
 

@@ -140,6 +140,10 @@ export class SunriseClientWrapper {
     return this.client.env.holdingAccount;
   }
 
+  get yieldControllerState(): PublicKey {
+    return this.client.env.yieldControllerState;
+  }
+
   async lockGSol(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client

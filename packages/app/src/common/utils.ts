@@ -65,12 +65,28 @@ type SparseWalletContextAdapter = Omit<SparseWallet, "publicKey"> & {
 
 type ConnectedWallet = SparseWallet & { connected: true };
 
-// TODO TEMP lookup
-const SOL_PRICE_USD_CENTS = 2500;
-const CARBON_PRICE_USD_CENTS_PER_TONNE = 173; // NCT price in USD cents
+const DEFAULT_SOLANA_USD_PRICE = 2000; // SOL price in USD cents
+const DEFAULT_NCT_USD_PRICE = 200; // NCT price in USD cents
 
-const solToCarbon = (sol: number): number =>
-  (sol * SOL_PRICE_USD_CENTS) / CARBON_PRICE_USD_CENTS_PER_TONNE;
+interface Prices {
+  solana: number;
+  nct: number;
+}
+const PRICES: Prices = {
+  solana: DEFAULT_SOLANA_USD_PRICE,
+  nct: DEFAULT_NCT_USD_PRICE,
+};
+
+fetch("https://api.sunrisestake.com/prices")
+  .then(async (res) => res.json())
+  .then(({ solana, "toucan-protocol-nature-carbon-tonne": nct }) => {
+    console.log("Prices", { solana, nct });
+    PRICES.solana = Number(solana.usd) * 100;
+    PRICES.nct = Number(nct.usd) * 100;
+  })
+  .catch(console.error);
+
+const solToCarbon = (sol: number): number => (sol * PRICES.solana) / PRICES.nct;
 
 function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
   func: F,
@@ -133,8 +149,6 @@ export {
   addUp,
   round,
   ZERO,
-  CARBON_PRICE_USD_CENTS_PER_TONNE,
-  SOL_PRICE_USD_CENTS,
   type UIMode,
   debounce,
   getDigits,
