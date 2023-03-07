@@ -69,7 +69,7 @@ interface Prices {
   solana: number;
   nct: number;
 }
-const PRICES: Prices = {
+export const PRICES: Prices = {
   solana: DEFAULT_SOLANA_USD_PRICE,
   nct: DEFAULT_NCT_USD_PRICE,
 };

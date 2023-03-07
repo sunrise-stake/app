@@ -1,6 +1,6 @@
 import BN from "bn.js";
 import { useEffect, useState } from "react";
-import { solToCarbon, toSol } from "../lib/util";
+import { PRICES, solToCarbon, toSol } from "../lib/util";
 import { useSunriseStake } from "../context/sunriseStakeContext";
 import { useYieldController } from "./useYieldController";
 
@@ -45,6 +45,7 @@ const useCarbon = (): { totalCarbon: number | undefined } => {
         totalLamportsWaiting: toSol(totalLamportsWaiting),
         totalTokensPurchased: totalTokensPurchased.toNumber(),
         totalCarbon: carbon,
+        prices: PRICES,
       });
 
       // due to fees, at low values, the total can be negative
