@@ -8,7 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import { Button, LockForm, Panel, Spinner } from "../common/components";
 import {
@@ -20,6 +20,7 @@ import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 import { solToLamports, toFixedWithPrecision } from "../common/utils";
 import { ImpactNFT } from "./ImpactNFT";
+import { IoChevronBackOutline } from "react-icons/io5";
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -144,6 +145,14 @@ const _LockingApp: ForwardRefRenderFunction<
           ></div>
         </div>
       )}
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl mt-8">
+        <Link to="/" className="flex items-center text-green">
+          <div className="flex items-center nowrap">
+            <IoChevronBackOutline className="inline" size={24} />
+            <span>Back</span>
+          </div>
+        </Link>
+      </div>
       <div className="w-[20%] h-[20%] bg-green m-8">My Tree</div>
       <div className="w-[20%] h-[20%] m-8">
         {details?.impactNFTDetails && (
@@ -156,7 +165,7 @@ const _LockingApp: ForwardRefRenderFunction<
           {" "}
           <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
             <Button
-              variant="primary"
+              color="primary"
               className="mr-4"
               disabled={!needsUpdate}
               onClick={() => {
@@ -173,7 +182,7 @@ const _LockingApp: ForwardRefRenderFunction<
               )}
             </Button>
             <Button
-              variant="secondary"
+              color="secondary"
               disabled={isBusyUnlock}
               onClick={() => {
                 setIsBusyUnlock(true);

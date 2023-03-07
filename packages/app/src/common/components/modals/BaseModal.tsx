@@ -63,7 +63,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
                 <div className="mx-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-32 items-center text-center">
                   <Button
                     disabled={!okEnabled}
-                    variant="primary"
+                    color="primary"
                     className={
                       "w-full justify-center items-center " +
                       "hover:opacity-70 " +
@@ -76,7 +76,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
                     <FiArrowRight className="ml-2 scale-150" />
                   </Button>
                   <Button
-                    variant="danger"
+                    color="danger"
                     className="mt-3 items-center w-full justify-center hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
                     onClick={clickCancel}
                   >

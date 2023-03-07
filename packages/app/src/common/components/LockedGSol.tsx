@@ -51,7 +51,7 @@ const LockedGSol: React.FC<LockedGSolProps> = ({
   return (
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
-        variant="primary"
+        color="primary"
         className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem] items-center"
       >
         <div className="flex flex-row items-center">
@@ -102,7 +102,7 @@ const LockedGSol: React.FC<LockedGSolProps> = ({
         onClick={() => {
           setIsClicked(false);
         }}
-        variant="secondary"
+        color="secondary"
         className={clx(
           "text-danger border border-danger text-sm absolute items-center rounded-md transition-transform duration-500 z-0 h-16 max-w-[10rem] sm:max-w-[12rem]",
           {

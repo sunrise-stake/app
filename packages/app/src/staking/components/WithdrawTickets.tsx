@@ -39,7 +39,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
   return (
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
-        variant={ticket.ticketDue != null ? "primary" : "ticket"}
+        color={ticket.ticketDue != null ? "primary" : "ticket"}
         className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem] items-center"
         onClick={() => {
           if (ticket.ticketDue === undefined || ticket.ticketDue == null) {
@@ -73,7 +73,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
         onClick={() => {
           setIsClicked(false);
         }}
-        variant="secondary"
+        color="secondary"
         className={clx(
           "text-danger border border-danger text-sm absolute items-center rounded-md transition-transform duration-500 z-0 h-16 max-w-[10rem] sm:max-w-[12rem]",
           {
