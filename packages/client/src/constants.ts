@@ -21,6 +21,7 @@ interface BlazeConfig {
 export interface EnvironmentConfig {
   state: PublicKey;
   holdingAccount: PublicKey;
+  yieldControllerState: PublicKey;
   percentageStakeToMarinade: number;
   blaze: BlazeConfig;
   impactNFT: {
@@ -36,6 +37,9 @@ export const Environment: Record<
     holdingAccount: new PublicKey(
       "shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn"
     ),
+    yieldControllerState: new PublicKey(
+      "htGs6L3pCRxgfkJP2vLUdb9hVPtcE4mKsdWP4CnirQA"
+    ),
     percentageStakeToMarinade: 200, // TODO TEMP fix
     blaze: {
       pool: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
@@ -50,6 +54,9 @@ export const Environment: Record<
     state: new PublicKey("DR3hrjH6SZefraRu8vaQfEhG5e6E25ZwccakQxWRePkC"), // Warning obsolete
     holdingAccount: PublicKey.default,
     percentageStakeToMarinade: 75,
+    yieldControllerState: new PublicKey(
+      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
+    ),
     blaze: {
       pool: PublicKey.default,
       bsolMint: PublicKey.default,
@@ -62,6 +69,9 @@ export const Environment: Record<
     state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
     holdingAccount: new PublicKey(
       "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
+    ),
+    yieldControllerState: new PublicKey(
+      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
     ),
     percentageStakeToMarinade: 75,
     blaze: {
@@ -76,6 +86,9 @@ export const Environment: Record<
     state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
     holdingAccount: new PublicKey(
       "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
+    ),
+    yieldControllerState: new PublicKey(
+      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
     ),
     percentageStakeToMarinade: 75,
     blaze: {

@@ -3633,6 +3633,14 @@
     borsh "^0.6.0"
     bs58 "^5.0.0"
 
+"@sunrisestake/yield-controller@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@sunrisestake/yield-controller/-/yield-controller-0.0.3.tgz#f49b334126e9e3e26dfbea7ac107d56146a5b89d"
+  integrity sha512-IQOSzrsZsR7QTiDamXZOP/FRoxJMulDSJ9boA4qd054/OzhtSKy6TQD2/oOX6Grp3garMk5REu594+XD65GejA==
+  dependencies:
+    "@coral-xyz/anchor" "^0.26.0"
+    "@solana/spl-token" "^0.3.7"
+
 "@supercharge/promise-pool@^2.1.0":
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@supercharge/promise-pool/-/promise-pool-2.4.0.tgz#6050eea8c2d7f92ddd4ddc582ee328b15c034ad3"
