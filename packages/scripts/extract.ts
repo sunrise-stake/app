@@ -1,7 +1,7 @@
-import { SunriseStakeClient } from "../app/src/lib/client/";
+import { SunriseStakeClient } from "../client/src";
 import "./util";
 import { AnchorProvider } from "@project-serum/anchor";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
+import { SUNRISE_STAKE_STATE } from "../client/src/constants";
 
 (async () => {
   const provider = AnchorProvider.env();
