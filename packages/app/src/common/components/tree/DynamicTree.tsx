@@ -103,20 +103,12 @@ export const DynamicTree: FC<{
       <TreeImage
         key={index}
         src={image}
-        style={
-          variant === "sm"
-            ? {
-                position: "absolute",
-                bottom: "90px",
-                height: "60px",
-              }
-            : {
-                position: "absolute",
-                bottom: bottom(index, treeImages.length),
-                left: left(index, treeImages.length),
-                width: width(index, treeImages.length),
-              }
-        }
+        style={{
+          position: "absolute",
+          bottom: bottom(index, treeImages.length),
+          left: left(index, treeImages.length),
+          width: width(index, treeImages.length),
+        }}
       />
     );
   });
@@ -125,7 +117,9 @@ export const DynamicTree: FC<{
     <div onClick={onClick} className={className} style={style}>
       <Island
         className={
-          variant === "sm" ? "w-[100px] h-[100px]" : "w-[300px] h-[300px]"
+          variant === "sm"
+            ? "w-[300px] h-[300px] scale-50"
+            : "w-[300px] h-[300px]"
         }
       >
         {components}

@@ -107,10 +107,10 @@ const _GrowApp: ForwardRefRenderFunction<
       {myTree && (
         <DynamicTree
           details={myTree}
-          className={`FloatingTree mb-8 mt-12${
+          variant="sm"
+          className={`FloatingTree -my-8${
             myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
           }`}
-          variant="sm"
         />
       )}
       <h2 className="flex font-bold text-xl items-center gap-4 mb-8">

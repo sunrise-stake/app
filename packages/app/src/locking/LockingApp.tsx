@@ -160,7 +160,7 @@ const _LockingApp: ForwardRefRenderFunction<
         <DynamicTree
           details={myTree}
           variant="sm"
-          className={`FloatingTree my-8${
+          className={`FloatingTree${
             myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
           }`}
         />
