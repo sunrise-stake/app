@@ -75,7 +75,8 @@ export const DynamicTree: FC<{
   style?: CSSProperties;
   onClick?: () => void;
   className?: string;
-}> = ({ details, style = {}, onClick, className = "" }) => {
+  variant?: "sm" | "md";
+}> = ({ details, style = {}, onClick, className = "", variant = "md" }) => {
   const { level, species } = details.metadata.type;
 
   console.log("MY TREE", details.metadata);
@@ -102,19 +103,34 @@ export const DynamicTree: FC<{
       <TreeImage
         key={index}
         src={image}
-        style={{
-          position: "absolute",
-          bottom: bottom(index, treeImages.length),
-          left: left(index, treeImages.length),
-          width: width(index, treeImages.length),
-        }}
+        style={
+          variant === "sm"
+            ? {
+                position: "absolute",
+                bottom: "90px",
+                // left: left(index, treeImages.length),
+                height: "60px",
+              }
+            : {
+                position: "absolute",
+                bottom: bottom(index, treeImages.length),
+                left: left(index, treeImages.length),
+                width: width(index, treeImages.length),
+              }
+        }
       />
     );
   });
 
   return (
     <div onClick={onClick} className={className} style={style}>
-      <Island>{components}</Island>
+      <Island
+        className={
+          variant === "sm" ? "w-[100px] h-[100px]" : "w-[300px] h-[300px]"
+        }
+      >
+        {components}
+      </Island>
     </div>
   );
 };
