@@ -897,7 +897,7 @@ export class SunriseStakeClient {
     const lpSolShare = details.lpDetails.lpSolShare;
     const preferredMinLiqPoolValue = new BN(
       details.balances.gsolSupply.amount
-    ).muln(0.1);
+    ).muln(DEFAULT_LP_MIN_PROPORTION).divn(100);
     const postUnstakeLpSolValue = new BN(lpSolShare).sub(withdrawalLamports);
 
     // Calculate how much will be withdrawn through liquid unstaking (with fee)
@@ -912,10 +912,16 @@ export class SunriseStakeClient {
       ? MARINADE_TICKET_RENT
       : 0;
 
-    this.log("amount to order unstake: ", amountToOrderUnstake);
-    this.log("rent for order unstake: ", rentForOrderUnstakeTicket);
+    this.log("withdrawal lamports: ", withdrawalLamports.toString());
+    this.log("lp sol share: ", lpSolShare.toString());
+    this.log("preferred min lp value: ", preferredMinLiqPoolValue.toString());
+    this.log("post unstake lp sol value: ", postUnstakeLpSolValue.toString());
+    this.log("amount being liquid unstaked: ", amountBeingLiquidUnstaked.toString());
+    this.log("amount to order unstake: ", amountToOrderUnstake.toString());
+    this.log("rent for order unstake: ", rentForOrderUnstakeTicket.toString());
+
     const ticketFee = rentForOrderUnstakeTicket;
-    let totalFee = new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE);
+    let totalFee = rentForOrderUnstakeTicket > 0 ? new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE) : ZERO;
 
     this.log("base fee for order unstake: ", totalFee.toString());
 
@@ -1104,14 +1110,15 @@ export class SunriseStakeClient {
           }
         : undefined;
 
+    const nftSummary = {
+      stateAddress: this.config.impactNFTStateAddress,
+      mintAuthority: findImpactNFTMintAuthority(this.config)[0],
+      mint: impactNFT.mint,
+      tokenAccount: impactNFT.tokenAccount,
+    }
+    console.log("nftSummary", nftSummary)
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
-      ? {
-          stateAddress: this.config.impactNFTStateAddress,
-          mintAuthority: findImpactNFTMintAuthority(this.config)[0],
-          mint: impactNFT.mint,
-          tokenAccount: impactNFT.tokenAccount,
-        }
-      : undefined;
+      ? nftSummary : undefined;
 
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),

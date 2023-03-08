@@ -8,6 +8,7 @@ import {
   type SunriseStakeConfig,
 } from "./util";
 import {
+  ComputeBudgetProgram,
   type PublicKey,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
@@ -99,11 +100,15 @@ interface ImpactNFTAccounts {
   impactNftState: PublicKey;
   nftMint: PublicKey;
   nftMintAuthority: PublicKey;
+  nftTokenAuthority: PublicKey;
   nftMetadata: PublicKey;
   nftHolderTokenAccount: PublicKey;
   nftMasterEdition: PublicKey;
   offsetMetadata: PublicKey;
   offsetTiers: PublicKey;
+  nftCollectionMint: PublicKey;
+  nftCollectionMetadata: PublicKey;
+    nftCollectionMasterEdition: PublicKey;
 }
 const getImpactNFTAccounts = async (
   config: SunriseStakeConfig,
@@ -116,7 +121,8 @@ const getImpactNFTAccounts = async (
     program.provider as AnchorProvider,
     config.impactNFTStateAddress
   );
-  const impactNftAccounts = impactNFTClient.getMintNftAccounts(
+
+  const impactNftAccounts = await impactNFTClient.getMintNftAccounts(
     nftMint,
     authority // holder
   );
@@ -127,11 +133,15 @@ const getImpactNFTAccounts = async (
     impactNftState: config.impactNFTStateAddress,
     nftMint,
     nftMintAuthority,
+    nftTokenAuthority: impactNftAccounts.tokenAuthority,
     nftMetadata: impactNftAccounts.metadata,
     nftHolderTokenAccount: impactNftAccounts.userTokenAccount,
     nftMasterEdition: impactNftAccounts.masterEdition,
     offsetMetadata: impactNftAccounts.offsetMetadata,
     offsetTiers: impactNftAccounts.offsetTiers,
+    nftCollectionMint: impactNftAccounts.collectionMint,
+    nftCollectionMetadata: impactNftAccounts.collectionMetadata,
+    nftCollectionMasterEdition: impactNftAccounts.collectionMasterEdition,
   };
 };
 
@@ -152,6 +162,10 @@ export const lockGSol = async (
   >[0];
 
   const preInstructions: TransactionInstruction[] = [];
+
+  const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+    units: 300000,
+  });
 
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {
