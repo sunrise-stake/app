@@ -2,7 +2,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { type TicketAccount, type Details, toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import clx from "classnames";
-import { type FC, useCallback, useEffect, useState } from "react";
+import { type FC, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 import { GiCircleForest } from "react-icons/gi";
@@ -62,79 +62,70 @@ const StakeDashboard: FC = () => {
     }
   };
 
-  const handleError = useCallback((error: Error) => {
+  const handleError = (error: Error): void => {
     notifyTransaction({
       type: NotificationType.error,
       message: "Transaction failed",
       description: error.message,
     });
     console.error(error);
-  }, []);
+  };
 
   useEffect(() => {
     void updateBalances();
   }, [wallet.publicKey, client]);
 
-  const deposit = useCallback(
-    async (amount: string) => {
-      if (!client) return Promise.reject(new Error("Client not initialized"));
+  const deposit = async (amount: string): Promise<void> => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      return client
-        .deposit(solToLamports(amount))
-        .then((tx) => {
-          notifyTweet(amount);
-          notifyTransaction({
-            type: NotificationType.success,
-            message: "Deposit successful",
-            txid: tx,
-          });
-        })
-        .then(updateBalances)
-        .catch(handleError);
-    },
-    [client, updateBalances]
-  );
+    return client
+      .deposit(solToLamports(amount))
+      .then((tx) => {
+        notifyTweet(amount);
+        notifyTransaction({
+          type: NotificationType.success,
+          message: "Deposit successful",
+          txid: tx,
+        });
+      })
+      .then(updateBalances)
+      .catch(handleError);
+  };
 
-  const withdraw = useCallback(
-    async (amount: string) => {
-      if (!client) return Promise.reject(new Error("Client not initialized"));
+  const withdraw = async (amount: string): Promise<void> => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      const withdraw = delayedWithdraw
-        ? client.orderWithdrawal.bind(client)
-        : client.withdraw.bind(client);
+    const withdraw = delayedWithdraw
+      ? client.orderWithdrawal.bind(client)
+      : client.withdraw.bind(client);
 
-      return withdraw(solToLamports(amount))
-        .then((tx) => {
-          notifyTransaction({
-            type: NotificationType.success,
-            message: "Withdrawal successful",
-            txid: tx,
-          });
-        })
-        .then(updateBalances)
-        .catch(handleError);
-    },
-    [client, updateBalances, delayedWithdraw]
-  );
+    return withdraw(solToLamports(amount))
+      .then((tx) => {
+        notifyTransaction({
+          type: NotificationType.success,
+          message: "Withdrawal successful",
+          txid: tx,
+        });
+      })
+      .then(updateBalances)
+      .catch(handleError);
+  };
 
-  const redeem = useCallback(
-    async (ticket: TicketAccount) => {
-      if (!client) return Promise.reject(new Error("Client not initialized"));
+  const redeem = async (ticket: TicketAccount): Promise<void> => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
 
-      return client
-        .claimUnstakeTicket(ticket)
-        .then((tx) => {
-          notifyTransaction({
-            type: NotificationType.success,
-            message: "Redeeming successful",
-            txid: tx,
-          });
-        })
-        .then(updateBalances)
-        .catch(handleError);
-    },
-    [client, updateBalances]
-  );
+    return client
+      .claimUnstakeTicket(ticket)
+      .then((tx) => {
+        notifyTransaction({
+          type: NotificationType.success,
+          message: "Redeeming successful",
+          txid: tx,
+        });
+      })
+      .then(updateBalances)
+      .catch(handleError);
+  };
 
   return (
     <div style={{ maxWidth: "620px" }} className="mx-auto relative">
@@ -284,7 +275,7 @@ const StakeDashboard: FC = () => {
         </InfoBox>
       </div>
       <div className="relative z-20 mb-8 mt-2">
-        <DetailsBox />
+        <DetailsBox details={details} />
       </div>
 
       <div className="relative z-10 flex flex-col gap-8 mb-8 justify-center">

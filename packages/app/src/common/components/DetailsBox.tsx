@@ -1,11 +1,10 @@
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { toSol } from "@sunrisestake/client";
+import { type Details, toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import clx from "classnames";
 import { type FC, type ReactNode, useRef, useState } from "react";
 
 import { tooltips } from "../content/tooltips";
-import { useSunriseStake } from "../context/sunriseStakeContext";
 import { toFixedWithPrecision } from "../utils";
 import { TooltipPopover } from "./TooltipPopover";
 
@@ -39,9 +38,9 @@ const DetailEntry: FC<DetailEntryProps> = ({
 
 interface Props {
   className?: string;
+  details: Details | undefined;
 }
-const DetailsBox: FC<Props> = ({ className }) => {
-  const { details } = useSunriseStake();
+const DetailsBox: FC<Props> = ({ className, details }) => {
   const [isShowing, setIsShowing] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 

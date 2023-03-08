@@ -5,7 +5,6 @@ import {
   createContext,
   type FC,
   type ReactNode,
-  useCallback,
   useContext,
   useEffect,
   useState,
@@ -32,19 +31,18 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
 
-  const updateClient = useCallback(
-    async (clientToUpdate: SunriseClientWrapper) => {
-      // don't overwrite a readwrite client with a readonly one
-      if (clientToUpdate.readonlyWallet && client) return;
+  const updateClient = async (
+    clientToUpdate: SunriseClientWrapper
+  ): Promise<void> => {
+    // don't overwrite a readwrite client with a readonly one
+    if (clientToUpdate.readonlyWallet && client) return;
 
-      console.log("setting client: readonly", clientToUpdate.readonlyWallet);
-      setClient(clientToUpdate);
-      setDetails(await clientToUpdate.getDetails());
+    console.log("setting client: readonly", clientToUpdate.readonlyWallet);
+    setClient(clientToUpdate);
+    setDetails(await clientToUpdate.getDetails());
 
-      window.client = clientToUpdate;
-    },
-    [setClient]
-  );
+    window.client = clientToUpdate;
+  };
 
   // Use this to initialise the details if it is not already set
   // this prevents the details from being overwritten by the readonly client
