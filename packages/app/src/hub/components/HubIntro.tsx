@@ -1,6 +1,10 @@
 import { Transition } from "@headlessui/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
+import forest from "./forest.png";
+import zen from "./zen.png";
+import stake from "./stake.png";
+import grow from "./grow.png";
 
 import { CarbonRecovered } from "../../common/components";
 import { Carousel } from "./Carousel";
@@ -13,19 +17,16 @@ const HubIntro: FC<{
 }> = ({ show, onEntered, onLeft }) => {
   const CarouselData = [
     {
-      image: "https://picsum.photos/300/300",
+      image: zen,
     },
     {
-      image: "https://picsum.photos/1200/800",
+      image: stake,
     },
     {
-      image: "https://picsum.photos/720/720",
+      image: grow,
     },
     {
-      image: "https://picsum.photos/1920/1080",
-    },
-    {
-      image: "https://picsum.photos/480/360",
+      image: forest,
     },
   ];
 
