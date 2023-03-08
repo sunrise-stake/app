@@ -21,6 +21,8 @@ import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 import { solToLamports, toFixedWithPrecision } from "../common/utils";
 import { ImpactNFT } from "./ImpactNFT";
 import { IoChevronBackOutline } from "react-icons/io5";
+import { DynamicTree } from "../common/components/tree/DynamicTree";
+import { useTrees } from "../forest/hooks/useTrees";
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -29,6 +31,7 @@ const _LockingApp: ForwardRefRenderFunction<
   const navigate = useNavigate();
   const wallet = useWallet();
   const [, updateZenMode] = useZenMode();
+  const { myTree } = useTrees();
 
   useEffect(() => {
     if (!wallet.connected) navigate("/");
@@ -153,7 +156,15 @@ const _LockingApp: ForwardRefRenderFunction<
           </div>
         </Link>
       </div>
-      <div className="w-[20%] h-[20%] bg-green m-8">My Tree</div>
+      {myTree && (
+        <DynamicTree
+          details={myTree}
+          variant="sm"
+          className={`FloatingTree${
+            myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
+          }`}
+        />
+      )}
       <div className="w-[20%] h-[20%] m-8">
         {details?.impactNFTDetails && (
           <ImpactNFT details={details.impactNFTDetails} />
@@ -162,8 +173,7 @@ const _LockingApp: ForwardRefRenderFunction<
 
       {details?.lockDetails ? (
         <>
-          {" "}
-          <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
+          <Panel className="flex flex-row mb-9 p-3 sm:p-4 rounded-lg">
             <Button
               color="primary"
               className="mr-4"
