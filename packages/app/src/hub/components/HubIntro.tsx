@@ -3,12 +3,32 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
 import { CarbonRecovered } from "../../common/components";
+import { Carousel } from "./Carousel";
+import { AiOutlineArrowRight, AiOutlineArrowLeft } from "react-icons/ai";
 
 const HubIntro: FC<{
   show: boolean;
   onEntered?: () => void;
   onLeft?: () => void;
 }> = ({ show, onEntered, onLeft }) => {
+  const CarouselData = [
+    {
+      image: "https://picsum.photos/300/300",
+    },
+    {
+      image: "https://picsum.photos/1200/800",
+    },
+    {
+      image: "https://picsum.photos/720/720",
+    },
+    {
+      image: "https://picsum.photos/1920/1080",
+    },
+    {
+      image: "https://picsum.photos/480/360",
+    },
+  ];
+
   return (
     <Transition
       show={show}
@@ -61,8 +81,16 @@ const HubIntro: FC<{
           Offset emissions while you sleep.
         </Transition.Child>
       </Transition.Child>
+      <Carousel
+        data={CarouselData}
+        autoPlay={false}
+        rightItem={<AiOutlineArrowRight size={24} />}
+        leftItem={<AiOutlineArrowLeft size={24} />}
+        animationDuration={10}
+        size="normal"
+      />
       <Transition.Child
-        className="mb-12"
+        className="my-12"
         enterFrom="opacity-0"
         enterTo="opacity-100"
         enter="transition-opacity ease-in duration-1000 delay-[2s]"
