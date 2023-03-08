@@ -33,6 +33,7 @@ const _HubApp: ForwardRefRenderFunction<
   const [stakeButtonMessage, updateStakeButtonMessage] = useState("My Stake");
 
   const { myTree } = useTrees();
+  console.log("Hub page tree", myTree);
   const { totalCarbon } = useCarbon();
 
   useEffect(() => {
