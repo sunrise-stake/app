@@ -52,11 +52,15 @@ const StakeDashboard: FC = () => {
   const { totalCarbon } = useCarbon();
 
   // TODO move to details?
-  const setBalances = useCallback(async () => {
+  const updateBalances = async (): Promise<void> => {
     if (!wallet.publicKey || !client) return;
-    setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
-    setDelayedUnstakeTickets(await client.getDelayedUnstakeTickets());
-  }, [wallet.publicKey?.toBase58(), client, connection]);
+    try {
+      setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
+      setDelayedUnstakeTickets(await client.getDelayedUnstakeTickets());
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleError = useCallback((error: Error) => {
     notifyTransaction({
@@ -68,15 +72,8 @@ const StakeDashboard: FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!wallet.publicKey) return;
-    setBalances().catch(console.error);
-  }, [
-    wallet.publicKey?.toBase58(),
-    connection,
-    setSolBalance,
-    client,
-    setBalances,
-  ]);
+    void updateBalances();
+  }, [wallet.publicKey, connection, client]);
 
   const deposit = useCallback(
     async (amount: string) => {
@@ -92,10 +89,10 @@ const StakeDashboard: FC = () => {
             txid: tx,
           });
         })
-        .then(setBalances)
+        .then(updateBalances)
         .catch(handleError);
     },
-    [client, setBalances]
+    [client, updateBalances]
   );
 
   const withdraw = useCallback(
@@ -114,10 +111,10 @@ const StakeDashboard: FC = () => {
             txid: tx,
           });
         })
-        .then(setBalances)
+        .then(updateBalances)
         .catch(handleError);
     },
-    [client, setBalances, delayedWithdraw]
+    [client, updateBalances, delayedWithdraw]
   );
 
   const redeem = useCallback(
@@ -133,10 +130,10 @@ const StakeDashboard: FC = () => {
             txid: tx,
           });
         })
-        .then(setBalances)
+        .then(updateBalances)
         .catch(handleError);
     },
-    [client, setBalances]
+    [client, updateBalances]
   );
 
   return (

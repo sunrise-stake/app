@@ -31,7 +31,7 @@ export const useTrees = (
         setNeighbours(components.slice(1));
       }
     })();
-  }, [wallet.publicKey?.toBase58()]);
+  }, [wallet.publicKey]);
 
   return { myTree, neighbours };
 };

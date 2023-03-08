@@ -77,7 +77,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
         .then(initDetails)
         .catch(console.error);
     }
-  }, [connection, wallet?.publicKey?.toBase58()]);
+  }, [connection, wallet?.publicKey]);
 
   return (
     <SunriseContext.Provider value={{ client, details }}>
