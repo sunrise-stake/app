@@ -30,7 +30,7 @@ enum Seed {
   GlobalState = "global_state",
 }
 
-describe("Impact NFTs", () => {
+describe.only("Impact NFTs", () => {
   let client: SunriseStakeClient;
 
   const treasury = Keypair.generate();
@@ -75,12 +75,19 @@ describe("Impact NFTs", () => {
     if (!impactNftClient.stateAddress)
       throw new Error("Impact NFT state not registered");
 
+    // Create levels and collections: TODO
+    const collections = await Promise.all(
+        levels.map((level) => impactNftClient.createCollectionMint(level.uri, level.name + " Collection"))
+    );
+
+    const levelsWithOffsetAndCollections = levels.map((level, i) => ({
+      ...level,
+      // parse the offset string into a BN
+      offset: new BN(level.offset),
+      collectionMint: collections[i].publicKey
+    }));
     await impactNftClient.registerOffsetTiers(
-      levels.map((level) => ({
-        ...level,
-        // parse the offset string into a BN
-        offset: new BN(level.offset),
-      }))
+      levelsWithOffsetAndCollections
     );
 
     // set the newly-generated impactNft state in the client config
