@@ -73,7 +73,7 @@ const StakeDashboard: FC = () => {
 
   useEffect(() => {
     void updateBalances();
-  }, [wallet.publicKey, connection, client]);
+  }, [wallet.publicKey, client]);
 
   const deposit = useCallback(
     async (amount: string) => {
