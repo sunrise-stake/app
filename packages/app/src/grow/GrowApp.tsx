@@ -108,7 +108,7 @@ const _GrowApp: ForwardRefRenderFunction<
         <DynamicTree
           details={myTree}
           variant="sm"
-          className={`FloatingTree -my-8${
+          className={`-my-8${
             myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
           }`}
         />
