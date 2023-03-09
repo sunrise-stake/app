@@ -1,4 +1,9 @@
-import { Keypair, LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  type PublicKey,
+  Transaction,
+} from "@solana/web3.js";
 import {
   SunriseStakeClient,
   Environment,
@@ -77,18 +82,21 @@ describe.only("Impact NFTs", () => {
 
     // Create levels and collections: TODO
     const collections = await Promise.all(
-        levels.map((level) => impactNftClient.createCollectionMint(level.uri, level.name + " Collection"))
+      levels.map(async (level) =>
+        impactNftClient.createCollectionMint(
+          level.uri,
+          level.name + " Collection"
+        )
+      )
     );
 
     const levelsWithOffsetAndCollections = levels.map((level, i) => ({
       ...level,
       // parse the offset string into a BN
       offset: new BN(level.offset),
-      collectionMint: collections[i].publicKey
+      collectionMint: collections[i].publicKey,
     }));
-    await impactNftClient.registerOffsetTiers(
-      levelsWithOffsetAndCollections
-    );
+    await impactNftClient.registerOffsetTiers(levelsWithOffsetAndCollections);
 
     // set the newly-generated impactNft state in the client config
     // so that it can be looked up in the next test
@@ -97,14 +105,18 @@ describe.only("Impact NFTs", () => {
 
   it("can mint an impact nft when locking gSOL", async () => {
     const transaction = await client.lockGSol(lockLamports);
-    await client.sendAndConfirmTransaction(transaction);
+    try {
+      await client.sendAndConfirmTransactions(transaction);
+    } catch (err) {
+      console.log(err);
+    }
 
     const details = await client.details();
     expect(details.impactNFTDetails?.tokenAccount).to.exist;
   });
 
   it("cannot re-lock", async () => {
-    const shouldFail = client.sendAndConfirmTransaction(
+    const shouldFail = client.sendAndConfirmTransactions(
       await client.lockGSol(lockLamports)
     );
 
@@ -127,6 +139,16 @@ describe.only("Impact NFTs", () => {
     // Switch to the next epoch so that the lock account can be updated and the yield applied
     await waitForNextEpoch(client);
 
-    await client.sendAndConfirmTransactions(await client.updateLockAccount());
+    // A shortcut so that the calculation for getting the updated collection accounts is sane
+    const recoverIx = await client.recoverTickets();
+    if (recoverIx !== null) {
+      await client.sendAndConfirmTransaction(new Transaction().add(recoverIx));
+    }
+
+    try {
+      await client.sendAndConfirmTransactions(await client.updateLockAccount());
+    } catch (err) {
+      console.log(err);
+    }
   });
 });

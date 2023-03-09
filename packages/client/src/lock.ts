@@ -23,9 +23,10 @@ import {
   type Account as TokenAccount,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import type BN from "bn.js";
-import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
+import BN from "bn.js";
+import { ImpactNftClient, type Level } from "@sunrisestake/impact-nft-client";
 import { type EnvironmentConfig } from "./constants";
+import { getEpochReportAccount } from "./marinade";
 
 interface GetLockTokenAccountResult {
   address: PublicKey;
@@ -108,7 +109,7 @@ interface ImpactNFTAccounts {
   offsetTiers: PublicKey;
   nftCollectionMint: PublicKey;
   nftCollectionMetadata: PublicKey;
-    nftCollectionMasterEdition: PublicKey;
+  nftCollectionMasterEdition: PublicKey;
 }
 const getImpactNFTAccounts = async (
   config: SunriseStakeConfig,
@@ -163,10 +164,6 @@ export const lockGSol = async (
 
   const preInstructions: TransactionInstruction[] = [];
 
-  const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
-    units: 300000,
-  });
-
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {
     const initLockAccount = await program.methods
@@ -220,6 +217,10 @@ export const updateLockAccount = async (
   const [lockGSolTokenAccount] = findLockTokenAccount(config, authority);
   const [epochReportAccount] = findEpochReportAccount(config);
 
+  const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+    units: 300000,
+  });
+
   type Accounts = Parameters<
     ReturnType<typeof program.methods.updateLockAccount>["accounts"]
   >[0];
@@ -229,6 +230,33 @@ export const updateLockAccount = async (
     authority,
     program
   );
+
+  const impactNFTClient = await ImpactNftClient.get(
+    program.provider as AnchorProvider,
+    config.impactNFTStateAddress
+  );
+
+  const offset = await calculateUpdatedYieldAccrued(config, program, authority);
+
+  // FIXME:
+  // Gets the current collection for an nftMint and the expected updated
+  // collection for a particular offset amount. This is already provided
+  // by getUpdateNftAccounts in the impactNFT client but the logic there
+  // seems to be faulty and should be updated to match the version used here.
+  const newCollectionMint = await getUpdateCollectionForOffset(
+    new BN(offset),
+    impactNFTClient
+  );
+  const newCollectionMetadata =
+    impactNFTClient.getMetadataAddress(newCollectionMint);
+  const newCollectionMasterEdition =
+    impactNFTClient.getMasterEditionAddress(newCollectionMint);
+
+  const updateAccounts = await impactNFTClient.getUpdateNftAccounts(
+    allImpactNFTAccounts.nftMint,
+    new BN(offset)
+  );
+
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
@@ -238,16 +266,33 @@ export const updateLockAccount = async (
     epochReportAccount,
     impactNftProgram: allImpactNFTAccounts.impactNftProgram,
     impactNftState: allImpactNFTAccounts.impactNftState,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    tokenMetadataProgram: allImpactNFTAccounts.tokenMetadataProgram,
+    // FIXME(redundant): Remove from here and the impactNft program.
+    // It's neither used nor checked in the updateNFT instruction.
+    nftTokenAccount: allImpactNFTAccounts.nftHolderTokenAccount,
     nftMint: allImpactNFTAccounts.nftMint,
     nftMintAuthority: allImpactNFTAccounts.nftMintAuthority,
+    nftTokenAuthority: allImpactNFTAccounts.nftTokenAuthority,
     nftMetadata: allImpactNFTAccounts.nftMetadata,
     offsetMetadata: allImpactNFTAccounts.offsetMetadata,
     offsetTiers: allImpactNFTAccounts.offsetTiers,
+    nftCollectionMint: updateAccounts.collectionMint,
+    nftCollectionMetadata: updateAccounts.collectionMetadata,
+    nftCollectionMasterEdition: updateAccounts.collectionMasterEdition,
+    // nftNewCollectionMint: updateAccounts.newCollectionMint,
+    // nftNewCollectionMetadata: updateAccounts.newCollectionMetadata,
+    // nftNewCollectionMasterEdition: updateAccounts.newCollectionMasterEdition,
+    nftNewCollectionMint: newCollectionMint,
+    nftNewCollectionMetadata: newCollectionMetadata,
+    nftNewCollectionMasterEdition: newCollectionMasterEdition,
   };
 
-  console.log(accounts);
-
-  return program.methods.updateLockAccount().accounts(accounts).transaction();
+  return program.methods
+    .updateLockAccount()
+    .accounts(accounts)
+    .preInstructions([modifyComputeUnits])
+    .transaction();
 };
 
 export const unlockGSol = async (
@@ -279,4 +324,67 @@ export const unlockGSol = async (
   };
 
   return program.methods.unlockGsol().accounts(accounts).transaction();
+};
+
+const getUpdateCollectionForOffset = async (
+  offset: BN,
+  impactNFT: ImpactNftClient
+): Promise<PublicKey> => {
+  const offsetTiers = impactNFT.getOffsetTiersAddress();
+  const account = await impactNFT.program.account.offsetTiers.fetch(
+    offsetTiers
+  );
+  const levels = account.levels as Level[];
+
+  if (levels.length === 1) {
+    return levels[0].collectionMint;
+  }
+
+  for (let i = 0; i < levels.length; ++i) {
+    if (levels[i].offset.gt(offset)) {
+      return levels[i - 1].collectionMint;
+    }
+  }
+
+  // return max offset
+  return levels[levels.length - 1].collectionMint;
+};
+
+const calculateUpdatedYieldAccrued = async (
+  config: SunriseStakeConfig,
+  program: Program<SunriseStake>,
+  authority: PublicKey
+): Promise<BN> => {
+  const epochReportAccount = await getEpochReportAccount(config, program).then(
+    (res) => res.account
+  );
+  if (epochReportAccount === null)
+    throw new Error("Epoch report account does not exist");
+
+  const { lockAccount, tokenAccount } = await getLockAccount(
+    config,
+    program,
+    authority
+  );
+  if (lockAccount === null)
+    throw new Error("Lock account does not exist for user");
+  if (tokenAccount === null)
+    throw new Error("Lock gsol token account does not exist");
+
+  const globalYieldAccrued = epochReportAccount.extractableYield
+    .sub(epochReportAccount.extractedYield)
+    .sub(lockAccount.sunriseYieldAtStart);
+
+  const yieldAccruedWithUnstakeFee = globalYieldAccrued.muln(997).divn(1000);
+
+  const userLockedGsol = new BN(tokenAccount.amount.toString());
+
+  const userYieldAccrued = yieldAccruedWithUnstakeFee
+    .mul(userLockedGsol)
+    .div(epochReportAccount.currentGsolSupply);
+
+  const updatedUserYieldAccrued =
+    lockAccount.yieldAccruedByOwner.add(userYieldAccrued);
+
+  return updatedUserYieldAccrued;
 };

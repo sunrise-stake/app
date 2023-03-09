@@ -22,13 +22,16 @@ import {
   type MarinadeState,
   MarinadeUtils,
 } from "@sunrisestake/marinade-ts-sdk";
-import { type Program, utils } from "@coral-xyz/anchor";
+import { type Program, utils, type IdlAccounts } from "@coral-xyz/anchor";
 import { type BlazeState } from "./types/Solblaze";
 import { type SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
-import { type EpochReportAccount } from "./types/EpochReportAccount";
+// import { type EpochReportAccount } from "./types/EpochReportAccount";
 import { STAKE_POOL_PROGRAM_ID } from "./constants";
+
+export type EpochReportAccount =
+  IdlAccounts<SunriseStake>["epochReportAccount"];
 
 export const deposit = async (
   config: SunriseStakeConfig,

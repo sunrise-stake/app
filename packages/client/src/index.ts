@@ -895,9 +895,9 @@ export class SunriseStakeClient {
   ): WithdrawalFees {
     // Calculate how much can be withdrawn from the lp (without fee)
     const lpSolShare = details.lpDetails.lpSolShare;
-    const preferredMinLiqPoolValue = new BN(
-      details.balances.gsolSupply.amount
-    ).muln(DEFAULT_LP_MIN_PROPORTION).divn(100);
+    const preferredMinLiqPoolValue = new BN(details.balances.gsolSupply.amount)
+      .muln(DEFAULT_LP_MIN_PROPORTION)
+      .divn(100);
     const postUnstakeLpSolValue = new BN(lpSolShare).sub(withdrawalLamports);
 
     // Calculate how much will be withdrawn through liquid unstaking (with fee)
@@ -916,12 +916,18 @@ export class SunriseStakeClient {
     this.log("lp sol share: ", lpSolShare.toString());
     this.log("preferred min lp value: ", preferredMinLiqPoolValue.toString());
     this.log("post unstake lp sol value: ", postUnstakeLpSolValue.toString());
-    this.log("amount being liquid unstaked: ", amountBeingLiquidUnstaked.toString());
+    this.log(
+      "amount being liquid unstaked: ",
+      amountBeingLiquidUnstaked.toString()
+    );
     this.log("amount to order unstake: ", amountToOrderUnstake.toString());
     this.log("rent for order unstake: ", rentForOrderUnstakeTicket.toString());
 
     const ticketFee = rentForOrderUnstakeTicket;
-    let totalFee = rentForOrderUnstakeTicket > 0 ? new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE) : ZERO;
+    let totalFee =
+      rentForOrderUnstakeTicket > 0
+        ? new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE)
+        : ZERO;
 
     this.log("base fee for order unstake: ", totalFee.toString());
 
@@ -1115,10 +1121,11 @@ export class SunriseStakeClient {
       mintAuthority: findImpactNFTMintAuthority(this.config)[0],
       mint: impactNFT.mint,
       tokenAccount: impactNFT.tokenAccount,
-    }
-    console.log("nftSummary", nftSummary)
+    };
+    console.log("nftSummary", nftSummary);
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
-      ? nftSummary : undefined;
+      ? nftSummary
+      : undefined;
 
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
@@ -1469,7 +1476,7 @@ export class SunriseStakeClient {
     };
   }
 
-  public async lockGSol(lamports: BN): Promise<Transaction> {
+  public async lockGSol(lamports: BN): Promise<Transaction[]> {
     if (
       !this.stakerGSolTokenAccount ||
       !this.config ||
@@ -1478,12 +1485,19 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const transaction = new Transaction();
+    // Before locking gsol, the epoch report account must be updated to the current epoch,
+    // via a recoverTickets instruction.
+    // The first person to lock this epoch will trigger this update before
+    // updating their lock account.
+    // However, combining a recoverTickets instruction and a lockGsol instruction into a
+    // single transaction results in a transaction that is too large.
+    // Therefore, we split the transaction into two parts
+    const transactions: Transaction[] = [];
 
     const recoverInstruction = await this.recoverTickets();
 
     if (recoverInstruction) {
-      transaction.add(recoverInstruction);
+      transactions.push(new Transaction().add(recoverInstruction));
     }
 
     const lockTx = await lockGSol(
@@ -1495,9 +1509,9 @@ export class SunriseStakeClient {
       lamports
     );
 
-    transaction.add(lockTx);
+    transactions.push(lockTx);
 
-    return transaction;
+    return transactions;
   }
 
   public async updateLockAccount(): Promise<Transaction[]> {
@@ -1536,7 +1550,6 @@ export class SunriseStakeClient {
         this.program,
         this.staker
       );
-
       transactions.push(updateTx);
     }
 

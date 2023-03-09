@@ -1419,12 +1419,12 @@ export type SunriseStake = {
         },
         {
           "name": "nftMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "nftMintAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1459,7 +1459,7 @@ export type SunriseStake = {
         },
         {
           "name": "nftNewCollectionMetadata",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1469,12 +1469,12 @@ export type SunriseStake = {
         },
         {
           "name": "nftCollectionMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "nftCollectionMetadata",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -3918,12 +3918,12 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "nftMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "nftMintAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -3958,7 +3958,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "nftNewCollectionMetadata",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -3968,12 +3968,12 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "nftCollectionMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "nftCollectionMetadata",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
