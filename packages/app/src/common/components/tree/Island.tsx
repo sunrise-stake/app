@@ -1,9 +1,9 @@
 import { ASSETS } from "../../utils";
 import { type CSSProperties, type FC, type PropsWithChildren } from "react";
 
-type Props = PropsWithChildren & { style?: CSSProperties };
-export const Island: FC<Props> = ({ children, style }: Props) => (
-  <div className="w-[300px] h-[300px]" style={style}>
+type Props = PropsWithChildren & { style?: CSSProperties; className?: string };
+export const Island: FC<Props> = ({ children, style, className }: Props) => (
+  <div className={className} style={style}>
     <img
       alt="Island"
       src={ASSETS + "_LANDPLOT.png"}

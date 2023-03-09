@@ -75,7 +75,8 @@ export const DynamicTree: FC<{
   style?: CSSProperties;
   onClick?: () => void;
   className?: string;
-}> = ({ details, style = {}, onClick, className = "" }) => {
+  variant?: "sm" | "md";
+}> = ({ details, style = {}, onClick, className = "", variant = "md" }) => {
   const { level, species } = details.metadata.type;
 
   console.log("MY TREE", details.metadata);
@@ -114,7 +115,15 @@ export const DynamicTree: FC<{
 
   return (
     <div onClick={onClick} className={className} style={style}>
-      <Island>{components}</Island>
+      <Island
+        className={
+          variant === "sm"
+            ? "w-[300px] h-[300px] scale-50"
+            : "w-[300px] h-[300px]"
+        }
+      >
+        {components}
+      </Island>
     </div>
   );
 };
