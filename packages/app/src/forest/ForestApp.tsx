@@ -5,12 +5,12 @@ import {
   forwardRef,
   type ForwardRefRenderFunction,
 } from "react";
-import { useTrees } from "./hooks/useTrees";
 import { type TreeComponent } from "./utils";
 import { toShortBase58 } from "../common/utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
+import { useForest } from "../common/context/forestContext";
 
 const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -38,7 +38,7 @@ const _ForestApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
 > = ({ className, ...rest }, ref) => {
-  const { myTree, neighbours } = useTrees();
+  const { myTree, neighbours } = useForest();
   return (
     <div
       className={clx("relative flex justify-center items-center", className)}

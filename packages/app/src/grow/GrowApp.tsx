@@ -20,7 +20,7 @@ import { Keypair } from "@solana/web3.js";
 import { useScript } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { useTrees } from "../forest/hooks/useTrees";
+import { useForest } from "../common/context/forestContext";
 
 export interface Charity {
   name: string;
@@ -44,7 +44,7 @@ const _GrowApp: ForwardRefRenderFunction<
 
   const [charity, setCharity] = useState<Charity | undefined>();
   const [recipientAddress, setRecipientAddress] = useState("");
-  const { myTree } = useTrees();
+  const { myTree } = useForest();
 
   // These will be fetch from some data base
   const charityApps = [
