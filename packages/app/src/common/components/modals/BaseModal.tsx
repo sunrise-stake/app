@@ -1,90 +1,83 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { type FC, Fragment, type ReactNode, useState } from "react";
+import { Fragment, type FC, type ReactNode } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { GiCancel } from "react-icons/gi";
 
 import { Button } from "../Button";
 
-export interface ModalProps {
+interface ModalProps {
   ok: () => void;
   cancel: () => void;
+  show: boolean;
 }
+
 type Props = ModalProps & {
   children?: ReactNode;
   okEnabled?: boolean;
 };
-const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
-  const [isOpen, setIsOpen] = useState(true);
 
+const BaseModal: FC<Props> = ({
+  children,
+  ok,
+  cancel,
+  okEnabled = true,
+  show,
+}) => {
   const clickOk = (): void => {
     ok();
-    setIsOpen(false);
   };
 
   const clickCancel = (): void => {
     cancel();
-    setIsOpen(false);
   };
 
   return (
-    <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" onClose={clickCancel}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed z-30 inset-0 backdrop-blur-sm" />
-        </Transition.Child>
-
-        <div className="fixed z-30 inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg px-4 pt-5 pb-4 text-left bg-white shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
-                {children}
-                <div className="mx-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-32 items-center text-center">
-                  <Button
-                    disabled={!okEnabled}
-                    color="primary"
-                    className={
-                      "w-full justify-center items-center " +
-                      "hover:opacity-70 " +
-                      "disabled:opacity-50 disabled:cursor-not-allowed " +
-                      "sm:col-start-2 sm:text-sm"
-                    }
-                    onClick={clickOk}
-                  >
-                    <div className="font-bold">Continue</div>{" "}
-                    <FiArrowRight className="ml-2 scale-150" />
-                  </Button>
-                  <Button
-                    color="secondary"
-                    className="mt-3 items-center w-full justify-center hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
-                    onClick={clickCancel}
-                  >
-                    <div className="font-bold">Cancel</div>{" "}
-                    <GiCancel className="ml-2" />
-                  </Button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
+    <Transition
+      as={Fragment}
+      show={show}
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      enter="transition-opacity ease-out duration-500"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+      leave="transition-opacity ease-out duration-200"
+    >
+      <Dialog
+        onClose={clickCancel}
+        className="fixed z-30 inset-0 overflow-y-auto backdrop-blur-sm"
+      >
+        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 border border-gray-100 text-left bg-white shadow-xll sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
+            {children}
+            <div className="mx-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-32 items-center text-center">
+              <Button
+                disabled={!okEnabled}
+                color="primary"
+                className={
+                  "w-full justify-center items-center " +
+                  "hover:opacity-70 " +
+                  "disabled:opacity-50 disabled:cursor-not-allowed " +
+                  "sm:col-start-2 sm:text-sm"
+                }
+                onClick={clickOk}
+              >
+                <div className="font-bold">Continue</div>{" "}
+                <FiArrowRight className="ml-2 scale-150" />
+              </Button>
+              <Button
+                color="secondary"
+                className="mt-3 items-center w-full justify-center hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
+                onClick={clickCancel}
+              >
+                <div className="font-bold">Cancel</div>{" "}
+                <GiCancel className="ml-2" />
+              </Button>
+            </div>
+          </Dialog.Panel>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition>
   );
 };
 
-export { BaseModal };
+export { BaseModal, type ModalProps };

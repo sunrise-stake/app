@@ -60,6 +60,7 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
         <LiquidWithdrawWarningModal
           ok={withdrawModal.onModalOK}
           cancel={withdrawModal.onModalClose}
+          show={withdrawModal.modalShown}
         />
       )}
 
