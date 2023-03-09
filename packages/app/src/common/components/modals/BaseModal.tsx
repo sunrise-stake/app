@@ -38,7 +38,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed z-30 inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          <div className="fixed z-30 inset-0 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed z-30 inset-0 overflow-y-auto">
@@ -52,7 +52,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-outset px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg px-4 pt-5 pb-4 text-left bg-white shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
                 {children}
                 <div className="mx-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-32 items-center text-center">
                   <Button
@@ -70,7 +70,7 @@ const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
                     <FiArrowRight className="ml-2 scale-150" />
                   </Button>
                   <Button
-                    color="danger"
+                    color="secondary"
                     className="mt-3 items-center w-full justify-center hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
                     onClick={clickCancel}
                   >

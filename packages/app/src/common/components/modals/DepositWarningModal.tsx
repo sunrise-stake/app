@@ -33,16 +33,14 @@ const DepositWarningModal: FC<ModalProps> = (props) => {
               idx={0}
             >
               <div className="flex flex-col gap-1 py-6 px-2">
-                <p className="text-md text-white font-bold">
+                <p className="text-md font-bold">
                   You are about to transact on{" "}
-                  <em className="text-white text-md font-bold">Mainnet</em>.
+                  <em className="text-md font-bold">Mainnet</em>.
                 </p>
-                <p className="text-sm text-white">
+                <p className="text-sm">
                   Sunrise is currently in alpha and has not been audited.
                 </p>
-                <p className="text-sm text-white mt-8">
-                  Please proceed with caution.
-                </p>
+                <p className="text-sm mt-8">Please proceed with caution.</p>
               </div>
             </WarningConfirm>
           </div>
