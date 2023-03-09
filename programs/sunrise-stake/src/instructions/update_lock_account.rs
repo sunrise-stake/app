@@ -131,7 +131,10 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
         collection_master_edition: ctx.accounts.nft_collection_master_edition.to_account_info(),
         new_collection_mint: ctx.accounts.nft_new_collection_mint.to_account_info(),
         new_collection_metadata: ctx.accounts.nft_new_collection_metadata.to_account_info(),
-        new_collection_master_edition: ctx.accounts.nft_new_collection_master_edition.to_account_info(),
+        new_collection_master_edition: ctx
+            .accounts
+            .nft_new_collection_master_edition
+            .to_account_info(),
         payer: ctx.accounts.authority.to_account_info(),
         token_metadata_program: ctx.accounts.token_metadata_program.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
@@ -139,6 +142,9 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
     let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(pda_signer);
 
-    msg!("yield accrued: {}", ctx.accounts.lock_account.yield_accrued_by_owner);
+    msg!(
+        "yield accrued: {}",
+        ctx.accounts.lock_account.yield_accrued_by_owner
+    );
     cpi_update_nft(cpi_ctx, ctx.accounts.lock_account.yield_accrued_by_owner)
 }

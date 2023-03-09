@@ -3614,10 +3614,10 @@
     eventemitter3 "^4.0.7"
     uuid "^8.3.2"
 
-"@sunrisestake/impact-nft-client@^0.0.1-alpha.8":
-  version "0.0.1-alpha.8"
-  resolved "https://registry.yarnpkg.com/@sunrisestake/impact-nft-client/-/impact-nft-client-0.0.1-alpha.8.tgz#48a7a203d362056a471ddb0194c800e9527b189f"
-  integrity sha512-QVdmBzFPBiaw+6QNdkVyGBdz1Sykix8DyZFAJW/DdqzVzly2PkLbIc4oVrNKtQNvN/mJiNL7di7LK8m9dxZryA==
+"@sunrisestake/impact-nft-client@^0.0.1-alpha.9":
+  version "0.0.1-alpha.9"
+  resolved "https://registry.yarnpkg.com/@sunrisestake/impact-nft-client/-/impact-nft-client-0.0.1-alpha.9.tgz#4b2369d0e45805e57bf4c236614bacc276411b68"
+  integrity sha512-LjwwzZjhKcHw2p3Z04C5BrCk8Fkhvvm+xulYnJmWU8y/TzmyDVSVtKyCNlnAdq2s6JylRAox8S/gLcH5W3tZGA==
   dependencies:
     "@coral-xyz/anchor" "^0.26.0"
     "@solana/spl-token" "^0.3.7"
