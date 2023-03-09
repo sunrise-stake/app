@@ -31,12 +31,14 @@ const buildMintRecord = (mint: MintResponse): Mint => ({
 });
 const getDBData = async <T>(
   collection: "mints" | "transfers",
-  type: "recipient" | "sender",
+  types: Array<"recipient" | "sender">,
   address: PublicKey
 ): Promise<MongoResponse<T>> => {
   if (STUB_DB) {
     return (
-      collection === "mints" ? STUBS.mints : STUBS[type]
+      collection === "mints"
+        ? STUBS.mints
+        : types.flatMap((type) => STUBS[type])
     ) as MongoResponse<T>;
   }
   return fetch(`${MONGODB_API_URL}/action/find`, {
@@ -50,24 +52,20 @@ const getDBData = async <T>(
       database: "gsol-tracker",
       collection,
       filter: {
-        [type]: address.toString(),
+        $or: types.map((type) => ({
+          [type]: address.toString(),
+        })),
       },
     }),
   }).then(async (resp) => resp.json());
 };
 export const getAccountMints = async (address: PublicKey): Promise<Mint[]> =>
-  getDBData<MintResponse>("mints", "recipient", address)
+  getDBData<MintResponse>("mints", ["recipient"], address)
     .then((resp) => resp.documents)
     .then((mints) => mints.map(buildMintRecord));
-export const getAccountReceipts = async (
+export const getAccountTransfers = async (
   address: PublicKey
 ): Promise<Transfer[]> =>
-  getDBData<TransferResponse>("transfers", "recipient", address)
-    .then((resp) => resp.documents)
-    .then((transfers) => transfers.map(buildTransferRecord));
-export const getAccountSendings = async (
-  address: PublicKey
-): Promise<Transfer[]> =>
-  getDBData<TransferResponse>("transfers", "sender", address)
+  getDBData<TransferResponse>("transfers", ["sender", "recipient"], address)
     .then((resp) => resp.documents)
     .then((transfers) => transfers.map(buildTransferRecord));

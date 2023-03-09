@@ -7,7 +7,7 @@ import {
   type TreeNode,
   type TreeNodeCache,
 } from "./types";
-import { getAccountMints, getAccountReceipts, getAccountSendings } from "./db";
+import { getAccountMints, getAccountTransfers } from "./db";
 import {
   earliest,
   filterFirstTransfersForSenderAndRecipient,
@@ -42,6 +42,12 @@ export class ForestService {
     };
 
     this.cache = treeNodeCacheReducer(this.cache, action);
+  }
+
+  private getFromCache(address: PublicKey): Promise<TreeNode> | undefined {
+    const cached = this.cache[address.toBase58()];
+    if (cached === undefined) return undefined;
+    return cached;
   }
 
   public async getNeighbours(
@@ -79,6 +85,33 @@ export class ForestService {
     return [...sendingNeighbours, ...receiptNeighbours];
   }
 
+  private async loadTree(
+    address: PublicKey,
+    depth: number,
+    parent?: TreeNode["parent"]
+  ): Promise<TreeNode> {
+    console.log("getting tree", address.toBase58(), depth, parent);
+    const [currentBalance, mints, transfers] = await Promise.all([
+      memoisedGetGsolBalance(address, this.connection),
+      getAccountMints(address),
+      getAccountTransfers(address),
+    ]);
+    const received = transfers.filter((t) => t.recipient.equals(address));
+    const sent = transfers.filter((t) => t.sender.equals(address));
+    const totals = getTotals(currentBalance, mints, received, sent);
+    const startDate = earliest([...mints, ...transfers]);
+
+    return {
+      address,
+      mints,
+      sent,
+      received,
+      totals,
+      startDate,
+      parent,
+    };
+  }
+
   private async getTree(
     address: PublicKey,
     depth: number,
@@ -88,37 +121,24 @@ export class ForestService {
     if (depth > MAX_FOREST_DEPTH)
       throw new Error(`Depth must be less than ${MAX_FOREST_DEPTH}`);
 
-    const cached: TreeNode | undefined = this.cache[address.toBase58()];
-    if (cached !== undefined) {
-      console.log("using cached tree", address.toBase58(), depth, parent);
-      return cached;
+    // we cache the promises, not the results, to avoid sending multiple requests
+    const cachedPromise = this.getFromCache(address);
+    if (cachedPromise !== undefined) {
+      console.log(
+        "using cached tree promise",
+        address.toBase58(),
+        depth,
+        parent
+      );
+      return cachedPromise;
+    } else {
+      const promise = this.loadTree(address, depth, parent);
+      this.updateCache({
+        type: "SET",
+        payload: { key: address.toBase58(), value: promise },
+      });
+      return promise;
     }
-
-    console.log("getting tree", address.toBase58(), depth, parent);
-    const [currentBalance, mints, received, sent] = await Promise.all([
-      memoisedGetGsolBalance(address, this.connection),
-      getAccountMints(address),
-      getAccountReceipts(address),
-      getAccountSendings(address),
-    ]);
-    const totals = getTotals(currentBalance, mints, received, sent);
-    const startDate = earliest([...mints, ...received, ...sent]);
-
-    const treeNode: TreeNode = {
-      address,
-      mints,
-      sent,
-      received,
-      totals,
-      startDate,
-      parent,
-    };
-    this.updateCache({
-      type: "SET",
-      payload: { key: address.toBase58(), value: treeNode },
-    });
-
-    return treeNode;
   }
 
   // Get the forest for an address.

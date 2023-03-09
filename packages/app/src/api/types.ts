@@ -53,11 +53,11 @@ export interface Forest {
   neighbours: Forest[];
 }
 
-export type TreeNodeCache = Record<string, TreeNode>;
+export type TreeNodeCache = Record<string, Promise<TreeNode>>;
 export type ForestAction =
   | {
       type: "SET";
-      payload: { key: string; value: TreeNode };
+      payload: { key: string; value: Promise<TreeNode> };
     }
   | {
       type: "REMOVE";
