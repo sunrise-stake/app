@@ -40,7 +40,7 @@ pub struct LockGSol<'info> {
     token::mint = gsol_mint,
     token::authority = authority.key(),
     )]
-    pub source_gsol_account: Account<'info, TokenAccount>,
+    pub source_gsol_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
     mut,
@@ -65,7 +65,7 @@ pub struct LockGSol<'info> {
 
     /// IMPACT NFT ACCOUNTS
     pub impact_nft_program: Program<'info, ImpactNft>,
-    pub impact_nft_state: Account<'info, ImpactNftState>,
+    pub impact_nft_state: Box<Account<'info, ImpactNftState>>,
     /// CHECK: (TODO) checked in impact nft program
     pub token_metadata_program: UncheckedAccount<'info>,
     pub associated_token_program: Program<'info, AssociatedToken>,
