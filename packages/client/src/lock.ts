@@ -165,7 +165,7 @@ export const lockGSol = async (
   const preInstructions: TransactionInstruction[] = [];
 
   const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
-    units: 300000,
+    units: 500000,
   });
   preInstructions.push(modifyComputeUnits);
 

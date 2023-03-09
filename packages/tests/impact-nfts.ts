@@ -35,7 +35,7 @@ enum Seed {
   GlobalState = "global_state",
 }
 
-describe.only("Impact NFTs", () => {
+describe("Impact NFTs", () => {
   let client: SunriseStakeClient;
 
   const treasury = Keypair.generate();
