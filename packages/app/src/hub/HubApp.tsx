@@ -37,6 +37,17 @@ const _HubApp: ForwardRefRenderFunction<
   const { totalCarbon } = useCarbon();
 
   useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (showHub) {
+        updateShowHubNav(true);
+      }
+    }, 5000);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [showHub]);
+
+  useEffect(() => {
     if (!wallet.connected && totalCarbon !== undefined) updateShowIntro(true);
     else if (wallet.connected) {
       updateShowIntro(false);
