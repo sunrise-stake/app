@@ -1,7 +1,7 @@
 import clx from "classnames";
 import { toSol } from "@sunrisestake/client";
 import BN from "bn.js";
-import React, { useCallback } from "react";
+import React from "react";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 
 import {
@@ -52,28 +52,23 @@ const AmountInput: React.FC<AmountInputProps> = ({
     updateAmount(newAmount);
   };
 
-  const updateAmount = useCallback(
-    (amountStr: string) => {
-      const parsedValue = solToLamports(amountStr);
-      const min = solToLamports(0);
-      const max = balance ?? new BN(0);
+  const updateAmount = (amountStr: string): void => {
+    const parsedValue = solToLamports(amountStr);
+    const min = solToLamports(0);
+    const max = balance ?? new BN(0);
 
-      console.log("parsedValue ", parsedValue.toString());
-      console.log("minValue ", min.toString());
-      console.log("maxValue ", max.toString());
+    console.log("parsedValue ", parsedValue.toString());
+    console.log("minValue ", min.toString());
+    console.log("maxValue ", max.toString());
 
-      setAmount(amountStr);
-      console.log(`Min: ${min.toNumber()}`);
-      console.log(`Max: ${max.toNumber()}`);
-      console.log(
-        `Valid: ${
-          parsedValue.gt(min) && parsedValue.lte(max) ? "true" : "false"
-        }`
-      );
-      setValid(parsedValue.gt(min) && parsedValue.lte(max));
-    },
-    [setValid, balance]
-  );
+    setAmount(amountStr);
+    console.log(`Min: ${min.toNumber()}`);
+    console.log(`Max: ${max.toNumber()}`);
+    console.log(
+      `Valid: ${parsedValue.gt(min) && parsedValue.lte(max) ? "true" : "false"}`
+    );
+    setValid(parsedValue.gt(min) && parsedValue.lte(max));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { value } = e.target;
