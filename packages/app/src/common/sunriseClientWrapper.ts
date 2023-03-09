@@ -144,11 +144,11 @@ export class SunriseClientWrapper {
     return this.client.env.yieldControllerState;
   }
 
-  async lockGSol(amount: BN): Promise<string> {
+  async lockGSol(amount: BN): Promise<string[]> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .lockGSol(amount)
-      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
+      .then(async (txes) => this.client.sendAndConfirmTransactions(txes))
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 

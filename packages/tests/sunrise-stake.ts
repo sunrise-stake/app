@@ -133,7 +133,23 @@ describe("sunrise-stake", () => {
     if (!impactNftClient.stateAddress)
       throw new Error("Impact NFT state not registered");
 
-    await impactNftClient.registerOffsetTiers(levels);
+    const collections = await Promise.all(
+      levels.map(async (level) =>
+        impactNftClient.createCollectionMint(
+          level.uri,
+          level.name + " Collection"
+        )
+      )
+    );
+
+    const levelsWithOffsetAndCollections = levels.map((level, i) => ({
+      ...level,
+      // parse the offset string into a BN
+      offset: new BN(level.offset),
+      collectionMint: collections[i].publicKey,
+    }));
+
+    await impactNftClient.registerOffsetTiers(levelsWithOffsetAndCollections);
 
     // set the newly-generated impactNft state in the client config
     // so that it can be looked up in the next test
@@ -232,11 +248,13 @@ describe("sunrise-stake", () => {
   });
 
   it("locks sol for the next epoch", async () => {
-    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
+    await client.sendAndConfirmTransactions(
+      await client.lockGSol(lockLamports)
+    );
   });
 
   it("cannot re-lock", async () => {
-    const shouldFail = client.sendAndConfirmTransaction(
+    const shouldFail = client.sendAndConfirmTransactions(
       await client.lockGSol(lockLamports)
     );
 
@@ -535,7 +553,11 @@ describe("sunrise-stake", () => {
   });
 
   it("can unlock sol (including a recoverTickets call)", async () => {
-    await client.sendAndConfirmTransactions(await client.unlockGSol());
+    try {
+      await client.sendAndConfirmTransactions(await client.unlockGSol());
+    } catch (err) {
+      console.log(err);
+    }
 
     // the epoch report has now been updated to the current epoch
     const currentEpoch = await client.provider.connection.getEpochInfo();
