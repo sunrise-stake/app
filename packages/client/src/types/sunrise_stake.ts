@@ -1408,12 +1408,27 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "nftMint",
+          "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
         {
+          "name": "tokenMetadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "nftMintAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftTokenAuthority",
           "isMut": false,
           "isSigner": false
         },
@@ -1429,6 +1444,41 @@ export type SunriseStake = {
         },
         {
           "name": "offsetTiers",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftTokenAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftNewCollectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftNewCollectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftNewCollectionMasterEdition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMasterEdition",
           "isMut": false,
           "isSigner": false
         }
@@ -1532,6 +1582,11 @@ export type SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "nftTokenAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "nftMetadata",
           "isMut": true,
           "isSigner": false
@@ -1553,6 +1608,21 @@ export type SunriseStake = {
         },
         {
           "name": "offsetTiers",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMasterEdition",
           "isMut": false,
           "isSigner": false
         }
@@ -3837,12 +3907,27 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
-          "name": "nftMint",
+          "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
         {
+          "name": "tokenMetadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "nftMintAuthority",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftTokenAuthority",
           "isMut": false,
           "isSigner": false
         },
@@ -3858,6 +3943,41 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "offsetTiers",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftTokenAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftNewCollectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftNewCollectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftNewCollectionMasterEdition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMasterEdition",
           "isMut": false,
           "isSigner": false
         }
@@ -3961,6 +4081,11 @@ export const IDL: SunriseStake = {
           "isSigner": false
         },
         {
+          "name": "nftTokenAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "nftMetadata",
           "isMut": true,
           "isSigner": false
@@ -3982,6 +4107,21 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "offsetTiers",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftCollectionMasterEdition",
           "isMut": false,
           "isSigner": false
         }

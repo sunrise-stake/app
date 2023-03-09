@@ -11,7 +11,7 @@
           "isSigner": true
         },
         {
-          "name": "adminAuthority",
+          "name": "adminUpdateAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -19,6 +19,17 @@
           "name": "globalState",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "tokenAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "The account Metaplex recognizes as the update_authority for",
+            "the tokens. Any instruction that uses it still requires at least",
+            "one of the EOA and PDA authorities for checking validity, but it",
+            "can be used with either"
+          ]
         },
         {
           "name": "systemProgram",
@@ -39,7 +50,7 @@
       "name": "updateGlobalState",
       "accounts": [
         {
-          "name": "adminAuthority",
+          "name": "adminUpdateAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -62,7 +73,7 @@
       "name": "createOffsetTiers",
       "accounts": [
         {
-          "name": "adminAuthority",
+          "name": "adminUpdateAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -100,7 +111,7 @@
       "name": "updateOffsetTiers",
       "accounts": [
         {
-          "name": "adminAuthority",
+          "name": "adminUpdateAuthority",
           "isMut": false,
           "isSigner": true
         },
@@ -133,9 +144,29 @@
           "isSigner": true
         },
         {
-          "name": "mintAuthority",
+          "name": "adminMintAuthority",
           "isMut": false,
           "isSigner": true
+        },
+        {
+          "name": "tokenAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "offsetTiers",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "offsetMetadata",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "mint",
@@ -143,14 +174,22 @@
           "isSigner": true
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "metadata",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "masterEdition",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintNftTo",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "TODO move to init here using anchor's spl-token integration?"
+          ]
         },
         {
           "name": "mintNftToOwner",
@@ -158,8 +197,23 @@
           "isSigner": false
         },
         {
-          "name": "mintNftTo",
+          "name": "collectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMetadata",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMasterEdition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -181,31 +235,15 @@
           "name": "rent",
           "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "masterEdition",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "offsetTiers",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "offsetMetadata",
-          "isMut": true,
-          "isSigner": false
         }
       ],
       "args": [
         {
           "name": "offsetAmount",
+          "type": "u64"
+        },
+        {
+          "name": "principal",
           "type": "u64"
         }
       ]
@@ -214,18 +252,18 @@
       "name": "updateNft",
       "accounts": [
         {
-          "name": "mintAuthority",
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "adminMintAuthority",
           "isMut": false,
           "isSigner": true
         },
         {
-          "name": "mint",
+          "name": "tokenAuthority",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "metadata",
-          "isMut": true,
           "isSigner": false
         },
         {
@@ -241,6 +279,56 @@
         {
           "name": "offsetMetadata",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "metadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "newCollectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "newCollectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "newCollectionMasterEdition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMetadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionMasterEdition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "isMut": false,
           "isSigner": false
         }
       ],
@@ -259,16 +347,24 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "adminAuthority",
+            "name": "adminUpdateAuthority",
             "type": "publicKey"
           },
           {
-            "name": "mintAuthority",
+            "name": "adminMintAuthority",
             "type": "publicKey"
           },
           {
             "name": "levels",
             "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": {
+              "option": {
+                "defined": "FeeConfig"
+              }
+            }
           }
         ]
       }
@@ -299,6 +395,10 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "currentLevelIndex",
+            "type": "u16"
+          },
+          {
             "name": "offset",
             "type": "u64"
           },
@@ -312,17 +412,59 @@
   ],
   "types": [
     {
+      "name": "FeeConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fee",
+            "type": "u64"
+          },
+          {
+            "name": "recipient",
+            "type": "publicKey"
+          },
+          {
+            "name": "feeType",
+            "type": {
+              "defined": "FeeType"
+            }
+          },
+          {
+            "name": "coinType",
+            "type": {
+              "defined": "CoinType"
+            }
+          },
+          {
+            "name": "splTokenMint",
+            "type": {
+              "option": "publicKey"
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "GlobalStateCreateInput",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "mintAuthority",
+            "name": "adminMintAuthority",
             "type": "publicKey"
           },
           {
             "name": "levels",
             "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": {
+              "option": {
+                "defined": "FeeConfig"
+              }
+            }
           }
         ]
       }
@@ -333,16 +475,24 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "adminAuthority",
+            "name": "adminUpdateAuthority",
             "type": "publicKey"
           },
           {
-            "name": "mintAuthority",
+            "name": "adminMintAuthority",
             "type": "publicKey"
           },
           {
             "name": "levels",
             "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": {
+              "option": {
+                "defined": "FeeConfig"
+              }
+            }
           }
         ]
       }
@@ -370,6 +520,10 @@
           {
             "name": "symbol",
             "type": "string"
+          },
+          {
+            "name": "collectionMint",
+            "type": "publicKey"
           }
         ]
       }
@@ -386,6 +540,34 @@
                 "defined": "Level"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Fixed"
+          },
+          {
+            "name": "Percentage"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CoinType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Native"
+          },
+          {
+            "name": "Spl"
           }
         ]
       }
@@ -416,6 +598,14 @@
       "code": 6004,
       "name": "InvalidUpdateForMint",
       "msg": "Invalid update for mint"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidFeeRecipient",
+      "msg": "Invalid fee recipient account"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
+  }
 }

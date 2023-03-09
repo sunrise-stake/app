@@ -1,11 +1,5 @@
 import { Dialog, Transition } from "@headlessui/react";
-import {
-  type FC,
-  Fragment,
-  type ReactNode,
-  useCallback,
-  useState,
-} from "react";
+import { type FC, Fragment, type ReactNode, useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { GiCancel } from "react-icons/gi";
 
@@ -22,15 +16,15 @@ type Props = ModalProps & {
 const BaseModal: FC<Props> = ({ children, ok, cancel, okEnabled = true }) => {
   const [isOpen, setIsOpen] = useState(true);
 
-  const clickOk = useCallback(() => {
+  const clickOk = (): void => {
     ok();
     setIsOpen(false);
-  }, [ok]);
+  };
 
-  const clickCancel = useCallback(() => {
+  const clickCancel = (): void => {
     cancel();
     setIsOpen(false);
-  }, [cancel]);
+  };
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>

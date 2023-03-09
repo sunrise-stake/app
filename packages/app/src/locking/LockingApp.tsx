@@ -4,7 +4,6 @@ import { toSol, type Details } from "@sunrisestake/client";
 import {
   forwardRef,
   type ForwardRefRenderFunction,
-  useCallback,
   useEffect,
   useState,
 } from "react";
@@ -72,34 +71,34 @@ const _LockingApp: ForwardRefRenderFunction<
     }
   }, [details]);
 
-  const handleError = useCallback((error: Error) => {
+  const handleError = (error: Error): void => {
     notifyTransaction({
       type: NotificationType.error,
       message: "Transaction failed",
       description: error.message,
     });
     console.error(error);
-  }, []);
+  };
 
-  const lock = useCallback(
-    async (amount: string) => {
-      if (!client) return Promise.reject(new Error("Client not initialized"));
-      return client
-        .lockGSol(solToLamports(amount))
-        .then((tx) => {
+  const lock = async (amount: string): Promise<void> => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
+    return client
+      .lockGSol(solToLamports(amount))
+      .then((txes) => {
+        txes.forEach((tx: string) => {
           notifyTransaction({
             type: NotificationType.success,
-            message: "Locking successful",
+            message: `Locking successful (tx: ${tx} of ${txes.length})`,
             txid: tx,
           });
-        })
-        .catch(handleError);
-    },
-    [client]
-  );
+        });
+      })
+      .catch(handleError);
+  };
 
-  const unlock = useCallback(async () => {
+  const unlock = async (): Promise<void> => {
     if (!client) return Promise.reject(new Error("Client not initialized"));
+
     return client
       .unlockGSol()
       .then((txes) => {
@@ -112,10 +111,11 @@ const _LockingApp: ForwardRefRenderFunction<
         });
       })
       .catch(handleError);
-  }, [client]);
+  };
 
-  const updateLockAccount = useCallback(async () => {
+  const updateLockAccount = async (): Promise<void> => {
     if (!client) return Promise.reject(new Error("Client not initialized"));
+
     return client
       .updateLockAccount()
       .then((txes) => {
@@ -128,7 +128,7 @@ const _LockingApp: ForwardRefRenderFunction<
         });
       })
       .catch(handleError);
-  }, [client]);
+  };
 
   return (
     <div
