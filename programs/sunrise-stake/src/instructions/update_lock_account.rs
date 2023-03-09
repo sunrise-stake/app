@@ -53,11 +53,13 @@ pub struct UpdateLockAccount<'info> {
     /// CHECK: (TODO) checked in impact nft program
     pub token_metadata_program: UncheckedAccount<'info>,
     #[account(
+    mut,
     seeds = [state.key().as_ref(), IMPACT_NFT_MINT_ACCOUNT, authority.key().as_ref()],
     bump, // TODO Move to state object?
     )]
     pub nft_mint: Account<'info, Mint>,
     #[account(
+    mut, // FIXME: Remove this redundant constraint from both programs
     seeds = [state.key().as_ref(), IMPACT_NFT_MINT_AUTHORITY],
     bump, // TODO Move to state object?
     )]
@@ -79,12 +81,15 @@ pub struct UpdateLockAccount<'info> {
     /// CHECK: Checked by impactNFT program
     pub nft_new_collection_mint: UncheckedAccount<'info>,
     /// CHECK: Checked by impactNFT program
+    #[account(mut)]
     pub nft_new_collection_metadata: UncheckedAccount<'info>,
     /// CHECK: Checked by impactNFT program
     pub nft_new_collection_master_edition: UncheckedAccount<'info>,
     /// CHECK: Checked by impactNFT program
+    #[account(mut)]
     pub nft_collection_mint: UncheckedAccount<'info>,
     /// CHECK: Checked by impactNFT program
+    #[account(mut)]
     pub nft_collection_metadata: UncheckedAccount<'info>,
     /// CHECK: Checked by impactNFT program
     pub nft_collection_master_edition: UncheckedAccount<'info>,
@@ -134,5 +139,6 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
     let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(pda_signer);
 
+    msg!("yield accrued: {}", ctx.accounts.lock_account.yield_accrued_by_owner);
     cpi_update_nft(cpi_ctx, ctx.accounts.lock_account.yield_accrued_by_owner)
 }
