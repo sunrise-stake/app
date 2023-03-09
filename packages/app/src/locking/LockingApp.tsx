@@ -80,22 +80,21 @@ const _LockingApp: ForwardRefRenderFunction<
     console.error(error);
   };
 
-  const lock =
-    async (amount: string) => {
-      if (!client) return Promise.reject(new Error("Client not initialized"));
-      return client
-        .lockGSol(solToLamports(amount))
-        .then((txes) => {
-          txes.forEach((tx: string) => {
-            notifyTransaction({
-              type: NotificationType.success,
-              message: `Locking successful (tx: ${tx} of ${txes.length})`,
-              txid: tx,
-            });
+  const lock = async (amount: string): Promise<void> => {
+    if (!client) return Promise.reject(new Error("Client not initialized"));
+    return client
+      .lockGSol(solToLamports(amount))
+      .then((txes) => {
+        txes.forEach((tx: string) => {
+          notifyTransaction({
+            type: NotificationType.success,
+            message: `Locking successful (tx: ${tx} of ${txes.length})`,
+            txid: tx,
           });
-        })
-        .catch(handleError);
-    };
+        });
+      })
+      .catch(handleError);
+  };
 
   const unlock = async (): Promise<void> => {
     if (!client) return Promise.reject(new Error("Client not initialized"));
