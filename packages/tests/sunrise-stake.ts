@@ -232,11 +232,11 @@ describe("sunrise-stake", () => {
   });
 
   it("locks sol for the next epoch", async () => {
-    await client.sendAndConfirmTransaction(await client.lockGSol(lockLamports));
+    await client.sendAndConfirmTransactions(await client.lockGSol(lockLamports));
   });
 
   it("cannot re-lock", async () => {
-    const shouldFail = client.sendAndConfirmTransaction(
+    const shouldFail = client.sendAndConfirmTransactions(
       await client.lockGSol(lockLamports)
     );
 

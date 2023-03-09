@@ -164,6 +164,11 @@ export const lockGSol = async (
 
   const preInstructions: TransactionInstruction[] = [];
 
+  const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+    units: 300000,
+  });
+  preInstructions.push(modifyComputeUnits);
+
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {
     const initLockAccount = await program.methods

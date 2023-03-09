@@ -35,7 +35,7 @@ enum Seed {
   GlobalState = "global_state",
 }
 
-describe("Impact NFTs", () => {
+describe.only("Impact NFTs", () => {
   let client: SunriseStakeClient;
 
   const treasury = Keypair.generate();
@@ -104,12 +104,8 @@ describe("Impact NFTs", () => {
   });
 
   it("can mint an impact nft when locking gSOL", async () => {
-    const transaction = await client.lockGSol(lockLamports);
-    try {
-      await client.sendAndConfirmTransactions(transaction);
-    } catch (err) {
-      console.log(err);
-    }
+    const transactions = await client.lockGSol(lockLamports);
+    await client.sendAndConfirmTransactions(transactions);
 
     const details = await client.details();
     expect(details.impactNFTDetails?.tokenAccount).to.exist;
