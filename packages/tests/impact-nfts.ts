@@ -77,18 +77,21 @@ describe.only("Impact NFTs", () => {
 
     // Create levels and collections: TODO
     const collections = await Promise.all(
-        levels.map((level) => impactNftClient.createCollectionMint(level.uri, level.name + " Collection"))
+      levels.map(async (level) =>
+        impactNftClient.createCollectionMint(
+          level.uri,
+          level.name + " Collection"
+        )
+      )
     );
 
     const levelsWithOffsetAndCollections = levels.map((level, i) => ({
       ...level,
       // parse the offset string into a BN
       offset: new BN(level.offset),
-      collectionMint: collections[i].publicKey
+      collectionMint: collections[i].publicKey,
     }));
-    await impactNftClient.registerOffsetTiers(
-      levelsWithOffsetAndCollections
-    );
+    await impactNftClient.registerOffsetTiers(levelsWithOffsetAndCollections);
 
     // set the newly-generated impactNft state in the client config
     // so that it can be looked up in the next test
@@ -96,15 +99,15 @@ describe.only("Impact NFTs", () => {
   });
 
   it("can mint an impact nft when locking gSOL", async () => {
-    const transaction = await client.lockGSol(lockLamports);
-    await client.sendAndConfirmTransaction(transaction);
+    const transactions = await client.lockGSol(lockLamports);
+    await client.sendAndConfirmTransactions(transactions);
 
     const details = await client.details();
     expect(details.impactNFTDetails?.tokenAccount).to.exist;
   });
 
   it("cannot re-lock", async () => {
-    const shouldFail = client.sendAndConfirmTransaction(
+    const shouldFail = client.sendAndConfirmTransactions(
       await client.lockGSol(lockLamports)
     );
 

@@ -108,7 +108,7 @@ interface ImpactNFTAccounts {
   offsetTiers: PublicKey;
   nftCollectionMint: PublicKey;
   nftCollectionMetadata: PublicKey;
-    nftCollectionMasterEdition: PublicKey;
+  nftCollectionMasterEdition: PublicKey;
 }
 const getImpactNFTAccounts = async (
   config: SunriseStakeConfig,
@@ -166,6 +166,7 @@ export const lockGSol = async (
   const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
     units: 300000,
   });
+  preInstructions.push(modifyComputeUnits);
 
   // the user has never locked before - they need a lock account and a lock token account
   if (!lockAccount) {

@@ -126,7 +126,10 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
         collection_master_edition: ctx.accounts.nft_collection_master_edition.to_account_info(),
         new_collection_mint: ctx.accounts.nft_new_collection_mint.to_account_info(),
         new_collection_metadata: ctx.accounts.nft_new_collection_metadata.to_account_info(),
-        new_collection_master_edition: ctx.accounts.nft_new_collection_master_edition.to_account_info(),
+        new_collection_master_edition: ctx
+            .accounts
+            .nft_new_collection_master_edition
+            .to_account_info(),
         payer: ctx.accounts.authority.to_account_info(),
         token_metadata_program: ctx.accounts.token_metadata_program.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),

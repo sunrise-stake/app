@@ -83,11 +83,13 @@ const _LockingApp: ForwardRefRenderFunction<
       if (!client) return Promise.reject(new Error("Client not initialized"));
       return client
         .lockGSol(solToLamports(amount))
-        .then((tx) => {
-          notifyTransaction({
-            type: NotificationType.success,
-            message: "Locking successful",
-            txid: tx,
+        .then((txes) => {
+          txes.forEach((tx: string) => {
+            notifyTransaction({
+              type: NotificationType.success,
+              message: `Locking successful (tx: ${tx} of ${txes.length})`,
+              txid: tx,
+            });
           });
         })
         .catch(handleError);
