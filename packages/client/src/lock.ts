@@ -342,7 +342,7 @@ const getUpdateCollectionForOffset = async (
   const levels = account.levels as Level[];
 
   // TODO: Handle a user's offset being less than the minimum level's offset
- 
+
   if (levels.length === 1) {
     return levels[0].collectionMint;
   }

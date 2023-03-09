@@ -141,7 +141,7 @@ describe("sunrise-stake", () => {
         )
       )
     );
-  
+
     const levelsWithOffsetAndCollections = levels.map((level, i) => ({
       ...level,
       // parse the offset string into a BN
@@ -554,8 +554,8 @@ describe("sunrise-stake", () => {
 
   it("can unlock sol (including a recoverTickets call)", async () => {
     try {
-    await client.sendAndConfirmTransactions(await client.unlockGSol());
-    } catch(err) {
+      await client.sendAndConfirmTransactions(await client.unlockGSol());
+    } catch (err) {
       console.log(err);
     }
 

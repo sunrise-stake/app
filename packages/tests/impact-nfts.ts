@@ -1,9 +1,4 @@
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  type PublicKey,
-  Transaction,
-} from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
 import {
   SunriseStakeClient,
   Environment,

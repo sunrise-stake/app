@@ -324,7 +324,7 @@ export async function getDelegatedAmount(
 
 export const impactNFTLevels = (levelCount: number) => {
   return [...Array(levelCount).keys()].map((i) => ({
-    offset: new BN(100 * (i)),
+    offset: new BN(100 * i),
     uri: "http://example.test",
     name: `sunriseStake${i}`,
     symbol: `sun${i}`,
