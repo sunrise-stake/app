@@ -16,8 +16,8 @@ import { Button, Spinner } from "../common/components";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { HubIntro } from "./components/HubIntro";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { useTrees } from "../forest/hooks/useTrees";
 import { useCarbon } from "../common/hooks";
+import { useForest } from "../common/context/forestContext";
 
 const _HubApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -32,7 +32,7 @@ const _HubApp: ForwardRefRenderFunction<
   const [, updateShowBGImage] = useZenMode();
   const [stakeButtonMessage, updateStakeButtonMessage] = useState("My Stake");
 
-  const { myTree } = useTrees();
+  const { myTree } = useForest();
   console.log("Hub page tree", myTree);
   const { totalCarbon } = useCarbon();
 
