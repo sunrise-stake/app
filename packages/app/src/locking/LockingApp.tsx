@@ -21,7 +21,7 @@ import { solToLamports, toFixedWithPrecision } from "../common/utils";
 import { ImpactNFT } from "./ImpactNFT";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { useTrees } from "../forest/hooks/useTrees";
+import { useForest } from "../common/context/forestContext";
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -30,7 +30,7 @@ const _LockingApp: ForwardRefRenderFunction<
   const navigate = useNavigate();
   const wallet = useWallet();
   const [, updateZenMode] = useZenMode();
-  const { myTree } = useTrees();
+  const { myTree } = useForest();
 
   useEffect(() => {
     if (!wallet.connected) navigate("/");

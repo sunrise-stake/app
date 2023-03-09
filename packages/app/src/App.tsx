@@ -31,6 +31,7 @@ import { StakingApp } from "./staking/StakingApp";
 import { ZenModeProvider } from "./common/context/ZenModeContext";
 import { EventRouter } from "./common/container/EventRouter";
 import { debounce } from "./common/utils";
+import { ForestProvider } from "./common/context/forestContext";
 require("./solana-wallet-adapter.css");
 
 const App: FC = () => {
@@ -77,114 +78,116 @@ const App: FC = () => {
         <WalletProvider wallets={wallets}>
           <WalletModalProvider>
             <SunriseProvider>
-              <ZenModeProvider>
-                <Layout>
-                  <EventRouter
-                    location={location}
-                    routes={[
-                      {
-                        path: "/",
-                        onMatch: () => {
-                          appRefs.hub.current?.scrollIntoView({
-                            behavior: "smooth",
-                          });
-                          setCurrentRouteApp(appRefs.hub);
+              <ForestProvider>
+                <ZenModeProvider>
+                  <Layout>
+                    <EventRouter
+                      location={location}
+                      routes={[
+                        {
+                          path: "/",
+                          onMatch: () => {
+                            appRefs.hub.current?.scrollIntoView({
+                              behavior: "smooth",
+                            });
+                            setCurrentRouteApp(appRefs.hub);
+                          },
                         },
-                      },
-                      {
-                        path: "/forest",
-                        onMatch: () => {
-                          appRefs.forest.current?.scrollIntoView({
-                            behavior: "smooth",
-                          });
-                          setCurrentRouteApp(appRefs.forest);
+                        {
+                          path: "/forest",
+                          onMatch: () => {
+                            appRefs.forest.current?.scrollIntoView({
+                              behavior: "smooth",
+                            });
+                            setCurrentRouteApp(appRefs.forest);
+                          },
                         },
-                      },
-                      {
-                        path: "/grow",
-                        onMatch: () => {
-                          appRefs.grow.current?.scrollIntoView({
-                            behavior: "smooth",
-                          });
-                          setCurrentRouteApp(appRefs.grow);
+                        {
+                          path: "/grow",
+                          onMatch: () => {
+                            appRefs.grow.current?.scrollIntoView({
+                              behavior: "smooth",
+                            });
+                            setCurrentRouteApp(appRefs.grow);
+                          },
                         },
-                      },
-                      {
-                        path: "/lock",
-                        onMatch: () => {
-                          appRefs.locking.current?.scrollIntoView({
-                            behavior: "smooth",
-                          });
-                          setCurrentRouteApp(appRefs.locking);
+                        {
+                          path: "/lock",
+                          onMatch: () => {
+                            appRefs.locking.current?.scrollIntoView({
+                              behavior: "smooth",
+                            });
+                            setCurrentRouteApp(appRefs.locking);
+                          },
                         },
-                      },
-                      {
-                        path: "/stake",
-                        onMatch: () => {
-                          appRefs.staking.current?.scrollIntoView({
-                            behavior: "smooth",
-                          });
-                          setCurrentRouteApp(appRefs.staking);
+                        {
+                          path: "/stake",
+                          onMatch: () => {
+                            appRefs.staking.current?.scrollIntoView({
+                              behavior: "smooth",
+                            });
+                            setCurrentRouteApp(appRefs.staking);
+                          },
                         },
-                      },
-                      {
-                        path: "/*",
-                        onMatch: () => {
-                          appRefs.lost.current?.scrollIntoView({
-                            behavior: "smooth",
-                          });
-                          setCurrentRouteApp(appRefs.lost);
+                        {
+                          path: "/*",
+                          onMatch: () => {
+                            appRefs.lost.current?.scrollIntoView({
+                              behavior: "smooth",
+                            });
+                            setCurrentRouteApp(appRefs.lost);
+                          },
                         },
-                      },
-                    ]}
-                  />
-                  <div className="AppGrid">
-                    <ForestApp
-                      id="forest-app"
-                      className="App ForestApp"
-                      ref={appRefs.forest}
+                      ]}
                     />
-                    <GrowApp
-                      id="grow-app"
-                      className="App GrowApp"
-                      ref={appRefs.grow}
-                      active={currentRouteApp === appRefs.grow}
-                    />
-                    <HubApp
-                      id="hub-app"
-                      className="App HubApp"
-                      ref={appRefs.hub}
-                    />
-                    <LockingApp
-                      id="locking-app"
-                      className="App LockingApp"
-                      ref={appRefs.locking}
-                      active={currentRouteApp === appRefs.locking}
-                    />
-                    <StakingApp
-                      id="staking-app"
-                      className="App StakingApp"
-                      ref={appRefs.staking}
-                      active={currentRouteApp === appRefs.staking}
-                    />
-                    <div
-                      id="lost-app"
-                      className="App LostApp flex flex-col min-h-screen justify-center items-center"
-                      ref={appRefs.lost}
-                    >
-                      <p className="text-2xl font-bold">
-                        Oh, oh. You&apos;ve got lost in the woods... 🐺
-                      </p>
-                      <Link
-                        className="mt-2 px-5 py-3 border-2 border-green rounded-lg leading-6 text-green text-xl"
-                        to="/"
+                    <div className="AppGrid">
+                      <ForestApp
+                        id="forest-app"
+                        className="App ForestApp"
+                        ref={appRefs.forest}
+                      />
+                      <GrowApp
+                        id="grow-app"
+                        className="App GrowApp"
+                        ref={appRefs.grow}
+                        active={currentRouteApp === appRefs.grow}
+                      />
+                      <HubApp
+                        id="hub-app"
+                        className="App HubApp"
+                        ref={appRefs.hub}
+                      />
+                      <LockingApp
+                        id="locking-app"
+                        className="App LockingApp"
+                        ref={appRefs.locking}
+                        active={currentRouteApp === appRefs.locking}
+                      />
+                      <StakingApp
+                        id="staking-app"
+                        className="App StakingApp"
+                        ref={appRefs.staking}
+                        active={currentRouteApp === appRefs.staking}
+                      />
+                      <div
+                        id="lost-app"
+                        className="App LostApp flex flex-col min-h-screen justify-center items-center"
+                        ref={appRefs.lost}
                       >
-                        Back home
-                      </Link>
+                        <p className="text-2xl font-bold">
+                          Oh, oh. You&apos;ve got lost in the woods... 🐺
+                        </p>
+                        <Link
+                          className="mt-2 px-5 py-3 border-2 border-green rounded-lg leading-6 text-green text-xl"
+                          to="/"
+                        >
+                          Back home
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </Layout>
-              </ZenModeProvider>
+                  </Layout>
+                </ZenModeProvider>
+              </ForestProvider>
             </SunriseProvider>
           </WalletModalProvider>
         </WalletProvider>
