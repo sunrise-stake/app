@@ -604,8 +604,5 @@
       "name": "InvalidFeeRecipient",
       "msg": "Invalid fee recipient account"
     }
-  ],
-  "metadata": {
-    "address": "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
-  }
+  ]
 }
