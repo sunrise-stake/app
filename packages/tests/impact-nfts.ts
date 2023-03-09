@@ -135,16 +135,6 @@ describe("Impact NFTs", () => {
     // Switch to the next epoch so that the lock account can be updated and the yield applied
     await waitForNextEpoch(client);
 
-    // A shortcut so that the calculation for getting the updated collection accounts is sane
-    const recoverIx = await client.recoverTickets();
-    if (recoverIx !== null) {
-      await client.sendAndConfirmTransaction(new Transaction().add(recoverIx));
-    }
-
-    try {
-      await client.sendAndConfirmTransactions(await client.updateLockAccount());
-    } catch (err) {
-      console.log(err);
-    }
+    await client.sendAndConfirmTransactions(await client.updateLockAccount());
   });
 });

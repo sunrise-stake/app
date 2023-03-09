@@ -1122,7 +1122,7 @@ export class SunriseStakeClient {
       mint: impactNFT.mint,
       tokenAccount: impactNFT.tokenAccount,
     };
-    console.log("nftSummary", nftSummary);
+    //console.log("nftSummary", nftSummary);
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
       ? nftSummary
       : undefined;
@@ -1534,7 +1534,7 @@ export class SunriseStakeClient {
     const recoverInstruction = await this.recoverTickets();
 
     if (recoverInstruction) {
-      transactions.push(new Transaction().add(recoverInstruction));
+      await this.sendAndConfirmTransaction(new Transaction().add(recoverInstruction));
     }
 
     const { lockAccount } = await this.getLockAccount();
