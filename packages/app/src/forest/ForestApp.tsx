@@ -4,27 +4,39 @@ import {
   type FC,
   forwardRef,
   type ForwardRefRenderFunction,
+  type ReactNode,
 } from "react";
 import { type TreeComponent } from "./utils";
-import { toShortBase58 } from "../common/utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
+import { ProfileBox } from "../common/components/profile/ProfileBox";
 
-const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
+const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
-  style = {},
 }) => (
+  <DynamicTree
+    details={details}
+    style={{
+      filter: `blur(${details.metadata.layer * 2}px) grayscale(${
+        details.metadata.layer * 20
+      }%)`,
+    }}
+  />
+);
+
+const PerspectiveComponent: FC<{
+  details: TreeComponent;
+  style?: CSSProperties;
+  children: ReactNode;
+}> = ({ details, style = {}, children }) => (
   <li
-    className="tree"
+    className="tree group"
     style={{
       display: "block",
       position: "absolute",
       transform: `translate3d(${details.translate.x}px, ${details.translate.y}px, ${details.translate.z}px)`,
-      filter: `blur(${details.metadata.layer * 2}px) grayscale(${
-        details.metadata.layer * 20
-      }%)`,
       width: "300px",
       left: "-50px",
       animationDelay: `${details.metadata.layer}s`,
@@ -37,9 +49,7 @@ const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
         animationDelay: `${Math.random() * 2}s`,
       }}
     >
-      <DynamicTree details={details} />
-
-      <p>{toShortBase58(details.address)}</p>
+      {children}
     </div>
   </li>
 );
@@ -55,6 +65,7 @@ const _ForestApp: ForwardRefRenderFunction<
       {...rest}
       ref={ref}
     >
+      {/* TREES */}
       <ul
         style={{
           listStyle: "none",
@@ -62,12 +73,41 @@ const _ForestApp: ForwardRefRenderFunction<
           transformStyle: "preserve-3d",
         }}
       >
-        {myTree && <Tree details={myTree} />}
+        {myTree && (
+          <PerspectiveComponent details={myTree}>
+            <ForestTree details={myTree} />
+          </PerspectiveComponent>
+        )}
         {neighbours?.map((tree) => (
-          <Tree
+          <PerspectiveComponent
             key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
             details={tree}
-          />
+          >
+            <ForestTree details={tree} />
+          </PerspectiveComponent>
+        ))}
+      </ul>
+      {/* PROFILE BOXES */}
+      <ul
+        style={{
+          listStyle: "none",
+          perspective: "200px",
+        }}
+      >
+        {myTree && (
+          <PerspectiveComponent details={myTree} style={{ top: "200px" }}>
+            <input type="checkbox" className="tree-checker opacity-0" />
+            <ProfileBox address={myTree.address} />
+          </PerspectiveComponent>
+        )}
+        {neighbours?.map((tree) => (
+          <PerspectiveComponent
+            key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
+            details={tree}
+            style={{ top: "200px" }}
+          >
+            <ProfileBox address={tree.address} />
+          </PerspectiveComponent>
         ))}
       </ul>
       <div className="absolute top-0 left-0 mt-4">
