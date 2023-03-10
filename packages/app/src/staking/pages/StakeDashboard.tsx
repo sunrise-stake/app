@@ -296,7 +296,8 @@ const StakeDashboard: FC = () => {
           to="/lock"
           className="flex items-center text-green justify-center mb-8"
         >
-          <div className="flex items-center nowrap">
+          <div className="flex flex-col items-center nowrap">
+            <span>Lock</span>
             <IoChevronDownOutline className="inline" size={48} />
           </div>
         </Link>
