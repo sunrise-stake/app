@@ -5,6 +5,8 @@ import {
   forwardRef,
   type ForwardRefRenderFunction,
   type ReactNode,
+  useEffect,
+  useState,
 } from "react";
 import { type TreeComponent } from "./utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
@@ -32,13 +34,16 @@ const PerspectiveComponent: FC<{
   details: TreeComponent;
   style?: CSSProperties;
   children: ReactNode;
-}> = ({ details, style = {}, children }) => (
+  locus: { x: number; y: number; z: number };
+}> = ({ details, style = {}, locus, children }) => (
   <li
     className="tree group"
     style={{
       display: "block",
       position: "absolute",
-      transform: `translate3d(${details.translate.x}px, ${details.translate.y}px, ${details.translate.z}px)`,
+      transform: `translate3d(${details.translate.x + locus.x}px, ${
+        details.translate.y + locus.y
+      }px, ${details.translate.z + locus.z}px)`,
       width: "300px",
       left: "-50px",
       animationDelay: `${details.metadata.layer}s`,
@@ -70,6 +75,22 @@ const _ForestApp: ForwardRefRenderFunction<
   { className?: string } & React.HTMLAttributes<HTMLElement>
 > = ({ className, ...rest }, ref) => {
   const { myTree, neighbours } = useForest();
+  // use this to position the entire forest in space
+  const [locus, setLocus] = useState({
+    x: 0,
+    y: -100,
+    z: window.innerWidth / 4 - 450,
+  });
+  // this is a hack to ensure the forest resizes correctly when e.g. the viewport is changed
+  // there is almost certainly a better CSS way to do this
+  useEffect(() => {
+    setLocus({
+      x: 0,
+      y: -100, // window.innerHeight / 4 - 300,
+      z: window.innerWidth / 4 - 450,
+    });
+  }, [window.innerWidth]);
+
   return (
     <div
       className={clx("relative flex justify-center items-center", className)}
@@ -85,7 +106,7 @@ const _ForestApp: ForwardRefRenderFunction<
         }}
       >
         {myTree && (
-          <PerspectiveComponent details={myTree}>
+          <PerspectiveComponent details={myTree} locus={locus}>
             <ForestTree details={myTree} />
           </PerspectiveComponent>
         )}
@@ -93,6 +114,7 @@ const _ForestApp: ForwardRefRenderFunction<
           <PerspectiveComponent
             key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
             details={tree}
+            locus={locus}
           >
             <ForestTree details={tree} />
           </PerspectiveComponent>
@@ -109,6 +131,7 @@ const _ForestApp: ForwardRefRenderFunction<
           <PerspectiveComponent
             details={myTree}
             style={{ top: "200px", width: "350px", left: "-75px" }}
+            locus={locus}
           >
             <input type="checkbox" className="tree-checker opacity-0" />
             <ProfileBox address={myTree.address} />
@@ -119,6 +142,7 @@ const _ForestApp: ForwardRefRenderFunction<
             key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
             details={tree}
             style={{ top: "200px" }}
+            locus={locus}
           >
             <ProfileBox
               address={tree.address}

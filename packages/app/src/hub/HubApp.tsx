@@ -57,6 +57,14 @@ const _HubApp: ForwardRefRenderFunction<
       updateStakeButtonMessage("Stake to grow your tree");
   }, [myTree]);
 
+  // autoshow the hub nav after 5 seconds
+  // useEffect(() => {
+  //   if (showHubNav) return;
+  //   setTimeout(() => {
+  //     updateShowHubNav(true);
+  //   }, 5000);
+  // }, []);
+
   return (
     <div
       className={clx(
