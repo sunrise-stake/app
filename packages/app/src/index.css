@@ -74,6 +74,10 @@ input[type=number]::-webkit-outer-spin-button {
   .appearance-textfield {
     appearance: textfield;
   }
+
+  tree-checker#checked ~ .checked-tree {
+    visibility: visible;
+  }
 }
 
 .NavArrow {
