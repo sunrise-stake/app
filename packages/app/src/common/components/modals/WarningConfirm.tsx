@@ -6,7 +6,7 @@ const WarningConfirm: FC<{
   children: ReactNode;
 }> = ({ onConfirm, idx, children }) => (
   <>
-    <div className=" border-gray-300 m-5 p-5 text-start bg-background rounded-md">
+    <div className="border border-gray-300 m-5 p-5 text-start bg-gray-100 rounded-md">
       {children}
     </div>
     <div className="relative flex m-5 p-5">
@@ -23,7 +23,7 @@ const WarningConfirm: FC<{
         />
       </div>
       <div className="ml-3 text-sm">
-        <label htmlFor={`checkbox-${idx}`} className="font-bold text-white">
+        <label htmlFor={`checkbox-${idx}`} className="font-bold">
           I Understand
         </label>
       </div>
