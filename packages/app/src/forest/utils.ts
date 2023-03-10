@@ -56,6 +56,7 @@ export interface TreeComponent {
   translate: Translation;
   metadata: {
     type: TreeType;
+    node: TreeNode;
     layer: number;
   };
 }
@@ -155,6 +156,7 @@ const treeNodeToComponent = (
   imageUri: treeImageUri(calculateTreeType(tree)),
   metadata: {
     type: calculateTreeType(tree),
+    node: tree,
     layer,
   },
 });
@@ -180,10 +182,6 @@ export const forestToComponents = (forest: Forest): TreeComponent[] => {
       ...nextInQueue.neighbours.map((neighbour) => neighbour.tree)
     );
 
-    console.log("currentLayer", currentLayer);
-    console.log("queue", queue);
-    console.log("result", result);
-
     return recursiveForestToFlatTrees(queue, result);
   };
 
@@ -191,26 +189,9 @@ export const forestToComponents = (forest: Forest): TreeComponent[] => {
     [{ forest, layer: 1 }],
     [[forest.tree]]
   );
-  console.log("flatTrees", flatTrees);
-
   return flatTrees.flatMap((treesInLayer, layer) =>
-    treesInLayer.map((tree, indexInLayer) => {
-      console.log(
-        "Adding tree ",
-        forest.tree.address.toBase58(),
-        "to layer:",
-        layer,
-        "at index: ",
-        indexInLayer,
-        "of",
-        treesInLayer.length
-      );
-      return treeNodeToComponent(
-        tree,
-        layer,
-        indexInLayer,
-        treesInLayer.length
-      );
-    })
+    treesInLayer.map((tree, indexInLayer) =>
+      treeNodeToComponent(tree, layer, indexInLayer, treesInLayer.length)
+    )
   );
 };

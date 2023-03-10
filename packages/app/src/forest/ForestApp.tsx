@@ -12,6 +12,8 @@ import { IoChevronForwardOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
 import { ProfileBox } from "../common/components/profile/ProfileBox";
+import { type TreeNode } from "../api/types";
+import { type PublicKey } from "@solana/web3.js";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -53,6 +55,15 @@ const PerspectiveComponent: FC<{
     </div>
   </li>
 );
+
+const getIntermediaries = (treeNode: TreeNode): PublicKey[] => {
+  const parent = treeNode.parent?.tree;
+
+  // skip the last tree (one with no parent) as this is not an intermediary, it is the current logged-in user
+  if (parent === undefined || parent.parent === undefined) return [];
+
+  return [parent.address, ...getIntermediaries(parent)];
+};
 
 const _ForestApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -106,7 +117,11 @@ const _ForestApp: ForwardRefRenderFunction<
             details={tree}
             style={{ top: "200px" }}
           >
-            <ProfileBox address={tree.address} />
+            <ProfileBox
+              address={tree.address}
+              relationship={tree.metadata.node.parent?.relationship}
+              intermediaries={getIntermediaries(tree.metadata.node)}
+            />
           </PerspectiveComponent>
         ))}
       </ul>

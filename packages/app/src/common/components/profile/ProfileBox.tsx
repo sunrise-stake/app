@@ -2,8 +2,14 @@ import { EnvelopeIcon, LinkIcon } from "@heroicons/react/20/solid";
 import { type PublicKey } from "@solana/web3.js";
 import { type FC } from "react";
 import { useProfile } from "../../hooks/useProfile";
+import { type ParentRelationship } from "../../../api/types";
+import { toShortBase58 } from "../../utils";
 
-export const ProfileBox: FC<{ address: PublicKey }> = ({ address }) => {
+export const ProfileBox: FC<{
+  address: PublicKey;
+  relationship?: ParentRelationship;
+  intermediaries?: PublicKey[];
+}> = ({ address, relationship, intermediaries = [] }) => {
   const profile = useProfile(address);
 
   return (
@@ -27,6 +33,42 @@ export const ProfileBox: FC<{ address: PublicKey }> = ({ address }) => {
           src={profile.image}
           alt=""
         />
+      </div>
+      <div>
+        {intermediaries.length > 0 && (
+          <div className="-mt-px flex divide-x divide-gray-200">
+            <div className="flex w-0 flex-1 text-sm p-2">
+              You are connected to this account through{" "}
+              {intermediaries.map(toShortBase58).join(", ")}
+            </div>
+          </div>
+        )}
+        {relationship !== undefined && intermediaries.length === 0 && (
+          <div className="-mt-px flex divide-x divide-gray-200">
+            <div className="flex w-0 flex-1 text-sm p-2">
+              You
+              {relationship === "PARENT_IS_SENDER" ? (
+                <span className="inline-flex pr-2">
+                  <LinkIcon
+                    className="h-5 w-5 text-gray-400"
+                    aria-hidden="true"
+                  />
+                  sent
+                </span>
+              ) : (
+                <span className="inline-flex pr-2">
+                  <LinkIcon
+                    className="h-5 w-5 text-gray-400"
+                    aria-hidden="true"
+                  />
+                  received
+                </span>
+              )}
+              gSOL {relationship === "PARENT_IS_SENDER" ? "to" : "from"} this
+              account.
+            </div>
+          </div>
+        )}
       </div>
       <div>
         <div className="-mt-px flex divide-x divide-gray-200">
