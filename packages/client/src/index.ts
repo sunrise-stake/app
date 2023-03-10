@@ -57,6 +57,7 @@ import {
   type EnvironmentConfig,
   MARINADE_TICKET_RENT,
   NETWORK_FEE,
+  SOLBLAZE_ENABLED,
   STAKE_POOL_PROGRAM_ID,
 } from "./constants";
 import {
@@ -269,7 +270,10 @@ export class SunriseStakeClient {
 
   public async makeBalancedDeposit(lamports: BN): Promise<Transaction> {
     const details = await this.details();
-    if (marinadeTargetReached(details, this.env.percentageStakeToMarinade)) {
+    if (
+      marinadeTargetReached(details, this.env.percentageStakeToMarinade) &&
+      SOLBLAZE_ENABLED
+    ) {
       console.log("Routing deposit to Solblaze");
       return this.depositToBlaze(lamports);
     }
