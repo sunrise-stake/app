@@ -19,21 +19,14 @@ const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
           onClick={() => {
             toast.dismiss(t.id);
           }}
-          className={`default-transition rounded-md inline-flex text-white hover:opacity-75 focus:outline-none`}
+          className={`default-transition rounded-md inline-flex text-black hover:opacity-75 focus:outline-none`}
         >
           <span className={`sr-only`}>Close</span>
 
           <XMarkIcon className="h-5 w-5" />
         </button>
       </div>
-      <div
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(46, 133, 85, 0) 34.82%, rgba(46, 133, 85, 0.11) 100%), #212121",
-          maxWidth: "464px",
-        }}
-        className="flex flex-col items-center px-16 pt-8 my-8 rounded-md"
-      >
+      <div className="flex flex-col items-center px-16 pt-8 my-8 rounded-md bg-gray-100 border border-gray-300 max-w-md">
         <div className="text-center mb-4">
           I just staked with Sunrise, offsetting carbon and making Solana
           stronger
