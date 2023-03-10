@@ -133,15 +133,31 @@ const _HubApp: ForwardRefRenderFunction<
             </div>
           </Link>
         </div>
-        <div
-          className={clx(
-            "w-full mt-2 text-center transition-opacity ease-in duration-500",
-            showHubNav ? "opacity-100" : "opacity-0"
+        <div className="w-full mt-2 text-center">
+          {myTree?.metadata?.type?.level !== undefined &&
+          myTree?.metadata?.type?.level > 0 ? (
+            <div
+              className={clx(
+                "transition-opacity ease-in duration-500",
+                showHubNav ? "opacity-100" : "opacity-0"
+              )}
+            >
+              <Link to="/stake">
+                <Button variant="outline">{stakeButtonMessage}</Button>
+              </Link>
+            </div>
+          ) : (
+            <div
+              className={clx(
+                "transition-opacity ease-in duration-500",
+                showHub ? "opacity-100" : "opacity-0"
+              )}
+            >
+              <Link to="/stake">
+                <Button variant="outline">{stakeButtonMessage}</Button>
+              </Link>
+            </div>
           )}
-        >
-          <Link to="/stake">
-            <Button variant="outline">{stakeButtonMessage}</Button>
-          </Link>
           <div
             className={clx(
               "flex md:hidden justify-between my-4 transition-opacity ease-in duration-500",
@@ -161,11 +177,18 @@ const _HubApp: ForwardRefRenderFunction<
               </div>
             </Link>
           </div>
-          <Link to="/lock" className="block w-full mt-4 leading-none">
-            Lock
-            <br />
-            <IoChevronDownOutline className="inline-block" size={24} />
-          </Link>
+          <div
+            className={clx(
+              "transition-opacity ease-in duration-500",
+              showHubNav ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <Link to="/lock" className="block w-full mt-4 leading-none">
+              Lock
+              <br />
+              <IoChevronDownOutline className="inline-block" size={24} />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
