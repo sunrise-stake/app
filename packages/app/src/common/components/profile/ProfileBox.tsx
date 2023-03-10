@@ -23,7 +23,7 @@ export const ProfileBox: FC<{
           }}
         >
           <div className="flex items-center space-x-3">
-            <h3 className="truncate text-sm font-medium text-gray-900">
+            <h3 className="truncate text-md font-medium text-gray-900">
               {profile.name}
             </h3>
           </div>
@@ -34,39 +34,20 @@ export const ProfileBox: FC<{
           alt=""
         />
       </div>
-      <div>
+      <div className="inline-flex w-full items-center">
         {intermediaries.length > 0 && (
-          <div className="-mt-px flex divide-x divide-gray-200">
-            <div className="flex w-0 flex-1 text-sm p-2">
-              You are connected to this account through{" "}
-              {intermediaries.map(toShortBase58).join(", ")}
-            </div>
+          <div className="flex w-0 flex-1 text-sm p-2">
+            You are connected to this account through{" "}
+            {intermediaries.map(toShortBase58).join(", ")}
           </div>
         )}
         {relationship !== undefined && intermediaries.length === 0 && (
-          <div className="-mt-px flex divide-x divide-gray-200">
-            <div className="flex w-0 flex-1 text-sm p-2">
-              You
-              {relationship === "PARENT_IS_SENDER" ? (
-                <span className="inline-flex pr-2">
-                  <LinkIcon
-                    className="h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                  sent
-                </span>
-              ) : (
-                <span className="inline-flex pr-2">
-                  <LinkIcon
-                    className="h-5 w-5 text-gray-400"
-                    aria-hidden="true"
-                  />
-                  received
-                </span>
-              )}
-              gSOL {relationship === "PARENT_IS_SENDER" ? "to" : "from"} this
-              account.
-            </div>
+          <div className="items-center flex w-0 flex-1 text-sm p-2 justify-center">
+            You{" "}
+            {relationship === "PARENT_IS_SENDER"
+              ? "☀️ sent ☀️ gSOL to"
+              : "☀️ received ☀️ gSOL from"}{" "}
+            this account.
           </div>
         )}
       </div>

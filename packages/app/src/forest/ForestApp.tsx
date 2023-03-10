@@ -106,7 +106,10 @@ const _ForestApp: ForwardRefRenderFunction<
         }}
       >
         {myTree && (
-          <PerspectiveComponent details={myTree} style={{ top: "200px" }}>
+          <PerspectiveComponent
+            details={myTree}
+            style={{ top: "200px", width: "350px", left: "-75px" }}
+          >
             <input type="checkbox" className="tree-checker opacity-0" />
             <ProfileBox address={myTree.address} />
           </PerspectiveComponent>
