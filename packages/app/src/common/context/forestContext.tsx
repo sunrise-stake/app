@@ -8,7 +8,8 @@ import {
   useState,
 } from "react";
 import { forestToComponents, type TreeComponent } from "../../forest/utils";
-import { getForest, MAX_FOREST_DEPTH } from "../../api/forest";
+import { ForestService, MAX_FOREST_DEPTH } from "../../api/forest";
+import { useSunriseStake } from "./sunriseStakeContext";
 
 interface ForestContextProps {
   myTree: TreeComponent | undefined;
@@ -24,17 +25,25 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   children,
   depth = MAX_FOREST_DEPTH,
 }) => {
+  const { client } = useSunriseStake();
   const wallet = useWallet();
   const { connection } = useConnection();
+  const [service, setService] = useState<ForestService | undefined>();
   const [neighbours, setNeighbours] = useState<TreeComponent[]>([]);
   const [myTree, setMyTree] = useState<TreeComponent>();
 
   useEffect(() => {
+    if (client) {
+      const service = new ForestService(connection);
+      setService(service);
+    }
+  }, [client]);
+
+  useEffect(() => {
     void (async () => {
-      console.log("useTrees", wallet.publicKey?.toBase58());
-      if (wallet.connected && wallet.publicKey) {
+      if (service && wallet.publicKey) {
         console.log("Getting forest..." + new Date().toISOString());
-        const forest = await getForest(connection, wallet.publicKey, depth);
+        const forest = await service.getForest(wallet.publicKey, depth);
         console.log("Got forest. " + new Date().toISOString());
 
         const components = forestToComponents(forest);
@@ -46,7 +55,7 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
         setNeighbours(components.slice(1));
       }
     })();
-  }, [wallet.publicKey]);
+  }, [service, wallet.publicKey]);
 
   return (
     <ForestContext.Provider value={{ myTree, neighbours }}>

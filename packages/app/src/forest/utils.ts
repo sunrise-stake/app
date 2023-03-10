@@ -1,5 +1,5 @@
-import { type Forest, type TreeNode } from "../api/forest";
 import { type PublicKey } from "@solana/web3.js";
+import { type Forest, type TreeNode } from "../api/types";
 
 const IMAGE_COUNT = 1; // only one tree image per level and species at the moment
 
