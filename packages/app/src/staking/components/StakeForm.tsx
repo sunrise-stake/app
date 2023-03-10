@@ -25,12 +25,11 @@ const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
 
   return (
     <div>
-      {depositModal.modalShown && (
-        <DepositWarningModal
-          ok={depositModal.onModalOK}
-          cancel={depositModal.onModalClose}
-        />
-      )}
+      <DepositWarningModal
+        ok={depositModal.onModalOK}
+        cancel={depositModal.onModalClose}
+        show={depositModal.modalShown}
+      />
       <AmountInput
         className="mb-5"
         balance={solBalance}

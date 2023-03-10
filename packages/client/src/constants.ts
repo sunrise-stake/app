@@ -5,6 +5,9 @@ import BN from "bn.js";
 
 export const MAX_NUM_PRECISION = 5;
 
+// on devnet, the solblaze pool is sometimes unavailable for deposits - use this to disable it
+export const SOLBLAZE_ENABLED = false;
+
 export const STAKE_POOL_PROGRAM_ID = new PublicKey(
   "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 );
@@ -79,7 +82,7 @@ export const Environment: Record<
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
     impactNFT: {
-      state: new PublicKey("FqvDYfVm3YSEioe4ASaQ9QkH9g2CQLAUnxFKgxWBhqd3"),
+      state: new PublicKey("6iyfwPbbLeYAoUcQkECCPwftFuw3j5VEcXF7xcQeAdX6"),
     },
   },
   localnet: {

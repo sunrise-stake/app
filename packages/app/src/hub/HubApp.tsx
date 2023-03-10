@@ -100,7 +100,7 @@ const _HubApp: ForwardRefRenderFunction<
                 myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
               }`}
               onClick={() => {
-                updateShowHubNav(true);
+                updateShowHubNav(!showHubNav);
               }}
             />
           )}

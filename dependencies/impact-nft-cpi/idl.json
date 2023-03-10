@@ -136,6 +136,36 @@
       ]
     },
     {
+      "name": "addLevels",
+      "accounts": [
+        {
+          "name": "adminUpdateAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "offsetTiers",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "vec": {
+              "defined": "Level"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "mintNft",
       "accounts": [
         {
@@ -604,5 +634,8 @@
       "name": "InvalidFeeRecipient",
       "msg": "Invalid fee recipient account"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
+  }
 }
