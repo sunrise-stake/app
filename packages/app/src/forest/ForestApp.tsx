@@ -22,15 +22,25 @@ const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
       display: "block",
       position: "absolute",
       transform: `translate3d(${details.translate.x}px, ${details.translate.y}px, ${details.translate.z}px)`,
-      filter: `blur(${details.metadata.layer * 2}px) grayscale(40%)`,
+      filter: `blur(${details.metadata.layer * 2}px) grayscale(${
+        details.metadata.layer * 20
+      }%)`,
       width: "300px",
       left: "-50px",
       animationDelay: `${details.metadata.layer}s`,
       ...style,
     }}
   >
-    <DynamicTree details={details} />
-    <p>{toShortBase58(details.address)}</p>
+    <div
+      className="ForestTree"
+      style={{
+        animationDelay: `${Math.random() * 2}s`,
+      }}
+    >
+      <DynamicTree details={details} />
+
+      <p>{toShortBase58(details.address)}</p>
+    </div>
   </li>
 );
 
