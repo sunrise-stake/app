@@ -159,16 +159,15 @@ const _LockingApp: ForwardRefRenderFunction<
         <DynamicTree
           details={myTree}
           variant="sm"
-          className={`FloatingTree${
+          className={`${
             myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
           }`}
         />
       )}
-      <div className="w-[20%] h-[20%] m-8">
-        {details?.impactNFTDetails && (
-          <ImpactNFT details={details.impactNFTDetails} />
-        )}
-      </div>
+
+      {details?.impactNFTDetails && (
+        <ImpactNFT details={details.impactNFTDetails} />
+      )}
 
       {details?.lockDetails ? (
         <>
