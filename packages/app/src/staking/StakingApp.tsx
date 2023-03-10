@@ -27,7 +27,7 @@ const _StakingApp: ForwardRefRenderFunction<
 
   return (
     <div
-      className={clx("flex flex-col items-center justify-center", className)}
+      className={clx("flex flex-col items-center", className)}
       ref={ref}
       {...rest}
     >
