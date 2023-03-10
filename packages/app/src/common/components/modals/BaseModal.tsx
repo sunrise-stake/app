@@ -47,7 +47,7 @@ const BaseModal: FC<Props> = ({
         className="fixed z-30 inset-0 overflow-y-auto backdrop-blur-sm"
       >
         <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 border border-gray-100 text-left bg-white shadow-xll sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
+          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 border border-green text-left bg-white shadow-xll sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
             {children}
             <div className="mx-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-32 items-center text-center">
               <Button
