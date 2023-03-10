@@ -93,11 +93,10 @@ const _GrowApp: ForwardRefRenderFunction<
       {...rest}
     >
       {" "}
-      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
+      <div className="w-full">
         <Link to="/" className="flex items-center text-green">
           <div className="flex items-center nowrap">
-            <IoChevronBackOutline className="inline" size={24} />
-            <span>Back</span>
+            <IoChevronBackOutline className="inline" size={48} />
           </div>
         </Link>
       </div>
