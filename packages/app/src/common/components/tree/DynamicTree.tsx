@@ -79,8 +79,6 @@ export const DynamicTree: FC<{
 }> = ({ details, style = {}, onClick, className = "", variant = "md" }) => {
   const { level, species } = details.metadata.type;
 
-  console.log("MY TREE", details.metadata);
-
   const treeImages = [];
   const treeLevels = [
     firstTreeLevel(level),
