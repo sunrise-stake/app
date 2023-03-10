@@ -8,7 +8,7 @@ import {
 } from "react";
 import { type TreeComponent } from "./utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { IoChevronBackOutline } from "react-icons/io5";
+import { IoChevronForwardOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
 import { ProfileBox } from "../common/components/profile/ProfileBox";
@@ -110,12 +110,11 @@ const _ForestApp: ForwardRefRenderFunction<
           </PerspectiveComponent>
         ))}
       </ul>
-      <div className="absolute top-0 left-0 mt-4">
+      <div className="absolute top-0 right-0 mt-4">
         <div className="container">
           <Link to="/" className="flex items-center text-green">
             <div className="flex items-center nowrap">
-              <IoChevronBackOutline className="inline" size={24} />
-              <span>Back</span>
+              <IoChevronForwardOutline className="inline" size={48} />
             </div>
           </Link>
         </div>
