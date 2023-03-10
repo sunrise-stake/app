@@ -1,8 +1,8 @@
-import { XMarkIcon } from "@heroicons/react/24/solid";
 import React from "react";
 import toast, { type Toast } from "react-hot-toast";
 
 import { useScript } from "../hooks";
+import { BaseModal } from "./modals";
 
 interface TweetButtonProps {
   amount: string;
@@ -13,19 +13,16 @@ const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
   useScript("https://platform.twitter.com/widgets.js");
 
   return (
-    <div className=" bg-background p-8 rounded-md border border-green">
-      <div className={`ml-2 flex-shrink-0 flex justify-end`}>
-        <button
-          onClick={() => {
-            toast.dismiss(t.id);
-          }}
-          className={`default-transition rounded-md inline-flex text-black hover:opacity-75 focus:outline-none`}
-        >
-          <span className={`sr-only`}>Close</span>
-
-          <XMarkIcon className="h-5 w-5" />
-        </button>
-      </div>
+    <BaseModal
+      ok={() => {
+        toast.dismiss(t.id);
+      }}
+      cancel={() => {
+        toast.dismiss(t.id);
+      }}
+      show={true}
+    >
+      {/* <div className=" bg-background p-8 rounded-md border border-green"> */}
       <div className="flex flex-col items-center px-16 pt-8 my-8 rounded-md bg-gray-100 border border-gray-300 max-w-md">
         <div className="text-center mb-4">
           I just staked with Sunrise, offsetting carbon and making Solana
@@ -45,7 +42,7 @@ const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
         </svg>
       </div>
 
-      <div className="flex flex-row justify-center">
+      <div className="flex flex-row justify-center mb-16">
         <a
           href="https://twitter.com/share?ref_src=twsrc%5Etfw"
           className="twitter-share-button"
@@ -60,7 +57,8 @@ const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
           Tweet
         </a>
       </div>
-    </div>
+      {/* </div> */}
+    </BaseModal>
   );
 };
 
