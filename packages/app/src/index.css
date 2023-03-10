@@ -58,8 +58,17 @@ input[type=number]::-webkit-outer-spin-button {
     }
   }
 
+  @keyframes float-circle {
+    from { transform: rotate(0deg) translateX(5px) rotate(0deg); }
+    to   { transform: rotate(360deg) translateX(5px) rotate(-360deg); }
+  }
+
   .FloatingTree {
     animation: 4s ease-in-out infinite float-up-down;
+  }
+
+  .ForestTree {
+    animation: 8s linear infinite float-circle;
   }
   
   .appearance-textfield {
