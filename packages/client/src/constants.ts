@@ -3,6 +3,9 @@ import { PublicKey } from "@solana/web3.js";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
 import BN from "bn.js";
 
+// on devnet, the solblaze pool is sometimes unavailable for deposits - use this to disable it
+export const SOLBLAZE_ENABLED = false;
+
 export const STAKE_POOL_PROGRAM_ID = new PublicKey(
   "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 );
