@@ -30,6 +30,8 @@ export interface Transfer {
   amount: number;
 }
 
+export type ParentRelationship = "PARENT_IS_SENDER" | "PARENT_IS_RECIPIENT";
+
 // A treeNode is the representation of an account's balance and activity
 // We call it TreeNode instead of Tree, because a "tree" in computer science
 // is usually a collection of nodes, and we don't want to confuse the two.
@@ -42,7 +44,7 @@ export interface TreeNode {
   startDate: Date;
   parent?: {
     tree: TreeNode;
-    relationship: "PARENT_IS_SENDER" | "PARENT_IS_RECIPIENT";
+    relationship: ParentRelationship;
     relationshipStartDate: Date;
   };
 }

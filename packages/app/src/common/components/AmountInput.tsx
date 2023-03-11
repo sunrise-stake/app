@@ -87,25 +87,23 @@ const AmountInput: React.FC<AmountInputProps> = ({
         )}
       >
         <div className="grow my-auto">
-          {variant === "large" && (
-            <div className="text-right">
-              Balance:{" "}
-              <button
-                className="text-blue hover:bg-outset hover:cursor-pointer py-1 px-2 rounded-md"
-                onClick={() => {
-                  if (balance) {
-                    updateAmount(
-                      toFixedWithPrecision(
-                        mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
-                      ).toString()
-                    );
-                  }
-                }}
-              >
-                {balance ? toFixedWithPrecision(toSol(balance)) : "-"} {token}
-              </button>
-            </div>
-          )}
+          <div className="text-right">
+            Balance:{" "}
+            <button
+              className="px-2 py-1 rounded-md hover:bg-green text-green hover:text-white"
+              onClick={() => {
+                if (balance) {
+                  updateAmount(
+                    toFixedWithPrecision(
+                      mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
+                    ).toString()
+                  );
+                }
+              }}
+            >
+              {balance ? toFixedWithPrecision(toSol(balance)) : "-"} {token}
+            </button>
+          </div>
           <div className="flex">
             {variant === "large" && (
               <img

@@ -31,7 +31,7 @@ import { tooltips } from "../../common/content/tooltips";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
 import { Link } from "react-router-dom";
-import { IoChevronBackOutline } from "react-icons/io5";
+import { IoChevronUpOutline, IoChevronDownOutline } from "react-icons/io5";
 
 const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -130,10 +130,12 @@ const StakeDashboard: FC = () => {
   return (
     <div style={{ maxWidth: "620px" }} className="mx-auto relative">
       <div>
-        <Link to="/" className="flex items-center text-green">
+        <Link
+          to="/"
+          className="flex items-center text-green justify-center mb-8"
+        >
           <div className="flex items-center nowrap">
-            <IoChevronBackOutline className="inline" size={24} />
-            <span>Back</span>
+            <IoChevronUpOutline className="inline" size={48} />
           </div>
         </Link>
       </div>
@@ -288,6 +290,17 @@ const StakeDashboard: FC = () => {
             />
           );
         })}
+      </div>
+      <div>
+        <Link
+          to="/lock"
+          className="flex items-center text-green justify-center mb-8"
+        >
+          <div className="flex flex-col items-center nowrap">
+            <span>Lock</span>
+            <IoChevronDownOutline className="inline" size={48} />
+          </div>
+        </Link>
       </div>
     </div>
   );

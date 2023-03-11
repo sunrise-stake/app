@@ -1,79 +1,91 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import {
+import React, {
   forwardRef,
   useEffect,
-  useState,
   type ForwardRefRenderFunction,
+  type PropsWithChildren,
+  type FC,
 } from "react";
 import clx from "classnames";
 import { useNavigate, Link } from "react-router-dom";
-import { SendGSolForm } from "./components/SendGSolForm";
 import { useZenMode } from "../common/context/ZenModeContext";
-import { InfoBox } from "../common/components";
-import { toast } from "react-hot-toast";
-import { AiOutlineArrowRight } from "react-icons/ai";
-import { useSunriseStake } from "../common/context/sunriseStakeContext";
-import { toSol, type Details } from "@sunrisestake/client";
-import BN from "bn.js";
-import { ZERO } from "../common/utils";
-import { Keypair } from "@solana/web3.js";
-import { useScript } from "../common/hooks";
+import { useModal, useScript } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
+import { CollectInfoButton } from "./components/CollectInfoButton";
+import { Button } from "../common/components";
+import { GiPresent } from "react-icons/gi";
+import { SendGSolModal } from "../common/components/modals/SendGSolModal";
+import { type Charity, type PlaceholderCharity } from "./components/types";
+import { CharityDonateButton } from "./components/CharityDonateButton";
 
-export interface Charity {
-  name: string;
-  walletAddress: string;
-}
+const isRealCharity = (
+  charity: Charity | PlaceholderCharity
+): charity is Charity => {
+  return (charity as Charity).address !== undefined;
+};
+
+// These will be fetched from some data base
+const charityApps: Array<Charity | PlaceholderCharity> = [
+  {
+    name: "Charity 1",
+    imageUrl: "partners/charity0.png",
+  },
+  {
+    name: "Charity 2",
+    imageUrl: "partners/charity1.png",
+  },
+  {
+    name: "Charity 3",
+    imageUrl: "partners/charity2.png",
+  },
+  {
+    name: "Charity 4",
+    imageUrl: "partners/charity3.png",
+  },
+];
+const partnerApps = [
+  {
+    name: "Demo Partner",
+    url: "https://example.test",
+    imageUrl: "partners/partner0.png",
+  },
+  {
+    name: "Demo Partner",
+    url: "https://example.test",
+    imageUrl: "partners/partner1.png",
+  },
+  {
+    name: "Demo Partner",
+    url: "https://example.test",
+    imageUrl: "partners/partner2.png",
+  },
+];
+
+const Placeholder: FC<PropsWithChildren> = ({ children }) => (
+  <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-green text-xl font-medium text-center">
+    {children}
+  </div>
+);
+
+const Overlay: FC<PropsWithChildren> = ({ children }) => (
+  <div className="p-8 rounded-md w-40 h-30 text-white font-extrabold text-xl font-medium text-center">
+    {children}
+  </div>
+);
 
 const _GrowApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
-  const {
-    details,
-  }: {
-    details: Details | undefined;
-  } = useSunriseStake();
   const navigate = useNavigate();
   const wallet = useWallet();
   const [, updateZenMode] = useZenMode();
 
   useScript("//embed.typeform.com/next/embed.js");
 
-  const [charity, setCharity] = useState<Charity | undefined>();
-  const [recipientAddress, setRecipientAddress] = useState("");
   const { myTree } = useForest();
-
-  // These will be fetch from some data base
-  const charityApps = [
-    {
-      name: "Green Glow",
-      walletAddress: Keypair.generate().publicKey.toBase58(),
-    },
-    {
-      name: "Project Green",
-      walletAddress: Keypair.generate().publicKey.toBase58(),
-    },
-    {
-      name: "Animal Kingdom",
-      walletAddress: Keypair.generate().publicKey.toBase58(),
-    },
-    {
-      name: "Cool Ocean",
-      walletAddress: Keypair.generate().publicKey.toBase58(),
-    },
-    {
-      name: "Clean Earth",
-      walletAddress: Keypair.generate().publicKey.toBase58(),
-    },
-    {
-      name: "Bee Responsive",
-      walletAddress: Keypair.generate().publicKey.toBase58(),
-    },
-  ];
-  const partnerApps = Array.from({ length: 10 }, (x, i) => i);
 
   useEffect(() => {
     if (!wallet.connected) navigate("/");
@@ -81,127 +93,97 @@ const _GrowApp: ForwardRefRenderFunction<
 
   useEffect(() => {
     updateZenMode({
-      showBGImage: active,
+      showBGImage: false,
       showWallet: active,
     });
   }, [active]);
 
+  const sendGSolModal = useModal(() => {});
+
   return (
     <div
-      className={clx("flex flex-col items-center pt-8", className)}
+      className={clx("relative flex flex-col items-center pt-8", className)}
       ref={ref}
       {...rest}
     >
-      {" "}
-      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
-        <Link to="/" className="flex items-center text-green">
-          <div className="flex items-center nowrap">
-            <IoChevronBackOutline className="inline" size={24} />
-            <span>Back</span>
-          </div>
-        </Link>
-      </div>
-      <div className="">
-        <h1 className="font-bold text-xl text-green-light">Grow your forest</h1>
-      </div>
+      <SendGSolModal
+        ok={sendGSolModal.onModalOK}
+        cancel={sendGSolModal.onModalClose}
+        show={sendGSolModal.modalShown}
+      />
       {myTree && (
         <DynamicTree
           details={myTree}
           variant="sm"
-          className={`FloatingTree -my-8${
+          className={`-mt-10 -mb-14${
             myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
           }`}
         />
       )}
-      <h2 className="flex font-bold text-xl items-center gap-4 mb-8">
-        Partners{" "}
-        <AiOutlineArrowRight
-          onClick={() => {
-            toast("Will show a page with all partners");
-          }}
-        />
+      <div className="">
+        <h1 className="font-bold text-green-light text-3xl">
+          Grow your forest
+        </h1>
+      </div>
+      <h2 className="flex font-bold text-xl items-center gap-4 mb-4">
+        Use gSOL with our partners...
       </h2>
-      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
-        <div className="flex overflow-x-scroll gap-4 pb-4">
-          <button
-            data-tf-popup="ycDtkUgC"
-            data-tf-opacity="100"
-            data-tf-size="100"
-            data-tf-iframe-props="title=Partner Contacts"
-            data-tf-transitive-search-params
-            data-tf-medium="snippet"
+      <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
+        <div className="flex overflow-x-scroll gap-4 p-4">
+          <CollectInfoButton>
+            <Placeholder>
+              <div className="pt-4">Your App Here</div>
+            </Placeholder>
+          </CollectInfoButton>
+          {partnerApps.map((app) => (
+            <CollectInfoButton imageUrl={app.imageUrl} key={app.name}>
+              <Overlay>Partner App</Overlay>
+            </CollectInfoButton>
+          ))}
+        </div>
+      </div>
+      <h2 className="flex font-bold text-xl items-center gap-4 mt-8 mb-4">
+        Donate gSOL...
+      </h2>
+      <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
+        <div className="flex overflow-x-scroll gap-4 p-4">
+          <CollectInfoButton>
+            <Placeholder>Your Charity Here</Placeholder>
+          </CollectInfoButton>
+          {charityApps.map((charity) =>
+            isRealCharity(charity) ? (
+              <CharityDonateButton charity={charity} key={charity.name} />
+            ) : (
+              <CollectInfoButton imageUrl={charity.imageUrl} key={charity.name}>
+                <Overlay>Charity</Overlay>
+              </CollectInfoButton>
+            )
+          )}
+        </div>
+      </div>
+      <div>
+        <h2 className="font-bold text-xl mt-8 mb-4">
+          Send gSOL to add someone to your forest...
+        </h2>
+        <div className="flex justify-center items-center">
+          <Button
+            className="basis-1/4"
+            onClick={sendGSolModal.trigger}
+            size="sm"
           >
-            <div className="hover:cursor-pointer">
-              <InfoBox className="p-8 rounded-md w-40 h-30">
-                <div className="text-green text-xl font-medium text-center">
-                  Your App here
-                </div>
-              </InfoBox>
+            <div className="flex gap-2 w-full justify-center items-center">
+              <GiPresent size={32} />
             </div>
-          </button>
-          {partnerApps.map((app) => {
-            return (
-              <div
-                className="hover:cursor-pointer"
-                key={app}
-                onClick={() => {
-                  toast("Coming so0n!", { position: "top-center" });
-                }}
-              >
-                <InfoBox className="p-8 rounded-md w-40 h-30">
-                  <div className="text-green text-xl font-medium text-center">
-                    Partner App
-                  </div>
-                </InfoBox>
-              </div>
-            );
-          })}
+          </Button>
         </div>
       </div>
-      <h2 className="font-bold text-xl mt-8 mb-4">
-        Invite someone to your forest...
-      </h2>
-      <SendGSolForm
-        className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl"
-        charity={charity}
-        recipient={recipientAddress}
-        setRecipient={setRecipientAddress}
-      />
-      <div className="flex gap-2 w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl mt-4">
-        Balance:{" "}
-        <div className="text-green font-bold">
-          {toSol(new BN(details?.balances.gsolBalance.amount ?? ZERO))} gSOL
-        </div>
-      </div>
-      <h2 className="flex font-bold text-xl items-center gap-4 mt-16 mb-8">
-        Donate gSOL{" "}
-        <AiOutlineArrowRight
-          onClick={() => {
-            toast("Will show a page with all partners");
-          }}
-        />
-      </h2>
-      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
-        <div className="flex overflow-x-scroll gap-4 pb-8">
-          {charityApps.map((charity) => {
-            return (
-              <div
-                className="hover:cursor-pointer"
-                key={charity.name}
-                onClick={() => {
-                  setCharity(charity);
-                  setRecipientAddress(charity.walletAddress);
-                  toast("Coming soon!", { position: "bottom-center" });
-                }}
-              >
-                <InfoBox className="p-8 rounded-md w-40 h-30">
-                  <div className="text-green text-xl font-medium text-center">
-                    {charity.name}
-                  </div>
-                </InfoBox>
-              </div>
-            );
-          })}
+      <div className="absolute top-0 left-0 mt-4">
+        <div className="container">
+          <Link to="/" className="flex items-center text-green">
+            <div className="flex items-center nowrap">
+              <IoChevronBackOutline className="inline" size={48} />
+            </div>
+          </Link>
         </div>
       </div>
     </div>

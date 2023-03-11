@@ -28,10 +28,15 @@ module.exports = function (config) {
       fallback: {
         assert: require.resolve('assert'),
         buffer: require.resolve('buffer'),
+        child_process: false,
+        constants: require.resolve("constants-browserify"),
         crypto: require.resolve('crypto-browserify'),
         fs: false,
-        path: require.resolve('path-browserify'),
+        os: require.resolve("os-browserify/browser"),
+        path: require.resolve("path-browserify"),
+        perf_hooks: false,
         stream: require.resolve('stream-browserify'),
+        url: false,
         zlib: require.resolve('browserify-zlib'),
       }
     },

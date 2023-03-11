@@ -4,27 +4,46 @@ import {
   type FC,
   forwardRef,
   type ForwardRefRenderFunction,
+  type ReactNode,
+  useEffect,
+  useState,
 } from "react";
 import { type TreeComponent } from "./utils";
-import { toShortBase58 } from "../common/utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { IoChevronBackOutline } from "react-icons/io5";
+import { IoChevronForwardOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
+import { ProfileBox } from "../common/components/profile/ProfileBox";
+import { type TreeNode } from "../api/types";
+import { type PublicKey } from "@solana/web3.js";
 
-const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
+const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
-  style = {},
 }) => (
-  <li
-    className="tree"
+  <DynamicTree
+    details={details}
     style={{
-      display: "block",
-      position: "absolute",
-      transform: `translate3d(${details.translate.x}px, ${details.translate.y}px, ${details.translate.z}px)`,
       filter: `blur(${details.metadata.layer * 2}px) grayscale(${
         details.metadata.layer * 20
       }%)`,
+    }}
+  />
+);
+
+const PerspectiveComponent: FC<{
+  details: TreeComponent;
+  style?: CSSProperties;
+  children: ReactNode;
+  locus: { x: number; y: number; z: number };
+}> = ({ details, style = {}, locus, children }) => (
+  <li
+    className="tree group"
+    style={{
+      display: "block",
+      position: "absolute",
+      transform: `translate3d(${details.translate.x + locus.x}px, ${
+        details.translate.y + locus.y
+      }px, ${details.translate.z + locus.z}px)`,
       width: "300px",
       left: "-50px",
       animationDelay: `${details.metadata.layer}s`,
@@ -37,24 +56,48 @@ const Tree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
         animationDelay: `${Math.random() * 2}s`,
       }}
     >
-      <DynamicTree details={details} />
-
-      <p>{toShortBase58(details.address)}</p>
+      {children}
     </div>
   </li>
 );
+
+const getIntermediaries = (treeNode: TreeNode): PublicKey[] => {
+  const parent = treeNode.parent?.tree;
+
+  // skip the last tree (one with no parent) as this is not an intermediary, it is the current logged-in user
+  if (parent === undefined || parent.parent === undefined) return [];
+
+  return [parent.address, ...getIntermediaries(parent)];
+};
 
 const _ForestApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string } & React.HTMLAttributes<HTMLElement>
 > = ({ className, ...rest }, ref) => {
   const { myTree, neighbours } = useForest();
+  // use this to position the entire forest in space
+  const [locus, setLocus] = useState({
+    x: 0,
+    y: -100,
+    z: window.innerWidth / 4 - 450,
+  });
+  // this is a hack to ensure the forest resizes correctly when e.g. the viewport is changed
+  // there is almost certainly a better CSS way to do this
+  useEffect(() => {
+    setLocus({
+      x: 0,
+      y: -100, // window.innerHeight / 4 - 300,
+      z: window.innerWidth / 4 - 450,
+    });
+  }, [window.innerWidth]);
+
   return (
     <div
       className={clx("relative flex justify-center items-center", className)}
       {...rest}
       ref={ref}
     >
+      {/* TREES */}
       <ul
         style={{
           listStyle: "none",
@@ -62,20 +105,58 @@ const _ForestApp: ForwardRefRenderFunction<
           transformStyle: "preserve-3d",
         }}
       >
-        {myTree && <Tree details={myTree} />}
+        {myTree && (
+          <PerspectiveComponent details={myTree} locus={locus}>
+            <ForestTree details={myTree} />
+          </PerspectiveComponent>
+        )}
         {neighbours?.map((tree) => (
-          <Tree
+          <PerspectiveComponent
             key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
             details={tree}
-          />
+            locus={locus}
+          >
+            <ForestTree details={tree} />
+          </PerspectiveComponent>
         ))}
       </ul>
-      <div className="absolute top-0 left-0 mt-4">
+      {/* PROFILE BOXES */}
+      <ul
+        style={{
+          listStyle: "none",
+          perspective: "200px",
+        }}
+      >
+        {myTree && (
+          <PerspectiveComponent
+            details={myTree}
+            style={{ top: "200px", width: "350px", left: "-75px" }}
+            locus={locus}
+          >
+            <input type="checkbox" className="tree-checker opacity-0" />
+            <ProfileBox address={myTree.address} />
+          </PerspectiveComponent>
+        )}
+        {neighbours?.map((tree) => (
+          <PerspectiveComponent
+            key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
+            details={tree}
+            style={{ top: "200px" }}
+            locus={locus}
+          >
+            <ProfileBox
+              address={tree.address}
+              relationship={tree.metadata.node.parent?.relationship}
+              intermediaries={getIntermediaries(tree.metadata.node)}
+            />
+          </PerspectiveComponent>
+        ))}
+      </ul>
+      <div className="absolute top-0 right-0 mt-4">
         <div className="container">
           <Link to="/" className="flex items-center text-green">
             <div className="flex items-center nowrap">
-              <IoChevronBackOutline className="inline" size={24} />
-              <span>Back</span>
+              <IoChevronForwardOutline className="inline" size={48} />
             </div>
           </Link>
         </div>

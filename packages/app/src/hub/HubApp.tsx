@@ -5,6 +5,7 @@ import {
   useState,
   type ForwardRefRenderFunction,
   forwardRef,
+  useRef,
 } from "react";
 import {
   IoChevronBackOutline,
@@ -29,6 +30,7 @@ const _HubApp: ForwardRefRenderFunction<
   const [introLeft, updateIntroLeft] = useState(false);
   const [showHub, updateShowHub] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
+  const wasHubNavShown = useRef(false);
   const [, updateShowBGImage] = useZenMode();
   const [stakeButtonMessage, updateStakeButtonMessage] = useState("My Stake");
 
@@ -36,6 +38,7 @@ const _HubApp: ForwardRefRenderFunction<
   console.log("Hub page tree", myTree);
   const { totalCarbon } = useCarbon();
 
+  // Show intro once carbon data are ready, hide once wallet connected
   useEffect(() => {
     if (!wallet.connected && totalCarbon !== undefined) updateShowIntro(true);
     else if (wallet.connected) {
@@ -43,19 +46,32 @@ const _HubApp: ForwardRefRenderFunction<
     }
   }, [totalCarbon, wallet.connected]);
 
+  // Once intro is done, and tree data available show hub
   useEffect(() => {
     if (introLeft && myTree) {
       updateShowHub(true);
       updateShowBGImage({ showBGImage: false, showWallet: false });
+      const tid = setTimeout(() => {
+        if (!wasHubNavShown.current) updateShowHubNav(true);
+      }, 5000);
+
+      return () => {
+        clearTimeout(tid);
+      };
     }
   }, [myTree, introLeft]);
 
+  // Update stake button text depending on tree state
   useEffect(() => {
     if (myTree?.metadata.type.translucent === true)
       updateStakeButtonMessage("Stake to restore your tree");
     else if (myTree?.metadata.type.level === 0)
       updateStakeButtonMessage("Stake to grow your tree");
   }, [myTree]);
+
+  useEffect(() => {
+    if (showHubNav) wasHubNavShown.current = true;
+  }, [showHubNav]);
 
   return (
     <div
@@ -117,15 +133,31 @@ const _HubApp: ForwardRefRenderFunction<
             </div>
           </Link>
         </div>
-        <div
-          className={clx(
-            "w-full mt-2 text-center transition-opacity ease-in duration-500",
-            showHubNav ? "opacity-100" : "opacity-0"
+        <div className="w-full mt-2 text-center">
+          {myTree?.metadata?.type?.level !== undefined &&
+          myTree?.metadata?.type?.level > 0 ? (
+            <div
+              className={clx(
+                "transition-opacity ease-in duration-500",
+                showHubNav ? "opacity-100" : "opacity-0"
+              )}
+            >
+              <Link to="/stake">
+                <Button variant="outline">{stakeButtonMessage}</Button>
+              </Link>
+            </div>
+          ) : (
+            <div
+              className={clx(
+                "transition-opacity ease-in duration-500",
+                showHub ? "opacity-100" : "opacity-0"
+              )}
+            >
+              <Link to="/stake">
+                <Button variant="outline">{stakeButtonMessage}</Button>
+              </Link>
+            </div>
           )}
-        >
-          <Link to="/stake">
-            <Button variant="outline">{stakeButtonMessage}</Button>
-          </Link>
           <div
             className={clx(
               "flex md:hidden justify-between my-4 transition-opacity ease-in duration-500",
@@ -145,11 +177,18 @@ const _HubApp: ForwardRefRenderFunction<
               </div>
             </Link>
           </div>
-          <Link to="/lock" className="block w-full mt-4 leading-none">
-            Lock
-            <br />
-            <IoChevronDownOutline className="inline-block" size={24} />
-          </Link>
+          <div
+            className={clx(
+              "transition-opacity ease-in duration-500",
+              showHubNav ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <Link to="/lock" className="block w-full mt-4 leading-none">
+              Lock
+              <br />
+              <IoChevronDownOutline className="inline-block" size={24} />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
