@@ -9,10 +9,10 @@
     "@metaplex-foundation/js": "^0.18.3",
     "@popperjs/core": "^2.11.6",
     "@solana/spl-token": "^0.3.6",
-    "@solana/wallet-adapter-base": "^0.9.20",
-    "@solana/wallet-adapter-react": "^0.15.26",
-    "@solana/wallet-adapter-react-ui": "^0.9.24",
-    "@solana/wallet-adapter-wallets": "^0.19.9",
+    "@solana/wallet-adapter-base": "^0.9.22",
+    "@solana/wallet-adapter-react": "^0.15.30",
+    "@solana/wallet-adapter-react-ui": "^0.9.29",
+    "@solana/wallet-adapter-wallets": "^0.19.15",
     "@solana/web3.js": "^1.66.2",
     "@sunrisestake/client": "*",
     "@sunrisestake/marinade-ts-sdk": "4.0.4-alpha.18",
@@ -38,6 +38,7 @@
     "crypto-browserify": "^3.12.0",
     "dayjs": "^1.11.7",
     "dotenv-cli": "^6.0.0",
+    "https-browserify": "^1.0.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "postcss": "^8.4.19",
@@ -52,6 +53,7 @@
     "react-router-dom": "^6.8.1",
     "react-scripts": "^5.0.1",
     "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
     "tailwindcss": "^3.2.4",
     "typescript": "^4.8.4",
     "web-vitals": "^3.0.2"
@@ -84,5 +86,8 @@
   "devDependencies": {
     "@marinade.finance/marinade-ts-sdk": "^4.0.4",
     "cross-env": "^7.0.3"
+  },
+  "browser": {
+    "tls": false
   }
 }

@@ -117,4 +117,7 @@ export const EMPTY_EPOCH_REPORT: EpochReportAccount = {
   epoch: new BN(0),
   tickets: new BN(0),
   totalOrderedLamports: new BN(0),
+  extractableYield: new BN(0),
+  extractedYield: new BN(0),
+  currentGsolSupply: new BN(0),
 };

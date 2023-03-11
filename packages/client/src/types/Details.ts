@@ -1,7 +1,21 @@
 import type BN from "bn.js";
-import { type Balance } from "../util";
-import { type EpochInfo, type PublicKey } from "@solana/web3.js";
+import {
+  type EpochInfo,
+  type PublicKey,
+  type TokenAmount,
+} from "@solana/web3.js";
 import { type EpochReportAccount } from "./EpochReportAccount";
+
+export interface Balance {
+  gsolBalance: TokenAmount;
+  gsolSupply: TokenAmount;
+  msolBalance: TokenAmount;
+  msolPrice: number;
+  liqPoolBalance: TokenAmount;
+  treasuryBalance: number;
+  bsolBalance: TokenAmount;
+  holdingAccountBalance: number;
+}
 
 export interface Details {
   // TODO Standardise on number/bigint/BigDecimal

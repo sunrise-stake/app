@@ -1,6 +1,6 @@
 {
   "name": "@sunrisestake/client",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "description": "Sunrise Stake Client",
   "main": "dist/index.ts",
   "module": "dist/index.js",
@@ -17,7 +17,7 @@
     "@project-serum/borsh": "^0.2.5",
     "@solana/spl-token": "^0.3.7",
     "@solana/web3.js": "^1.73.2",
-    "@sunrisestake/impact-nft-client": "^0.0.1-alpha.10",
+    "@sunrisestake/impact-nft-client": "^0.0.1-alpha.13",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
     "bn.js": "^5.2.1"
   },
