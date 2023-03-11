@@ -6,6 +6,6 @@
     "target": "es6",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "strict": true,
+    "strict": true
   }
 }

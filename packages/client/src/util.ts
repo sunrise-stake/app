@@ -3,7 +3,6 @@ import {
   type ConfirmOptions,
   type Connection,
   PublicKey,
-  type TokenAmount,
   type Transaction,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
@@ -229,16 +228,6 @@ export const setUpAnchor = (): anchor.AnchorProvider => {
   return provider;
 };
 
-export interface Balance {
-  gsolBalance: TokenAmount;
-  gsolSupply: TokenAmount;
-  msolBalance: TokenAmount;
-  msolPrice: number;
-  liqPoolBalance: TokenAmount;
-  treasuryBalance: number;
-  bsolBalance: TokenAmount;
-  holdingAccountBalance: number;
-}
 export const ZERO_BALANCE = {
   value: {
     amount: "0",

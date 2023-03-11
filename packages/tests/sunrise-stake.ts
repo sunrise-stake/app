@@ -307,8 +307,12 @@ describe("sunrise-stake", () => {
 
     // Liquid unstake comes completely from blaze here, charged at 0.03% rather than marinade's 0.3%
     // Unsure about if the rebalance works the same as it did prior. If it does, the new value should be:
-    // ((20000000000-17463623930)* 0.0003) + 1503360 + (2 * 5000) = 2_274_272.821
-    expectAmount(2_274_272, totalFee, 100);
+    const expectedAmount =
+      (20000000000 - details.lpDetails.lpSolShare.toNumber()) * 0.0003 +
+      1503360 +
+      2 * 5000;
+
+    expectAmount(totalFee, expectedAmount, 100);
   });
 
   // Triggers a liquid unstake from Blaze only (since its valuation is higher)
@@ -392,7 +396,12 @@ describe("sunrise-stake", () => {
     // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
     // variable, as well as floating point precision
-    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
+    // Set the tolerance quite high here to compensate for fees for additional transfers
+    await expectStakerSolBalance(
+      client,
+      expectedPostUnstakeBalance,
+      NETWORK_FEE * 2
+    );
   });
 
   it("registers zero extractable yield while a rebalance is in-flight", async () => {

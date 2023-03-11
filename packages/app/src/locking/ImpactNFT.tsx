@@ -9,12 +9,18 @@ export const ImpactNFT: FC<{ details: Details["impactNFTDetails"] }> = ({
   const nft = useNFT(details?.mint);
 
   return (
-    <div>
-      {nft?.json?.image !== undefined ? (
-        <img src={nft.json.image} alt="Impact NFT" className="m-auto" />
-      ) : (
-        <Spinner />
-      )}
-    </div>
+    <a
+      href={`https://solscan.io/token/${details?.mint.toBase58() ?? ""}`}
+      target="_blank"
+      rel="noreferrer"
+    >
+      <div className="max-w-md animate-fade-in transition-opacity mb-2">
+        {nft?.json?.image !== undefined ? (
+          <img src={nft.json.image} alt="Impact NFT" className="m-auto" />
+        ) : (
+          <Spinner />
+        )}
+      </div>
+    </a>
   );
 };

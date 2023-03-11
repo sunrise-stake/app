@@ -10,7 +10,7 @@
         "program:dylint": "cargo dylint --all --workspace",
         "lint": "yarn workspaces run lint",
         "test": "anchor test",
-        "test:anchor": "yarn run ts-mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts",
+        "test:anchor": "yarn mocha -p ./tsconfig.json -t 1000000 packages/tests/**/*.ts",
         "program:build": "anchor build",
         "program:deploy": "solana program deploy target/deploy/sunrise_stake.so --program-id sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6",
         "build": "yarn workspaces run build",
@@ -43,7 +43,7 @@
         "lerna": "^6.4.1",
         "mocha": "^10.2.0",
         "prettier": "^2.7.1",
-        "ts-mocha": "^10.0.0",
+        "tsx": "^3.12.3",
         "typescript": "*"
     },
     "name": "app"

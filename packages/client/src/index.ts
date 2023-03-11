@@ -12,7 +12,6 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import {
-  type Balance,
   confirm,
   findAllTickets,
   findBSolTokenAccountAuthority,
@@ -39,7 +38,11 @@ import {
   type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
-import { type Details, type WithdrawalFees } from "./types/Details";
+import {
+  type Balance,
+  type Details,
+  type WithdrawalFees,
+} from "./types/Details";
 import {
   type SunriseTicketAccountFields,
   type TicketAccount,

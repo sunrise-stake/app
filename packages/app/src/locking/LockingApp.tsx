@@ -1,7 +1,7 @@
 import clx from "classnames";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toSol, type Details } from "@sunrisestake/client";
-import {
+import React, {
   forwardRef,
   type ForwardRefRenderFunction,
   useEffect,
@@ -38,7 +38,7 @@ const _LockingApp: ForwardRefRenderFunction<
 
   useEffect(() => {
     updateZenMode({
-      showBGImage: active,
+      showBGImage: false,
       showWallet: active,
     });
   }, [active]);
@@ -85,10 +85,10 @@ const _LockingApp: ForwardRefRenderFunction<
     return client
       .lockGSol(solToLamports(amount))
       .then((txes) => {
-        txes.forEach((tx: string) => {
+        txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,
-            message: `Locking successful (tx: ${tx} of ${txes.length})`,
+            message: `Locking successful (tx: ${index} of ${txes.length})`,
             txid: tx,
           });
         });
@@ -102,10 +102,10 @@ const _LockingApp: ForwardRefRenderFunction<
     return client
       .unlockGSol()
       .then((txes) => {
-        txes.forEach((tx: string) => {
+        txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,
-            message: `Unlocking successful (tx: ${tx} of ${txes.length})`,
+            message: `Unlocking successful (tx: ${index} of ${txes.length})`,
             txid: tx,
           });
         });
@@ -119,10 +119,10 @@ const _LockingApp: ForwardRefRenderFunction<
     return client
       .updateLockAccount()
       .then((txes) => {
-        txes.forEach((tx: string) => {
+        txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,
-            message: `Unlocking successful (tx: ${tx} of ${txes.length})`,
+            message: `Unlocking successful (tx: ${index} of ${txes.length})`,
             txid: tx,
           });
         });
@@ -155,7 +155,7 @@ const _LockingApp: ForwardRefRenderFunction<
           </div>
         </Link>
       </div>
-      {myTree && (
+      {myTree && details?.lockDetails === undefined && (
         <DynamicTree
           details={myTree}
           variant="sm"
@@ -164,6 +164,9 @@ const _LockingApp: ForwardRefRenderFunction<
           }`}
         />
       )}
+      <div className="mb-3">
+        <h1 className="font-bold text-green-light text-3xl">Your Impact NFT</h1>
+      </div>
 
       {details?.impactNFTDetails && (
         <ImpactNFT details={details.impactNFTDetails} />
@@ -171,6 +174,16 @@ const _LockingApp: ForwardRefRenderFunction<
 
       {details?.lockDetails ? (
         <>
+          <h2 className="font-bold text-xl items-center gap-4 mb-4">
+            <div>
+              Locked -{" "}
+              {toFixedWithPrecision(toSol(details.lockDetails?.amountLocked))}{" "}
+              gSol
+            </div>
+            <div>Your Impact NFT is proof of your stake.</div>
+            <div>Your NFT grows as your stake matures.</div>
+            <div>Return regularly to upgrade your NFT to the next level.</div>
+          </h2>
           <Panel className="flex flex-row mb-9 p-3 sm:p-4 rounded-lg">
             <Button
               color="primary"
@@ -186,7 +199,7 @@ const _LockingApp: ForwardRefRenderFunction<
               {isBusyUpdate ? (
                 <Spinner className="sm:ml-0 sm:mr-5 px-2 rounded" />
               ) : (
-                "Update"
+                "Upgrade"
               )}
             </Button>
             <Button
@@ -206,16 +219,15 @@ const _LockingApp: ForwardRefRenderFunction<
               )}
             </Button>
           </Panel>
-          <div className="font-bold">
-            Locked -{" "}
-            {toFixedWithPrecision(toSol(details.lockDetails?.amountLocked))}{" "}
-            gSol
-          </div>
         </>
       ) : (
-        <LockForm lock={lock} />
+        <div>
+          <LockForm lock={lock} />
+          <div className="mt-24">
+            Lock your gSOL to obtain a Level 1 Impact NFT
+          </div>
+        </div>
       )}
-      <div className="mt-24">Lock your gSOL for **** to reach level 1</div>
     </div>
   );
 };

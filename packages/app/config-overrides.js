@@ -10,7 +10,10 @@ module.exports = function (config) {
         {
           test: /\.(m?js|ts)$/,
           enforce: 'pre',
-          use: ['source-map-loader']
+          use: ['source-map-loader'],
+          resolve: {
+            fullySpecified: false,
+          },
         }
       ]
     },
@@ -32,10 +35,15 @@ module.exports = function (config) {
         constants: require.resolve("constants-browserify"),
         crypto: require.resolve('crypto-browserify'),
         fs: false,
+        http: require.resolve("stream-http"),
+        https: require.resolve("https-browserify"),
+        net: false,
         os: require.resolve("os-browserify/browser"),
         path: require.resolve("path-browserify"),
         perf_hooks: false,
         stream: require.resolve('stream-browserify'),
+        tls: false,
+        tty: false,
         url: false,
         zlib: require.resolve('browserify-zlib'),
       }
