@@ -1,0 +1,7 @@
+{
+  "spec": "packages/tests/**/*.ts",
+  "loader": "tsx",
+  "timeout": 1000000,
+  "parallel": false,
+  "bail": true
+}
