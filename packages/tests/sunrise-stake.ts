@@ -397,7 +397,11 @@ describe("sunrise-stake", () => {
     // which, for the first few slots on the test validator, are
     // variable, as well as floating point precision
     // Set the tolerance quite high here to compensate for fees for additional transfers
-    await expectStakerSolBalance(client, expectedPostUnstakeBalance, NETWORK_FEE * 2);
+    await expectStakerSolBalance(
+      client,
+      expectedPostUnstakeBalance,
+      NETWORK_FEE * 2
+    );
   });
 
   it("registers zero extractable yield while a rebalance is in-flight", async () => {
