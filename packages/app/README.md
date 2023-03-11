@@ -1,5 +1,7 @@
 # Sunrise Stake App
 
+(pre-trees version)
+
 The UI for [Sunrise Stake](https://app.sunrisestake.com)
 
 ## Getting started
