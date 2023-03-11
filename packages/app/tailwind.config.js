@@ -17,7 +17,7 @@ module.exports = {
         "green-light": "#4aa172",
         "green-bright": "#52dc90",
         background: "#ffffff",
-        foreground: "#1e1e1e",
+        foreground: "#444444",
         inset: "#313131",
         outset: "#3f3e3e",
         "inset-border": "#3e3e3e",
