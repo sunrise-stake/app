@@ -63,7 +63,7 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
 
   useEffect(() => {
     if (client) {
-      const service = new ForestService(connection);
+      const service = new ForestService(connection, client);
       setService(service);
     }
   }, [client]);

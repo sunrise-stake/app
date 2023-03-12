@@ -6,7 +6,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { ZERO_BALANCE } from "@sunrisestake/client";
+import { type SunriseStakeClient, ZERO_BALANCE } from "@sunrisestake/client";
 
 export const filterFirstTransfersForSenderAndRecipient = (
   transfers: Transfer[]
@@ -49,6 +49,7 @@ export const prune = (forest: Forest): Forest => {
 
 export const getTotals = (
   currentBalance: number,
+  lockedBalance: number,
   mints: Mint[],
   receipts: Transfer[],
   sendings: Transfer[]
@@ -73,7 +74,7 @@ export const getTotals = (
   );
 
   return {
-    currentBalance,
+    currentBalance: currentBalance + lockedBalance,
     amountMinted,
     amountReceived,
     amountSent,
@@ -106,10 +107,20 @@ export const getGsolBalance = async (
   }
   return balance.value.uiAmount ?? 0;
 };
+
 export const memoisedGetGsolBalance = memoise(
   (address) => address.toBase58(),
   getGsolBalance
 );
+
+export const getLockedBalance = async (
+  client: SunriseStakeClient,
+  address: PublicKey
+): Promise<number> => {
+  const lockAcountResult = await client.getLockAccount(address);
+  return Number(lockAcountResult?.tokenAccount?.amount) ?? 0;
+};
+
 export const earliest = (
   thingsWithTimestamp: Array<{ timestamp: Date }>
 ): Date => {

@@ -1587,11 +1587,13 @@ export class SunriseStakeClient {
     return transactions;
   }
 
-  public async getLockAccount(): Promise<GetLockAccountResult> {
+  public async getLockAccount(
+    address: PublicKey = this.staker
+  ): Promise<GetLockAccountResult> {
     if (!this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
 
-    return getLockAccount(this.config, this.program, this.staker);
+    return getLockAccount(this.config, this.program, address);
   }
 
   public static async get(

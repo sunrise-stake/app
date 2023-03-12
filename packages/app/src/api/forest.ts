@@ -12,15 +12,20 @@ import {
   earliest,
   filterFirstTransfersForSenderAndRecipient,
   getGsolBalance,
+  getLockedBalance,
   getTotals,
   prune,
 } from "./util";
+import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 
 export const MAX_FOREST_DEPTH = 2; // the number of levels of tree neighbours to fetch and show
 
 export class ForestService {
   private cache: TreeNodeCache;
-  constructor(private readonly connection: Connection) {
+  constructor(
+    private readonly connection: Connection,
+    private readonly client: SunriseClientWrapper
+  ) {
     this.cache = {};
   }
 
@@ -91,14 +96,23 @@ export class ForestService {
     parent?: TreeNode["parent"]
   ): Promise<TreeNode> {
     console.log("getting tree", address.toBase58(), depth, parent);
-    const [currentBalance, mints, transfers] = await Promise.all([
-      getGsolBalance(address, this.connection),
-      getAccountMints(address),
-      getAccountTransfers(address),
-    ]);
+    const [currentBalance, lockedBalance, mints, transfers] = await Promise.all(
+      [
+        getGsolBalance(address, this.connection),
+        getLockedBalance(this.client.internal(), address),
+        getAccountMints(address),
+        getAccountTransfers(address),
+      ]
+    );
     const received = transfers.filter((t) => t.recipient.equals(address));
     const sent = transfers.filter((t) => t.sender.equals(address));
-    const totals = getTotals(currentBalance, mints, received, sent);
+    const totals = getTotals(
+      currentBalance,
+      lockedBalance,
+      mints,
+      received,
+      sent
+    );
     const startDate = earliest([...mints, ...transfers]);
 
     return {
