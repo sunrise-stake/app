@@ -16,6 +16,7 @@ interface AmountInputProps {
   className?: string;
   token?: "SOL" | "gSOL";
   balance: BN | undefined;
+  showBalance?: boolean;
   amount: string;
   setAmount: (amountStr: string) => void;
   setValid: (valid: boolean) => void;
@@ -25,6 +26,7 @@ interface AmountInputProps {
 
 const AmountInput: React.FC<AmountInputProps> = ({
   balance,
+  showBalance = true,
   className,
   amount,
   setAmount,
@@ -98,23 +100,25 @@ const AmountInput: React.FC<AmountInputProps> = ({
         )}
       >
         <div className="grow my-auto">
-          <div className="text-right">
-            Balance:{" "}
-            <button
-              className="px-2 py-1 rounded-md hover:bg-green text-green hover:text-white"
-              onClick={() => {
-                if (balance) {
-                  updateAmount(
-                    toFixedWithPrecision(
-                      mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
-                    ).toString()
-                  );
-                }
-              }}
-            >
-              {balance ? toFixedWithPrecision(toSol(balance)) : "-"} {token}
-            </button>
-          </div>
+          {showBalance && (
+            <div className="text-right">
+              Balance:{" "}
+              <button
+                className="px-2 py-1 rounded-md hover:bg-green text-green hover:text-white"
+                onClick={() => {
+                  if (balance) {
+                    updateAmount(
+                      toFixedWithPrecision(
+                        mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
+                      ).toString()
+                    );
+                  }
+                }}
+              >
+                {balance ? toFixedWithPrecision(toSol(balance)) : "-"} {token}
+              </button>
+            </div>
+          )}
           <div className="flex">
             {variant === "large" && (
               <img

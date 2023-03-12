@@ -30,7 +30,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         leave="transition-transform duration-500"
       />
       <Transition
-        className="z-10 fixed top-0 right-0 mt-1 mr-1"
+        className="z-10 fixed top-0 right-0 mt-4 mr-4"
         show={showBGImage.showWallet}
         unmount={false}
         enterFrom="opacity-0"
