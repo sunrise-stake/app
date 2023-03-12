@@ -7,7 +7,12 @@ interface Props {
 }
 
 const InfoBox: FC<Props> = ({ children, className }) => (
-  <div className={clx("border border-green-light text-green-light", className)}>
+  <div
+    className={clx(
+      "border border-green-light text-green-light bg-white/50 backdrop-blur-sm",
+      className
+    )}
+  >
     {children}
   </div>
 );

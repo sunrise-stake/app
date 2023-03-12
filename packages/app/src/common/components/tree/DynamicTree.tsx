@@ -111,8 +111,11 @@ export const DynamicTree: FC<{
     );
   });
 
+  const classes = `${className} ${
+    details.metadata.type.translucent ? " saturate-0 opacity-50" : ""
+  }`;
   return (
-    <div onClick={onClick} className={className} style={style}>
+    <div onClick={onClick} className={classes} style={style}>
       <Island
         className={
           variant === "sm"

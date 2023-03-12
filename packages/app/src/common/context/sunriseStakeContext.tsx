@@ -53,7 +53,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     console.log("wallet changed", wallet);
     if (wallet) {
-      SunriseClientWrapper.init(connection, wallet, setDetails)
+      SunriseClientWrapper.init(connection, wallet, setDetails, undefined)
         .then(updateClient)
         .catch(console.error);
     } else {
@@ -65,6 +65,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
           signAllTransactions: async (txes) => txes,
           signTransaction: async (tx) => tx,
         },
+        undefined,
         undefined,
         true
       )

@@ -30,7 +30,7 @@ import { useCarbon } from "../../common/hooks/useCarbon";
 import { tooltips } from "../../common/content/tooltips";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { IoChevronUpOutline, IoChevronDownOutline } from "react-icons/io5";
 
 const StakeDashboard: FC = () => {
@@ -50,6 +50,7 @@ const StakeDashboard: FC = () => {
   >([]);
   const [mode, setMode] = useState<UIMode>("STAKE");
   const { totalCarbon } = useCarbon();
+  const navigate = useNavigate();
 
   // TODO move to details?
   const updateBalances = async (): Promise<void> => {
@@ -60,6 +61,10 @@ const StakeDashboard: FC = () => {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const navigateToHub = (): void => {
+    navigate("/");
   };
 
   const handleError = (error: Error): void => {
@@ -89,6 +94,7 @@ const StakeDashboard: FC = () => {
         });
       })
       .then(updateBalances)
+      .then(navigateToHub)
       .catch(handleError);
   };
 
@@ -108,6 +114,7 @@ const StakeDashboard: FC = () => {
         });
       })
       .then(updateBalances)
+      .then(navigateToHub)
       .catch(handleError);
   };
 

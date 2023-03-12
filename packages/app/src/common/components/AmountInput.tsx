@@ -1,6 +1,6 @@
 import clx from "classnames";
 import { toSol } from "@sunrisestake/client";
-import BN from "bn.js";
+import type BN from "bn.js";
 import React from "react";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 
@@ -9,11 +9,12 @@ import {
   solToLamports,
   toFixedWithPrecision,
   type UIMode,
+  ZERO,
 } from "../utils";
 
 interface AmountInputProps {
   className?: string;
-  token?: string;
+  token?: "SOL" | "gSOL";
   balance: BN | undefined;
   amount: string;
   setAmount: (amountStr: string) => void;
@@ -52,14 +53,24 @@ const AmountInput: React.FC<AmountInputProps> = ({
     updateAmount(newAmount);
   };
 
+  const getMaxBalance = (): BN => {
+    if (balance === undefined) return ZERO;
+
+    if (mode === "STAKE") {
+      // ensure that the user has enough SOL remaining to pay for the transaction fee and rent
+      const maxStakeableBalance = balance.sub(solToLamports("0.005"));
+      return maxStakeableBalance.lt(ZERO) ? ZERO : maxStakeableBalance;
+    }
+
+    return balance;
+  };
+
   const updateAmount = (amountStr: string): void => {
     const parsedValue = solToLamports(amountStr);
-    const min = solToLamports(0);
-    const max = balance ?? new BN(0);
+    const min = ZERO;
+    const max = getMaxBalance();
 
     console.log("parsedValue ", parsedValue.toString());
-    console.log("minValue ", min.toString());
-    console.log("maxValue ", max.toString());
 
     setAmount(amountStr);
     console.log(`Min: ${min.toNumber()}`);
@@ -122,7 +133,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
               )}
               type="number"
               min="0"
-              max={balance ? toFixedWithPrecision(toSol(balance)) : "0"}
+              max={balance ? toFixedWithPrecision(toSol(getMaxBalance())) : "0"}
               placeholder="0.00"
               value={amount}
               onChange={handleChange}
@@ -149,7 +160,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
               className="text-green font-semibold bg-green border border-green bg-opacity-20 hover:bg-opacity-50 hover:cursor-pointer m-auto py-2 px-3 rounded-md"
               onClick={() => {
                 if (balance) {
-                  updateAmount(toFixedWithPrecision(toSol(balance)).toString());
+                  updateAmount(toSol(getMaxBalance()).toString());
                 }
               }}
             >

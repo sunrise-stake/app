@@ -47,17 +47,17 @@ const charityApps: Array<Charity | PlaceholderCharity> = [
 ];
 const partnerApps = [
   {
-    name: "Demo Partner",
+    name: "Demo Partner 1",
     url: "https://example.test",
     imageUrl: "partners/partner0.png",
   },
   {
-    name: "Demo Partner",
+    name: "Demo Partner 2",
     url: "https://example.test",
     imageUrl: "partners/partner1.png",
   },
   {
-    name: "Demo Partner",
+    name: "Demo Partner 3",
     url: "https://example.test",
     imageUrl: "partners/partner2.png",
   },
@@ -115,9 +115,7 @@ const _GrowApp: ForwardRefRenderFunction<
         <DynamicTree
           details={myTree}
           variant="sm"
-          className={`-mt-10 -mb-14${
-            myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
-          }`}
+          className={`-mt-10 -mb-14`}
         />
       )}
       <div className="">

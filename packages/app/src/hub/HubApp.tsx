@@ -35,7 +35,6 @@ const _HubApp: ForwardRefRenderFunction<
   const [stakeButtonMessage, updateStakeButtonMessage] = useState("My Stake");
 
   const { myTree } = useForest();
-  console.log("Hub page tree", myTree);
   const { totalCarbon } = useCarbon();
 
   // Show intro once carbon data are ready, hide once wallet connected
@@ -112,9 +111,7 @@ const _HubApp: ForwardRefRenderFunction<
           {myTree && (
             <DynamicTree
               details={myTree}
-              className={`FloatingTree mb-8${
-                myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
-              }`}
+              className={`FloatingTree mb-8`}
               onClick={() => {
                 updateShowHubNav(!showHubNav);
               }}

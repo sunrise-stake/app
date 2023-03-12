@@ -11,8 +11,8 @@ import { getAccountMints, getAccountTransfers } from "./db";
 import {
   earliest,
   filterFirstTransfersForSenderAndRecipient,
+  getGsolBalance,
   getTotals,
-  memoisedGetGsolBalance,
   prune,
 } from "./util";
 
@@ -92,7 +92,7 @@ export class ForestService {
   ): Promise<TreeNode> {
     console.log("getting tree", address.toBase58(), depth, parent);
     const [currentBalance, mints, transfers] = await Promise.all([
-      memoisedGetGsolBalance(address, this.connection),
+      getGsolBalance(address, this.connection),
       getAccountMints(address),
       getAccountTransfers(address),
     ]);
@@ -141,12 +141,25 @@ export class ForestService {
     }
   }
 
-  // Get the forest for an address.
+  /**
+   * Get the forest for a given wallet.
+   *
+   * @param address The wallet for the main tree in the forest
+   * @param depth The amount of neighbours to follow
+   * @param parent The parent for this root tree in a wider forest if any
+   * @param reloadTree (Default false) If true, clear the cache for the root tree only before loading
+   */
   public async getForest(
     address: PublicKey,
     depth: number = MAX_FOREST_DEPTH,
-    parent?: TreeNode["parent"]
+    parent?: TreeNode["parent"],
+    reloadTree: boolean = false
   ): Promise<Forest> {
+    if (reloadTree)
+      this.updateCache({
+        type: "REMOVE",
+        payload: { key: address.toBase58() },
+      });
     const treeNode = await this.getTree(address, depth, parent);
 
     // recursion happens here:
