@@ -149,6 +149,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
                 setIsBusy(true);
                 transferGSol().finally(() => {
                   setIsBusy(false);
+                  props.ok();
                 });
               }}
               disabled={isBusy || !isValid}
