@@ -13,7 +13,7 @@ const useCarbon = (): { totalCarbon: number | undefined } => {
 
   useEffect(() => {
     void (async () => {
-      if (!details) return;
+      if (!details || !yieldControllerState) return;
       // TODO extract to some library
       // Total carbon is the carbon value of
       // 1. the extractable yield
