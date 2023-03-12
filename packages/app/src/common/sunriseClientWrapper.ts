@@ -18,39 +18,53 @@ const stage =
   WalletAdapterNetwork.Devnet;
 
 export class SunriseClientWrapper {
-  public debouncedUpdate = debounce(this.triggerUpdate.bind(this), 1000);
   constructor(
     private readonly client: SunriseStakeClient,
-    private readonly detailsListener: ((details: Details) => void) | undefined,
+    private readonly detailsListener:
+      | ((details: Details, accountChanged?: PublicKey) => void)
+      | undefined,
+
+    private readonly accountListener:
+      | ((accountChanged?: PublicKey) => void)
+      | undefined,
+
     readonly readonlyWallet: boolean
   ) {
     const accountsToListenTo = [
       this.client.provider.publicKey,
       this.client.stakerGSolTokenAccount,
       this.client.config?.gsolMint,
-      // this.client.marinadeState?.lpMint.address, // Remove this as it might get too noisy
       this.client.msolTokenAccount,
     ];
 
-    // TODO too noisy?
     accountsToListenTo.forEach((account) => {
-      if (account != null) {
+      if (account !== undefined) {
         this.client.provider.connection.onAccountChange(account, () => {
-          this.debouncedUpdate();
+          this.debouncedUpdate(account);
         });
       }
     });
   }
 
-  private triggerUpdate(): void {
-    console.log("Updating details");
-    this.client.details().then(this.detailsListener).catch(console.error);
+  public debouncedUpdate = debounce((account?: PublicKey) => {
+    this.triggerUpdate(account);
+  }, 1000);
+
+  private triggerUpdate(changedAccount?: PublicKey): void {
+    this.accountListener?.(changedAccount);
+    this.client
+      .details()
+      .then((details) => {
+        this.detailsListener?.(details, changedAccount);
+      })
+      .catch(console.error);
   }
 
   static async init(
     connection: Connection,
     wallet: AnchorWallet,
-    listener?: (details: Details) => void,
+    detailsListener?: (details: Details, changedAccount?: PublicKey) => void,
+    accountListener?: (changedAccount?: PublicKey) => void,
     readonlyWallet = false
   ): Promise<SunriseClientWrapper> {
     const provider = new AnchorProvider(
@@ -62,7 +76,12 @@ export class SunriseClientWrapper {
       verbose: Boolean(process.env.REACT_APP_VERBOSE),
     });
 
-    return new SunriseClientWrapper(client, listener, readonlyWallet);
+    return new SunriseClientWrapper(
+      client,
+      detailsListener,
+      accountListener,
+      readonlyWallet
+    );
   }
 
   private readonly triggerUpdateAndReturn = <T>(result: T): T => {

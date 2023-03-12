@@ -19,16 +19,21 @@ import { type PublicKey } from "@solana/web3.js";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
-}) => (
-  <DynamicTree
-    details={details}
-    style={{
-      filter: `blur(${details.metadata.layer * 2}px) grayscale(${
-        details.metadata.layer * 20
-      }%)`,
-    }}
-  />
-);
+}) => {
+  const grayscale = details.metadata.type.translucent
+    ? 100
+    : details.metadata.layer * 20;
+  return (
+    <DynamicTree
+      details={details}
+      style={{
+        filter: `blur(${
+          details.metadata.layer * 2
+        }px) grayscale(${grayscale}%)`,
+      }}
+    />
+  );
+};
 
 const PerspectiveComponent: FC<{
   details: TreeComponent;

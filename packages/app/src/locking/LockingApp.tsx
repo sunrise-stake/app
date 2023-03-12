@@ -156,16 +156,14 @@ const _LockingApp: ForwardRefRenderFunction<
         </Link>
       </div>
       {myTree && details?.lockDetails === undefined && (
-        <DynamicTree
-          details={myTree}
-          variant="sm"
-          className={`${
-            myTree.metadata.type.translucent ? " saturate-0 opacity-50" : ""
-          }`}
-        />
+        <DynamicTree details={myTree} variant="sm" />
       )}
       <div className="mb-3">
-        <h1 className="font-bold text-green-light text-3xl">Your Impact NFT</h1>
+        <h1 className="font-bold text-green-light text-3xl">
+          {details?.impactNFTDetails
+            ? "Your Impact NFT"
+            : "Lock gSOL to receive an Impact NFT"}
+        </h1>
       </div>
 
       {details?.impactNFTDetails && (

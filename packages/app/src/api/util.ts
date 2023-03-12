@@ -88,7 +88,7 @@ export const getTotals = (
 // TODO move this to the client and pass in a client instead of a connection
 // also, create a service that listens to accounts and updates the state, rather than
 // retrieving the state on every request
-const getGsolBalance = async (
+export const getGsolBalance = async (
   address: PublicKey,
   connection: Connection
 ): Promise<number> => {
