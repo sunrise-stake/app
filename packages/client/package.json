@@ -3,10 +3,17 @@
   "version": "0.1.7",
   "description": "Sunrise Stake Client",
   "main": "dist/index.js",
-  "module": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "rimraf dist; tsc",
+    "build": "rimraf dist; tsup",
     "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx src"
   },
   "files": [
@@ -14,14 +21,16 @@
   ],
   "dependencies": {
     "@coral-xyz/anchor": "^0.26.0",
+    "@metaplex-foundation/js": "^0.18.3",
     "@project-serum/borsh": "^0.2.5",
     "@solana/spl-token": "^0.3.7",
     "@solana/web3.js": "^1.73.2",
-    "@sunrisestake/impact-nft-client": "^0.0.1-alpha.13",
+    "@sunrisestake/impact-nft-client": "^0.0.1-alpha.19",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
     "bn.js": "^5.2.1"
   },
   "devDependencies": {
-    "rimraf": "^4.1.2"
+    "rimraf": "^4.1.2",
+    "tsup": "^6.6.3"
   }
 }

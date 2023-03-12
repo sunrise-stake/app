@@ -366,7 +366,7 @@ describe("sunrise-stake", () => {
       unstakeLamportsExceedLPBalance,
       details
     );
-    const totalFees = liquidUnstakeFee.addn(4 * NETWORK_FEE);
+    const totalFees = liquidUnstakeFee.addn(2 * NETWORK_FEE);
 
     const stakerPreSolBalance = await getBalance(client);
     const gsolBalance = await client.provider.connection.getTokenAccountBalance(
@@ -396,7 +396,12 @@ describe("sunrise-stake", () => {
     // use a tolerance here as the exact value depends on network fees
     // which, for the first few slots on the test validator, are
     // variable, as well as floating point precision
-    await expectStakerSolBalance(client, expectedPostUnstakeBalance, 100);
+    // Set the tolerance quite high here to compensate for fees for additional transfers
+    await expectStakerSolBalance(
+      client,
+      expectedPostUnstakeBalance,
+      NETWORK_FEE * 2
+    );
   });
 
   it("registers zero extractable yield while a rebalance is in-flight", async () => {
