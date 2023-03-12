@@ -17,7 +17,7 @@ const walletIsConnected = (
   wallet: SparseWalletContextAdapter
 ): wallet is ConnectedWallet => wallet.connected && wallet.publicKey != null;
 
-type UIMode = "STAKE" | "UNSTAKE" | "LOCK";
+type UIMode = "STAKE" | "UNSTAKE" | "LOCK" | "TRANSFER";
 
 const solToLamports = (sol: number | string): BN => {
   // handle very big numbers but also integers.

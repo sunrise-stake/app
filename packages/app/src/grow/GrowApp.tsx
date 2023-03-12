@@ -124,7 +124,7 @@ const _GrowApp: ForwardRefRenderFunction<
         </h1>
       </div>
       <h2 className="flex font-bold text-xl items-center gap-4 mb-4">
-        Use gSOL with our partners...
+        Use gSOL with our partners.
       </h2>
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
         <div className="flex overflow-x-scroll gap-4 p-4">
@@ -141,7 +141,7 @@ const _GrowApp: ForwardRefRenderFunction<
         </div>
       </div>
       <h2 className="flex font-bold text-xl items-center gap-4 mt-8 mb-4">
-        Donate gSOL...
+        Donate gSOL.
       </h2>
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
         <div className="flex overflow-x-scroll gap-4 p-4">

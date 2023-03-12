@@ -102,7 +102,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   }, [recipient, amount, senderPubkey, details, connection, sendTransaction]);
 
   return (
-    <BaseModal {...props}>
+    <BaseModal {...props} showActions={false}>
       <div
         className={clx(
           "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md",
@@ -110,22 +110,22 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
         )}
       >
         <div className="flex flex-col">
-          {recipientFromProps && (
-            <div className="font-semibold text-xl mb-2">
-              To{" "}
+          <div className="font-semibold text-xl mb-2">
+            To{" "}
+            {recipientFromProps && (
               <span className="font-normal text-lg text-green">
                 {recipient?.name ??
                   (recipient?.address && toShortBase58(recipient.address))}
               </span>
-            </div>
-          )}
+            )}
+          </div>
           {!recipientFromProps && (
             <input
               className="mb-4 rounded-md text-sm xl:text-lg py-3 px-4 placeholder:text-sm"
               onChange={(e) => {
                 updateRecipientFromForm(e.target.value);
               }}
-              value={recipient?.address.toBase58() ?? ""}
+              defaultValue={recipient?.address?.toBase58() ?? ""}
               placeholder="Address"
             />
           )}
@@ -135,10 +135,11 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               className="basis-3/4"
               token="gSOL"
               balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
+              showBalance={false}
               amount={amount}
               setAmount={setAmount}
               setValid={setIsValid}
-              mode="UNSTAKE"
+              mode="TRANSFER"
               variant="small"
             />
 
@@ -148,6 +149,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
                 setIsBusy(true);
                 transferGSol().finally(() => {
                   setIsBusy(false);
+                  props.ok();
                 });
               }}
               disabled={isBusy || !isValid}

@@ -26,7 +26,7 @@ import {
   notifyTransaction,
   notifyTweet,
 } from "../../common/components/notifications";
-import { useCarbon } from "../../common/hooks/useCarbon";
+import { useCarbon } from "../../common/hooks";
 import { tooltips } from "../../common/content/tooltips";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
