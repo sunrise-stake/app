@@ -100,7 +100,7 @@ export * from "./types/Solblaze";
 // export all constants
 export * from "./constants";
 
-export { toSol, findImpactNFTMintAuthority } from "./util";
+export { toSol, findImpactNFTMintAuthority, ZERO_BALANCE } from "./util";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -1129,7 +1129,7 @@ export class SunriseStakeClient {
       mint: impactNFT.mint,
       tokenAccount: impactNFT.tokenAccount,
     };
-    // console.log("nftSummary", nftSummary);
+    console.log("nftSummary", nftSummary);
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
       ? nftSummary
       : undefined;

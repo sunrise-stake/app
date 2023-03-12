@@ -8,8 +8,8 @@ module.exports = function (config) {
       rules: [
         ...config.module.rules,
         {
-          test: /\.(m?js|ts)$/,
-          enforce: 'pre',
+          test: /\.([cm]?js|ts)$/,
+          // enforce: 'pre',
           use: ['source-map-loader'],
           resolve: {
             fullySpecified: false,

@@ -6,7 +6,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { ZERO_BALANCE } from "@sunrisestake/client/dist/util";
+import { ZERO_BALANCE } from "@sunrisestake/client";
 
 export const filterFirstTransfersForSenderAndRecipient = (
   transfers: Transfer[]
