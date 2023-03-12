@@ -39,7 +39,6 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
     (reload = false) => {
       void (async () => {
         if (service && wallet.publicKey) {
-          console.log("loading tree", wallet.publicKey.toBase58());
           const forest = await service.getForest(
             wallet.publicKey,
             depth,

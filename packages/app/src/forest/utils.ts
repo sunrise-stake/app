@@ -52,7 +52,6 @@ interface TreeType {
 
 export interface TreeComponent {
   address: PublicKey;
-  imageUri: string;
   translate: Translation;
   metadata: {
     type: TreeType;
@@ -139,12 +138,6 @@ const calculateTreeType = (tree: TreeNode): TreeType => {
   return { instance, species, level, translucent };
 };
 
-const treeImageUri = (treeType: TreeType): string => {
-  console.log(treeType);
-  return `https://api.sunrisestake.com/assets/tree/Tree0000.png`;
-  // return `https://api.sunrisestake.com/assets/tree/Tree0${treeType.level}0${treeType.species}.png`;
-};
-
 const treeNodeToComponent = (
   tree: TreeNode,
   layer: number,
@@ -153,7 +146,6 @@ const treeNodeToComponent = (
 ): TreeComponent => ({
   address: tree.address,
   translate: calculateTranslation(layer, totalInLayer, indexInLayer),
-  imageUri: treeImageUri(calculateTreeType(tree)),
   metadata: {
     type: calculateTreeType(tree),
     node: tree,
