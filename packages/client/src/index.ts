@@ -857,9 +857,9 @@ export class SunriseStakeClient {
   ): WithdrawalFees {
     // Calculate how much can be withdrawn from the lp (without fee)
     const lpSolShare = details.lpDetails.lpSolShare;
-    const preferredMinLiqPoolValue = new BN(
-      details.balances.gsolSupply.amount
-    ).muln(DEFAULT_LP_MIN_PROPORTION).divn(100);
+    const preferredMinLiqPoolValue = new BN(details.balances.gsolSupply.amount)
+      .muln(DEFAULT_LP_MIN_PROPORTION)
+      .divn(100);
     const postUnstakeLpSolValue = new BN(lpSolShare).sub(withdrawalLamports);
 
     // Calculate how much will be withdrawn through liquid unstaking (with fee)
@@ -878,13 +878,19 @@ export class SunriseStakeClient {
     this.log("lp sol share: ", lpSolShare.toString());
     this.log("preferred min lp value: ", preferredMinLiqPoolValue.toString());
     this.log("post unstake lp sol value: ", postUnstakeLpSolValue.toString());
-    this.log("amount being liquid unstaked: ", amountBeingLiquidUnstaked.toString());
+    this.log(
+      "amount being liquid unstaked: ",
+      amountBeingLiquidUnstaked.toString()
+    );
     this.log("amount to order unstake: ", amountToOrderUnstake.toString());
     this.log("rent for order unstake: ", rentForOrderUnstakeTicket.toString());
 
     const ticketFee = rentForOrderUnstakeTicket;
 
-    let totalFee = rentForOrderUnstakeTicket > 0 ? new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE) : ZERO;
+    let totalFee =
+      rentForOrderUnstakeTicket > 0
+        ? new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE)
+        : ZERO;
 
     if (amountBeingLiquidUnstaked.lte(ZERO)) {
       return {

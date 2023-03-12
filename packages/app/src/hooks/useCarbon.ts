@@ -5,13 +5,13 @@ import { useSunriseStake } from "../context/sunriseStakeContext";
 import { useYieldController } from "./useYieldController";
 
 const useCarbon = (): { totalCarbon: number | undefined } => {
-  const { details, client } = useSunriseStake();
+  const { details } = useSunriseStake();
   const yieldControllerState = useYieldController();
   const [totalCarbon, setTotalCarbon] = useState<number>();
 
   useEffect(() => {
     void (async () => {
-      if (details == null || client == null) return;
+      if (details == null || yieldControllerState == null) return;
       // TODO extract to some library
       // Total carbon is the carbon value of
       // 1. the extractable yield
