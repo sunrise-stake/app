@@ -124,12 +124,6 @@ export class ForestService {
     // we cache the promises, not the results, to avoid sending multiple requests
     const cachedPromise = this.getFromCache(address);
     if (cachedPromise !== undefined) {
-      console.log(
-        "using cached tree promise",
-        address.toBase58(),
-        depth,
-        parent
-      );
       return cachedPromise;
     } else {
       const promise = this.loadTree(address, depth, parent);

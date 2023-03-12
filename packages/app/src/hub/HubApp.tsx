@@ -6,6 +6,7 @@ import {
   type ForwardRefRenderFunction,
   forwardRef,
   useRef,
+  useMemo,
 } from "react";
 import {
   IoChevronBackOutline,
@@ -32,10 +33,17 @@ const _HubApp: ForwardRefRenderFunction<
   const [showHubNav, updateShowHubNav] = useState(false);
   const wasHubNavShown = useRef(false);
   const [, updateShowBGImage] = useZenMode();
-  const [stakeButtonMessage, updateStakeButtonMessage] = useState("My Stake");
 
   const { myTree } = useForest();
   const { totalCarbon } = useCarbon();
+  const stakeButtonMessage = useMemo(() => {
+    if (myTree?.metadata.type.translucent === true) {
+      return "Stake to restore your tree";
+    } else if (myTree?.metadata.type.level === 0) {
+      return "Stake to grow your tree";
+    }
+    return "My Stake";
+  }, [myTree]);
 
   // Show intro once carbon data are ready, hide once wallet connected
   useEffect(() => {
@@ -59,14 +67,6 @@ const _HubApp: ForwardRefRenderFunction<
       };
     }
   }, [myTree, introLeft]);
-
-  // Update stake button text depending on tree state
-  useEffect(() => {
-    if (myTree?.metadata.type.translucent === true)
-      updateStakeButtonMessage("Stake to restore your tree");
-    else if (myTree?.metadata.type.level === 0)
-      updateStakeButtonMessage("Stake to grow your tree");
-  }, [myTree]);
 
   useEffect(() => {
     if (showHubNav) wasHubNavShown.current = true;
