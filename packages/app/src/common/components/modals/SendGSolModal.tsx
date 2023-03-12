@@ -5,7 +5,7 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import clx from "classnames";
 import { AmountInput } from "../AmountInput";
 import BN from "bn.js";
-import { handleError, solToLamports, ZERO } from "../../utils";
+import { handleError, solToLamports, toShortBase58, ZERO } from "../../utils";
 import { Button } from "../Button";
 import { Spinner } from "../Spinner";
 import { GiPresent } from "react-icons/gi";
@@ -110,20 +110,25 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
         )}
       >
         <div className="flex flex-col">
-          <div className="font-semibold text-xl mb-2">
-            To{" "}
-            <span className="font-normal text-lg text-green">
-              {recipient?.name ?? recipient?.address.toBase58()}
-            </span>
-          </div>
-          <input
-            className="mb-4 rounded-md text-sm xl:text-lg py-3 px-4 placeholder:text-sm"
-            onChange={(e) => {
-              updateRecipientFromForm(e.target.value);
-            }}
-            value={recipient?.address.toBase58() ?? ""}
-            placeholder="Address"
-          />
+          {recipientFromProps && (
+            <div className="font-semibold text-xl mb-2">
+              To{" "}
+              <span className="font-normal text-lg text-green">
+                {recipient?.name ??
+                  (recipient?.address && toShortBase58(recipient.address))}
+              </span>
+            </div>
+          )}
+          {!recipientFromProps && (
+            <input
+              className="mb-4 rounded-md text-sm xl:text-lg py-3 px-4 placeholder:text-sm"
+              onChange={(e) => {
+                updateRecipientFromForm(e.target.value);
+              }}
+              value={recipient?.address.toBase58() ?? ""}
+              placeholder="Address"
+            />
+          )}
           <div className="font-semibold text-xl mb-2">Send gSOL</div>
           <div className="flex items-center gap-4">
             <AmountInput

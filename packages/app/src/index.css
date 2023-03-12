@@ -10,6 +10,9 @@ input[type=number]::-webkit-outer-spin-button {
 @layer components {
   .BGImage {
     background: bottom center no-repeat fixed url("../public/background.png");
+    filter: opacity(40%);
+    /*background: rgb(0,36,7);*/
+    /*background: linear-gradient(0deg, rgba(0,36,7,0.4220281862745098) 0%, rgba(9,121,53,0.7357536764705883) 8%, rgba(255,255,255,0) 50%);*/
   }
 
   .AppGrid {

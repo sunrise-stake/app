@@ -219,12 +219,9 @@ const _LockingApp: ForwardRefRenderFunction<
           </Panel>
         </>
       ) : (
-        <div>
+        <>
           <LockForm lock={lock} />
-          <div className="mt-24">
-            Lock your gSOL to obtain a Level 1 Impact NFT
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
