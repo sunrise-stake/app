@@ -113,10 +113,15 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
           <div className="font-semibold text-xl mb-2">
             To{" "}
             {recipientFromProps && (
-              <span className="font-normal text-lg text-green">
+              <a
+                className="font-normal text-lg text-green"
+                href={recipient?.website}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {recipient?.name ??
                   (recipient?.address && toShortBase58(recipient.address))}
-              </span>
+              </a>
             )}
           </div>
           {!recipientFromProps && (

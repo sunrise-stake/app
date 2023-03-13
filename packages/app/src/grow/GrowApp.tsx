@@ -35,7 +35,7 @@ const charityApps: Array<Charity | PlaceholderCharity> = [
     name: "Diamante Bridge Collective",
     imageUrl: "partners/DBCLogo.png",
     address: new PublicKey("HPiGWWLmV8R1UET84Bf1BnsPtRYcQessRdms4oFxe6sW"),
-    websiteAddress: "http://diamantebridge.org/",
+    website: "http://diamantebridge.org/",
   },
   {
     name: "Charity 1",
