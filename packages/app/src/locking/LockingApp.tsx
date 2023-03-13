@@ -5,6 +5,7 @@ import React, {
   forwardRef,
   type ForwardRefRenderFunction,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -17,11 +18,26 @@ import {
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
-import { solToLamports, toFixedWithPrecision } from "../common/utils";
+import { solToLamports, toFixedWithPrecision, ZERO } from "../common/utils";
 import { ImpactNFT } from "./ImpactNFT";
 import { IoChevronUpOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
+
+const canBeUpdated = (details: Details | undefined): boolean => {
+  if (!details?.lockDetails) return false;
+  return (
+    details.lockDetails.updatedToEpoch.toNumber() < details.currentEpoch.epoch
+  );
+};
+
+// one full epoch has passed since the lock was created
+const canBeUnlocked = (details: Details | undefined): boolean => {
+  if (!details?.lockDetails) return false;
+  return (
+    details.lockDetails.startEpoch.toNumber() < details.currentEpoch.epoch - 1
+  );
+};
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -53,23 +69,8 @@ const _LockingApp: ForwardRefRenderFunction<
 
   const [isBusyUnlock, setIsBusyUnlock] = useState(false);
   const [isBusyUpdate, setIsBusyUpdate] = useState(false);
-  const [needsUpdate, setNeedsUpdate] = useState(() => {
-    if (!details?.lockDetails) return false;
-    return (
-      details.lockDetails.updatedToEpoch.toNumber() < details.currentEpoch.epoch
-    );
-  });
-
-  useEffect(() => {
-    if (!details?.lockDetails) {
-      setNeedsUpdate(false);
-    } else {
-      setNeedsUpdate(
-        details.lockDetails.updatedToEpoch.toNumber() <
-          details.currentEpoch.epoch
-      );
-    }
-  }, [details]);
+  const needsUpdate = useMemo(() => canBeUpdated(details), [details]);
+  const unlockAllowed = useMemo(() => canBeUnlocked(details), [details]);
 
   const handleError = (error: Error): void => {
     notifyTransaction({
@@ -158,35 +159,53 @@ const _LockingApp: ForwardRefRenderFunction<
       {myTree && details?.lockDetails === undefined && (
         <DynamicTree details={myTree} variant="sm" />
       )}
-      <div className="mb-3">
-        <h1 className="font-bold text-green-light text-3xl">
-          {details?.impactNFTDetails
-            ? "Your Impact NFT"
-            : "Lock gSOL to receive an Impact NFT"}
-        </h1>
-      </div>
-
+      {details?.impactNFTDetails === undefined && (
+        <div className="mb-3">
+          <h1 className="font-bold text-green-light text-3xl">
+            Lock gSOL to receive an Impact NFT
+          </h1>
+        </div>
+      )}
       {details?.impactNFTDetails && (
-        <ImpactNFT details={details.impactNFTDetails} />
+        <div className="max-w-sm rounded shadow-lg">
+          <ImpactNFT details={details.impactNFTDetails} />
+          <div className="px-6 py-4">
+            <div className="font-bold text-xl mb-2">Your Impact NFT</div>
+            <p className="text-gray-700 text-base">
+              Your Impact NFT is proof of your stake. It grows as your stake
+              matures. Return regularly to upgrade your NFT to the next level.
+            </p>
+          </div>
+          <div className="px-6 pt-4 pb-2">
+            <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+              Locked -{" "}
+              {toFixedWithPrecision(
+                toSol(details.lockDetails?.amountLocked ?? ZERO)
+              )}{" "}
+              gSol
+            </span>
+            <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+              Yield accrued by locked stake -{" "}
+              {toFixedWithPrecision(toSol(details.lockDetails?.yield ?? ZERO))}{" "}
+              gSol
+            </span>
+            {/* <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"> */}
+            {/*  Next level at -{" "} */}
+            {/*  TODO */}
+            {/*  gSol */}
+            {/* </span> */}
+          </div>
+        </div>
       )}
 
       {details?.lockDetails ? (
         <>
-          <h2 className="font-bold text-xl items-center gap-4 mb-4">
-            <div>
-              Locked -{" "}
-              {toFixedWithPrecision(toSol(details.lockDetails?.amountLocked))}{" "}
-              gSol
-            </div>
-            <div>Your Impact NFT is proof of your stake.</div>
-            <div>Your NFT grows as your stake matures.</div>
-            <div>Return regularly to upgrade your NFT to the next level.</div>
-          </h2>
           <Panel className="flex flex-row mb-9 p-3 sm:p-4 rounded-lg">
             <Button
               color="primary"
               className="mr-4"
               disabled={!needsUpdate}
+              title="Upgrade your NFT to the next level after it has accrued enough yield"
               onClick={() => {
                 setIsBusyUpdate(true);
                 updateLockAccount().finally(() => {
@@ -202,7 +221,8 @@ const _LockingApp: ForwardRefRenderFunction<
             </Button>
             <Button
               color="secondary"
-              disabled={isBusyUnlock}
+              disabled={isBusyUnlock || !unlockAllowed}
+              title="Unlocking is allowed after one full epoch"
               onClick={() => {
                 setIsBusyUnlock(true);
                 unlock().finally(() => {
