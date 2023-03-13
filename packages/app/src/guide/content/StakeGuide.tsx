@@ -15,11 +15,11 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/stake/2.png",
     children: (
-      <>
+      <div className="py-8">
         Sunrise Stake is built upon trusted Stake Pool partners such as Marinade
         and SolBlaze. To see what happens to your SOL once you stake, visit the
         docs.
-      </>
+      </div>
     ),
   },
 ];

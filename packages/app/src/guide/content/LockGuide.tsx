@@ -6,10 +6,10 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/lock/1.png",
     children: (
-      <>
+      <div className="py-8">
         Here you can lock your gSOL into a non-custodial locking contract in
         order to earn an Impact NFT.
-      </>
+      </div>
     ),
   },
   {
@@ -24,10 +24,10 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/lock/3.png",
     children: (
-      <>
+      <div className="py-20">
         Locking gSOL is purely optional. Your stake is offsetting carbon even if
         not locked.
-      </>
+      </div>
     ),
   },
   {
@@ -44,11 +44,11 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/lock/5.png",
     children: (
-      <>
+      <div className="py-8">
         Locked gSOL will not appear in your wallet. However, it is still fully
         under your control. To unlock after the initial 1 epoch period, just
         visit this page and click Unlock
-      </>
+      </div>
     ),
   },
   {
@@ -64,10 +64,10 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/lock/7.png",
     children: (
-      <>
+      <div className="py-12">
         Return to this page after some time and click Upgrade to see if you are
         eligible for the next level.
-      </>
+      </div>
     ),
   },
 ];

@@ -6,10 +6,10 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/connect/1.png",
     children: (
-      <>
+      <div className="py-10">
         Welcome to Sunrise Stake! You are a few clicks away from offsetting
         carbon passively by staking SOL tokens.
-      </>
+      </div>
     ),
   },
   {
@@ -39,7 +39,9 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/connect/5.png",
     children: (
-      <>Connect your wallet to start the journey of climate regeneration...</>
+      <div className="py-16">
+        Connect your wallet to start the journey of climate regeneration...
+      </div>
     ),
   },
 ];

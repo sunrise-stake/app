@@ -15,10 +15,10 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/grow/2.png",
     children: (
-      <>
+      <div className="py-16">
         The longer your SOL remains staked, the more positive climate impact it
         has.
-      </>
+      </div>
     ),
   },
   {
@@ -43,10 +43,10 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/grow/5.png",
     children: (
-      <>
+      <div className="py-16">
         You can also gift gSOL to friends and family, to add them to your
         forest.
-      </>
+      </div>
     ),
   },
   {

@@ -16,7 +16,9 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/forest/2.png",
     children: (
-      <>Visit the `grow` page to find out how to add trees to your forest.</>
+      <div className="py-20">
+        Visit the `grow` page to find out how to add trees to your forest.
+      </div>
     ),
   },
   {
