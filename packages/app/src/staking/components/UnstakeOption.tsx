@@ -71,13 +71,16 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
           <div className="relative">
             <Listbox.Button
               className={({ open }) =>
-                clx("w-42 bg-outset py-3 pl-3 pr-10 text-left rounded-", {
-                  "rounded-t-md": open,
-                  "rounded-md": !open,
-                })
+                clx(
+                  "w-42 py-3 pl-3 pr-10 border border-green rounded bg-green/20 text-left",
+                  {
+                    "rounded-t-md": open,
+                    "rounded-md": !open,
+                  }
+                )
               }
             >
-              <span className="text-white ml-3 font-bold">
+              <span className="ml-3 font-bold">
                 {delayedWithdraw
                   ? WithdrawOption.Delayed
                   : WithdrawOption.Immediate}
@@ -85,7 +88,7 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
 
               <span className="absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
                 <FiChevronDown
-                  className="h-5 w-5 text-green-bright"
+                  className="h-5 w-5 text-green"
                   aria-hidden="true"
                 />
               </span>
@@ -98,7 +101,7 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <Listbox.Options className="absolute max-h-56 w-full overflow-auto rounded-b bg-outset py-1 text-white border-t border-green-bright  ">
+              <Listbox.Options className="absolute max-h-56 w-full overflow-auto rounded-b py-1 bg-green/20">
                 {delayedWithdraw ? (
                   <Listbox.Option
                     className={"relative cursor-pointer py-2 pl-3 pr-9"}
