@@ -12,7 +12,7 @@ const entries: GuideEntryProps[] = [
   {
     image: "guide/hub/2.png",
     children: (
-      <>Click the stake button to add to your stake and receive gSOL tokens.</>
+      <>Click the Stake button to add to your stake and receive gSOL tokens.</>
     ),
   },
   {

@@ -77,6 +77,20 @@ const tooltips = {
       and used to purchase and burn carbon tokens.
     </>
   ),
+  lockYield: (
+    <>
+      The amount of yield accrued by sunrise that is attributable to your locked
+      stake. This value stays with you after you unlock, and will increase again
+      when you relock.
+    </>
+  ),
+  lockCarbon: (
+    <>
+      The amount of Carbon Dioxide or equivalent (tCO₂E) that your locked yield
+      is equivalent to. NOTE: This is based on current carbon and SOL prices
+      only, and does not equate to an actual amount of carbon offset.
+    </>
+  ),
 };
 
 export { tooltips };

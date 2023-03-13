@@ -136,7 +136,7 @@ const _GrowApp: ForwardRefRenderFunction<
           </CollectInfoButton>
           {partnerApps.map((app) => (
             <CollectInfoButton imageUrl={app.imageUrl} key={app.name}>
-              <Overlay>Partner App</Overlay>
+              <Overlay>Partner</Overlay>
             </CollectInfoButton>
           ))}
         </div>

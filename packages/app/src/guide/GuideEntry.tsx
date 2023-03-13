@@ -1,4 +1,3 @@
-import { Panel } from "../common/components";
 import React, { type FC } from "react";
 
 export interface GuideEntryProps {
@@ -15,19 +14,19 @@ export const GuideEntry: FC<GuideEntryProps> = ({
   imageLeft = false,
 }) => {
   return (
-    <Panel>
+    <div className="">
       {image !== undefined && (
         <img
           src={image}
-          className={`w-1/2 ${imageLeft ? "float-left" : "float-right"}`}
+          className={`w-1/6 ${imageLeft ? "float-left" : "float-right"}`}
         />
       )}
       <div className="px-6 py-4">
         {header !== null && (
           <div className="font-bold text-xl mb-2">{header}</div>
         )}
-        <p className="text-gray-700 text-base">{children}</p>
+        <p className="text-gray-700">{children}</p>
       </div>
-    </Panel>
+    </div>
   );
 };

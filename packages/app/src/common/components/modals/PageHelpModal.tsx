@@ -24,7 +24,7 @@ const PageHelpModal: FC<{ show: boolean; onClose?: () => void }> = ({
         open={show}
       >
         <div className="flex items-center h-full">
-          <Dialog.Panel className="container rounded-lg p-4 border border-green text-left bg-white">
+          <Dialog.Panel className="container w-11/12 sm:w-4/5 md:w-3/4 lg:w-1/2 rounded-lg p-4 border border-green text-left bg-white">
             <div className="text-right text-green">
               <button onClick={onClose}>X</button>
             </div>

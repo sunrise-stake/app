@@ -7,8 +7,8 @@ const entries: GuideEntryProps[] = [
     image: "guide/grow/1.png",
     children: (
       <>
-        The longer your SOL remains staked, the more positive climate impact it
-        has.
+        This page shows a number of places where you can use your gSOL. Using
+        gSOL instead of SOL keeps it staked, even when it leaves your wallet.
       </>
     ),
   },
@@ -16,8 +16,8 @@ const entries: GuideEntryProps[] = [
     image: "guide/grow/2.png",
     children: (
       <>
-        This page shows a number of places where you can use your gSOL. Using
-        gSOL instead of SOL keeps it staked, even when it leaves your wallet.
+        The longer your SOL remains staked, the more positive climate impact it
+        has.
       </>
     ),
   },

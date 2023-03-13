@@ -35,7 +35,9 @@ const entries: GuideEntryProps[] = [
     children: (
       <>
         gSOL must be locked for at least one full Solana epoch (2-3 days). This
-        is counted from the start of the next epoch.
+        is counted from the start of the next epoch. So if you lock one day
+        before the end of the epoch, your stake is locked for one epoch plus one
+        day.
       </>
     ),
   },
@@ -43,8 +45,9 @@ const entries: GuideEntryProps[] = [
     image: "guide/lock/5.png",
     children: (
       <>
-        So if you lock one day before the end of the epoch, your stake is locked
-        for one epoch plus one day.
+        Locked gSOL will not appear in your wallet. However, it is still fully
+        under your control. To unlock after the initial 1 epoch period, just
+        visit this page and click Unlock
       </>
     ),
   },
