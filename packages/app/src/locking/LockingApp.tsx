@@ -2,15 +2,23 @@ import clx from "classnames";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toSol, type Details } from "@sunrisestake/client";
 import React, {
+  type FC,
   forwardRef,
   type ForwardRefRenderFunction,
+  type PropsWithChildren,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-import { Button, LockForm, Panel, Spinner } from "../common/components";
+import {
+  Button,
+  LockForm,
+  Panel,
+  Spinner,
+  TooltipPopover,
+} from "../common/components";
 import {
   NotificationType,
   notifyTransaction,
@@ -18,11 +26,19 @@ import {
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
-import { solToLamports, toFixedWithPrecision, ZERO } from "../common/utils";
+import {
+  solToCarbon,
+  solToLamports,
+  toFixedWithPrecision,
+  ZERO,
+} from "../common/utils";
 import { ImpactNFT } from "./ImpactNFT";
 import { IoChevronUpOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
+import { tooltips } from "../common/content/tooltips";
+import { AppRoute } from "../Routes";
+import { useHelp } from "../common/context/HelpContext";
 
 const canBeUpdated = (details: Details | undefined): boolean => {
   if (!details?.lockDetails) return false;
@@ -39,12 +55,19 @@ const canBeUnlocked = (details: Details | undefined): boolean => {
   );
 };
 
+const LockDetailTag: FC<PropsWithChildren> = ({ children }) => (
+  <span className="inline-flex gap-1 bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+    {children}
+  </span>
+);
+
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
   const navigate = useNavigate();
   const wallet = useWallet();
+  const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
 
@@ -53,8 +76,11 @@ const _LockingApp: ForwardRefRenderFunction<
   }, [wallet.connected]);
 
   useEffect(() => {
+    if (currentHelpRoute !== AppRoute.Lock) return; // we are not on the lock page, so don't update zen mode
     updateZenMode({
       showBGImage: false,
+      showHelpButton: true,
+      showExternalLinks: false,
       showWallet: active,
     });
   }, [active]);
@@ -177,18 +203,31 @@ const _LockingApp: ForwardRefRenderFunction<
             </p>
           </div>
           <div className="px-6 pt-4 pb-2">
-            <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+            <LockDetailTag>
               Locked -{" "}
               {toFixedWithPrecision(
                 toSol(details.lockDetails?.amountLocked ?? ZERO)
               )}{" "}
-              gSol
-            </span>
-            <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-              Yield accrued by locked stake -{" "}
-              {toFixedWithPrecision(toSol(details.lockDetails?.yield ?? ZERO))}{" "}
-              gSol
-            </span>
+              gSOL <TooltipPopover>{tooltips.lockCarbon}</TooltipPopover>
+            </LockDetailTag>
+            <LockDetailTag>
+              Yield accrued -{" "}
+              {toFixedWithPrecision(
+                toSol(details.lockDetails?.yield ?? ZERO),
+                3
+              )}{" "}
+              gSOL
+              <TooltipPopover>{tooltips.lockYield}</TooltipPopover>
+            </LockDetailTag>
+            <LockDetailTag>
+              Equivalent carbon price -{" "}
+              {toFixedWithPrecision(
+                solToCarbon(toSol(details.lockDetails?.yield ?? ZERO)),
+                3
+              )}{" "}
+              tCO₂E
+              <TooltipPopover>{tooltips.lockCarbon}</TooltipPopover>
+            </LockDetailTag>
             {/* <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"> */}
             {/*  Next level at -{" "} */}
             {/*  TODO */}

@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 import { useZenMode } from "../common/context/ZenModeContext";
 import { StakeDashboard } from "./pages/StakeDashboard";
+import { AppRoute } from "../Routes";
+import { useHelp } from "../common/context/HelpContext";
 
 const _StakingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -12,6 +14,7 @@ const _StakingApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const navigate = useNavigate();
   const wallet = useWallet();
+  const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
 
   useEffect(() => {
@@ -19,8 +22,11 @@ const _StakingApp: ForwardRefRenderFunction<
   }, [wallet.connected]);
 
   useEffect(() => {
+    if (currentHelpRoute !== AppRoute.Stake) return; // we are not on the stake page, so don't update zen mode
     updateZenMode({
       showBGImage: false,
+      showHelpButton: true,
+      showExternalLinks: false,
       showWallet: active,
     });
   }, [active]);
