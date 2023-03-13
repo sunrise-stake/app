@@ -57,7 +57,11 @@ const _HubApp: ForwardRefRenderFunction<
   useEffect(() => {
     if (introLeft && myTree) {
       updateShowHub(true);
-      updateShowBGImage({ showBGImage: false, showWallet: false });
+      updateShowBGImage({
+        showBGImage: false,
+        showHelpButton: false,
+        showWallet: false,
+      });
       const tid = setTimeout(() => {
         if (!wasHubNavShown.current) updateShowHubNav(true);
       }, 5000);

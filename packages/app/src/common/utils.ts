@@ -11,6 +11,8 @@ const ZERO = new BN(0);
 
 export const ASSETS = "https://api.sunrisestake.com/assets/tree/lores/";
 
+const noop = (): null => null;
+
 const toBN = (n: number): BN => new BN(`${n}`);
 
 const walletIsConnected = (
@@ -162,4 +164,5 @@ export {
   toShortBase58,
   memoise,
   handleError,
+  noop,
 };

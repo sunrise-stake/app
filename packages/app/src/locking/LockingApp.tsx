@@ -55,6 +55,7 @@ const _LockingApp: ForwardRefRenderFunction<
   useEffect(() => {
     updateZenMode({
       showBGImage: false,
+      showHelpButton: active,
       showWallet: active,
     });
   }, [active]);
