@@ -30,7 +30,7 @@ const UnstakeOption: FC<UnstakeOptionProps> = ({
       setDelayedWithdraw={setDelayedWithdraw}
     />
     {delayedWithdraw || withdrawalFee === 0 ? (
-      <span className="text-green-bright text-bold text-lg">Free</span>
+      <span className="text-green-light text-bold text-lg">Free</span>
     ) : feeLoading ? (
       <Spinner />
     ) : (
