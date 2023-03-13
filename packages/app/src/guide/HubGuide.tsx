@@ -4,16 +4,33 @@ import { type GuideEntryProps } from "./GuideEntry";
 
 const entries: GuideEntryProps[] = [
   {
-    image: "guide/connect/1.png",
-    children: <>Hello world!</>,
+    image: "guide/hub/1.png",
+    children: (
+      <>This is your tree. As your stake matures, it will grow and develop.</>
+    ),
   },
   {
-    image: "guide/connect/2.png",
-    children: <>Hello world!</>,
+    image: "guide/hub/2.png",
+    children: (
+      <>Click the stake button to add to your stake and receive gSOL tokens.</>
+    ),
   },
   {
-    image: "guide/connect/3.png",
-    children: <>Hello world!</>,
+    image: "guide/hub/3.png",
+    children: (
+      <>
+        Visit the Grow page to see how you can use your gSOL and add trees to
+        your forest.
+      </>
+    ),
+  },
+  {
+    image: "guide/hub/4.png",
+    children: <>Visit the Forest page to watch your community grow.</>,
+  },
+  {
+    image: "guide/hub/5.png",
+    children: <>Lock your gSOL to earn an Impact NFT.</>,
   },
 ];
 
