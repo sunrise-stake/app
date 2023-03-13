@@ -37,6 +37,8 @@ import { IoChevronUpOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
 import { tooltips } from "../common/content/tooltips";
+import { AppRoute } from "../Routes";
+import { useHelp } from "../common/context/HelpContext";
 
 const canBeUpdated = (details: Details | undefined): boolean => {
   if (!details?.lockDetails) return false;
@@ -65,6 +67,7 @@ const _LockingApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const navigate = useNavigate();
   const wallet = useWallet();
+  const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
 
@@ -73,9 +76,11 @@ const _LockingApp: ForwardRefRenderFunction<
   }, [wallet.connected]);
 
   useEffect(() => {
+    if (currentHelpRoute !== AppRoute.Lock) return; // we are not on the lock page, so don't update zen mode
     updateZenMode({
       showBGImage: false,
       showHelpButton: true,
+      showExternalLinks: false,
       showWallet: active,
     });
   }, [active]);

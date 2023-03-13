@@ -3,17 +3,11 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useState, type FC, type ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 import { BsQuestionCircle } from "react-icons/bs";
-import {
-  FaBookOpen,
-  FaGithub,
-  FaGlobeAmericas,
-  FaTwitter,
-  FaWallet,
-} from "react-icons/fa";
+import { FaWallet } from "react-icons/fa";
 import { PageHelpModal } from "../components/modals/PageHelpModal";
 
-import { Panel } from "../components/Panel";
 import { useZenMode } from "../context/ZenModeContext";
+import { ExternalLinks } from "../components/ExternalLinks";
 
 const Layout: FC<{ children: ReactNode }> = ({ children }) => {
   const [zenMode] = useZenMode();
@@ -63,8 +57,24 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
             updateShowPageHelp(!showPageHelp);
           }}
         >
-          <BsQuestionCircle size={40} className="text-green-light" />
+          <BsQuestionCircle
+            size={48}
+            className="text-green-light w-4 md:w-12"
+          />
         </button>
+      </Transition>
+      <Transition
+        className="z-10 fixed bottom-0 left-5 mb-4 mr-8"
+        show={zenMode.showExternalLinks}
+        unmount={false}
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        enter="transition-opacity duration-500"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+        leave="transition-opacity duration-500"
+      >
+        <ExternalLinks />
       </Transition>
       <div className="flex flex-col min-h-screen">
         <Toaster />
@@ -74,44 +84,6 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
           </audio> */}
         </header>
         <main className="grow flex">{children}</main>
-        <footer>
-          <div className="hidden container text-center">
-            <Panel className="inline-flex my-4 px-8 py-2 rounded-lg backdrop-blur-sm">
-              <a
-                className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
-                href="https://www.sunrisestake.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <FaGlobeAmericas size={32} title="Website" />
-              </a>
-              <a
-                className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
-                href="https://docs.sunrisestake.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <FaBookOpen size={32} title="Docs" />
-              </a>
-              <a
-                className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
-                href="https://twitter.com/sunrisestake"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <FaTwitter size={32} title="Twitter" />
-              </a>
-              <a
-                className="inline-block text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
-                href="https://github.com/sunrise-stake"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <FaGithub size={32} title="Github" />
-              </a>
-            </Panel>
-          </div>
-        </footer>
       </div>
       <PageHelpModal
         show={showPageHelp}

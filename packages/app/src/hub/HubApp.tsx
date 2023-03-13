@@ -28,7 +28,7 @@ const _HubApp: ForwardRefRenderFunction<
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
   const wallet = useWallet();
-  const { setCurrentHelpRoute } = useHelp();
+  const { setCurrentHelpRoute, currentHelpRoute } = useHelp();
 
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
@@ -36,6 +36,10 @@ const _HubApp: ForwardRefRenderFunction<
   const [showHubNav, updateShowHubNav] = useState(false);
   const wasHubNavShown = useRef(false);
   const [zenMode, updateZenMode] = useZenMode();
+
+  const showWalletButton = useMemo(() => {
+    return wallet.connected && showHubNav;
+  }, [wallet.connected, showHubNav]);
 
   const { myTree } = useForest();
   const { totalCarbon } = useCarbon();
@@ -59,8 +63,9 @@ const _HubApp: ForwardRefRenderFunction<
       // TODO replace with separating the hub and connect routes
       setCurrentHelpRoute(AppRoute.Hub);
       updateZenMode({
-        showHelpButton: true,
+        showHelpButton: false,
         showBGImage: false,
+        showExternalLinks: false,
         showWallet: false,
       });
     }
@@ -85,25 +90,32 @@ const _HubApp: ForwardRefRenderFunction<
     if (showHubNav) wasHubNavShown.current = true;
     updateZenMode({
       ...zenMode,
-      showHelpButton: true,
+      showHelpButton: showHubNav,
+      showExternalLinks: showHubNav,
+      showWallet: showWalletButton,
     });
-  }, [showHubNav]);
+  }, [showHubNav, showWalletButton]);
 
   useEffect(() => {
     setTimeout(() => {
       updateZenMode({
         ...zenMode,
         showHelpButton: true,
+        showExternalLinks: true,
+        showWallet: false,
       });
     }, 3000);
   }, []);
 
   useEffect(() => {
+    if (currentHelpRoute !== AppRoute.Hub) return; // we are not on the hub page, so don't update zen mode
     updateZenMode({
       ...zenMode,
       showHelpButton: true,
+      showExternalLinks: true,
+      showWallet: showWalletButton,
     });
-  }, [active]);
+  }, [active, currentHelpRoute, showWalletButton]);
 
   return (
     <div

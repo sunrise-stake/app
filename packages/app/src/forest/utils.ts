@@ -91,9 +91,6 @@ const calculateTranslation = (
   const z = Math.floor(
     -Math.sin(normalisedAngle + jitterAngle) * RADIUS * layer
   );
-  console.log(
-    `${indexInLayer}: arc ${ARC} - spreadSegment ${spreadSegment} - angle ${angle} (${normalisedAngle}) - x: ${x}, y: ${y}, z: ${z}`
-  );
 
   return { x, y, z };
 };

@@ -19,6 +19,8 @@ import { GiPresent } from "react-icons/gi";
 import { SendGSolModal } from "../common/components/modals/SendGSolModal";
 import { type Charity, type PlaceholderCharity } from "./components/types";
 import { CharityDonateButton } from "./components/CharityDonateButton";
+import { useHelp } from "../common/context/HelpContext";
+import { AppRoute } from "../Routes";
 
 const isRealCharity = (
   charity: Charity | PlaceholderCharity
@@ -80,6 +82,7 @@ const _GrowApp: ForwardRefRenderFunction<
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
   const navigate = useNavigate();
+  const { currentHelpRoute } = useHelp();
   const wallet = useWallet();
   const [, updateZenMode] = useZenMode();
 
@@ -92,9 +95,11 @@ const _GrowApp: ForwardRefRenderFunction<
   }, [wallet.connected]);
 
   useEffect(() => {
+    if (currentHelpRoute !== AppRoute.Grow) return; // we are not on the grow page, so don't update zen mode
     updateZenMode({
       showBGImage: false,
       showHelpButton: true,
+      showExternalLinks: false,
       showWallet: active,
     });
   }, [active]);
