@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, type FC } from "react";
 import { noop } from "../../utils";
-import { GuideSelector } from "../../../guide/GuideSelector";
+import { GuideSelector } from "../../../guide/components/GuideSelector";
 
 const PageHelpModal: FC<{ show: boolean; onClose?: () => void }> = ({
   show = false,
@@ -24,8 +24,8 @@ const PageHelpModal: FC<{ show: boolean; onClose?: () => void }> = ({
         open={show}
       >
         <div className="flex items-center h-full">
-          <Dialog.Panel className="container h-3/4 overflow-y-scroll w-11/12 sm:w-4/5 md:w-3/4 lg:w-1/2 rounded-lg p-4 border border-green text-left bg-white">
-            <div className="text-right text-green">
+          <Dialog.Panel className="relative h-3/4 w-11/12 sm:w-4/5 md:w-3/4 lg:w-1/2 mx-auto overflow-hidden rounded-lg p-2 border border-green text-left bg-white">
+            <div className="absolute top-1 right-4 text-right text-green">
               <button onClick={onClose}>x</button>
             </div>
             <GuideSelector />

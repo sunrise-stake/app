@@ -1,12 +1,12 @@
 import { type FC } from "react";
-import { HubGuide } from "./HubGuide";
-import { ForestGuide } from "./ForestGuide";
-import { GrowGuide } from "./GrowGuide";
-import { LockGuide } from "./LockGuide";
-import { StakeGuide } from "./StakeGuide";
-import { useHelp } from "../common/context/HelpContext";
-import { AppRoute } from "../Routes";
-import { ConnectGuide } from "./ConnectGuide";
+import { HubGuide } from "../content/HubGuide";
+import { ForestGuide } from "../content/ForestGuide";
+import { GrowGuide } from "../content/GrowGuide";
+import { LockGuide } from "../content/LockGuide";
+import { StakeGuide } from "../content/StakeGuide";
+import { useHelp } from "../../common/context/HelpContext";
+import { AppRoute } from "../../Routes";
+import { ConnectGuide } from "../content/ConnectGuide";
 
 export const GuideSelector: FC = () => {
   const { currentHelpRoute } = useHelp();

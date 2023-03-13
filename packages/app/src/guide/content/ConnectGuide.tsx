@@ -1,6 +1,6 @@
 import { type FC } from "react";
-import { BaseGuide } from "./BaseGuide";
-import { type GuideEntryProps } from "./GuideEntry";
+import { BaseGuide } from "../components/BaseGuide";
+import { type GuideEntryProps } from "../components/GuideEntry";
 
 const entries: GuideEntryProps[] = [
   {
