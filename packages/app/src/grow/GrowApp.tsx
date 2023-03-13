@@ -21,6 +21,7 @@ import { type Charity, type PlaceholderCharity } from "./components/types";
 import { CharityDonateButton } from "./components/CharityDonateButton";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
+import { PublicKey } from "@solana/web3.js";
 
 const isRealCharity = (
   charity: Charity | PlaceholderCharity
@@ -30,6 +31,12 @@ const isRealCharity = (
 
 // These will be fetched from some data base
 const charityApps: Array<Charity | PlaceholderCharity> = [
+  {
+    name: "Diamante Bridge Collective",
+    imageUrl: "partners/DBCLogo.png",
+    address: new PublicKey("HPiGWWLmV8R1UET84Bf1BnsPtRYcQessRdms4oFxe6sW"),
+    websiteAddress: "http://diamantebridge.org/",
+  },
   {
     name: "Charity 1",
     imageUrl: "partners/charity0.png",
