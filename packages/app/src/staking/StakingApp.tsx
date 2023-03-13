@@ -1,7 +1,5 @@
-import { useWallet } from "@solana/wallet-adapter-react";
 import clx from "classnames";
 import { type ForwardRefRenderFunction, forwardRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { useZenMode } from "../common/context/ZenModeContext";
 import { StakeDashboard } from "./pages/StakeDashboard";
@@ -12,14 +10,8 @@ const _StakingApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
-  const navigate = useNavigate();
-  const wallet = useWallet();
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
-
-  useEffect(() => {
-    if (!wallet.connected) navigate("/");
-  }, [wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Stake) return; // we are not on the stake page, so don't update zen mode

@@ -1,5 +1,4 @@
 import clx from "classnames";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { toSol, type Details } from "@sunrisestake/client";
 import React, {
   type FC,
@@ -10,7 +9,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import {
   Button,
@@ -65,15 +64,9 @@ const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
-  const navigate = useNavigate();
-  const wallet = useWallet();
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
-
-  useEffect(() => {
-    if (!wallet.connected) navigate("/");
-  }, [wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Lock) return; // we are not on the lock page, so don't update zen mode

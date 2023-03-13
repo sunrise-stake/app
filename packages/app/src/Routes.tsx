@@ -2,6 +2,7 @@ import { EventRouter } from "./common/container/EventRouter";
 import {
   type FC,
   type MutableRefObject,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -11,9 +12,9 @@ import { GrowApp } from "./grow/GrowApp";
 import { HubApp } from "./hub/HubApp";
 import { LockingApp } from "./locking/LockingApp";
 import { StakingApp } from "./staking/StakingApp";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout } from "./common/partials/Layout";
-import { debounce } from "./common/utils";
+import { debounce, safeParsePublicKeyFromUrl } from "./common/utils";
 import { useHelp } from "./common/context/HelpContext";
 
 export enum AppRoute {
@@ -27,6 +28,7 @@ export enum AppRoute {
 
 export const Routes: FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const appRefs = {
     forest: useRef<null | HTMLDivElement>(null),
     grow: useRef<null | HTMLDivElement>(null),
@@ -46,8 +48,23 @@ export const Routes: FC = () => {
   );
 
   useLayoutEffect(() => {
+    const publicKeyFromUrl = safeParsePublicKeyFromUrl();
+    if (publicKeyFromUrl !== null || location.state?.address !== undefined)
+      return;
+    console.log("scrolling to hub", window.location.hash);
     appRefs.hub.current?.scrollIntoView();
   }, [appRefs.hub]);
+
+  useEffect(() => {
+    console.log("location", location);
+    if (location.state?.address !== undefined) return;
+    const publicKeyFromUrl = safeParsePublicKeyFromUrl();
+    console.log("publicKeyFromUrl", publicKeyFromUrl);
+    if (publicKeyFromUrl) {
+      console.log("scrolling to forest", window.location.hash);
+      navigate(AppRoute.Forest, { state: { address: publicKeyFromUrl } });
+    }
+  }, []);
   const { setCurrentHelpRoute } = useHelp();
 
   return (

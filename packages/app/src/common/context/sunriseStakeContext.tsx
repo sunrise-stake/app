@@ -11,6 +11,8 @@ import {
 } from "react";
 
 import { SunriseClientWrapper } from "../sunriseClientWrapper";
+import { safeParsePublicKey } from "../utils";
+import { useLocation } from "react-router-dom";
 
 interface SunriseContextProps {
   client: SunriseClientWrapper | undefined;
@@ -30,6 +32,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [details, setDetails] = useState<Details>();
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
+  const location = useLocation();
 
   const updateClient = async (
     clientToUpdate: SunriseClientWrapper
@@ -52,10 +55,29 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     console.log("wallet changed", wallet);
+    const addressFromUrl = safeParsePublicKey(location.state?.address);
     if (wallet) {
       SunriseClientWrapper.init(connection, wallet, setDetails, undefined)
         .then(updateClient)
         .catch(console.error);
+    } else if (addressFromUrl) {
+      // we have an address in the url, but no wallet
+      // this is a readonly client
+      SunriseClientWrapper.init(
+        connection,
+        {
+          publicKey: addressFromUrl,
+          signAllTransactions: async (txes) => txes,
+          signTransaction: async (tx) => tx,
+        },
+        undefined,
+        undefined,
+        true
+      )
+        .then(updateClient)
+        .catch((e) => {
+          console.error(e);
+        });
     } else {
       // just get the details from the chain - no client available yet
       SunriseClientWrapper.init(
@@ -76,7 +98,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
         .then(initDetails)
         .catch(console.error);
     }
-  }, [wallet?.publicKey]);
+  }, [wallet?.publicKey, location.state?.address]);
 
   return (
     <SunriseContext.Provider value={{ client, details }}>
