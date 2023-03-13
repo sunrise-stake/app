@@ -111,8 +111,8 @@ const _HubApp: ForwardRefRenderFunction<
     if (currentHelpRoute !== AppRoute.Hub) return; // we are not on the hub page, so don't update zen mode
     updateZenMode({
       ...zenMode,
-      showHelpButton: true,
-      showExternalLinks: true,
+      showHelpButton: showHubNav,
+      showExternalLinks: showHubNav,
       showWallet: showWalletButton,
     });
   }, [active, currentHelpRoute, showWalletButton]);
