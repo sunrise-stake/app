@@ -9,7 +9,7 @@ import { type FC } from "react";
 
 export const ExternalLinks: FC = () => {
   return (
-    <Panel className="inline-flex my-4 px-8 py-2 rounded-lg backdrop-blur-sm invisible md:visible">
+    <Panel className="hidden md:inline-flex px-8 py-2 rounded-lg backdrop-blur-sm">
       <a
         className="inline-block mr-4 text-green active:text-green-bright focus:text-green-bright hover:text-green-bright"
         href="https://www.sunrisestake.com/"

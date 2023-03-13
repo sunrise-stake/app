@@ -7,5 +7,5 @@ export interface PlaceholderCharity {
 
 export type Charity = PlaceholderCharity & {
   address: PublicKey;
-  websiteAddress: string;
+  website: string;
 };

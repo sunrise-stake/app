@@ -31,6 +31,12 @@ const isRealCharity = (
 // These will be fetched from some data base
 const charityApps: Array<Charity | PlaceholderCharity> = [
   {
+    name: "Diamante Bridge Collective",
+    imageUrl: "partners/DBCLogo.png",
+    address: new PublicKey("HPiGWWLmV8R1UET84Bf1BnsPtRYcQessRdms4oFxe6sW"),
+    website: "http://diamantebridge.org/",
+  },
+  {
     name: "Charity 1",
     imageUrl: "partners/charity0.png",
   },
@@ -119,11 +125,11 @@ const _GrowApp: ForwardRefRenderFunction<
         />
       )}
       <div className="">
-        <h1 className="font-bold text-green-light text-3xl">
+        <h1 className="mb-4 font-bold text-green-light text-3xl">
           Grow your forest
         </h1>
       </div>
-      <h2 className="flex font-bold text-xl items-center gap-4 mb-4">
+      <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
         Use gSOL with our partners.
       </h2>
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
@@ -140,7 +146,7 @@ const _GrowApp: ForwardRefRenderFunction<
           ))}
         </div>
       </div>
-      <h2 className="flex font-bold text-xl items-center gap-4 mt-8 mb-4">
+      <h2 className="flex font-bold text-xl items-center gap-4 mt-8 mb-4 text-green">
         Donate gSOL.
       </h2>
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
@@ -160,10 +166,10 @@ const _GrowApp: ForwardRefRenderFunction<
         </div>
       </div>
       <div>
-        <h2 className="font-bold text-xl mt-8 mb-4">
-          Send gSOL to add someone to your forest...
+        <h2 className="container font-bold text-xl mt-8 mb-4 text-green text-center">
+          Send gSOL to add someone to your forest.
         </h2>
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-center mb-8">
           <Button
             className="basis-1/4"
             onClick={sendGSolModal.trigger}

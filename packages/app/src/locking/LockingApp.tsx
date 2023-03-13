@@ -180,7 +180,7 @@ const _LockingApp: ForwardRefRenderFunction<
       )}
       {details?.impactNFTDetails === undefined && (
         <div className="mb-3">
-          <h1 className="font-bold text-green-light text-3xl">
+          <h1 className="font-bold text-green-light text-3xl text-center">
             Lock gSOL to receive an Impact NFT
           </h1>
         </div>

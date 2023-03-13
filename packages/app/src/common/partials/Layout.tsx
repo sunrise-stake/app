@@ -27,7 +27,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         leave="transition-transform duration-500"
       />
       <Transition
-        className="z-10 fixed top-0 right-0 mt-4 mr-8"
+        className="z-10 fixed top-4 right-8"
         show={zenMode.showWallet}
         unmount={false}
         enterFrom="opacity-0"
@@ -42,7 +42,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         </WalletMultiButton>
       </Transition>
       <Transition
-        className="z-10 fixed bottom-0 right-0 mb-4 mr-8"
+        className="z-10 fixed bottom-4 right-8"
         show={zenMode.showHelpButton}
         unmount={false}
         enterFrom="opacity-0"
@@ -58,15 +58,14 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
           }}
         >
           <BsQuestionCircle
-            size={48}
+            size={40}
             className="text-green-light w-4 md:w-12"
           />
         </button>
       </Transition>
       <Transition
-        className="z-10 fixed bottom-0 left-5 mb-4 mr-8"
+        className="z-10 fixed bottom-4 left-4"
         show={zenMode.showExternalLinks}
-        unmount={false}
         enterFrom="opacity-0"
         enterTo="opacity-100"
         enter="transition-opacity duration-500"

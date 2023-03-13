@@ -24,7 +24,7 @@ export const GuideEntry: FC<GuideEntryProps> = ({
         {header !== undefined && (
           <div className="text-gray-900 font-bold text-xl">{header}</div>
         )}
-        <p className="text-gray-700 text-base">{children}</p>
+        <div className="text-gray-700 text-base">{children}</div>
       </div>
     </div>
   );
