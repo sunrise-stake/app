@@ -98,7 +98,7 @@ const UnstakeOptionSelector: FC<SelectorProps> = ({
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <Listbox.Options className="absolute max-h-56 w-full overflow-auto rounded-b bg-outset py-1 text-base border-t border-green-bright  ">
+              <Listbox.Options className="absolute max-h-56 w-full overflow-auto rounded-b bg-outset py-1 text-white border-t border-green-bright  ">
                 {delayedWithdraw ? (
                   <Listbox.Option
                     className={"relative cursor-pointer py-2 pl-3 pr-9"}
