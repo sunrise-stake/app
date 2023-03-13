@@ -23,8 +23,8 @@ import { useForest } from "../common/context/forestContext";
 
 const _HubApp: ForwardRefRenderFunction<
   HTMLDivElement,
-  { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }, ref) => {
+  { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
+> = ({ className, active = false, ...rest }, ref) => {
   const wallet = useWallet();
 
   const [showIntro, updateShowIntro] = useState(false);
@@ -32,7 +32,7 @@ const _HubApp: ForwardRefRenderFunction<
   const [showHub, updateShowHub] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
   const wasHubNavShown = useRef(false);
-  const [, updateShowBGImage] = useZenMode();
+  const [zenMode, updateZenMode] = useZenMode();
 
   const { myTree } = useForest();
   const { totalCarbon } = useCarbon();
@@ -50,6 +50,11 @@ const _HubApp: ForwardRefRenderFunction<
     if (!wallet.connected && totalCarbon !== undefined) updateShowIntro(true);
     else if (wallet.connected) {
       updateShowIntro(false);
+      updateZenMode({
+        showHelpButton: true,
+        showBGImage: false,
+        showWallet: false,
+      });
     }
   }, [totalCarbon, wallet.connected]);
 
@@ -57,11 +62,7 @@ const _HubApp: ForwardRefRenderFunction<
   useEffect(() => {
     if (introLeft && myTree) {
       updateShowHub(true);
-      updateShowBGImage({
-        showBGImage: false,
-        showHelpButton: false,
-        showWallet: false,
-      });
+
       const tid = setTimeout(() => {
         if (!wasHubNavShown.current) updateShowHubNav(true);
       }, 5000);
@@ -74,7 +75,27 @@ const _HubApp: ForwardRefRenderFunction<
 
   useEffect(() => {
     if (showHubNav) wasHubNavShown.current = true;
+    updateZenMode({
+      ...zenMode,
+      showHelpButton: true,
+    });
   }, [showHubNav]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      updateZenMode({
+        ...zenMode,
+        showHelpButton: true,
+      });
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    updateZenMode({
+      ...zenMode,
+      showHelpButton: true,
+    });
+  }, [active]);
 
   return (
     <div

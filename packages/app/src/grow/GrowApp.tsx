@@ -94,7 +94,7 @@ const _GrowApp: ForwardRefRenderFunction<
   useEffect(() => {
     updateZenMode({
       showBGImage: false,
-      showHelpButton: active,
+      showHelpButton: true,
       showWallet: active,
     });
   }, [active]);

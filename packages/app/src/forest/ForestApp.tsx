@@ -16,6 +16,7 @@ import { useForest } from "../common/context/forestContext";
 import { ProfileBox } from "../common/components/profile/ProfileBox";
 import { type TreeNode } from "../api/types";
 import { type PublicKey } from "@solana/web3.js";
+import { useZenMode } from "../common/context/ZenModeContext";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -77,8 +78,16 @@ const getIntermediaries = (treeNode: TreeNode): PublicKey[] => {
 
 const _ForestApp: ForwardRefRenderFunction<
   HTMLDivElement,
-  { className?: string } & React.HTMLAttributes<HTMLElement>
-> = ({ className, ...rest }, ref) => {
+  { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
+> = ({ className, active = false, ...rest }, ref) => {
+  const [zenMode, updateZenMode] = useZenMode();
+  useEffect(() => {
+    updateZenMode({
+      ...zenMode,
+      showHelpButton: true,
+    });
+  }, [active]);
+
   const { myTree, neighbours } = useForest();
   // use this to position the entire forest in space
   const [locus, setLocus] = useState({

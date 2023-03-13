@@ -27,7 +27,7 @@ const ZenModeProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     updateZenMode({
       showBGImage: true,
-      showHelpButton: false,
+      showHelpButton: true,
       showWallet: false,
     });
   }, []);

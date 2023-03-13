@@ -21,7 +21,7 @@ const _StakingApp: ForwardRefRenderFunction<
   useEffect(() => {
     updateZenMode({
       showBGImage: false,
-      showHelpButton: active,
+      showHelpButton: true,
       showWallet: active,
     });
   }, [active]);
