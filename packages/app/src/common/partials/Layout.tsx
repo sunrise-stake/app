@@ -66,7 +66,6 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
       <Transition
         className="z-10 fixed bottom-0 left-5 mb-4 mr-8"
         show={zenMode.showExternalLinks}
-        unmount={false}
         enterFrom="opacity-0"
         enterTo="opacity-100"
         enter="transition-opacity duration-500"
