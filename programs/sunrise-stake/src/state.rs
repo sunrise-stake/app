@@ -3,7 +3,7 @@ use crate::utils::seeds::GSOL_MINT_AUTHORITY;
 use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
-use anchor_spl::token::{Mint, Token};
+use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::State as MarinadeState;
 
 #[account]
@@ -80,28 +80,52 @@ impl SunriseTicketAccount {
 }
 
 #[account]
-pub struct OrderUnstakeTicketManagementAccount {
+pub struct EpochReportAccount {
     pub state_address: Pubkey,
     pub epoch: u64,
     pub tickets: u64,
     pub total_ordered_lamports: u64,
+    pub extractable_yield: u64,
+    pub extracted_yield: u64,
+    pub current_gsol_supply: u64,
+    pub bump: u8,
 }
-impl OrderUnstakeTicketManagementAccount {
-    pub const SPACE: usize = 32 + 8 + 8 + 8 + 8 /* DISCRIMINATOR */ ;
+impl EpochReportAccount {
+    pub const SPACE: usize = 32 + 8 + 8 + 8 + 8 + 8 + 8 + 1 + 8 /* DISCRIMINATOR */ ;
 
-    pub fn add_ticket(&mut self, ticket_amount_lamports: u64, epoch: u64) -> Result<()> {
-        if self.epoch == 0 {
-            self.epoch = epoch;
-        } else {
-            require_eq!(
-                self.epoch,
-                epoch,
-                ErrorCode::InvalidOrderUnstakeManagementAccount
-            );
-        }
-        self.tickets += 1;
-        self.total_ordered_lamports += ticket_amount_lamports;
+    pub fn all_extractable_yield(&self) -> u64 {
+        self.extractable_yield
+            .checked_add(self.extracted_yield)
+            .unwrap()
+    }
+
+    pub fn add_ticket(&mut self, ticket_amount_lamports: u64, clock: &Sysvar<Clock>) -> Result<()> {
+        require_eq!(
+            self.epoch,
+            clock.epoch,
+            ErrorCode::InvalidEpochReportAccount
+        );
+        self.tickets = self.tickets.checked_add(1).unwrap();
+        self.total_ordered_lamports = self
+            .total_ordered_lamports
+            .checked_add(ticket_amount_lamports)
+            .unwrap();
         Ok(())
+    }
+
+    pub fn add_extracted_yield(&mut self, extracted_yield: u64) {
+        self.extracted_yield = self.extracted_yield.checked_add(extracted_yield).unwrap();
+    }
+
+    pub fn update_report(
+        &mut self,
+        current_gsol_supply: u64,
+        extractable_yield: u64,
+        add_extracted_yield: u64,
+    ) {
+        self.current_gsol_supply = current_gsol_supply;
+        self.extractable_yield = extractable_yield;
+        self.add_extracted_yield(add_extracted_yield);
     }
 }
 
@@ -173,4 +197,71 @@ pub struct ResizeState<'info> {
     pub update_authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
+}
+
+#[account]
+pub struct LockAccount {
+    pub state_address: Pubkey,
+    pub owner: Pubkey,
+    pub token_account: Pubkey,
+    // unset until lock, then set to the epoch when the lock was set
+    // on unlock, unset again
+    pub start_epoch: Option<u64>,
+    pub updated_to_epoch: Option<u64>,
+    pub sunrise_yield_at_start: u64,
+    pub yield_accrued_by_owner: u64,
+    pub bump: u8,
+}
+impl LockAccount {
+    pub const SPACE: usize = 32 + 32 + 32 + 9 + 9 + 8 + 8 + 1 + 8 /* DISCRIMINATOR */ ;
+
+    pub fn calculate_and_add_yield_accrued(
+        &mut self,
+        epoch_report_account: &EpochReportAccount,
+        locked_gsol_token_account: &Account<'_, TokenAccount>,
+    ) -> Result<u64> {
+        require_keys_eq!(
+            self.state_address,
+            epoch_report_account.state_address,
+            ErrorCode::InvalidEpochReportAccount
+        );
+
+        require_keys_eq!(
+            self.token_account,
+            locked_gsol_token_account.key(),
+            ErrorCode::LockAccountIncorrectOwner
+        );
+
+        let yield_accrued = epoch_report_account
+            .all_extractable_yield()
+            .checked_sub(self.sunrise_yield_at_start)
+            .unwrap();
+
+        let yield_accrued_with_unstake_fee = (yield_accrued as f64) * 0.997; // estimated 0.3% unstake fee
+
+        msg!("total yield at start of lock period: {}\ntotal yield at end of lock period: {}\nyield_accrued: {}",
+            self.sunrise_yield_at_start,
+            epoch_report_account.all_extractable_yield(),
+            yield_accrued_with_unstake_fee
+        );
+
+        let owner_locked_gsol_share = (locked_gsol_token_account.amount as f64)
+            / epoch_report_account.current_gsol_supply as f64;
+
+        msg!("owner_locked_gsol_share: {}", owner_locked_gsol_share);
+
+        let yield_accrued = (yield_accrued_with_unstake_fee * owner_locked_gsol_share) as u64;
+
+        self.yield_accrued_by_owner = self
+            .yield_accrued_by_owner
+            .checked_add(yield_accrued)
+            .unwrap();
+
+        msg!("yield_accrued_by_owner: {}", self.yield_accrued_by_owner);
+
+        // we are updated to this epoch
+        self.updated_to_epoch = Some(epoch_report_account.epoch);
+
+        Ok(yield_accrued)
+    }
 }

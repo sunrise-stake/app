@@ -1,6 +1,10 @@
-use crate::state::State;
-use crate::utils::marinade;
-use crate::utils::seeds::{BSOL_ACCOUNT, MSOL_ACCOUNT};
+use crate::{
+    error::ErrorCode,
+    state::{EpochReportAccount, State},
+    utils::marinade,
+    utils::marinade::CalculateExtractableYieldProperties,
+    utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT},
+};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use marinade_cpi::program::MarinadeFinance;
@@ -13,29 +17,31 @@ pub struct ExtractToTreasury<'info> {
     has_one = treasury,
     has_one = marinade_state,
     has_one = blaze_state,
+    has_one = gsol_mint
     )]
     pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
+    pub payer: Signer<'info>,
+
+    #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
-    /// CHECK: Checked
-    pub blaze_state: AccountInfo<'info>,
+    /// CHECK: Must match state
+    pub blaze_state: UncheckedAccount<'info>,
 
     #[account(mut)]
     pub msol_mint: Box<Account<'info, Mint>>,
 
-    #[account()]
     pub gsol_mint: Box<Account<'info, Mint>>,
 
     pub bsol_mint: Box<Account<'info, Mint>>,
 
-    #[account()]
     pub liq_pool_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub liq_pool_sol_leg_pda: AccountInfo<'info>,
+    pub liq_pool_sol_leg_pda: UncheckedAccount<'info>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
@@ -83,6 +89,15 @@ pub struct ExtractToTreasury<'info> {
     /// CHECK: Matches state.treasury
     pub treasury: SystemAccount<'info>, // sunrise-stake treasury
 
+    #[account(
+    mut,
+    seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
+    bump = epoch_report_account.bump,
+    constraint = epoch_report_account.epoch == clock.epoch @ ErrorCode::InvalidEpochReportAccount
+    )]
+    pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
+
+    pub clock: Sysvar<'info, Clock>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub marinade_program: Program<'info, MarinadeFinance>,
@@ -90,12 +105,14 @@ pub struct ExtractToTreasury<'info> {
 
 pub fn extract_to_treasury_handler(ctx: Context<ExtractToTreasury>) -> Result<()> {
     // TODO at present, this withdraws all msol yield. In future, we should be able to choose how much to withdraw
-    let extractable_yield = marinade::calculate_extractable_yield(
-        ctx.accounts,
-        &ctx.accounts.get_msol_from,
-        &ctx.accounts.get_bsol_from,
-        &ctx.accounts.gsol_mint,
-    )?;
+    let calculate_yield_accounts: CalculateExtractableYieldProperties = ctx.accounts.deref().into();
+    let extractable_yield = marinade::calculate_extractable_yield(&calculate_yield_accounts)?;
+
+    // update the epoch report with the yield that is being extracted
+    ctx.accounts
+        .epoch_report_account
+        .add_extracted_yield(extractable_yield);
+    ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
 
     let extractable_yield_msol =
         marinade::calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), extractable_yield)?;

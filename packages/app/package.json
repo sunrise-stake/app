@@ -3,18 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@headlessui/react": "^1.7.4",
+    "@civic/profile": "^0.1.5",
+    "@headlessui/react": "^1.7.12",
     "@heroicons/react": "^2.0.13",
-    "@metaplex-foundation/js": "^0.17.12",
+    "@metaplex-foundation/js": "^0.18.3",
     "@popperjs/core": "^2.11.6",
     "@solana/spl-token": "^0.3.6",
-    "@solana/wallet-adapter-base": "^0.9.20",
-    "@solana/wallet-adapter-react": "^0.15.26",
-    "@solana/wallet-adapter-react-ui": "^0.9.24",
-    "@solana/wallet-adapter-wallets": "^0.19.9",
+    "@solana/wallet-adapter-base": "^0.9.22",
+    "@solana/wallet-adapter-react": "^0.15.30",
+    "@solana/wallet-adapter-react-ui": "^0.9.29",
+    "@solana/wallet-adapter-wallets": "^0.19.15",
     "@solana/web3.js": "^1.66.2",
-    "@sunrisestake/client": "0.1.0",
+    "@sunrisestake/client": "*",
     "@sunrisestake/marinade-ts-sdk": "4.0.4-alpha.18",
+    "@sunrisestake/yield-controller": "^0.0.4",
     "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/typography": "^0.5.7",
     "@testing-library/jest-dom": "^5.16.5",
@@ -28,6 +30,7 @@
     "assert": "^2.0.0",
     "autoprefixer": "^10.4.13",
     "bn.js": "^5.2.1",
+    "browserify-zlib": "^0.2.0",
     "bs58": "^5.0.0",
     "buffer": "^6.0.3",
     "classnames": "^2.3.2",
@@ -35,6 +38,8 @@
     "crypto-browserify": "^3.12.0",
     "dayjs": "^1.11.7",
     "dotenv-cli": "^6.0.0",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "postcss": "^8.4.19",
     "process": "^0.11.10",
@@ -45,14 +50,16 @@
     "react-hot-toast": "^2.4.0",
     "react-icons": "^4.7.1",
     "react-popper": "^2.3.0",
+    "react-router-dom": "^6.8.1",
     "react-scripts": "^5.0.1",
     "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
     "tailwindcss": "^3.2.4",
     "typescript": "^4.8.4",
     "web-vitals": "^3.0.2"
   },
   "scripts": {
-    "start": "BROWSER=none react-app-rewired start",
+    "start": "cross-env BROWSER=none react-app-rewired start",
     "build": "dotenv -e .env.${STAGE:-development} react-app-rewired build",
     "lint": "eslint -c ./.eslintrc.yml --ext .ts,.tsx src",
     "test": "react-app-rewired test",
@@ -77,6 +84,10 @@
     ]
   },
   "devDependencies": {
-    "@marinade.finance/marinade-ts-sdk": "^4.0.4"
+    "@marinade.finance/marinade-ts-sdk": "^4.0.4",
+    "cross-env": "^7.0.3"
+  },
+  "browser": {
+    "tls": false
   }
 }

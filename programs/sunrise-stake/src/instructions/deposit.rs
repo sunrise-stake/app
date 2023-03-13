@@ -40,15 +40,15 @@ pub struct Deposit<'info> {
 
     #[account(mut)]
     /// CHECK: Checked in marinade program
-    pub liq_pool_sol_leg_pda: AccountInfo<'info>,
+    pub liq_pool_sol_leg_pda: UncheckedAccount<'info>,
 
     #[account(mut)]
     pub liq_pool_msol_leg: Box<Account<'info, TokenAccount>>,
     /// CHECK: Checked in marinade program
-    pub liq_pool_msol_leg_authority: AccountInfo<'info>,
+    pub liq_pool_msol_leg_authority: UncheckedAccount<'info>,
 
     /// CHECK: Checked in marinade program
-    pub liq_pool_mint_authority: AccountInfo<'info>,
+    pub liq_pool_mint_authority: UncheckedAccount<'info>,
 
     #[account(mut)]
     /// CHECK: Checked in marinade program

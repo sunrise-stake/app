@@ -1,10 +1,11 @@
 # Sunrise Stake
 
-- [What is Sunrise Stake?](#what-is-sunrise-stake-)
-- [How it works](#how-it-works)
-- [Treasury spending](#treasury-spending)
-- [Quick Start](#quick-start)
-- [Deployed Addresses:](#deployed-addresses-)
+* [What is Sunrise Stake?](#what-is-sunrise-stake)
+* [How it works](#how-it-works)
+* [Treasury spending](#treasury-spending)
+* [Quick Start](#quick-start)
+* [Deployed Addresses:](#deployed-addresses-)
+
 
 ## What is Sunrise Stake?
 
@@ -82,7 +83,7 @@ in order to maintain a 10% liquidity pool balance.
 
 ![rebalancing_white.png](/doc/rebalancing_white.png)
 
-## Ttreasury spending
+## Treasury spending
 
 Sunrise spends the yield earned through staking on purchasing
 and burning carbon tokens to offset carbon emissions for its users.
@@ -117,15 +118,17 @@ Until sufficient liquidity is present on Solana for NCT, Sunrise is maintaining 
 
 ## Quick Start
 
+Install [solana](https://docs.solana.com/cli/install-solana-cli-tools).
+
 ```shell
 $ yarn
-$ anchor build
-$ anchor localnet
+$ yarn program:build
+$ yarn build
+$ yarn anchor localnet
 ```
 and in another shell.
 ```shell
-$ cd packages/app
-$ yarn start
+$ yarn app:start
 ```
 
 To run the tests, __close__ the validator in the first shell and run
@@ -149,3 +152,5 @@ yarn test
 | NCT Mint                            | [7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT](https://explorer.solana.com/address/7sbtAMfAuSfsUvZKPWiXUXaizYCnpLL2BBnKNTU3wjfT) | [tnct1RC5jg94CJLpiTZc2A2d98MP1Civjh7o6ShmTP6](https://explorer.solana.com/address/tnct1RC5jg94CJLpiTZc2A2d98MP1Civjh7o6ShmTP6?cluster=devnet)   | Carbon token bought and burned by the treasury controller: [Toucan NCT](https://blog.toucan.earth/announcing-nct-nature-carbon-tonne/) - bridged via Wormhole from Polygon.         |       |
 | Holding Account SOL                 | [shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn](https://explorer.solana.com/address/shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn)   | [dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD](https://explorer.solana.com/address/dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD?cluster=devnet)   | Recipient account for SOL used to purchase NCT. (Temporary, until a liquid market for NCT exists on Solana)                                                                         |       |
 | Holding Account NCT                 | [9tGKhW8WGkmx1tkxLoMwanb3XgQ9yJFDPnNggYjb1KUR](https://explorer.solana.com/address/9tGKhW8WGkmx1tkxLoMwanb3XgQ9yJFDPnNggYjb1KUR) | [8JGR8UdjLxduLpkn57H3MuoNapFovefXvMZ7k4dNM2a2](https://explorer.solana.com/address/8JGR8UdjLxduLpkn57H3MuoNapFovefXvMZ7k4dNM2a2?cluster=devnet) | NCT account made available to the Treasury Controller to purchase from. TreasuryController state account is a delegate. (Temporary, until a liquid market for NCT exists on Solana) |       |
+| Impact NFT Mint Authority           | [3XtTWzDuLSuvzAnNDu56at2WvuE4mkc3N8SC5GvwBoSL](https://explorer.solana.com/address/3XtTWzDuLSuvzAnNDu56at2WvuE4mkc3N8SC5GvwBoSL) | [8icGrBaEzQWtWQUCVgmJMpBJVdTvWZdnKwNiJFrJyUWj](https://explorer.solana.com/address/8icGrBaEzQWtWQUCVgmJMpBJVdTvWZdnKwNiJFrJyUWj?cluster=devnet) | The PDA owned by the sunrise program, that has authority to mint NFTs in the Impact NFT program                                                                                     |       |
+| Impact NFT State                    | [6RzCneyeEqnjiWxrzqfBwHDEpTrbcSkBFFUrtMZnNjpc](https://explorer.solana.com/address/6RzCneyeEqnjiWxrzqfBwHDEpTrbcSkBFFUrtMZnNjpc) | [6iyfwPbbLeYAoUcQkECCPwftFuw3j5VEcXF7xcQeAdX6](https://explorer.solana.com/address/6iyfwPbbLeYAoUcQkECCPwftFuw3j5VEcXF7xcQeAdX6?cluster=devnet) | The Impact NFT state account, that includes details about Impact NFT levels                                                                                                         |       |

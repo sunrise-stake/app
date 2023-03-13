@@ -1034,6 +1034,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "impact-nft-cpi"
+version = "0.3.0"
+dependencies = [
+ "anchor-gen",
+ "anchor-lang",
+]
+
+[[package]]
 name = "inout"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2072,6 +2080,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "impact-nft-cpi",
  "marinade-cpi",
  "mpl-token-metadata",
  "spl-stake-pool",

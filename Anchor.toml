@@ -1,5 +1,5 @@
 [workspace]
-types = "packages/client/types"
+types = "packages/client/src/types"
 
 [features]
 seeds = false
@@ -27,6 +27,14 @@ program = "packages/tests/fixtures/marinade_finance.so"
 [[test.genesis]]
 address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 program = "packages/tests/fixtures/blaze/spl_stake_pool.so"
+
+[[test.genesis]]
+address = "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
+program = "packages/tests/fixtures/impact_nft.so"
+
+[[test.genesis]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+program = "packages/tests/fixtures/mpl_token_metadata.so"
 
 [test.validator]
 slots_per_epoch = "32"

@@ -8,9 +8,12 @@ module.exports = function (config) {
       rules: [
         ...config.module.rules,
         {
-          test: /\.(m?js|ts)$/,
-          enforce: 'pre',
-          use: ['source-map-loader']
+          test: /\.([cm]?js|ts)$/,
+          // enforce: 'pre',
+          use: ['source-map-loader'],
+          resolve: {
+            fullySpecified: false,
+          },
         }
       ]
     },
@@ -28,10 +31,21 @@ module.exports = function (config) {
       fallback: {
         assert: require.resolve('assert'),
         buffer: require.resolve('buffer'),
+        child_process: false,
+        constants: require.resolve("constants-browserify"),
         crypto: require.resolve('crypto-browserify'),
         fs: false,
-        path: require.resolve('path-browserify'),
-        stream: require.resolve('stream-browserify')
+        http: require.resolve("stream-http"),
+        https: require.resolve("https-browserify"),
+        net: false,
+        os: require.resolve("os-browserify/browser"),
+        path: require.resolve("path-browserify"),
+        perf_hooks: false,
+        stream: require.resolve('stream-browserify'),
+        tls: false,
+        tty: false,
+        url: false,
+        zlib: require.resolve('browserify-zlib'),
       }
     },
     ignoreWarnings: [/Failed to parse source map/]

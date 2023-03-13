@@ -1,12 +1,13 @@
-import { SunriseStakeClient } from "../app/src/lib/client/";
+import { SunriseStakeClient } from "../client/src";
 import "./util";
-import { AnchorProvider } from "@project-serum/anchor";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
+import { AnchorProvider } from "@coral-xyz/anchor";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 (async () => {
   const provider = AnchorProvider.env();
 
-  const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE);
+  const client = await SunriseStakeClient.get(
+      provider, process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork|| 'devnet');
 
   console.log(await client.details());
 

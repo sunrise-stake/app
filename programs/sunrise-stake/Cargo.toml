@@ -18,7 +18,7 @@ default = []
 [dependencies]
 anchor-lang = { version = "0.26.0", features = ["init-if-needed", "allow-missing-optionals"] }
 anchor-spl = "0.26.0"
+impact-nft-cpi = { path = "../../dependencies/impact-nft-cpi"  }
 marinade-cpi = "0.3.0"
-spl-stake-pool = {version = "0.6.4", features = ["no-entrypoint"]}
-mpl-token-metadata = { version="1.4.1", features=["no-entrypoint"] }
-
+spl-stake-pool = {version = "0.6.4", features = ["no-entrypoint"] }
+mpl-token-metadata = { version="1.4.1", features = ["no-entrypoint"] }
