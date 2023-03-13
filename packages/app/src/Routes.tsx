@@ -22,6 +22,7 @@ export enum AppRoute {
   Grow = "/grow",
   Lock = "/lock",
   Stake = "/stake",
+  Connect = "/connect", // not a route at present TODO fix
 }
 
 export const Routes: FC = () => {

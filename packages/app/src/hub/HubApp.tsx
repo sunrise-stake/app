@@ -1,12 +1,12 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import clx from "classnames";
 import {
-  useEffect,
-  useState,
-  type ForwardRefRenderFunction,
   forwardRef,
-  useRef,
+  type ForwardRefRenderFunction,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import {
   IoChevronBackOutline,
@@ -20,12 +20,15 @@ import { HubIntro } from "./components/HubIntro";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useCarbon } from "../common/hooks";
 import { useForest } from "../common/context/forestContext";
+import { useHelp } from "../common/context/HelpContext";
+import { AppRoute } from "../Routes";
 
 const _HubApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
   const wallet = useWallet();
+  const { setCurrentHelpRoute } = useHelp();
 
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
@@ -47,9 +50,14 @@ const _HubApp: ForwardRefRenderFunction<
 
   // Show intro once carbon data are ready, hide once wallet connected
   useEffect(() => {
-    if (!wallet.connected && totalCarbon !== undefined) updateShowIntro(true);
-    else if (wallet.connected) {
+    if (!wallet.connected && totalCarbon !== undefined) {
+      updateShowIntro(true);
+      // TODO replace with separating the hub and connect routes
+      setCurrentHelpRoute(AppRoute.Connect);
+    } else if (wallet.connected) {
       updateShowIntro(false);
+      // TODO replace with separating the hub and connect routes
+      setCurrentHelpRoute(AppRoute.Hub);
       updateZenMode({
         showHelpButton: true,
         showBGImage: false,

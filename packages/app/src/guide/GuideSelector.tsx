@@ -6,6 +6,7 @@ import { LockGuide } from "./LockGuide";
 import { StakeGuide } from "./StakeGuide";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
+import { ConnectGuide } from "./ConnectGuide";
 
 export const GuideSelector: FC = () => {
   const { currentHelpRoute } = useHelp();
@@ -23,6 +24,8 @@ export const GuideSelector: FC = () => {
       return <LockGuide />;
     case AppRoute.Stake:
       return <StakeGuide />;
+    case AppRoute.Connect:
+      return <ConnectGuide />;
     default:
       return <></>;
   }
