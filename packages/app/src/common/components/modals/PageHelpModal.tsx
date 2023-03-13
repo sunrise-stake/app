@@ -1,6 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, type FC } from "react";
 import { noop } from "../../utils";
+import { GuideSelector } from "../../../guide/GuideSelector";
 
 const PageHelpModal: FC<{ show: boolean; onClose?: () => void }> = ({
   show = false,
@@ -27,7 +28,7 @@ const PageHelpModal: FC<{ show: boolean; onClose?: () => void }> = ({
             <div className="text-right text-green">
               <button onClick={onClose}>X</button>
             </div>
-            Content!
+            <GuideSelector />
           </Dialog.Panel>
         </div>
       </Dialog>
