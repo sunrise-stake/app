@@ -117,8 +117,8 @@ export const getLockedBalance = async (
   client: SunriseStakeClient,
   address: PublicKey
 ): Promise<number> => {
-  const lockAcountResult = await client.getLockAccount(address);
-  return Number(lockAcountResult?.tokenAccount?.amount) ?? 0;
+  const lockAccountResult = await client.getLockAccount(address);
+  return Number(lockAccountResult?.tokenAccount?.amount ?? 0);
 };
 
 export const earliest = (
