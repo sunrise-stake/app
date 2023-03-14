@@ -32,7 +32,6 @@ const _HubApp: ForwardRefRenderFunction<
 
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
-  const [showHub, updateShowHub] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
   const wasHubNavShown = useRef(false);
   const [zenMode, updateZenMode] = useZenMode();
@@ -51,6 +50,10 @@ const _HubApp: ForwardRefRenderFunction<
     }
     return "My Stake";
   }, [myTree]);
+
+  const showHub = useMemo(() => {
+    return wallet.connected && myTree !== undefined;
+  }, [wallet.connected, myTree]);
 
   // Show intro once carbon data are ready, hide once wallet connected
   useEffect(() => {
@@ -74,8 +77,6 @@ const _HubApp: ForwardRefRenderFunction<
   // Once intro is done, and tree data available show hub
   useEffect(() => {
     if (introLeft && myTree) {
-      updateShowHub(true);
-
       const tid = setTimeout(() => {
         if (!wasHubNavShown.current) updateShowHubNav(true);
       }, 5000);
@@ -139,7 +140,7 @@ const _HubApp: ForwardRefRenderFunction<
           updateIntroLeft(true);
         }}
       />
-      <div className={introLeft && wallet?.connected ? "block" : "hidden"}>
+      <div className={showHub ? "block" : "hidden"}>
         <div className="flex">
           <Link
             to="/forest"
