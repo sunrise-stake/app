@@ -1,5 +1,5 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { FaLink } from "react-icons/fa";
+import { FaLink, FaQrcode } from "react-icons/fa";
 import { useCopyToClipboard } from "usehooks-ts";
 import { type FC, useState } from "react";
 import { Transition } from "@headlessui/react";
@@ -41,6 +41,20 @@ export const ForestLink: FC = () => {
         leave="transition-opacity duration-500"
       >
         <div>copied</div>
+        <FaQrcode
+          size={32}
+          className="text-green-light w-4 md:w-12"
+          onClick={() => {
+            copy(link)
+              .then(() => {
+                setCopied(true);
+                setTimeout(() => {
+                  setCopied(false);
+                }, 1000);
+              })
+              .catch(console.error);
+          }}
+        />
       </Transition>
     </>
   ) : (
