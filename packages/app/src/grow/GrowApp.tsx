@@ -1,4 +1,3 @@
-import { useWallet } from "@solana/wallet-adapter-react";
 import React, {
   forwardRef,
   useEffect,
@@ -7,7 +6,7 @@ import React, {
   type FC,
 } from "react";
 import clx from "classnames";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useModal, useScript } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
@@ -22,6 +21,7 @@ import { CharityDonateButton } from "./components/CharityDonateButton";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { PublicKey } from "@solana/web3.js";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const isRealCharity = (
   charity: Charity | PlaceholderCharity
@@ -88,17 +88,19 @@ const _GrowApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
-  const navigate = useNavigate();
   const { currentHelpRoute } = useHelp();
-  const wallet = useWallet();
   const [, updateZenMode] = useZenMode();
 
   useScript("//embed.typeform.com/next/embed.js");
 
   const { myTree } = useForest();
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected) navigate("/");
+    if (!wallet.connected && location.state?.address === undefined)
+      navigate("/");
   }, [wallet.connected]);
 
   useEffect(() => {

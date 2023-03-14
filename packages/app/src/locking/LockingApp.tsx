@@ -1,5 +1,4 @@
 import clx from "classnames";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { toSol, type Details } from "@sunrisestake/client";
 import React, {
   type FC,
@@ -10,7 +9,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import {
   Button,
@@ -39,6 +38,7 @@ import { useForest } from "../common/context/forestContext";
 import { tooltips } from "../common/content/tooltips";
 import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const canBeUpdated = (details: Details | undefined): boolean => {
   if (!details?.lockDetails) return false;
@@ -65,14 +65,16 @@ const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
-  const navigate = useNavigate();
-  const wallet = useWallet();
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected) navigate("/");
+    if (!wallet.connected && location.state?.address === undefined)
+      navigate("/");
   }, [wallet.connected]);
 
   useEffect(() => {

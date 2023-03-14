@@ -1,5 +1,5 @@
 import clx from "classnames";
-import {
+import React, {
   type CSSProperties,
   type FC,
   forwardRef,
@@ -11,7 +11,7 @@ import {
 import { type TreeComponent } from "./utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { IoChevronForwardOutline } from "react-icons/io5";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
 import { ProfileBox } from "../common/components/profile/ProfileBox";
 import { type TreeNode } from "../api/types";
@@ -19,6 +19,8 @@ import { type PublicKey } from "@solana/web3.js";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
+import { ForestLink } from "./ForestLink";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -93,6 +95,14 @@ const _ForestApp: ForwardRefRenderFunction<
       showWallet: false,
     });
   }, [active, currentHelpRoute]);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const wallet = useWallet();
+  useEffect(() => {
+    if (!wallet.connected && location.state?.address === undefined)
+      navigate("/");
+  }, [wallet.connected]);
 
   const { myTree, neighbours } = useForest();
   // use this to position the entire forest in space
@@ -181,6 +191,11 @@ const _ForestApp: ForwardRefRenderFunction<
           </Link>
         </div>
       </div>
+      {currentHelpRoute === AppRoute.Forest && (
+        <div className="z-10 fixed top-4 left-4">
+          <ForestLink />
+        </div>
+      )}
     </div>
   );
 };

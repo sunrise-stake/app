@@ -1,24 +1,26 @@
-import { useWallet } from "@solana/wallet-adapter-react";
 import clx from "classnames";
 import { type ForwardRefRenderFunction, forwardRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { useZenMode } from "../common/context/ZenModeContext";
 import { StakeDashboard } from "./pages/StakeDashboard";
 import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const _StakingApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
-  const navigate = useNavigate();
-  const wallet = useWallet();
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected) navigate("/");
+    if (!wallet.connected && location.state?.address === undefined)
+      navigate("/");
   }, [wallet.connected]);
 
   useEffect(() => {

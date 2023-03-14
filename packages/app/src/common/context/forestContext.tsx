@@ -6,11 +6,15 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { forestToComponents, type TreeComponent } from "../../forest/utils";
 import { ForestService, MAX_FOREST_DEPTH } from "../../api/forest";
 import { useSunriseStake } from "./sunriseStakeContext";
+import { useLocation } from "react-router-dom";
+import { type PublicKey } from "@solana/web3.js";
+import { safeParsePublicKey } from "../utils";
 
 interface ForestContextProps {
   myTree: TreeComponent | undefined;
@@ -31,16 +35,22 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   const { client, details } = useSunriseStake();
   const wallet = useWallet();
   const { connection } = useConnection();
+  const location = useLocation();
   const [service, setService] = useState<ForestService | undefined>();
   const [neighbours, setNeighbours] = useState<TreeComponent[]>([]);
   const [myTree, setMyTree] = useState<TreeComponent>();
 
+  const address: PublicKey | null = useMemo(() => {
+    console.log("location.state?.address", location.state?.address);
+    return safeParsePublicKey(location.state?.address) ?? wallet.publicKey;
+  }, [location.state?.address, wallet.publicKey]);
+
   const loadTree = useCallback(
     (reload = false) => {
       void (async () => {
-        if (service && wallet.publicKey) {
+        if (service && address) {
           const forest = await service.getForest(
-            wallet.publicKey,
+            address,
             depth,
             undefined,
             reload
@@ -51,7 +61,7 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
         }
       })();
     },
-    [service, wallet.publicKey]
+    [service, address]
   );
 
   // reload tree when details change. doesn't matter what changed.
@@ -68,7 +78,7 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
     }
   }, [client]);
 
-  useEffect(loadTree, [service, wallet.publicKey]);
+  useEffect(loadTree, [service, address]);
 
   return (
     <ForestContext.Provider
