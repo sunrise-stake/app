@@ -19,7 +19,7 @@ const _StakingApp: ForwardRefRenderFunction<
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && location.state?.address !== undefined)
+    if (!wallet.connected && location.state?.address === undefined)
       navigate("/");
   }, [wallet.connected]);
 
