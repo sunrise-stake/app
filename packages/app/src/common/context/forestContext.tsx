@@ -67,12 +67,16 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   // reload tree when details change. doesn't matter what changed.
   useEffect(() => {
     if (details) {
-      loadTree(true);
+      // add a delay to give the backend database a chance to hear the transaction before we reload the tree
+      setTimeout(() => {
+        loadTree(true);
+      }, 5000);
     }
   }, [details]);
 
   useEffect(() => {
     if (client) {
+      console.log("creating forest service");
       const service = new ForestService(connection, client);
       setService(service);
     }

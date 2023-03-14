@@ -13,7 +13,7 @@ import { useSunriseStake } from "../../context/sunriseStakeContext";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
   createAssociatedTokenAccountInstruction,
-  createTransferInstruction,
+  createTransferCheckedInstruction,
   getAccount,
   getAssociatedTokenAddress,
 } from "@solana/spl-token";
@@ -82,11 +82,13 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
     }
 
     transaction.add(
-      createTransferInstruction(
+      createTransferCheckedInstruction(
         fromAccount.address,
+        mint,
         associatedTokenTo,
         senderPubkey,
-        solToLamports(amount).toNumber()
+        solToLamports(amount).toNumber(),
+        9
       )
     );
     const signature = sendTransaction(transaction, connection)
