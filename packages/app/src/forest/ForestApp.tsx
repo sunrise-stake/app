@@ -1,5 +1,5 @@
 import clx from "classnames";
-import {
+import React, {
   type CSSProperties,
   type FC,
   forwardRef,
@@ -19,6 +19,7 @@ import { type PublicKey } from "@solana/web3.js";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
+import { ForestLink } from "./ForestLink";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -181,6 +182,11 @@ const _ForestApp: ForwardRefRenderFunction<
           </Link>
         </div>
       </div>
+      {currentHelpRoute === AppRoute.Forest && (
+        <div className="z-10 fixed top-4 left-4">
+          <ForestLink />
+        </div>
+      )}
     </div>
   );
 };

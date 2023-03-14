@@ -62,7 +62,9 @@ export const Routes: FC = () => {
     console.log("publicKeyFromUrl", publicKeyFromUrl);
     if (publicKeyFromUrl) {
       console.log("scrolling to forest", window.location.hash);
-      navigate(AppRoute.Forest, { state: { address: publicKeyFromUrl } });
+      navigate(AppRoute.Forest, {
+        state: { address: publicKeyFromUrl.toBase58() },
+      });
     }
   }, []);
   const { setCurrentHelpRoute } = useHelp();

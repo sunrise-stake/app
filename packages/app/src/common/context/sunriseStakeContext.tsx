@@ -11,8 +11,8 @@ import {
 } from "react";
 
 import { SunriseClientWrapper } from "../sunriseClientWrapper";
-import { safeParsePublicKey } from "../utils";
 import { useLocation } from "react-router-dom";
+import { safeParsePublicKey } from "../utils";
 
 interface SunriseContextProps {
   client: SunriseClientWrapper | undefined;
@@ -60,7 +60,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
       SunriseClientWrapper.init(connection, wallet, setDetails, undefined)
         .then(updateClient)
         .catch(console.error);
-    } else if (addressFromUrl) {
+    } else if (addressFromUrl !== null) {
       // we have an address in the url, but no wallet
       // this is a readonly client
       SunriseClientWrapper.init(

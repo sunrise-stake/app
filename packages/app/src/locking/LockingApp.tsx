@@ -9,7 +9,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import {
   Button,
@@ -38,6 +38,7 @@ import { useForest } from "../common/context/forestContext";
 import { tooltips } from "../common/content/tooltips";
 import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const canBeUpdated = (details: Details | undefined): boolean => {
   if (!details?.lockDetails) return false;
@@ -67,6 +68,14 @@ const _LockingApp: ForwardRefRenderFunction<
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const wallet = useWallet();
+  useEffect(() => {
+    if (!wallet.connected && location.state?.address !== undefined)
+      navigate("/");
+  }, [wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Lock) return; // we are not on the lock page, so don't update zen mode

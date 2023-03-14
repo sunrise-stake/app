@@ -6,7 +6,7 @@ import React, {
   type FC,
 } from "react";
 import clx from "classnames";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useModal, useScript } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
@@ -21,6 +21,7 @@ import { CharityDonateButton } from "./components/CharityDonateButton";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { PublicKey } from "@solana/web3.js";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const isRealCharity = (
   charity: Charity | PlaceholderCharity
@@ -93,6 +94,14 @@ const _GrowApp: ForwardRefRenderFunction<
   useScript("//embed.typeform.com/next/embed.js");
 
   const { myTree } = useForest();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const wallet = useWallet();
+  useEffect(() => {
+    if (!wallet.connected && location.state?.address !== undefined)
+      navigate("/");
+  }, [wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Grow) return; // we are not on the grow page, so don't update zen mode

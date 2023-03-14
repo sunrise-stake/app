@@ -14,6 +14,7 @@ import { ForestService, MAX_FOREST_DEPTH } from "../../api/forest";
 import { useSunriseStake } from "./sunriseStakeContext";
 import { useLocation } from "react-router-dom";
 import { type PublicKey } from "@solana/web3.js";
+import { safeParsePublicKey } from "../utils";
 
 interface ForestContextProps {
   myTree: TreeComponent | undefined;
@@ -39,9 +40,9 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   const [neighbours, setNeighbours] = useState<TreeComponent[]>([]);
   const [myTree, setMyTree] = useState<TreeComponent>();
 
-  const address: PublicKey | undefined = useMemo(() => {
+  const address: PublicKey | null = useMemo(() => {
     console.log("location.state?.address", location.state?.address);
-    return location.state?.address ?? wallet.publicKey;
+    return safeParsePublicKey(location.state?.address) ?? wallet.publicKey;
   }, [location.state?.address, wallet.publicKey]);
 
   const loadTree = useCallback(
