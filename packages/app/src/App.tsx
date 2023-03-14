@@ -13,7 +13,6 @@ import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
   TorusWalletAdapter,
-  WalletConnectWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
 import { type FC, useMemo } from "react";
@@ -42,14 +41,6 @@ const App: FC = () => {
       new ExodusWalletAdapter(),
       new CoinbaseWalletAdapter(),
       new BraveWalletAdapter(),
-      new WalletConnectWalletAdapter({
-        options: {},
-        // WalletConnect appears not to support testnet. So this casts to networks it does support
-        // note - there is no runtime check for whether the value is actually testnet.
-        network: network as
-          | WalletAdapterNetwork.Devnet
-          | WalletAdapterNetwork.Mainnet,
-      }),
     ],
     []
   );
