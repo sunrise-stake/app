@@ -135,7 +135,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
             />
           )}
           <div className="font-semibold text-xl mb-2">Send gSOL</div>
-          <div className="flex items-center gap-4">
+          <div className="">
             <AmountInput
               className="basis-3/4"
               token="gSOL"
@@ -147,27 +147,29 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               variant="small"
             />
 
-            <Button
-              className="basis-1/4"
-              onClick={() => {
-                setIsBusy(true);
-                transferGSol().finally(() => {
-                  setIsBusy(false);
-                  props.ok();
-                });
-              }}
-              disabled={isBusy || !isValid}
-              size="sm"
-            >
-              <div className="flex gap-2 w-full justify-center items-center">
-                {isBusy ? (
-                  <Spinner size="1rem" className="mr-1" />
-                ) : (
-                  <GiPresent size={32} />
-                )}
-                Send
-              </div>
-            </Button>
+            <div className="mt-4 float-right cleafix">
+              <Button
+                className="basis-1/4"
+                onClick={() => {
+                  setIsBusy(true);
+                  transferGSol().finally(() => {
+                    setIsBusy(false);
+                    props.ok();
+                  });
+                }}
+                disabled={isBusy || !isValid}
+                size="sm"
+              >
+                <div className="flex gap-2 w-full justify-center items-center">
+                  {isBusy ? (
+                    <Spinner size="1rem" className="mr-1" />
+                  ) : (
+                    <GiPresent size={32} />
+                  )}
+                  Send
+                </div>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
