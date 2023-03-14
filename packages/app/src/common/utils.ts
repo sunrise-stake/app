@@ -1,4 +1,4 @@
-import { LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { type SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
 import { MAX_NUM_PRECISION } from "@sunrisestake/client";
 import BN from "bn.js";
@@ -18,6 +18,20 @@ const toBN = (n: number): BN => new BN(`${n}`);
 const walletIsConnected = (
   wallet: SparseWalletContextAdapter
 ): wallet is ConnectedWallet => wallet.connected && wallet.publicKey != null;
+
+const safeParsePublicKey = (key: string): PublicKey | null => {
+  try {
+    return new PublicKey(key);
+  } catch (e) {
+    return null;
+  }
+};
+
+const safeParsePublicKeyFromUrl = (): PublicKey | null => {
+  const hash = window.location.hash;
+  const key = hash.replace("#", "");
+  return safeParsePublicKey(key);
+};
 
 type UIMode = "STAKE" | "UNSTAKE" | "LOCK" | "TRANSFER";
 
@@ -154,6 +168,8 @@ export {
   type UIMode,
   debounce,
   getDigits,
+  safeParsePublicKey,
+  safeParsePublicKeyFromUrl,
   settledPromises,
   solToCarbon,
   solToLamports,
