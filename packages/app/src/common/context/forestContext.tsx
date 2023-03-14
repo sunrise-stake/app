@@ -40,10 +40,10 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   const [neighbours, setNeighbours] = useState<TreeComponent[]>([]);
   const [myTree, setMyTree] = useState<TreeComponent>();
 
-  const address: PublicKey | null = useMemo(() => {
-    console.log("location.state?.address", location.state?.address);
-    return safeParsePublicKey(location.state?.address) ?? wallet.publicKey;
-  }, [location.state?.address, wallet.publicKey]);
+  const address: PublicKey | null = useMemo(
+    () => safeParsePublicKey(location.state?.address) ?? wallet.publicKey,
+    [location.state?.address, wallet.publicKey]
+  );
 
   const loadTree = useCallback(
     (reload = false) => {

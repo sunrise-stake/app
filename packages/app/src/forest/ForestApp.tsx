@@ -121,19 +121,11 @@ const _ForestApp: ForwardRefRenderFunction<
     });
   }, [window.innerWidth]);
 
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>): void => {
-    const { screenX, screenY } = e;
-    console.log({ screenX, screenY });
-  };
-
   return (
     <div
       className={clx("relative flex justify-center items-center", className)}
       {...rest}
       ref={ref}
-      onDrag={(e) => {
-        handleDrag(e);
-      }}
     >
       {/* TREES */}
       <ul
