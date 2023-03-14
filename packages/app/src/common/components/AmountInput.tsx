@@ -131,7 +131,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
               className={clx(
                 "appearance-textfield grow w-full border-none bg-transparent",
                 {
-                  "text-right text-3xl": variant === "large",
+                  "text-right text-2xl": variant === "large",
                   "text-left text-lg": variant === "small",
                 }
               )}
@@ -160,16 +160,6 @@ const AmountInput: React.FC<AmountInputProps> = ({
                 <MdArrowDropDown className="text-green-light" size={28} />
               </button>
             </div>
-            <button
-              className="text-green font-semibold bg-green border border-green bg-opacity-20 hover:bg-opacity-50 hover:cursor-pointer m-auto py-2 px-3 rounded-md"
-              onClick={() => {
-                if (balance) {
-                  updateAmount(toSol(getMaxBalance()).toString());
-                }
-              }}
-            >
-              MAX
-            </button>
           </div>
         </div>
       </div>

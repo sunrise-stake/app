@@ -140,7 +140,6 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               className="basis-3/4"
               token="gSOL"
               balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
-              showBalance={false}
               amount={amount}
               setAmount={setAmount}
               setValid={setIsValid}
