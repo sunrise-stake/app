@@ -6,7 +6,12 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { type SunriseStakeClient, ZERO_BALANCE } from "@sunrisestake/client";
+import {
+  type SunriseStakeClient,
+  toSol,
+  ZERO_BALANCE,
+} from "@sunrisestake/client";
+import BN from "bn.js";
 
 export const filterFirstTransfersForSenderAndRecipient = (
   transfers: Transfer[]
@@ -118,7 +123,7 @@ export const getLockedBalance = async (
   address: PublicKey
 ): Promise<number> => {
   const lockAccountResult = await client.getLockAccount(address);
-  return Number(lockAccountResult?.tokenAccount?.amount ?? 0);
+  return toSol(new BN(`${lockAccountResult?.tokenAccount?.amount ?? 0}`));
 };
 
 export const earliest = (
