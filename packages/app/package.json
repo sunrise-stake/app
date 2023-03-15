@@ -1,0 +1,97 @@
+{
+  "name": "@sunrisestake/app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@civic/profile": "^0.1.5",
+    "@headlessui/react": "^1.7.12",
+    "@heroicons/react": "^2.0.13",
+    "@metaplex-foundation/js": "^0.18.3",
+    "@popperjs/core": "^2.11.6",
+    "@solana/spl-token": "^0.3.6",
+    "@solana/wallet-adapter-base": "^0.9.22",
+    "@solana/wallet-adapter-react": "^0.15.30",
+    "@solana/wallet-adapter-react-ui": "^0.9.29",
+    "@solana/wallet-adapter-wallets": "^0.19.15",
+    "@solana/web3.js": "^1.66.2",
+    "@sunrisestake/client": "*",
+    "@sunrisestake/marinade-ts-sdk": "4.0.4-alpha.18",
+    "@sunrisestake/yield-controller": "^0.0.4",
+    "@tailwindcss/forms": "^0.5.3",
+    "@tailwindcss/typography": "^0.5.7",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/debounce-promise": "^3.1.6",
+    "@types/jest": "^29.1.1",
+    "@types/node": "^18.7.23",
+    "@types/ramda": "^0.28.20",
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
+    "assert": "^2.0.0",
+    "autoprefixer": "^10.4.13",
+    "bn.js": "^5.2.1",
+    "browserify-zlib": "^0.2.0",
+    "bs58": "^5.0.0",
+    "buffer": "^6.0.3",
+    "classnames": "^2.3.2",
+    "constants-browserify": "^1.0.0",
+    "crypto-browserify": "^3.12.0",
+    "dayjs": "^1.11.7",
+    "debounce-promise": "^3.1.2",
+    "dotenv-cli": "^6.0.0",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "postcss": "^8.4.19",
+    "process": "^0.11.10",
+    "qrcode.react": "^3.1.0",
+    "ramda": "^0.28.0",
+    "react": "^18.2.0",
+    "react-app-rewired": "^2.2.1",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.0",
+    "react-icons": "^4.7.1",
+    "react-popper": "^2.3.0",
+    "react-router-dom": "^6.8.1",
+    "react-scripts": "^5.0.1",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "tailwindcss": "^3.2.4",
+    "typescript": "^4.8.4",
+    "usehooks-ts": "^2.9.1",
+    "web-vitals": "^3.0.2"
+  },
+  "scripts": {
+    "start": "cross-env BROWSER=none react-app-rewired start",
+    "build": "dotenv -e .env.${STAGE:-development} react-app-rewired build",
+    "lint": "eslint -c ./.eslintrc.yml --ext .ts,.tsx src",
+    "test": "react-app-rewired test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@marinade.finance/marinade-ts-sdk": "^4.0.4",
+    "cross-env": "^7.0.3"
+  },
+  "browser": {
+    "tls": false
+  }
+}
