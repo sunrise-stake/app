@@ -33,8 +33,8 @@ export class SunriseClientWrapper {
     const accountsToListenTo = [
       this.client.provider.publicKey,
       this.client.stakerGSolTokenAccount,
-      this.client.config?.gsolMint,
-      this.client.msolTokenAccount,
+      // this.client.config?.gsolMint,
+      // this.client.msolTokenAccount,
     ];
 
     accountsToListenTo.forEach((account) => {
@@ -47,8 +47,9 @@ export class SunriseClientWrapper {
   }
 
   public debouncedUpdate = debounce((account?: PublicKey) => {
+    console.log("TRIGGER UPDATE");
     this.triggerUpdate(account);
-  }, 1000);
+  }, 5000);
 
   private triggerUpdate(changedAccount?: PublicKey): void {
     this.accountListener?.(changedAccount);
@@ -93,16 +94,16 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .makeBalancedDeposit(amount)
-      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
-      .then(this.triggerUpdateAndReturn.bind(this));
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx));
+    // .then(this.triggerUpdateAndReturn.bind(this));
   }
 
   async withdraw(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .unstake(amount)
-      .then(async (tx) => this.client.sendAndConfirmTransaction(tx))
-      .then(this.triggerUpdateAndReturn.bind(this));
+      .then(async (tx) => this.client.sendAndConfirmTransaction(tx));
+    // .then(this.triggerUpdateAndReturn.bind(this));
   }
 
   async orderWithdrawal(amount: BN): Promise<string> {
@@ -132,6 +133,7 @@ export class SunriseClientWrapper {
   }
 
   async getDetails(): Promise<Details> {
+    console.log("SunriseClientWrapper.getDetails");
     return this.client.details();
   }
 
