@@ -44,7 +44,7 @@ export const useYieldController = (): YieldControllerState | undefined => {
           console.error(e);
         });
     })();
-  }, [connection]);
+  }, []);
 
   return yieldState;
 };

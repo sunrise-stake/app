@@ -48,7 +48,7 @@ const App: FC = () => {
   return (
     <>
       <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets}>
+        <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <SunriseProvider>
               <ForestProvider>
