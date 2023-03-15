@@ -41,7 +41,7 @@ const _HubApp: ForwardRefRenderFunction<
   }, [wallet.connected, showHubNav]);
 
   const { myTree } = useForest();
-  const { totalCarbon } = useCarbon();
+  const { extractedCarbon } = useCarbon();
   const stakeButtonMessage = useMemo(() => {
     if (myTree?.metadata.type.translucent === true) {
       return "Stake to restore your tree";
@@ -57,7 +57,7 @@ const _HubApp: ForwardRefRenderFunction<
 
   // Show intro once carbon data are ready, hide once wallet connected
   useEffect(() => {
-    if (!wallet.connected && totalCarbon !== undefined) {
+    if (!wallet.connected && extractedCarbon !== undefined) {
       updateShowIntro(true);
       // TODO replace with separating the hub and connect routes
       setCurrentHelpRoute(AppRoute.Connect);
@@ -72,7 +72,7 @@ const _HubApp: ForwardRefRenderFunction<
         showWallet: false,
       });
     }
-  }, [totalCarbon, wallet.connected]);
+  }, [extractedCarbon, wallet.connected]);
 
   // Once intro is done, and tree data available show hub
   useEffect(() => {
@@ -129,7 +129,7 @@ const _HubApp: ForwardRefRenderFunction<
     >
       <Spinner
         className={
-          (introLeft && !showHub) || totalCarbon === undefined
+          (introLeft && !showHub) || extractedCarbon === undefined
             ? "block"
             : "hidden"
         }

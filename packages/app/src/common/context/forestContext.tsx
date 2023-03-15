@@ -49,6 +49,11 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
     (reload = false) => {
       void (async () => {
         if (service && address) {
+          console.log(
+            "forestContext: loadTree useCallback",
+            address.toBase58(),
+            reload
+          );
           const forest = await service.getForest(
             address,
             depth,
@@ -66,7 +71,8 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
 
   // reload tree when details change. doesn't matter what changed.
   useEffect(() => {
-    if (details) {
+    // do not trigger if the tree is not already loaded
+    if (details && myTree) {
       // add a delay to give the backend database a chance to hear the transaction before we reload the tree
       setTimeout(() => {
         loadTree(true);
@@ -76,13 +82,16 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
 
   useEffect(() => {
     if (client) {
-      console.log("creating forest service");
+      console.log("forestContext: creating forest service useEffect");
       const service = new ForestService(connection, client);
       setService(service);
     }
   }, [client]);
 
-  useEffect(loadTree, [service, address]);
+  useEffect(() => {
+    console.log("forestContext: loading tree useEffect", address);
+    loadTree();
+  }, [service, address]);
 
   return (
     <ForestContext.Provider

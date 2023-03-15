@@ -4402,6 +4402,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/debounce-promise@^3.1.6":
+  version "3.1.6"
+  resolved "https://registry.yarnpkg.com/@types/debounce-promise/-/debounce-promise-3.1.6.tgz#873e838574011095ed0debf73eed3538e1261d75"
+  integrity sha512-DowqK95aku+OxMCeG2EQSeXeGeE8OCwLpMsUfIbP7hMF8Otj8eQXnzpwdtIKV+UqQBtkMcF6vbi4Otbh8P/wmg==
+
 "@types/eslint-scope@^3.7.3":
   version "3.7.4"
   resolved "https://registry.yarnpkg.com/@types/eslint-scope/-/eslint-scope-3.7.4.tgz#37fc1223f0786c39627068a12e94d6e6fc61de16"
@@ -7448,6 +7453,11 @@ dayjs@^1.11.7:
   version "1.11.7"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.7.tgz#4b296922642f70999544d1144a2c25730fce63e2"
   integrity sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ==
+
+debounce-promise@^3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/debounce-promise/-/debounce-promise-3.1.2.tgz#320fb8c7d15a344455cd33cee5ab63530b6dc7c5"
+  integrity sha512-rZHcgBkbYavBeD9ej6sP56XfG53d51CD4dnaw989YX/nZ/ZJfgRx/9ePKmTNiUiyQvh4mtrMoS3OAWW+yoYtpg==
 
 debug@2.6.9, debug@^2.6.0:
   version "2.6.9"

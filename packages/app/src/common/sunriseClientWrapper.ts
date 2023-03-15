@@ -10,8 +10,12 @@ import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import type BN from "bn.js";
 import { type AnchorWallet } from "@solana/wallet-adapter-react";
-import { debounce } from "./utils";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import debounce from "debounce-promise";
+import {
+  YieldControllerClient,
+  type YieldControllerState,
+} from "@sunrisestake/yield-controller";
 
 const stage =
   (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
@@ -20,6 +24,7 @@ const stage =
 export class SunriseClientWrapper {
   constructor(
     private readonly client: SunriseStakeClient,
+    public readonly yieldControllerState: YieldControllerState,
     private readonly detailsListener:
       | ((details: Details, accountChanged?: PublicKey) => void)
       | undefined,
@@ -30,6 +35,7 @@ export class SunriseClientWrapper {
 
     readonly readonlyWallet: boolean
   ) {
+    console.log("SunriseClientWrapper constructor");
     const accountsToListenTo = [
       this.client.provider.publicKey,
       this.client.stakerGSolTokenAccount,
@@ -40,15 +46,19 @@ export class SunriseClientWrapper {
     accountsToListenTo.forEach((account) => {
       if (account !== undefined) {
         this.client.provider.connection.onAccountChange(account, () => {
-          this.debouncedUpdate(account);
+          this.debouncedUpdate(account).catch(console.error);
         });
       }
     });
   }
 
-  public debouncedUpdate = debounce((account?: PublicKey) => {
-    this.triggerUpdate(account);
-  }, 1000);
+  public debouncedUpdate = debounce(
+    (account?: PublicKey) => {
+      this.triggerUpdate(account);
+    },
+    1000,
+    { leading: true }
+  );
 
   private triggerUpdate(changedAccount?: PublicKey): void {
     this.accountListener?.(changedAccount);
@@ -76,8 +86,17 @@ export class SunriseClientWrapper {
       verbose: Boolean(process.env.REACT_APP_VERBOSE),
     });
 
+    console.log("SunriseClientWrapper init with a client", readonlyWallet);
+
+    const yieldControllerClient = await YieldControllerClient.get(
+      provider,
+      client.env.yieldControllerState
+    );
+    const yieldControllerState = await yieldControllerClient.getState();
+
     return new SunriseClientWrapper(
       client,
+      yieldControllerState,
       detailsListener,
       accountListener,
       readonlyWallet
@@ -85,7 +104,7 @@ export class SunriseClientWrapper {
   }
 
   private readonly triggerUpdateAndReturn = <T>(result: T): T => {
-    this.debouncedUpdate();
+    this.debouncedUpdate().catch(console.error);
     return result;
   };
 
@@ -131,7 +150,12 @@ export class SunriseClientWrapper {
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
-  async getDetails(): Promise<Details> {
+  public debouncedGetDetails = debounce(async () => this.getDetails(), 1000, {
+    leading: true,
+  });
+
+  private async getDetails(): Promise<Details> {
+    console.log("getDetails");
     return this.client.details();
   }
 
@@ -157,10 +181,6 @@ export class SunriseClientWrapper {
 
   get holdingAccount(): PublicKey {
     return this.client.env.holdingAccount;
-  }
-
-  get yieldControllerState(): PublicKey {
-    return this.client.env.yieldControllerState;
   }
 
   async lockGSol(amount: BN): Promise<string[]> {

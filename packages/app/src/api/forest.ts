@@ -95,7 +95,12 @@ export class ForestService {
     depth: number,
     parent?: TreeNode["parent"]
   ): Promise<TreeNode> {
-    console.log("getting tree", address.toBase58(), depth, parent);
+    console.log(
+      "ForestService: loading tree",
+      address.toBase58(),
+      depth,
+      parent
+    );
     const [currentBalance, lockedBalance, mints, transfers] = await Promise.all(
       [
         getGsolBalance(address, this.connection),
@@ -131,6 +136,12 @@ export class ForestService {
     depth: number,
     parent?: TreeNode["parent"]
   ): Promise<TreeNode> {
+    console.log(
+      "ForestService: getting tree",
+      address.toBase58(),
+      depth,
+      parent
+    );
     if (depth < 0) throw new Error("Depth must be greater than or equal to 0");
     if (depth > MAX_FOREST_DEPTH)
       throw new Error(`Depth must be less than ${MAX_FOREST_DEPTH}`);

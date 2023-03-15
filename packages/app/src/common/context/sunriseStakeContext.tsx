@@ -13,13 +13,16 @@ import {
 import { SunriseClientWrapper } from "../sunriseClientWrapper";
 import { useLocation } from "react-router-dom";
 import { safeParsePublicKey } from "../utils";
+import { type YieldControllerState } from "@sunrisestake/yield-controller";
 
 interface SunriseContextProps {
   client: SunriseClientWrapper | undefined;
+  yieldControllerState: YieldControllerState | undefined;
   details: Details | undefined;
 }
 const defaultValue: SunriseContextProps = {
   client: undefined,
+  yieldControllerState: undefined,
   details: undefined,
 };
 const SunriseContext = createContext<SunriseContextProps>(defaultValue);
@@ -29,6 +32,8 @@ const dummyKey = Keypair.generate().publicKey;
 
 const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [client, setClient] = useState<SunriseClientWrapper>();
+  const [yieldControllerState, setYieldControllerState] =
+    useState<YieldControllerState>();
   const [details, setDetails] = useState<Details>();
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
@@ -42,15 +47,10 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     console.log("setting client: readonly", clientToUpdate.readonlyWallet);
     setClient(clientToUpdate);
-    setDetails(await clientToUpdate.getDetails());
+    setDetails(await clientToUpdate.debouncedGetDetails());
+    setYieldControllerState(clientToUpdate.yieldControllerState);
 
     window.client = clientToUpdate;
-  };
-
-  // Use this to initialise the details if it is not already set
-  // this prevents the details from being overwritten by the readonly client
-  const initDetails = (newDetails: Details): void => {
-    setDetails((existingDetails) => existingDetails ?? newDetails);
   };
 
   useEffect(() => {
@@ -92,16 +92,19 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
         true
       )
         .then(async (client) => {
-          console.log("getting details");
-          return client.getDetails();
+          // extract the yield controller state
+          setYieldControllerState(client.yieldControllerState);
+          //
+          // console.log("getting details");
+          // return client.debouncedGetDetails();
         })
-        .then(initDetails)
+        // .then(initDetails)
         .catch(console.error);
     }
   }, [wallet?.publicKey, location.state?.address]);
 
   return (
-    <SunriseContext.Provider value={{ client, details }}>
+    <SunriseContext.Provider value={{ client, details, yieldControllerState }}>
       {children}
     </SunriseContext.Provider>
   );

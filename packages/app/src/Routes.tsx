@@ -14,8 +14,9 @@ import { LockingApp } from "./locking/LockingApp";
 import { StakingApp } from "./staking/StakingApp";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout } from "./common/partials/Layout";
-import { debounce, safeParsePublicKeyFromUrl } from "./common/utils";
+import { safeParsePublicKeyFromUrl } from "./common/utils";
 import { useHelp } from "./common/context/HelpContext";
+import debounce from "debounce-promise";
 
 export enum AppRoute {
   Hub = "/",
@@ -41,9 +42,14 @@ export const Routes: FC = () => {
     useState<null | MutableRefObject<null | HTMLDivElement>>(null);
   window.addEventListener(
     "resize",
-    debounce(() => {
-      currentRouteApp?.current?.scrollIntoView();
-    }, 100),
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    debounce(
+      () => {
+        currentRouteApp?.current?.scrollIntoView();
+      },
+      100,
+      { leading: true }
+    ),
     { passive: true }
   );
 
