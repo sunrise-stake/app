@@ -30,7 +30,7 @@ import {
   toFixedWithPrecision,
   ZERO,
 } from "../common/utils";
-import { ImpactNFT } from "./ImpactNFT";
+import { ImpactNFT } from "./components/ImpactNFT";
 import { IoChevronUpOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
@@ -191,7 +191,11 @@ const _LockingApp: ForwardRefRenderFunction<
         <div className="max-w-sm rounded shadow-lg">
           <ImpactNFT details={details.impactNFTDetails} />
           <div className="px-6 py-4">
-            <div className="font-bold text-xl mb-2">Your Impact NFT</div>
+            <div className="text-right">
+              <Badge color="primary">Level: ?</Badge>
+              <Badge color="ticket">Upgradeable?</Badge>
+            </div>
+            <div className="mb-2 font-bold text-xl">Your Impact NFT</div>
             <p className="text-gray-700 text-base">
               Your Impact NFT is proof of your stake. It grows as your stake
               matures. Return regularly to upgrade your NFT to the next level.
