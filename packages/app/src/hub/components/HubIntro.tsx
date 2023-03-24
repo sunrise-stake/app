@@ -6,12 +6,16 @@ import { CarbonRecovered } from "../../common/components";
 
 const HubIntro: FC<{
   show: boolean;
+  onEnter?: () => void;
   onEntered?: () => void;
   onLeft?: () => void;
-}> = ({ show, onEntered, onLeft }) => {
+}> = ({ show, onEnter, onEntered, onLeft }) => {
   return (
     <Transition
       show={show}
+      beforeEnter={() => {
+        if (onEnter) onEnter();
+      }}
       afterEnter={() => {
         if (onEntered) onEntered();
       }}
