@@ -1,10 +1,8 @@
 import clx from "classnames";
 import { toSol, type Details } from "@sunrisestake/client";
 import React, {
-  type FC,
   forwardRef,
   type ForwardRefRenderFunction,
-  type PropsWithChildren,
   useEffect,
   useMemo,
   useState,
@@ -12,6 +10,7 @@ import React, {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import {
+  Badge,
   Button,
   LockForm,
   Panel,
@@ -54,12 +53,6 @@ const canBeUnlocked = (details: Details | undefined): boolean => {
     details.lockDetails.startEpoch.toNumber() < details.currentEpoch.epoch - 1
   );
 };
-
-const LockDetailTag: FC<PropsWithChildren> = ({ children }) => (
-  <span className="inline-flex gap-1 bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-    {children}
-  </span>
-);
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -205,14 +198,14 @@ const _LockingApp: ForwardRefRenderFunction<
             </p>
           </div>
           <div className="px-6 pt-4 pb-2">
-            <LockDetailTag>
+            <Badge>
               Locked -{" "}
               {toFixedWithPrecision(
                 toSol(details.lockDetails?.amountLocked ?? ZERO)
               )}{" "}
               gSOL <TooltipPopover>{tooltips.lockCarbon}</TooltipPopover>
-            </LockDetailTag>
-            <LockDetailTag>
+            </Badge>
+            <Badge>
               Yield accrued -{" "}
               {toFixedWithPrecision(
                 toSol(details.lockDetails?.yield ?? ZERO),
@@ -220,8 +213,8 @@ const _LockingApp: ForwardRefRenderFunction<
               )}{" "}
               gSOL
               <TooltipPopover>{tooltips.lockYield}</TooltipPopover>
-            </LockDetailTag>
-            <LockDetailTag>
+            </Badge>
+            <Badge>
               Equivalent carbon price -{" "}
               {toFixedWithPrecision(
                 solToCarbon(toSol(details.lockDetails?.yield ?? ZERO)),
@@ -229,7 +222,7 @@ const _LockingApp: ForwardRefRenderFunction<
               )}{" "}
               tCO₂E
               <TooltipPopover>{tooltips.lockCarbon}</TooltipPopover>
-            </LockDetailTag>
+            </Badge>
             {/* <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"> */}
             {/*  Next level at -{" "} */}
             {/*  TODO */}

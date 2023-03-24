@@ -1,4 +1,5 @@
 export * from "./AmountInput";
+export * from "./Badge";
 export * from "./Button";
 export * from "./CarbonRecovered";
 export * from "./DetailsBox";
