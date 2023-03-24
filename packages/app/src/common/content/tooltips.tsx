@@ -1,5 +1,5 @@
 const tooltips = {
-  yourStake: <>Your total staked SOL</>,
+  yourStake: <>Your staked SOL and locked gSOL</>,
   totalStake: <>The sum of everyones staked SOL</>,
   offsetCO2: (
     <>
