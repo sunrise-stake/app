@@ -11,6 +11,7 @@ import {
   solToLamports,
   toBN,
   toFixedWithPrecision,
+  ZERO,
   type UIMode,
 } from "../../common/utils";
 import {
@@ -219,7 +220,11 @@ const StakeDashboard: FC = () => {
                 <span className="font-bold text-sm sm:text-lg">
                   {details !== undefined &&
                     toFixedWithPrecision(
-                      toSol(new BN(details.balances.gsolBalance.amount)),
+                      toSol(
+                        new BN(details.balances.gsolBalance.amount).add(
+                          details.lockDetails?.amountLocked ?? ZERO
+                        )
+                      ),
                       2
                     )}{" "}
                 </span>
