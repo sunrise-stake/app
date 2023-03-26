@@ -32,10 +32,16 @@ const isRealCharity = (
 // These will be fetched from some data base
 const charityApps: Array<Charity | PlaceholderCharity> = [
   {
+    name: "Urbánika",
+    imageUrl: "partners/urbanika.jpg",
+    address: new PublicKey("CjKXmKFFkCy8nH2HFmc6m2ZW3pGqy29QCv6GGwgvSdsM"),
+    website: "https://urbanika.notion.site/",
+  },
+  {
     name: "Diamante Bridge Collective",
     imageUrl: "partners/DBCLogo.png",
     address: new PublicKey("HPiGWWLmV8R1UET84Bf1BnsPtRYcQessRdms4oFxe6sW"),
-    website: "http://diamantebridge.org/",
+    website: "https://diamantebridge.org/",
   },
   {
     name: "Charity 1",
@@ -168,7 +174,7 @@ const _GrowApp: ForwardRefRenderFunction<
               <CharityDonateButton charity={charity} key={charity.name} />
             ) : (
               <CollectInfoButton imageUrl={charity.imageUrl} key={charity.name}>
-                <Overlay>Charity</Overlay>
+                <Overlay>Impact Org</Overlay>
               </CollectInfoButton>
             )
           )}

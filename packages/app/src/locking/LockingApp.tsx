@@ -127,7 +127,7 @@ const _LockingApp: ForwardRefRenderFunction<
         txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,
-            message: `Unlocking successful (tx: ${index} of ${txes.length})`,
+            message: `Upgrading successful (tx: ${index} of ${txes.length})`,
             txid: tx,
           });
         });

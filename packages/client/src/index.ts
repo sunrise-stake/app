@@ -620,6 +620,9 @@ export class SunriseStakeClient {
         missingValue
       )} (${missingValueShare.toString()}%)`,
       "Extractable Yield": `${toSol(details.extractableYield)}`,
+      "Epoch Report Epoch": `${details.epochReport.epoch.toNumber()}`,
+      "Current Epoch": `${details.currentEpoch.epoch}`,
+      "Epoch Report Tickets": `${details.epochReport.tickets.toNumber()}`,
     };
 
     Object.keys(report).forEach((key) => {
