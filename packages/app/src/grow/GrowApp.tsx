@@ -174,7 +174,7 @@ const _GrowApp: ForwardRefRenderFunction<
               <CharityDonateButton charity={charity} key={charity.name} />
             ) : (
               <CollectInfoButton imageUrl={charity.imageUrl} key={charity.name}>
-                <Overlay>Charity</Overlay>
+                <Overlay>Impact Org</Overlay>
               </CollectInfoButton>
             )
           )}
