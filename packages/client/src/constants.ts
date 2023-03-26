@@ -41,7 +41,7 @@ export const Environment: Record<
       "shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn"
     ),
     yieldControllerState: new PublicKey(
-      "htGs6L3pCRxgfkJP2vLUdb9hVPtcE4mKsdWP4CnirQA"
+      "DzyP73X4TWnh5jarfjapaNBxtjeEVsfknWVfToRYARDL" // Buy & Burn Yield Controller
     ),
     percentageStakeToMarinade: 200, // TODO TEMP fix
     blaze: {
