@@ -136,6 +136,9 @@ const _HubApp: ForwardRefRenderFunction<
       />
       <HubIntro
         show={showIntro}
+        onEnter={() => {
+          updateIntroLeft(false);
+        }}
         onLeft={() => {
           updateIntroLeft(true);
         }}
