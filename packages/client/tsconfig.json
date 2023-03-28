@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "lib": ["es2021", "dom"],
+    "module": "commonjs",
+    "outDir": "./dist",
+    "target": "es6",
+    "esModuleInterop": true,
+    "strict": true,
+    "sourceMap": true,
+    "sourceRoot": "./src",
+    "mapRoot": "./dist",
+    "types": ["node"],
+    "declaration": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["../../node_modules", "dist"]
+}
+  
