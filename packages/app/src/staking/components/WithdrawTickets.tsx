@@ -31,18 +31,23 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
     }
   }, [isClicked]);
 
-  // TODO: Think of a better way
-  if (ticket.ticketDue === undefined) {
-    ticket.ticketDue = false;
-  }
-
   return (
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
-        color={ticket.ticketDue != null ? "primary" : "ticket"}
+        color={
+          ticket.ticketDue === undefined ||
+          ticket.ticketDue === null ||
+          !ticket.ticketDue
+            ? "ticket"
+            : "primary"
+        }
         className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem] items-center"
         onClick={() => {
-          if (ticket.ticketDue === undefined || ticket.ticketDue == null) {
+          if (
+            ticket.ticketDue === undefined ||
+            ticket.ticketDue === null ||
+            !ticket.ticketDue
+          ) {
             console.log("Ticket is not due yet");
             setIsClicked((prevState) => !prevState);
             return;
@@ -75,7 +80,7 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
         }}
         color="secondary"
         className={clx(
-          "text-danger border border-danger text-sm absolute items-center rounded-md transition-transform duration-500 z-0 h-16 max-w-[10rem] sm:max-w-[12rem]",
+          "text-danger border border-danger text-sm absolute items-center transition-transform duration-500 z-0 h-16 max-w-[10rem] sm:max-w-[12rem]",
           {
             "transform translate-x-[11rem] sm:translate-x-[14rem]": isClicked,
             "transform translate-x-0": !isClicked,
@@ -84,7 +89,9 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
       >
         <div className="flex flex-row items-center truncate overflow-hidden -mx-4">
           <AiOutlineClockCircle className="hidden sm:block mr-2" />
-          Due {dayjs(ticket.ticketDueDate).fromNow()}
+          <div className="text-sm">
+            Due {dayjs(ticket.ticketDueDate).fromNow()}
+          </div>
         </div>
       </Button>
     </div>
