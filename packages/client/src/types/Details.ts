@@ -67,6 +67,8 @@ export interface Details {
     yield: BN;
     lockAccount: PublicKey;
     lockTokenAccount: PublicKey;
+    currentLevel: number;
+    nextLevelYieldRequired: BN;
   };
   impactNFTDetails?: {
     stateAddress: PublicKey;

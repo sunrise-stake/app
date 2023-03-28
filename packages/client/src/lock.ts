@@ -47,6 +47,20 @@ const getLockTokenAccount = async (
   return { address, account };
 };
 
+const getImpactNFTDetails = async (
+    config: SunriseStakeConfig,
+    program: Program<SunriseStake>,
+): Promise<Level[]> => {
+  const impactNFTClient = await ImpactNftClient.get(
+      program.provider as AnchorProvider,
+      config.impactNFTStateAddress
+  );
+
+  const details = await impactNFTClient.details()
+
+  details.tiers
+}
+
 export interface GetLockAccountResult {
   lockAccountAddress: PublicKey;
   tokenAccountAddress: PublicKey;
@@ -81,6 +95,8 @@ export const getLockAccount = async (
       tokenAccount: null,
     };
 
+  // const levels = await getImpactNFTLevels(config, program);
+
   const lockAccount = {
     address: lockAccountAddress,
     authority,
@@ -90,6 +106,7 @@ export const getLockAccount = async (
     stateAddress: account.stateAddress,
     sunriseYieldAtStart: account.sunriseYieldAtStart,
     yieldAccruedByOwner: account.yieldAccruedByOwner,
+    // levels,
   };
 
   return { lockAccountAddress, tokenAccountAddress, lockAccount, tokenAccount };
@@ -262,6 +279,8 @@ export const updateLockAccount = async (
     new BN(offset)
   );
 
+  console.log("updateAccounts", updateAccounts);
+
   const accounts: Accounts = {
     state: config.stateAddress,
     gsolMint: config.gsolMint,
@@ -341,6 +360,12 @@ const getUpdateCollectionForOffset = async (
   );
   const levels = account.levels as Level[];
 
+  console.log(
+    "getUpdateCollectionForOffset levels:",
+    levels.map((l) => l.offset.toNumber())
+  );
+  console.log("getUpdateCollectionForOffset offset:", offset.toString());
+
   // TODO: Handle a user's offset being less than the minimum level's offset
 
   if (levels.length === 1) {
@@ -348,7 +373,13 @@ const getUpdateCollectionForOffset = async (
   }
 
   for (let i = 0; i < levels.length; ++i) {
+    console.log(
+      "getUpdateCollectionForOffset level offset:",
+      levels[i].offset.toString(),
+      i
+    );
     if (levels[i].offset.gt(offset)) {
+      console.log("getUpdateCollectionForOffset returning: ", i - 1);
       return levels[i - 1].collectionMint;
     }
   }
@@ -394,6 +425,16 @@ const calculateUpdatedYieldAccrued = async (
 
   const updatedUserYieldAccrued =
     lockAccount.yieldAccruedByOwner.add(userYieldAccrued);
+
+  console.log("user yield calculations", {
+    globalYieldAccrued: globalYieldAccruedSinceLastUpdate.toString(),
+    yieldAccruedByOwner: lockAccount.yieldAccruedByOwner.toString(),
+    yieldAccruedWithUnstakeFee: yieldAccruedWithUnstakeFee.toString(),
+    userLockedGsol: userLockedGsol.toString(),
+    currentGsolSupply: epochReportAccount.currentGsolSupply.toString(),
+    userYieldAccrued: userYieldAccrued.toString(),
+    updatedUserYieldAccrued: updatedUserYieldAccrued.toString(),
+  });
 
   return updatedUserYieldAccrued;
 };
