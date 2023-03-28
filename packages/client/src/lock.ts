@@ -382,7 +382,9 @@ const calculateUpdatedYieldAccrued = async (
     .add(epochReportAccount.extractedYield)
     .sub(lockAccount.sunriseYieldAtStart);
 
-  const yieldAccruedWithUnstakeFee = globalYieldAccruedSinceLastUpdate.muln(997).divn(1000);
+  const yieldAccruedWithUnstakeFee = globalYieldAccruedSinceLastUpdate
+    .muln(997)
+    .divn(1000);
 
   const userLockedGsol = new BN(tokenAccount.amount.toString());
 
