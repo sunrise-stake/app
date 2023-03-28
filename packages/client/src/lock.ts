@@ -378,11 +378,11 @@ const calculateUpdatedYieldAccrued = async (
   if (tokenAccount === null)
     throw new Error("Lock gsol token account does not exist");
 
-  const globalYieldAccrued = epochReportAccount.extractableYield
-    .sub(epochReportAccount.extractedYield)
+  const globalYieldAccruedSinceLastUpdate = epochReportAccount.extractableYield
+    .add(epochReportAccount.extractedYield)
     .sub(lockAccount.sunriseYieldAtStart);
 
-  const yieldAccruedWithUnstakeFee = globalYieldAccrued.muln(997).divn(1000);
+  const yieldAccruedWithUnstakeFee = globalYieldAccruedSinceLastUpdate.muln(997).divn(1000);
 
   const userLockedGsol = new BN(tokenAccount.amount.toString());
 
