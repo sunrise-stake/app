@@ -3,7 +3,7 @@ import { toSol, type TicketAccount } from "@sunrisestake/client";
 import clx from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { AiOutlineClockCircle } from "react-icons/ai";
 
 import { toFixedWithPrecision } from "../../common/utils";
@@ -31,23 +31,21 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
     }
   }, [isClicked]);
 
+  const ticketDue = useMemo(
+    () =>
+      ticket.ticketDue !== undefined &&
+      ticket.ticketDue !== null &&
+      ticket.ticketDue,
+    [ticket]
+  );
+
   return (
     <div className="flex flex-row sm:justify-center sm:items-center">
       <Button
-        color={
-          ticket.ticketDue === undefined ||
-          ticket.ticketDue === null ||
-          !ticket.ticketDue
-            ? "ticket"
-            : "primary"
-        }
+        color={ticketDue ? "primary" : "ticket"}
         className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem] items-center"
         onClick={() => {
-          if (
-            ticket.ticketDue === undefined ||
-            ticket.ticketDue === null ||
-            !ticket.ticketDue
-          ) {
+          if (!ticketDue) {
             console.log("Ticket is not due yet");
             setIsClicked((prevState) => !prevState);
             return;
