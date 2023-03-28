@@ -41,7 +41,7 @@ export const Environment: Record<
       "shcFT8Ur2mzpX61uWQRL9KyERZp4w2ehDEvA7iaAthn"
     ),
     yieldControllerState: new PublicKey(
-      "htGs6L3pCRxgfkJP2vLUdb9hVPtcE4mKsdWP4CnirQA"
+      "DzyP73X4TWnh5jarfjapaNBxtjeEVsfknWVfToRYARDL" // Buy & Burn Yield Controller
     ),
     percentageStakeToMarinade: 200, // TODO TEMP fix
     blaze: {
@@ -49,7 +49,7 @@ export const Environment: Record<
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
     },
     impactNFT: {
-      state: new PublicKey("6RzCneyeEqnjiWxrzqfBwHDEpTrbcSkBFFUrtMZnNjpc"), // TODO Tmp- will be replaced with a state address
+      state: new PublicKey("6RzCneyeEqnjiWxrzqfBwHDEpTrbcSkBFFUrtMZnNjpc"),
     },
   },
   // TODO placeholders

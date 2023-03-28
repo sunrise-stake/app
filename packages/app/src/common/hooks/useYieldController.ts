@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  type YieldControllerState,
+  type BuyAndBurnState,
   YieldControllerClient,
 } from "@sunrisestake/yield-controller";
 import { AnchorProvider } from "@coral-xyz/anchor";
@@ -13,9 +13,9 @@ const stage =
   (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
 
-export const useYieldController = (): YieldControllerState | undefined => {
+export const useYieldController = (): BuyAndBurnState | undefined => {
   const { connection } = useConnection();
-  const [yieldState, setYieldState] = useState<YieldControllerState>();
+  const [yieldState, setYieldState] = useState<BuyAndBurnState>();
   useEffect(() => {
     void (async () => {
       const provider = new AnchorProvider(
@@ -37,12 +37,8 @@ export const useYieldController = (): YieldControllerState | undefined => {
         console.error(e);
         throw e;
       });
-      yieldControllerClient
-        .getState()
-        .then(setYieldState)
-        .catch((e) => {
-          console.error(e);
-        });
+
+      setYieldState(yieldControllerClient.getState());
     })();
   }, []);
 
