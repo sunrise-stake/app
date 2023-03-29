@@ -3962,10 +3962,10 @@
     borsh "^0.6.0"
     bs58 "^5.0.0"
 
-"@sunrisestake/yield-controller@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@sunrisestake/yield-controller/-/yield-controller-0.0.4.tgz#04b22d658da39b78765b2644ebb77bf457f8b9e1"
-  integrity sha512-nY0AZKo17OhiQlK+r2u2Mnt7uch4KomSJqy5z5J43NONqG/S27JJ7FzIOKmMVtZ7mrcsANx2opWjlEFWmyuVqA==
+"@sunrisestake/yield-controller@^0.0.4-switchboard-1":
+  version "0.0.4-switchboard-1"
+  resolved "https://registry.yarnpkg.com/@sunrisestake/yield-controller/-/yield-controller-0.0.4-switchboard-1.tgz#5ec22383c9ae2bf31575b2de4548b827b13df9f9"
+  integrity sha512-ThG8bELiLc4/B8XUuqOO2tmI+xXy2s1dAot+NuM/RunIitY6BbkOPlxCws6cJwpgk9aENGgGxi0b2Cx4WYS2wA==
   dependencies:
     "@coral-xyz/anchor" "^0.26.0"
     "@solana/spl-token" "^0.3.7"
