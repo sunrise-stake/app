@@ -72,12 +72,12 @@ export interface SunriseStakeConfig {
 // type D = ArrayElement<["foo", "bar"]>; // "foo" | "bar"
 // type E = ArrayElement<(P | (Q | R))[]>; // P | Q | R
 type ArrayElement<ArrayType extends readonly unknown[]> =
-  ArrayType extends ReadonlyArray<infer ElementType> ? ElementType : never;
+    ArrayType extends ReadonlyArray<infer ElementType> ? ElementType : never;
 
 const findProgramDerivedAddress = (
-  config: SunriseStakeConfig,
-  seed: ProgramDerivedAddressSeed,
-  extraSeeds: Buffer[] = []
+    config: SunriseStakeConfig,
+    seed: ProgramDerivedAddressSeed,
+    extraSeeds: Buffer[] = []
 ): [PublicKey, number] => {
   const seeds = [
     config.stateAddress.toBuffer(),
@@ -88,35 +88,35 @@ const findProgramDerivedAddress = (
 };
 
 export const findMSolTokenAccountAuthority = (
-  config: SunriseStakeConfig
+    config: SunriseStakeConfig
 ): [PublicKey, number] =>
-  findProgramDerivedAddress(config, ProgramDerivedAddressSeed.M_SOL_ACCOUNT);
+    findProgramDerivedAddress(config, ProgramDerivedAddressSeed.M_SOL_ACCOUNT);
 
 export const findBSolTokenAccountAuthority = (
-  config: SunriseStakeConfig
+    config: SunriseStakeConfig
 ): [PublicKey, number] =>
-  findProgramDerivedAddress(config, ProgramDerivedAddressSeed.B_SOL_ACCOUNT);
+    findProgramDerivedAddress(config, ProgramDerivedAddressSeed.B_SOL_ACCOUNT);
 
 export const findGSolMintAuthority = (
-  config: SunriseStakeConfig
+    config: SunriseStakeConfig
 ): [PublicKey, number] =>
-  findProgramDerivedAddress(
-    config,
-    ProgramDerivedAddressSeed.G_SOL_MINT_AUTHORITY
-  );
+    findProgramDerivedAddress(
+        config,
+        ProgramDerivedAddressSeed.G_SOL_MINT_AUTHORITY
+    );
 
 export const findEpochReportAccount = (
-  config: SunriseStakeConfig
+    config: SunriseStakeConfig
 ): [PublicKey, number] =>
-  findProgramDerivedAddress(
-    config,
-    ProgramDerivedAddressSeed.EPOCH_REPORT_ACCOUNT
-  );
+    findProgramDerivedAddress(
+        config,
+        ProgramDerivedAddressSeed.EPOCH_REPORT_ACCOUNT
+    );
 
 export const findOrderUnstakeTicketAccount = (
-  config: SunriseStakeConfig,
-  epoch: bigint,
-  index: bigint
+    config: SunriseStakeConfig,
+    epoch: bigint,
+    index: bigint
 ): [PublicKey, number] => {
   const epochBuf = Buffer.allocUnsafe(8);
   epochBuf.writeBigInt64BE(epoch, 0);
@@ -125,47 +125,47 @@ export const findOrderUnstakeTicketAccount = (
   indexBuf.writeBigInt64BE(index, 0);
 
   return findProgramDerivedAddress(
-    config,
-    ProgramDerivedAddressSeed.ORDER_UNSTAKE_TICKET_ACCOUNT,
-    [epochBuf, indexBuf]
+      config,
+      ProgramDerivedAddressSeed.ORDER_UNSTAKE_TICKET_ACCOUNT,
+      [epochBuf, indexBuf]
   );
 };
 
 export const findLockAccount = (
-  config: SunriseStakeConfig,
-  authority: PublicKey
+    config: SunriseStakeConfig,
+    authority: PublicKey
 ): [PublicKey, number] =>
-  findProgramDerivedAddress(config, ProgramDerivedAddressSeed.LOCK_ACCOUNT, [
-    authority.toBuffer(),
-  ]);
+    findProgramDerivedAddress(config, ProgramDerivedAddressSeed.LOCK_ACCOUNT, [
+      authority.toBuffer(),
+    ]);
 
 export const findLockTokenAccount = (
-  config: SunriseStakeConfig,
-  authority: PublicKey
+    config: SunriseStakeConfig,
+    authority: PublicKey
 ): [PublicKey, number] =>
-  findProgramDerivedAddress(
-    config,
-    ProgramDerivedAddressSeed.LOCK_TOKEN_ACCOUNT,
-    [authority.toBuffer()]
-  );
+    findProgramDerivedAddress(
+        config,
+        ProgramDerivedAddressSeed.LOCK_TOKEN_ACCOUNT,
+        [authority.toBuffer()]
+    );
 
 export const findImpactNFTMintAuthority = (
-  config: SunriseStakeConfig
+    config: SunriseStakeConfig
 ): [PublicKey, number] =>
-  findProgramDerivedAddress(
-    config,
-    ProgramDerivedAddressSeed.IMPACT_NFT_MINT_AUTHORITY
-  );
+    findProgramDerivedAddress(
+        config,
+        ProgramDerivedAddressSeed.IMPACT_NFT_MINT_AUTHORITY
+    );
 
 export const findImpactNFTMint = (
-  config: SunriseStakeConfig,
-  authority: PublicKey
+    config: SunriseStakeConfig,
+    authority: PublicKey
 ): [PublicKey, number] =>
-  findProgramDerivedAddress(
-    config,
-    ProgramDerivedAddressSeed.IMPACT_NFT_MINT_ACCOUNT,
-    [authority.toBuffer()]
-  );
+    findProgramDerivedAddress(
+        config,
+        ProgramDerivedAddressSeed.IMPACT_NFT_MINT_ACCOUNT,
+        [authority.toBuffer()]
+    );
 
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {
@@ -176,8 +176,8 @@ export const logKeys = (transaction: Transaction): void => {
 };
 
 export const getTokenAccountNullable = async (
-  connection: Connection,
-  tokenAccountAddress: PublicKey
+    connection: Connection,
+    tokenAccountAddress: PublicKey
 ): Promise<TokenAccount | null> => {
   return getAccount(connection, tokenAccountAddress).catch((error) => {
     if (error.name === "TokenAccountNotFoundError") {
@@ -193,18 +193,18 @@ interface NFTSummary {
   exists: boolean;
 }
 export const getImpactNFT = async (
-  config: SunriseStakeConfig,
-  authority: PublicKey,
-  provider: AnchorProvider
+    config: SunriseStakeConfig,
+    authority: PublicKey,
+    provider: AnchorProvider
 ): Promise<NFTSummary> => {
   const impactNFTMint = findImpactNFTMint(config, authority)[0];
   const tokenAccountAddress = getAssociatedTokenAddressSync(
-    impactNFTMint,
-    authority
+      impactNFTMint,
+      authority
   );
   const tokenAccount = await getTokenAccountNullable(
-    provider.connection,
-    tokenAccountAddress
+      provider.connection,
+      tokenAccountAddress
   );
 
   return {
@@ -215,10 +215,10 @@ export const getImpactNFT = async (
 };
 
 export const confirm = (connection: Connection) => async (txSig: string) =>
-  connection.confirmTransaction({
-    signature: txSig,
-    ...(await connection.getLatestBlockhash()),
-  });
+    connection.confirmTransaction({
+      signature: txSig,
+      ...(await connection.getLatestBlockhash()),
+    });
 
 export const setUpAnchor = (): anchor.AnchorProvider => {
   // Configure the client to use the local cluster.
@@ -250,19 +250,19 @@ export interface Options {
  * @param expectedCount
  */
 export const findAllTickets = async (
-  connection: Connection,
-  config: SunriseStakeConfig,
-  epoch: bigint,
-  expectedCount: number
+    connection: Connection,
+    config: SunriseStakeConfig,
+    epoch: bigint,
+    expectedCount: number
 ): Promise<PublicKey[]> => {
   // find all tickets for the last epoch in reverse order, this allows us to better paginate later
   const tickets: PublicKey[] = [];
   // get the public keys for all the accounts
   for (let i = expectedCount - 1; i >= 0; i--) {
     const [orderUnstakeTicketAccount] = findOrderUnstakeTicketAccount(
-      config,
-      epoch,
-      BigInt(i)
+        config,
+        epoch,
+        BigInt(i)
     );
 
     tickets.push(orderUnstakeTicketAccount);
@@ -273,48 +273,48 @@ export const findAllTickets = async (
 
   // remove missing accounts and return the pubkeys of the non-missing ones.
   return accountInfos
-    .map((accountInfo, i): [PublicKey, ArrayElement<typeof accountInfos>] => [
-      tickets[i],
-      accountInfo,
-    ])
-    .filter(
-      (element): element is [PublicKey, AccountInfo<Buffer>] =>
-        element[1] !== null
-    )
-    .map(([ticket]) => ticket);
+      .map((accountInfo, i): [PublicKey, ArrayElement<typeof accountInfos>] => [
+        tickets[i],
+        accountInfo,
+      ])
+      .filter(
+          (element): element is [PublicKey, AccountInfo<Buffer>] =>
+              element[1] !== null
+      )
+      .map(([ticket]) => ticket);
 };
 
 export const proportionalBN = (
-  amount: BN,
-  numerator: BN,
-  denominator: BN
+    amount: BN,
+    numerator: BN,
+    denominator: BN
 ): BN => {
   if (denominator.isZero()) {
     return amount;
   }
   const result =
-    (BigInt(amount.toString()) * BigInt(numerator.toString())) /
-    BigInt(denominator.toString());
+      (BigInt(amount.toString()) * BigInt(numerator.toString())) /
+      BigInt(denominator.toString());
   return new BN(result.toString());
 };
 
 export const getStakeAccountInfo = async (
-  stakeAccount: PublicKey,
-  anchorProvider: AnchorProvider
+    stakeAccount: PublicKey,
+    anchorProvider: AnchorProvider
 ): Promise<MarinadeUtils.ParsedStakeAccountInfo> => {
   const provider = new Provider(
-    anchorProvider.connection,
-    anchorProvider.wallet as Wallet,
-    {}
+      anchorProvider.connection,
+      anchorProvider.wallet as Wallet,
+      {}
   );
 
   return MarinadeUtils.getParsedStakeAccountInfo(provider, stakeAccount);
 };
 
 export const getVoterAddress = async (
-  stakeAccount: PublicKey,
-  provider: AnchorProvider
-  // program: Program<SunriseStake>,
+    stakeAccount: PublicKey,
+    provider: AnchorProvider
+    // program: Program<SunriseStake>,
 ): Promise<PublicKey> => {
   const info = await getStakeAccountInfo(stakeAccount, provider);
   if (!info.voterAddress) {
@@ -324,21 +324,21 @@ export const getVoterAddress = async (
 };
 
 export const getValidatorIndex = async (
-  marinadeState: MarinadeState,
-  voterAddress: PublicKey
+    marinadeState: MarinadeState,
+    voterAddress: PublicKey
 ): Promise<number> => {
   const { validatorRecords } = await marinadeState.getValidatorRecords();
   const validatorLookupIndex = validatorRecords.findIndex(
-    ({ validatorAccount }) => validatorAccount.equals(voterAddress)
+      ({ validatorAccount }) => validatorAccount.equals(voterAddress)
   );
   return validatorLookupIndex === -1
-    ? marinadeState.state.validatorSystem.validatorList.count
-    : validatorLookupIndex;
+      ? marinadeState.state.validatorSystem.validatorList.count
+      : validatorLookupIndex;
 };
 
 export const marinadeTargetReached = (
-  details: Details,
-  percentageStakeToMarinade: number
+    details: Details,
+    percentageStakeToMarinade: number
 ): boolean => {
   const msolValue = details.mpDetails.msolValue;
   const lpValue = details.lpDetails.lpSolValue;
@@ -346,13 +346,13 @@ export const marinadeTargetReached = (
   const totalValue = totalMarinade.add(details.bpDetails.bsolValue);
 
   const limit = proportionalBN(
-    totalValue,
-    new BN(percentageStakeToMarinade),
-    new BN(100)
+      totalValue,
+      new BN(percentageStakeToMarinade),
+      new BN(100)
   );
 
   const lpShare =
-    details.lpDetails.lpSolValue.muln(1_000).div(totalValue).toNumber() / 10;
+      details.lpDetails.lpSolValue.muln(1_000).div(totalValue).toNumber() / 10;
 
   // We set this to <10% because, when depositing to Marinade, the lp share
   // never actually reaches 10%. Amounts are split across both the LP and SP
@@ -363,7 +363,7 @@ export const marinadeTargetReached = (
   // TODO move to a constant
   if (lpShare < 9) {
     console.log(
-      `LP share is ${lpShare}%, which is below the minimum of 10%. Should send to Marinade.`
+        `LP share is ${lpShare}%, which is below the minimum of 10%. Should send to Marinade.`
     );
     return false;
   }
