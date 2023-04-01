@@ -58,7 +58,7 @@ export const Environment: Record<
     holdingAccount: PublicKey.default,
     percentageStakeToMarinade: 75,
     yieldControllerState: new PublicKey(
-      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
+      "8Z8BwUqZTD8XyJ6sdEEeWLaZ9Bg1J7TRDoYPfhkGS9Hr"
     ),
     blaze: {
       pool: PublicKey.default,
@@ -74,7 +74,7 @@ export const Environment: Record<
       "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
     ),
     yieldControllerState: new PublicKey(
-      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
+      "8Z8BwUqZTD8XyJ6sdEEeWLaZ9Bg1J7TRDoYPfhkGS9Hr" // Buy & Burn Yield Controller
     ),
     percentageStakeToMarinade: 75,
     blaze: {
