@@ -299,15 +299,18 @@ export const orderUnstake = async (
   );
 
   const newTicketAccount = Keypair.generate();
-  const newTicketAccountSpace = 32 + 32 + 8 + 8 + 8
-  const newTicketLamports = await program.provider.connection.getMinimumBalanceForRentExemption(newTicketAccountSpace)
+  const newTicketAccountSpace = 32 + 32 + 8 + 8 + 8;
+  const newTicketLamports =
+    await program.provider.connection.getMinimumBalanceForRentExemption(
+      newTicketAccountSpace
+    );
 
   const createTicketAccount = SystemProgram.createAccount({
-      fromPubkey: staker,
-      newAccountPubkey: newTicketAccount.publicKey,
-      space: newTicketAccountSpace,
-      lamports: newTicketLamports,
-      programId: marinadeState.marinadeFinanceProgramId,
+    fromPubkey: staker,
+    newAccountPubkey: newTicketAccount.publicKey,
+    space: newTicketAccountSpace,
+    lamports: newTicketLamports,
+    programId: marinadeState.marinadeFinanceProgramId,
   });
   const proxyTicketAccount = Keypair.generate();
 
@@ -341,7 +344,7 @@ export const orderUnstake = async (
     .preInstructions([createTicketAccount])
     .transaction();
 
-  return { transaction, newTicketAccount, proxyTicketAccount }
+  return { transaction, newTicketAccount, proxyTicketAccount };
 };
 
 export interface TriggerRebalanceResult {

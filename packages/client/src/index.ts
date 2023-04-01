@@ -69,7 +69,7 @@ import {
   liquidUnstake,
   triggerRebalance,
   getEpochReportAccount,
-  orderUnstake
+  orderUnstake,
 } from "./marinade";
 import {
   blazeDeposit,
@@ -165,10 +165,8 @@ export class SunriseStakeClient {
     )[0];
   }
 
-
-  public async initMarinade() {
-    if (!this.config) 
-      throw new Error("init not called");
+  public async initMarinade(): Promise<void> {
+    if (!this.config) throw new Error("init not called");
 
     const [gsolMintAuthority] = findGSolMintAuthority(this.config);
     this.msolTokenAccountAuthority = findMSolTokenAccountAuthority(
@@ -194,12 +192,10 @@ export class SunriseStakeClient {
       mint: this.marinadeState.lpMint.address,
       owner: this.msolTokenAccountAuthority,
     });
-
   }
 
-  public async initBlaze() {
-    if (!this.config) 
-      throw new Error("init not called");
+  public async initBlaze(): Promise<void> {
+    if (!this.config) throw new Error("init not called");
 
     const stakePoolInfo = await getStakePoolAccount(
       this.provider.connection,
@@ -444,7 +440,7 @@ export class SunriseStakeClient {
     if (!this.blazeState) await this.initBlaze();
     if (!this.marinade || !this.marinadeState) await this.initMarinade();
 
-    if (  
+    if (
       !this.marinadeState ||
       !this.marinade ||
       !this.config ||
@@ -686,8 +682,11 @@ export class SunriseStakeClient {
       );
 
     console.log("newTicketAccount: ", newTicketAccount.publicKey.toString());
-    console.log("proxyTicketAccount: ", proxyTicketAccount.publicKey.toString());
-    
+    console.log(
+      "proxyTicketAccount: ",
+      proxyTicketAccount.publicKey.toString()
+    );
+
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
     return [transaction, [newTicketAccount, proxyTicketAccount]];
@@ -1075,7 +1074,7 @@ export class SunriseStakeClient {
     const lpMsolBalancePromise =
       this.provider.connection.getTokenAccountBalance(
         this.marinadeState.mSolLeg
-    );
+      );
 
     const solLeg = await this.marinadeState.solLeg();
     const solLegBalancePromise = this.provider.connection.getBalance(solLeg);
@@ -1195,7 +1194,7 @@ export class SunriseStakeClient {
       mint: impactNFT.mint,
       tokenAccount: impactNFT.tokenAccount,
     };
-    //console.log("nftSummary", nftSummary);
+    // console.log("nftSummary", nftSummary);
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
       ? nftSummary
       : undefined;
