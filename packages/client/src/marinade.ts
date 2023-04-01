@@ -1,5 +1,6 @@
 import {
   type PublicKey,
+  Keypair,
   StakeProgram,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
@@ -270,6 +271,77 @@ export const liquidUnstake = async (
     .liquidUnstake(lamports)
     .accounts(accounts)
     .transaction();
+};
+
+export const orderUnstake = async (
+  config: SunriseStakeConfig,
+  marinade: Marinade,
+  marinadeState: MarinadeState,
+  program: Program<SunriseStake>,
+  stateAddress: PublicKey,
+  staker: PublicKey,
+  stakerGsolTokenAccount: PublicKey,
+  lamports: BN
+): Promise<{
+  transaction: Transaction;
+  newTicketAccount: Keypair;
+  proxyTicketAccount: Keypair;
+}> => {
+  const sunriseStakeState = await program.account.state.fetch(stateAddress);
+  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
+  const [gsolMintAuthority] = findGSolMintAuthority(config);
+  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
+  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
+    {
+      mint: marinadeState.mSolMintAddress,
+      owner: msolTokenAccountAuthority,
+    }
+  );
+
+  const newTicketAccount = Keypair.generate();
+  const newTicketAccountSpace = 32 + 32 + 8 + 8 + 8
+  const newTicketLamports = await program.provider.connection.getMinimumBalanceForRentExemption(newTicketAccountSpace)
+
+  const createTicketAccount = SystemProgram.createAccount({
+      fromPubkey: staker,
+      newAccountPubkey: newTicketAccount.publicKey,
+      space: newTicketAccountSpace,
+      lamports: newTicketLamports,
+      programId: marinadeState.marinadeFinanceProgramId,
+  });
+  const proxyTicketAccount = Keypair.generate();
+
+  type Accounts = Parameters<
+    ReturnType<typeof program.methods.orderUnstake>["accounts"]
+  >[0];
+
+  const accounts: Accounts = {
+    state: stateAddress,
+    marinadeState: marinadeState.marinadeStateAddress,
+    msolMint: marinadeState.mSolMint.address,
+    gsolMint: sunriseStakeState.gsolMint,
+    gsolMintAuthority,
+    getMsolFrom: msolAssociatedTokenAccountAddress,
+    getMsolFromAuthority: msolTokenAccountAuthority,
+    gsolTokenAccount: stakerGsolTokenAccount,
+    gsolTokenAccountAuthority: staker,
+    newTicketAccount: newTicketAccount.publicKey,
+    sunriseTicketAccount: proxyTicketAccount.publicKey,
+    treasury: sunriseStakeState.treasury,
+    clock: SYSVAR_CLOCK_PUBKEY,
+    rent: SYSVAR_RENT_PUBKEY,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    marinadeProgram,
+    systemProgram: SystemProgram.programId,
+  };
+
+  const transaction = await program.methods
+    .orderUnstake(lamports)
+    .accounts(accounts)
+    .preInstructions([createTicketAccount])
+    .transaction();
+
+  return { transaction, newTicketAccount, proxyTicketAccount }
 };
 
 export interface TriggerRebalanceResult {

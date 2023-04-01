@@ -69,6 +69,7 @@ import {
   liquidUnstake,
   triggerRebalance,
   getEpochReportAccount,
+  orderUnstake
 } from "./marinade";
 import {
   blazeDeposit,
@@ -142,11 +143,6 @@ export class SunriseStakeClient {
       this.env.state
     );
 
-    const stakePoolInfo = await getStakePoolAccount(
-      this.provider.connection,
-      this.env.blaze.pool
-    );
-
     this.config = {
       gsolMint: sunriseStakeState.gsolMint,
       treasury: sunriseStakeState.treasury,
@@ -167,11 +163,15 @@ export class SunriseStakeClient {
       ],
       ASSOCIATED_TOKEN_PROGRAM_ID
     )[0];
+  }
+
+
+  public async initMarinade() {
+    if (!this.config) 
+      throw new Error("init not called");
+
     const [gsolMintAuthority] = findGSolMintAuthority(this.config);
     this.msolTokenAccountAuthority = findMSolTokenAccountAuthority(
-      this.config
-    )[0];
-    this.bsolTokenAccountAuthority = findBSolTokenAccountAuthority(
       this.config
     )[0];
 
@@ -195,6 +195,17 @@ export class SunriseStakeClient {
       owner: this.msolTokenAccountAuthority,
     });
 
+  }
+
+  public async initBlaze() {
+    if (!this.config) 
+      throw new Error("init not called");
+
+    const stakePoolInfo = await getStakePoolAccount(
+      this.provider.connection,
+      this.env.blaze.pool
+    );
+
     const [withdrawAuthority] = PublicKey.findProgramAddressSync(
       [this.env.blaze.pool.toBuffer(), Buffer.from("withdraw")],
       STAKE_POOL_PROGRAM_ID
@@ -215,6 +226,10 @@ export class SunriseStakeClient {
       withdrawAuthority,
       depositAuthority,
     };
+
+    this.bsolTokenAccountAuthority = findBSolTokenAccountAuthority(
+      this.config
+    )[0];
 
     this.bsolTokenAccount = await utils.token.associatedAddress({
       mint: stakePoolInfo.poolMint,
@@ -285,6 +300,8 @@ export class SunriseStakeClient {
   }
 
   public async deposit(lamports: BN): Promise<Transaction> {
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -321,6 +338,8 @@ export class SunriseStakeClient {
   }
 
   public async depositToBlaze(lamports: BN): Promise<Transaction> {
+    if (!this.blazeState) await this.initBlaze();
+
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
@@ -352,6 +371,8 @@ export class SunriseStakeClient {
   public async depositStakeToBlaze(
     stakeAccountAddress: PublicKey
   ): Promise<Transaction> {
+    if (!this.blazeState) await this.initBlaze();
+
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
@@ -383,6 +404,8 @@ export class SunriseStakeClient {
   public async depositStakeAccount(
     stakeAccountAddress: PublicKey
   ): Promise<string> {
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -418,7 +441,10 @@ export class SunriseStakeClient {
   }
 
   public async unstake(lamports: BN): Promise<Transaction> {
-    if (
+    if (!this.blazeState) await this.initBlaze();
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
+    if (  
       !this.marinadeState ||
       !this.marinade ||
       !this.config ||
@@ -449,6 +475,9 @@ export class SunriseStakeClient {
   // Note, even if there are no tickets to recover, if the epoch report references the previous epoch
   // we call this instruction anyway as part of triggerRebalance, to update the epoch.
   async recoverTickets(): Promise<TransactionInstruction | null> {
+    if (!this.blazeState) await this.initBlaze();
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -547,6 +576,8 @@ export class SunriseStakeClient {
    * Trigger a rebalance without doing anything else.
    */
   public async triggerRebalance(): Promise<string> {
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -631,17 +662,32 @@ export class SunriseStakeClient {
   }
 
   public async orderUnstake(lamports: BN): Promise<[Transaction, Keypair[]]> {
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.marinadeState ||
       !this.marinade ||
       !this.config ||
-      !this.msolTokenAccount
+      !this.msolTokenAccount ||
+      !this.stakerGSolTokenAccount
     )
       throw new Error("init not called");
 
     const { transaction, newTicketAccount, proxyTicketAccount } =
-      await this.marinade.orderUnstake(lamports, this.msolTokenAccount);
+      await orderUnstake(
+        this.config,
+        this.marinade,
+        this.marinadeState,
+        this.program,
+        this.env.state,
+        this.staker,
+        this.stakerGSolTokenAccount,
+        lamports
+      );
 
+    console.log("newTicketAccount: ", newTicketAccount.publicKey.toString());
+    console.log("proxyTicketAccount: ", proxyTicketAccount.publicKey.toString());
+    
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
     return [transaction, [newTicketAccount, proxyTicketAccount]];
@@ -668,6 +714,8 @@ export class SunriseStakeClient {
   }
 
   public async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (!this.marinade) throw new Error("init not called");
 
     const beneficiary = this.provider.publicKey;
@@ -693,6 +741,8 @@ export class SunriseStakeClient {
   public async claimUnstakeTicket(
     ticketAccount: TicketAccount
   ): Promise<Transaction> {
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (!this.marinade || !this.marinadeState)
       throw new Error("init not called");
 
@@ -727,6 +777,8 @@ export class SunriseStakeClient {
   }
 
   public async withdrawFromBlaze(amount: BN): Promise<string> {
+    if (!this.blazeState) await this.initBlaze();
+
     if (
       !this.blazeState ||
       !this.config ||
@@ -752,6 +804,8 @@ export class SunriseStakeClient {
     newStakeAccount: PublicKey,
     amount: BN
   ): Promise<string> {
+    if (!this.blazeState) await this.initBlaze();
+
     if (
       !this.blazeState ||
       !this.config ||
@@ -776,6 +830,9 @@ export class SunriseStakeClient {
 
   // This should be done only once per state, and must be signed by the update authority
   public async initEpochReport(): Promise<string> {
+    if (!this.blazeState) await this.initBlaze();
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.marinadeState ||
       !this.blazeState ||
@@ -837,6 +894,9 @@ export class SunriseStakeClient {
   }
 
   public async extractYieldIx(): Promise<TransactionInstruction> {
+    if (!this.blazeState) await this.initBlaze();
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.marinadeState ||
       !this.blazeState ||
@@ -998,6 +1058,9 @@ export class SunriseStakeClient {
   }
 
   public async details(): Promise<Details> {
+    if (!this.blazeState) await this.initBlaze();
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.marinadeState ||
       !this.stakerGSolTokenAccount ||
@@ -1012,7 +1075,7 @@ export class SunriseStakeClient {
     const lpMsolBalancePromise =
       this.provider.connection.getTokenAccountBalance(
         this.marinadeState.mSolLeg
-      );
+    );
 
     const solLeg = await this.marinadeState.solLeg();
     const solLegBalancePromise = this.provider.connection.getBalance(solLeg);
@@ -1132,7 +1195,7 @@ export class SunriseStakeClient {
       mint: impactNFT.mint,
       tokenAccount: impactNFT.tokenAccount,
     };
-    console.log("nftSummary", nftSummary);
+    //console.log("nftSummary", nftSummary);
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
       ? nftSummary
       : undefined;
@@ -1393,6 +1456,9 @@ export class SunriseStakeClient {
   }
 
   public async balance(): Promise<Balance> {
+    if (!this.blazeState) await this.initBlaze();
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (!this.marinadeState || !this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
     const gsolBalancePromise = this.provider.connection
@@ -1487,6 +1553,9 @@ export class SunriseStakeClient {
   }
 
   public async lockGSol(lamports: BN): Promise<Transaction[]> {
+    if (!this.blazeState) await this.initBlaze();
+    if (!this.marinade || !this.marinadeState) await this.initMarinade();
+
     if (
       !this.stakerGSolTokenAccount ||
       !this.config ||
