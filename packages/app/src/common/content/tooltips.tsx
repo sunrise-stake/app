@@ -1,5 +1,6 @@
 const tooltips = {
   yourStake: <>Your staked SOL and locked gSOL</>,
+  unstakeBalance: <>Your unlocked gSOL</>,
   totalStake: <>The sum of everyones staked SOL</>,
   offsetCO2: (
     <>

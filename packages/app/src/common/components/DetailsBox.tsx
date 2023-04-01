@@ -1,11 +1,11 @@
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { type Details, toSol } from "@sunrisestake/client";
+import { type Details } from "@sunrisestake/client";
 import BN from "bn.js";
 import clx from "classnames";
 import { type FC, type ReactNode, useRef, useState } from "react";
 
 import { tooltips } from "../content/tooltips";
-import { toFixedWithPrecision } from "../utils";
+import { lamportsToDisplay } from "../utils";
 import { TooltipPopover } from "./TooltipPopover";
 
 interface DetailEntryProps {
@@ -70,9 +70,6 @@ const DetailsBox: FC<Props> = ({ className, details }) => {
   const yieldShare =
     extractableYield.muln(1_000).div(totalValue).toNumber() / 10;
   const gSolSupply = new BN(details.balances.gsolSupply.amount);
-
-  const lamportsToDisplay = (lamports: BN): string =>
-    toFixedWithPrecision(toSol(lamports), 2);
 
   return (
     <>
