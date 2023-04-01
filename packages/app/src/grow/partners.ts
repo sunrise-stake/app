@@ -5,15 +5,15 @@ export const partnerApps = [
     imageUrl: "partners/AEL_Logo.jpg",
   },
   {
-    name: "Partner",
+    name: "Partner 1",
     imageUrl: "partners/partner0.png",
   },
   {
-    name: "Partner",
+    name: "Partner 2",
     imageUrl: "partners/partner1.png",
   },
   {
-    name: "Partner",
+    name: "Partner 3",
     imageUrl: "partners/partner2.png",
   },
 ];

@@ -1,6 +1,6 @@
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { type SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
-import { MAX_NUM_PRECISION } from "@sunrisestake/client";
+import { MAX_NUM_PRECISION, toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import {
   NotificationType,
@@ -50,18 +50,15 @@ const solToLamports = (sol: number | string): BN => {
   return new BN(formattedNum);
 };
 
-// Get the number of decimal places to show in a formatted number
-// Min = 0, Max = MAX_NUM_PRECISION
-const formatPrecision = (n: number, precision = MAX_NUM_PRECISION): number =>
-  Math.min(
-    Math.abs(Math.min(0, Math.ceil(Math.log(n) / Math.log(10)))) + 1,
-    precision
-  );
+export const lamportsToDisplay = (
+  lamports: BN,
+  precision: number = 2
+): string => toFixedWithPrecision(toSol(lamports), precision);
 
 const toFixedWithPrecision = (
   n: number,
   precision = MAX_NUM_PRECISION
-): string => n.toFixed(formatPrecision(n, precision));
+): string => String(Number(n.toFixed(precision)));
 
 const getDigits = (strNo: string): number | undefined => {
   const match = strNo.match(/^\d*\.(\d+)$/);
