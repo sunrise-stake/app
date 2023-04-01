@@ -22,6 +22,7 @@ import { ZenModeProvider } from "./common/context/ZenModeContext";
 import { ForestProvider } from "./common/context/forestContext";
 import { HelpProvider } from "./common/context/HelpContext";
 import { Routes } from "./Routes";
+import { SunriseStoreInitializer } from "./common/store/SunriseStoreInitializer";
 
 require("./solana-wallet-adapter.css");
 
@@ -48,12 +49,13 @@ const App: FC = () => {
   return (
     <>
       <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets} autoConnect>
+        <WalletProvider wallets={wallets}>
           <WalletModalProvider>
             <SunriseProvider>
               <ForestProvider>
                 <ZenModeProvider>
                   <HelpProvider>
+                    <SunriseStoreInitializer />
                     <Routes />
                   </HelpProvider>
                 </ZenModeProvider>
