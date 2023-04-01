@@ -2,7 +2,7 @@ import { toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import { useEffect, useState } from "react";
 
-import { useSunriseStake } from "../context/sunriseStakeContext";
+import { useSunriseStake } from "../context/SunriseStakeContext";
 import { solToCarbon } from "../utils";
 import { useYieldController } from "./useYieldController";
 

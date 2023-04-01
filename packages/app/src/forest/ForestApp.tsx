@@ -1,3 +1,4 @@
+import { type PublicKey } from "@solana/web3.js";
 import clx from "classnames";
 import React, {
   type CSSProperties,
@@ -8,19 +9,16 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { type TreeComponent } from "./utils";
-import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { IoChevronForwardOutline } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useForest } from "../common/context/forestContext";
-import { ProfileBox } from "../common/components/profile/ProfileBox";
-import { type TreeNode } from "../api/types";
-import { type PublicKey } from "@solana/web3.js";
-import { useZenMode } from "../common/context/ZenModeContext";
-import { useHelp } from "../common/context/HelpContext";
+
 import { AppRoute } from "../Routes";
+import { type TreeNode } from "../api/types";
+import { DynamicTree, ProfileBox } from "../common/components";
+import { useForest, useHelp, useZenMode } from "../common/context";
+import { useSunriseStore } from "../common/store/useSunriseStore";
 import { ForestLink } from "./ForestLink";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { type TreeComponent } from "./utils";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -98,7 +96,7 @@ const _ForestApp: ForwardRefRenderFunction<
 
   const location = useLocation();
   const navigate = useNavigate();
-  const wallet = useWallet();
+  const wallet = useSunriseStore((state) => state.wallet);
   useEffect(() => {
     if (!wallet.connected && location.state?.address === undefined)
       navigate("/");

@@ -1,19 +1,14 @@
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { type TicketAccount, type Details, toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import clx from "classnames";
 import { type FC, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
-import { TbLeafOff } from "react-icons/tb";
 import { GiCircleForest } from "react-icons/gi";
+import { IoChevronUpOutline, IoChevronDownOutline } from "react-icons/io5";
+import { TbLeafOff } from "react-icons/tb";
+import { Link, useNavigate } from "react-router-dom";
 
-import {
-  solToLamports,
-  toBN,
-  toFixedWithPrecision,
-  ZERO,
-  type UIMode,
-} from "../../common/utils";
 import {
   DetailsBox,
   Panel,
@@ -21,21 +16,27 @@ import {
   InfoBox,
   TooltipPopover,
 } from "../../common/components";
-import { useSunriseStake } from "../../common/context/sunriseStakeContext";
 import {
   NotificationType,
   notifyTransaction,
   notifyTweet,
 } from "../../common/components/notifications";
-import { useCarbon } from "../../common/hooks";
+import { useSunriseStake } from "../../common/context/SunriseStakeContext";
 import { tooltips } from "../../common/content/tooltips";
+import { useCarbon } from "../../common/hooks";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
-import { Link, useNavigate } from "react-router-dom";
-import { IoChevronUpOutline, IoChevronDownOutline } from "react-icons/io5";
+import { useSunriseStore } from "../../common/store/useSunriseStore";
+import {
+  solToLamports,
+  toBN,
+  toFixedWithPrecision,
+  ZERO,
+  type UIMode,
+} from "../../common/utils";
 
 const StakeDashboard: FC = () => {
-  const wallet = useWallet();
+  const wallet = useSunriseStore((state) => state.wallet);
   const { connection } = useConnection();
   const {
     client,

@@ -1,9 +1,9 @@
 import { EnvelopeIcon, LinkIcon } from "@heroicons/react/20/solid";
 import { type PublicKey } from "@solana/web3.js";
 import { type FC } from "react";
-import { useProfile } from "../../hooks/useProfile";
-import { type ParentRelationship } from "../../../api/types";
-import { toShortBase58 } from "../../utils";
+import { useProfile } from "../hooks/useProfile";
+import { type ParentRelationship } from "../../api/types";
+import { toShortBase58 } from "../utils";
 
 export const ProfileBox: FC<{
   address: PublicKey;

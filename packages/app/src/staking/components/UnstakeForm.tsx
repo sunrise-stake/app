@@ -2,7 +2,7 @@ import BN from "bn.js";
 import React, { useEffect, useMemo, useState } from "react";
 import { FiArrowDownLeft } from "react-icons/fi";
 
-import { useSunriseStake } from "../../common/context/sunriseStakeContext";
+import { useSunriseStake } from "../../common/context/SunriseStakeContext";
 import { useModal } from "../../common/hooks";
 import { solToLamports, ZERO } from "../../common/utils";
 import { AmountInput, Button, Spinner } from "../../common/components";

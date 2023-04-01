@@ -1,5 +1,5 @@
-import clx from "classnames";
 import { toSol, type Details } from "@sunrisestake/client";
+import clx from "classnames";
 import React, {
   type FC,
   forwardRef,
@@ -9,10 +9,13 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { IoChevronUpOutline } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import { AppRoute } from "../Routes";
 import {
   Button,
+  DynamicTree,
   LockForm,
   Panel,
   Spinner,
@@ -22,8 +25,14 @@ import {
   NotificationType,
   notifyTransaction,
 } from "../common/components/notifications";
-import { useZenMode } from "../common/context/ZenModeContext";
-import { useSunriseStake } from "../common/context/sunriseStakeContext";
+import { tooltips } from "../common/content/tooltips";
+import {
+  useForest,
+  useHelp,
+  useSunriseStake,
+  useZenMode,
+} from "../common/context";
+import { useSunriseStore } from "../common/store/useSunriseStore";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 import {
   solToCarbon,
@@ -32,13 +41,6 @@ import {
   ZERO,
 } from "../common/utils";
 import { ImpactNFT } from "./ImpactNFT";
-import { IoChevronUpOutline } from "react-icons/io5";
-import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { useForest } from "../common/context/forestContext";
-import { tooltips } from "../common/content/tooltips";
-import { AppRoute } from "../Routes";
-import { useHelp } from "../common/context/HelpContext";
-import { useWallet } from "@solana/wallet-adapter-react";
 
 const canBeUpdated = (details: Details | undefined): boolean => {
   if (!details?.lockDetails) return false;
@@ -71,7 +73,7 @@ const _LockingApp: ForwardRefRenderFunction<
 
   const location = useLocation();
   const navigate = useNavigate();
-  const wallet = useWallet();
+  const wallet = useSunriseStore((state) => state.wallet);
   useEffect(() => {
     if (!wallet.connected && location.state?.address === undefined)
       navigate("/");

@@ -1,4 +1,3 @@
-import { useWallet } from "@solana/wallet-adapter-react";
 import clx from "classnames";
 import {
   forwardRef,
@@ -14,20 +13,19 @@ import {
   IoChevronForwardOutline,
 } from "react-icons/io5";
 import { Link } from "react-router-dom";
-import { Button, Spinner } from "../common/components";
-import { useZenMode } from "../common/context/ZenModeContext";
-import { HubIntro } from "./components/HubIntro";
-import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { useCarbon } from "../common/hooks";
-import { useForest } from "../common/context/forestContext";
-import { useHelp } from "../common/context/HelpContext";
+
 import { AppRoute } from "../Routes";
+import { Button, DynamicTree, Spinner } from "../common/components";
+import { useForest, useHelp, useZenMode } from "../common/context";
+import { useCarbon } from "../common/hooks";
+import { useSunriseStore } from "../common/store/useSunriseStore";
+import { HubIntro } from "./components/HubIntro";
 
 const _HubApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
-  const wallet = useWallet();
+  const wallet = useSunriseStore((state) => state.wallet);
   const { setCurrentHelpRoute, currentHelpRoute } = useHelp();
 
   const [showIntro, updateShowIntro] = useState(false);

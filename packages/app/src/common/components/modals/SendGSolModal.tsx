@@ -1,23 +1,22 @@
-import React, { type FC, useCallback, useState } from "react";
-
-import { BaseModal, type ModalProps } from "./";
-import { PublicKey, Transaction } from "@solana/web3.js";
-import clx from "classnames";
-import { AmountInput } from "../AmountInput";
-import BN from "bn.js";
-import { handleError, solToLamports, toShortBase58, ZERO } from "../../utils";
-import { Button } from "../Button";
-import { Spinner } from "../Spinner";
-import { GiPresent } from "react-icons/gi";
-import { useSunriseStake } from "../../context/sunriseStakeContext";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
   createAssociatedTokenAccountInstruction,
   createTransferCheckedInstruction,
   getAccount,
   getAssociatedTokenAddress,
 } from "@solana/spl-token";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { PublicKey, Transaction } from "@solana/web3.js";
+import BN from "bn.js";
+import clx from "classnames";
+import { type FC, useCallback, useState } from "react";
+import { GiPresent } from "react-icons/gi";
+
+import { useSunriseStake } from "../../context";
+import { useSunriseStore } from "../../store/useSunriseStore";
+import { handleError, solToLamports, toShortBase58, ZERO } from "../../utils";
+import { AmountInput, Button, Spinner } from "../";
 import { NotificationType, notifyTransaction } from "../notifications";
+import { BaseModal, type ModalProps } from "./";
 
 interface SendGSolModalProps {
   recipient?: {
@@ -39,7 +38,9 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   const [isValid, setIsValid] = useState(false);
 
   const { details } = useSunriseStake();
-  const { publicKey: senderPubkey, sendTransaction } = useWallet();
+  const { publicKey: senderPubkey, sendTransaction } = useSunriseStore(
+    (state) => state.wallet
+  );
   const { connection } = useConnection();
   const [recipient, setRecipient] = useState(recipientFromProps);
 

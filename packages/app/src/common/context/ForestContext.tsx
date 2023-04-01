@@ -1,4 +1,4 @@
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import {
   createContext,
   type FC,
@@ -11,10 +11,11 @@ import {
 } from "react";
 import { forestToComponents, type TreeComponent } from "../../forest/utils";
 import { ForestService, MAX_FOREST_DEPTH } from "../../api/forest";
-import { useSunriseStake } from "./sunriseStakeContext";
+import { useSunriseStake } from "./SunriseStakeContext";
 import { useLocation } from "react-router-dom";
 import { type PublicKey } from "@solana/web3.js";
 import { safeParsePublicKey } from "../utils";
+import { useSunriseStore } from "../store/useSunriseStore";
 
 interface ForestContextProps {
   myTree: TreeComponent | undefined;
@@ -33,7 +34,7 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   depth = MAX_FOREST_DEPTH,
 }) => {
   const { client, details } = useSunriseStake();
-  const wallet = useWallet();
+  const wallet = useSunriseStore((state) => state.wallet);
   const { connection } = useConnection();
   const location = useLocation();
   const [service, setService] = useState<ForestService | undefined>();
