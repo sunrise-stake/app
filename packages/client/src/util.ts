@@ -351,5 +351,22 @@ export const marinadeTargetReached = (
     new BN(100)
   );
 
+  const lpShare =
+    details.lpDetails.lpSolValue.muln(1_000).div(totalValue).toNumber() / 10;
+
+  // We set this to <10% because, when depositing to Marinade, the lp share
+  // never actually reaches 10%. Amounts are split across both the LP and SP
+  // such that the LP balance asymptotically approaches 10% without ever
+  // reaching it.
+  // Therefore, 9 is a healthy value. If the LP share is lower than that,
+  // we should send to Marinade.
+  // TODO move to a constant
+  if (lpShare < 9) {
+    console.log(
+      `LP share is ${lpShare}%, which is below the minimum of 10%. Should send to Marinade.`
+    );
+    return false;
+  }
+
   return totalMarinade.gt(limit);
 };
