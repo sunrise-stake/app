@@ -19,13 +19,14 @@ pub struct OrderUnstake<'info> {
     )]
     pub state: Box<Account<'info, State>>,
 
-    #[account()]
+    #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
 
     #[account(mut)]
     pub msol_mint: Account<'info, Mint>,
 
     #[account(
+    mut,
     constraint = gsol_mint.mint_authority == COption::Some(gsol_mint_authority.key()),
     )]
     pub gsol_mint: Box<Account<'info, Mint>>,

@@ -239,7 +239,7 @@ export type SunriseStake = {
         },
         {
           "name": "marinadeState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -249,7 +249,7 @@ export type SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2738,7 +2738,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "marinadeState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2748,7 +2748,7 @@ export const IDL: SunriseStake = {
         },
         {
           "name": "gsolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
