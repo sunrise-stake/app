@@ -16,33 +16,34 @@ import { CollectInfoButton } from "./components/CollectInfoButton";
 import { Button } from "../common/components";
 import { GiPresent } from "react-icons/gi";
 import { SendGSolModal } from "../common/components/modals/SendGSolModal";
-import { type Charity, type PlaceholderCharity } from "./components/types";
+import {
+  type Charity,
+  type Partner,
+  type PlaceholderOrg,
+} from "./components/types";
 import { CharityDonateButton } from "./components/CharityDonateButton";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { charityApps } from "./charities";
 import { partnerApps } from "./partners";
+import { PartnerApp } from "./components/PartnerApp";
+import { OrgButtonContent } from "./OrgButtonContent";
 
 const isRealCharity = (
-  charity: Charity | PlaceholderCharity
+  charity: Charity | PlaceholderOrg
 ): charity is Charity => {
   return (charity as Charity).address !== undefined;
 };
 
+const isRealPartner = (
+  partner: Partner | PlaceholderOrg
+): partner is Partner => {
+  return (partner as Partner).website !== undefined;
+};
+
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
   <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-green text-xl font-medium text-center">
-    {children}
-  </div>
-);
-
-const Overlay: FC<PropsWithChildren> = ({ children }) => (
-  <div
-    className="p-8 rounded-md w-40 h-30 text-white font-extrabold text-xl font-medium text-center"
-    style={{
-      textShadow: "1px 2px 3px rgb(0 0 0 / 80%)",
-    }}
-  >
     {children}
   </div>
 );
@@ -111,11 +112,17 @@ const _GrowApp: ForwardRefRenderFunction<
               <div className="pt-4">Your App Here</div>
             </Placeholder>
           </CollectInfoButton>
-          {partnerApps.map((app) => (
-            <CollectInfoButton imageUrl={app.imageUrl} key={app.name}>
-              <Overlay>{app.name}</Overlay>
-            </CollectInfoButton>
-          ))}
+          {partnerApps.map((app) =>
+            isRealPartner(app) ? (
+              <PartnerApp partner={app} key={app.name}>
+                <OrgButtonContent>{app.name}</OrgButtonContent>
+              </PartnerApp>
+            ) : (
+              <CollectInfoButton imageUrl={app.imageUrl} key={app.name}>
+                <OrgButtonContent>{app.name}</OrgButtonContent>
+              </CollectInfoButton>
+            )
+          )}
         </div>
       </div>
       <h2 className="flex font-bold text-xl items-center gap-4 mt-8 mb-4 text-green">
@@ -131,7 +138,7 @@ const _GrowApp: ForwardRefRenderFunction<
               <CharityDonateButton charity={charity} key={charity.name} />
             ) : (
               <CollectInfoButton imageUrl={charity.imageUrl} key={charity.name}>
-                <Overlay>Impact Org</Overlay>
+                <OrgButtonContent>Impact Org</OrgButtonContent>
               </CollectInfoButton>
             )
           )}
