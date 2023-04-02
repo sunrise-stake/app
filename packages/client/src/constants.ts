@@ -6,7 +6,7 @@ import BN from "bn.js";
 export const MAX_NUM_PRECISION = 5;
 
 // on devnet, the solblaze pool is sometimes unavailable for deposits - use this to disable it
-export const SOLBLAZE_ENABLED = false;
+export const SOLBLAZE_ENABLED = true;
 
 export const STAKE_POOL_PROGRAM_ID = new PublicKey(
   "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
@@ -43,7 +43,7 @@ export const Environment: Record<
     yieldControllerState: new PublicKey(
       "DzyP73X4TWnh5jarfjapaNBxtjeEVsfknWVfToRYARDL" // Buy & Burn Yield Controller
     ),
-    percentageStakeToMarinade: 200, // TODO TEMP fix
+    percentageStakeToMarinade: 75,
     blaze: {
       pool: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
       bsolMint: new PublicKey("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"),
@@ -58,7 +58,7 @@ export const Environment: Record<
     holdingAccount: PublicKey.default,
     percentageStakeToMarinade: 75,
     yieldControllerState: new PublicKey(
-      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
+      "8Z8BwUqZTD8XyJ6sdEEeWLaZ9Bg1J7TRDoYPfhkGS9Hr"
     ),
     blaze: {
       pool: PublicKey.default,
@@ -74,7 +74,7 @@ export const Environment: Record<
       "dhcB568T3skiP2D9ujf4eAJEnW2gACaaA9BUCVbwbXD"
     ),
     yieldControllerState: new PublicKey(
-      "77aJfgRudbv9gFfjRQw3tuYzgnjoDgs9jorVTmK7cv73"
+      "8Z8BwUqZTD8XyJ6sdEEeWLaZ9Bg1J7TRDoYPfhkGS9Hr" // Buy & Burn Yield Controller
     ),
     percentageStakeToMarinade: 75,
     blaze: {

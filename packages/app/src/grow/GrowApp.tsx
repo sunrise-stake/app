@@ -1,9 +1,9 @@
 import React, {
+  type FC,
   forwardRef,
-  useEffect,
   type ForwardRefRenderFunction,
   type PropsWithChildren,
-  type FC,
+  useEffect,
 } from "react";
 import clx from "classnames";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -16,76 +16,34 @@ import { CollectInfoButton } from "./components/CollectInfoButton";
 import { Button } from "../common/components";
 import { GiPresent } from "react-icons/gi";
 import { SendGSolModal } from "../common/components/modals/SendGSolModal";
-import { type Charity, type PlaceholderCharity } from "./components/types";
+import {
+  type Charity,
+  type Partner,
+  type PlaceholderOrg,
+} from "./components/types";
 import { CharityDonateButton } from "./components/CharityDonateButton";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
-import { PublicKey } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { charityApps } from "./charities";
+import { partnerApps } from "./partners";
+import { PartnerApp } from "./components/PartnerApp";
+import { OrgButtonContent } from "./OrgButtonContent";
 
 const isRealCharity = (
-  charity: Charity | PlaceholderCharity
+  charity: Charity | PlaceholderOrg
 ): charity is Charity => {
   return (charity as Charity).address !== undefined;
 };
 
-// These will be fetched from some data base
-const charityApps: Array<Charity | PlaceholderCharity> = [
-  {
-    name: "Urbánika",
-    imageUrl: "partners/urbanika.jpg",
-    address: new PublicKey("CjKXmKFFkCy8nH2HFmc6m2ZW3pGqy29QCv6GGwgvSdsM"),
-    website: "https://urbanika.notion.site/",
-  },
-  {
-    name: "Diamante Bridge Collective",
-    imageUrl: "partners/DBCLogo.png",
-    address: new PublicKey("HPiGWWLmV8R1UET84Bf1BnsPtRYcQessRdms4oFxe6sW"),
-    website: "https://diamantebridge.org/",
-  },
-  {
-    name: "Charity 1",
-    imageUrl: "partners/charity0.png",
-  },
-  {
-    name: "Charity 2",
-    imageUrl: "partners/charity1.png",
-  },
-  {
-    name: "Charity 3",
-    imageUrl: "partners/charity2.png",
-  },
-  {
-    name: "Charity 4",
-    imageUrl: "partners/charity3.png",
-  },
-];
-const partnerApps = [
-  {
-    name: "Demo Partner 1",
-    url: "https://example.test",
-    imageUrl: "partners/partner0.png",
-  },
-  {
-    name: "Demo Partner 2",
-    url: "https://example.test",
-    imageUrl: "partners/partner1.png",
-  },
-  {
-    name: "Demo Partner 3",
-    url: "https://example.test",
-    imageUrl: "partners/partner2.png",
-  },
-];
+const isRealPartner = (
+  partner: Partner | PlaceholderOrg
+): partner is Partner => {
+  return (partner as Partner).website !== undefined;
+};
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
   <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-green text-xl font-medium text-center">
-    {children}
-  </div>
-);
-
-const Overlay: FC<PropsWithChildren> = ({ children }) => (
-  <div className="p-8 rounded-md w-40 h-30 text-white font-extrabold text-xl font-medium text-center">
     {children}
   </div>
 );
@@ -154,11 +112,17 @@ const _GrowApp: ForwardRefRenderFunction<
               <div className="pt-4">Your App Here</div>
             </Placeholder>
           </CollectInfoButton>
-          {partnerApps.map((app) => (
-            <CollectInfoButton imageUrl={app.imageUrl} key={app.name}>
-              <Overlay>Partner</Overlay>
-            </CollectInfoButton>
-          ))}
+          {partnerApps.map((app) =>
+            isRealPartner(app) ? (
+              <PartnerApp partner={app} key={app.name}>
+                <OrgButtonContent>{app.name}</OrgButtonContent>
+              </PartnerApp>
+            ) : (
+              <CollectInfoButton imageUrl={app.imageUrl} key={app.name}>
+                <OrgButtonContent>{app.name}</OrgButtonContent>
+              </CollectInfoButton>
+            )
+          )}
         </div>
       </div>
       <h2 className="flex font-bold text-xl items-center gap-4 mt-8 mb-4 text-green">
@@ -167,14 +131,14 @@ const _GrowApp: ForwardRefRenderFunction<
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
         <div className="flex overflow-x-scroll gap-4 p-4">
           <CollectInfoButton>
-            <Placeholder>Your Charity Here</Placeholder>
+            <Placeholder>Your Org Here</Placeholder>
           </CollectInfoButton>
           {charityApps.map((charity) =>
             isRealCharity(charity) ? (
               <CharityDonateButton charity={charity} key={charity.name} />
             ) : (
               <CollectInfoButton imageUrl={charity.imageUrl} key={charity.name}>
-                <Overlay>Impact Org</Overlay>
+                <OrgButtonContent>Impact Org</OrgButtonContent>
               </CollectInfoButton>
             )
           )}

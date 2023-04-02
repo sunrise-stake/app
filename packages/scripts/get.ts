@@ -12,6 +12,7 @@ import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
         verbose: true,
       });
 
+  if (process.env.VERBOSE) console.log(await client.config);
   if (process.env.VERBOSE) console.log(await client.details());
 
   await client.report();

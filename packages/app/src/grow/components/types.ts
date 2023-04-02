@@ -1,11 +1,15 @@
 import { type PublicKey } from "@solana/web3.js";
 
-export interface PlaceholderCharity {
+export interface PlaceholderOrg {
   name: string;
   imageUrl: string;
 }
 
-export type Charity = PlaceholderCharity & {
+export type Charity = PlaceholderOrg & {
   address: PublicKey;
+  website: string;
+};
+
+export type Partner = PlaceholderOrg & {
   website: string;
 };

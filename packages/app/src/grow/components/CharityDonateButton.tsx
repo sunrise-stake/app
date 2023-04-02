@@ -2,6 +2,7 @@ import React, { type FC } from "react";
 import { type Charity } from "./types";
 import { useModal } from "../../common/hooks";
 import { SendGSolModal } from "../../common/components/modals/SendGSolModal";
+import { OrgButtonContent } from "../OrgButtonContent";
 
 export const CharityDonateButton: FC<{ charity: Charity }> = ({ charity }) => {
   const sendGSolModal = useModal(() => {});
@@ -24,9 +25,7 @@ export const CharityDonateButton: FC<{ charity: Charity }> = ({ charity }) => {
         show={sendGSolModal.modalShown}
         recipient={charity}
       />
-      <div className="p-8 rounded-md w-40 h-30 text-white font-extrabold text-xl font-medium text-center">
-        {charity.name}
-      </div>
+      <OrgButtonContent>{charity.name}</OrgButtonContent>
     </button>
   );
 };

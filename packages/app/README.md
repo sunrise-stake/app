@@ -6,8 +6,17 @@ The UI for [Sunrise Stake](https://app.sunrisestake.com)
 
 To start the UI on devnet:
 
+First, install packages and create a build in the root directory
+
 ```shell
 yarn
+yarn build
+```
+
+Then go to this app folder and start the UI
+
+```shell
+cd packages/app
 yarn start
 ```
 
