@@ -80,11 +80,8 @@ import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
 import {
-  getLockAccount,
-  type GetLockAccountResult,
-  lockGSol,
-  unlockGSol,
-  updateLockAccount,
+  LockClient,
+  type LockAccountSummary,
 } from "./lock";
 
 // export getStakePoolAccount
@@ -123,6 +120,7 @@ export class SunriseStakeClient {
   blazeState: BlazeState | undefined;
 
   liqPoolTokenAccount: PublicKey | undefined;
+  lockClient: LockClient | undefined;
 
   private constructor(
     readonly provider: AnchorProvider,
@@ -220,6 +218,9 @@ export class SunriseStakeClient {
       mint: stakePoolInfo.poolMint,
       owner: this.bsolTokenAccountAuthority,
     });
+
+    this.lockClient = new LockClient(this.config, this.program, this.staker);
+
   }
 
   public async sendAndConfirmTransaction(
@@ -1123,6 +1124,8 @@ export class SunriseStakeClient {
             updatedToEpoch: lockAccountDetails.lockAccount.updatedToEpoch,
             amountLocked: new BN(`${lockAccountDetails.tokenAccount.amount}`),
             yield: lockAccountDetails.lockAccount.yieldAccruedByOwner,
+            currentLevel: lockAccountDetails.currentLevel,
+            nextLevelYieldRequired: lockAccountDetails.yieldToNextLevel,
           }
         : undefined;
 
@@ -1491,7 +1494,8 @@ export class SunriseStakeClient {
       !this.stakerGSolTokenAccount ||
       !this.config ||
       !this.marinade ||
-      !this.marinadeState
+      !this.marinadeState ||
+      !this.lockClient
     )
       throw new Error("init not called");
 
@@ -1510,10 +1514,7 @@ export class SunriseStakeClient {
       transactions.push(new Transaction().add(recoverInstruction));
     }
 
-    const lockTx = await lockGSol(
-      this.config,
-      this.program,
-      this.staker,
+    const lockTx = await this.lockClient.lockGSol(
       this.stakerGSolTokenAccount,
       this.env.impactNFT,
       lamports
@@ -1525,7 +1526,7 @@ export class SunriseStakeClient {
   }
 
   public async updateLockAccount(): Promise<Transaction[]> {
-    if (!this.config) throw new Error("init not called");
+    if (!this.config || !this.lockClient) throw new Error("init not called");
 
     // Before updating a lock account, the epoch report account must be updated to the current epoch,
     // via a recoverTickets instruction.
@@ -1557,11 +1558,7 @@ export class SunriseStakeClient {
 
     // only update if the lock account has not been updated this epoch
     if (lockAccount.updatedToEpoch?.toNumber() < currentEpoch.epoch) {
-      const updateTx = await updateLockAccount(
-        this.config,
-        this.program,
-        this.staker
-      );
+      const updateTx = await this.lockClient.updateLockAccount();
       transactions.push(updateTx);
     }
 
@@ -1569,7 +1566,7 @@ export class SunriseStakeClient {
   }
 
   public async unlockGSol(): Promise<Transaction[]> {
-    if (!this.config) throw new Error("init not called");
+    if (!this.lockClient) throw new Error("init not called");
     if (!this.stakerGSolTokenAccount) throw new Error("No stake found");
 
     // Update a lock account if it has not been updated this epoch
@@ -1578,10 +1575,7 @@ export class SunriseStakeClient {
     // updateLockAccount returns an array of transactions.
     // Theoretically, the unlock transaction could be combined with the update transaction
     // TODO - combine the unlock transaction with the update transaction if possible
-    const unlockTx = await unlockGSol(
-      this.config,
-      this.program,
-      this.staker,
+    const unlockTx = await this.lockClient.unlockGSol(
       this.stakerGSolTokenAccount
     );
 
@@ -1590,13 +1584,18 @@ export class SunriseStakeClient {
     return transactions;
   }
 
-  public async getLockAccount(
-    address: PublicKey = this.staker
-  ): Promise<GetLockAccountResult> {
-    if (!this.stakerGSolTokenAccount || !this.config)
+  public async getLockAccount(): Promise<LockAccountSummary> {
+    if (!this.lockClient?.lockAccount)
       throw new Error("init not called");
 
-    return getLockAccount(this.config, this.program, address);
+    return {
+      lockAccount: this.lockClient.lockAccount,
+      lockAccountAddress: this.lockClient.lockAccountAddress,
+      tokenAccount: this.lockClient.lockTokenAccount,
+      tokenAccountAddress: this.lockClient.lockTokenAccountAddress,
+      currentLevel: this.lockClient.getCurrentLevel(),
+      yieldToNextLevel: this.lockClient.getYieldToNextLevel(),
+    };
   }
 
   public static async get(
