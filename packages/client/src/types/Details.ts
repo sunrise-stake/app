@@ -5,7 +5,7 @@ import {
   type TokenAmount,
 } from "@solana/web3.js";
 import { type EpochReportAccount } from "./EpochReportAccount";
-import { Level } from "@sunrisestake/impact-nft-client";
+import { type Level } from "@sunrisestake/impact-nft-client";
 
 export interface Balance {
   gsolBalance: TokenAmount;
@@ -69,7 +69,7 @@ export interface Details {
     lockAccount: PublicKey;
     lockTokenAccount: PublicKey;
     currentLevel: Level | null;
-    nextLevelYieldRequired: BN;
+    yieldToNextLevel: BN | null;
   };
   impactNFTDetails?: {
     stateAddress: PublicKey;
