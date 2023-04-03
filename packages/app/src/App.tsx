@@ -17,11 +17,14 @@ import {
 import { clusterApiUrl } from "@solana/web3.js";
 import { type FC, useMemo } from "react";
 
-import { SunriseProvider } from "./common/context/sunriseStakeContext";
-import { ZenModeProvider } from "./common/context/ZenModeContext";
-import { ForestProvider } from "./common/context/forestContext";
-import { HelpProvider } from "./common/context/HelpContext";
+import {
+  ForestProvider,
+  HelpProvider,
+  SunriseProvider,
+  ZenModeProvider,
+} from "./common/context/";
 import { Routes } from "./Routes";
+import { SunriseStoreInitializer } from "./common/store/SunriseStoreInitializer";
 
 require("./solana-wallet-adapter.css");
 
@@ -48,12 +51,13 @@ const App: FC = () => {
   return (
     <>
       <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets} autoConnect>
+        <WalletProvider wallets={wallets}>
           <WalletModalProvider>
             <SunriseProvider>
               <ForestProvider>
                 <ZenModeProvider>
                   <HelpProvider>
+                    <SunriseStoreInitializer />
                     <Routes />
                   </HelpProvider>
                 </ZenModeProvider>

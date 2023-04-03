@@ -2,7 +2,7 @@ import BN from "bn.js";
 import React, { useState } from "react";
 import { FiArrowDownLeft } from "react-icons/fi";
 
-import { useSunriseStake } from "../context/sunriseStakeContext";
+import { useSunriseStake } from "../context/SunriseStakeContext";
 import { ZERO } from "../utils";
 import { AmountInput, Button, Panel, Spinner } from "./";
 

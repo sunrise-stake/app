@@ -1,10 +1,12 @@
-import { type PublicKey } from "@solana/web3.js";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
 import {
   type Profile as CivicProfile,
   CivicProfile as CivicSDK,
 } from "@civic/profile";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { type PublicKey } from "@solana/web3.js";
+import { useEffect, useState } from "react";
+
+import { useSunriseStore } from "../store/useSunriseStore";
 import { toShortBase58 } from "../utils";
 
 export interface Profile {
@@ -24,7 +26,9 @@ const truncatedAddress = (
 
 export const useProfile = (address?: PublicKey): Profile => {
   const { connection } = useConnection();
-  const { publicKey: connectedWallet } = useWallet();
+  const { publicKey: connectedWallet } = useSunriseStore(
+    (state) => state.wallet
+  );
   const [profile, setProfile] = useState<Profile>({
     address: address?.toBase58() ?? "",
     name: truncatedAddress(address) ?? "",

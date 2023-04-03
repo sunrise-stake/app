@@ -1,13 +1,14 @@
-import { useWallet } from "@solana/wallet-adapter-react";
-import { FaLink, FaQrcode } from "react-icons/fa";
-import { useCopyToClipboard } from "usehooks-ts";
-import React, { type FC, useState } from "react";
 import { Transition } from "@headlessui/react";
+import { FaLink, FaQrcode } from "react-icons/fa";
+import { type FC, useState } from "react";
+import { useCopyToClipboard } from "usehooks-ts";
+
 import { QRCodeModal } from "../common/components/modals/QRCodeModal";
 import { useModal } from "../common/hooks";
+import { useSunriseStore } from "../common/store/useSunriseStore";
 
 export const ForestLink: FC = () => {
-  const { publicKey } = useWallet();
+  const { publicKey } = useSunriseStore((state) => state.wallet);
   const [, copy] = useCopyToClipboard();
   const [copied, setCopied] = useState(false);
   const qrCodeModal = useModal(() => {});

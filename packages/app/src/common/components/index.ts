@@ -6,6 +6,8 @@ export * from "./InfoBox";
 export * from "./LockedGSol";
 export * from "./LockForm";
 export * from "./Panel";
+export * from "./ProfileBox";
 export * from "./Spinner";
 export * from "./TooltipPopover";
 export * from "./TweetButton";
+export * from "./tree/DynamicTree";

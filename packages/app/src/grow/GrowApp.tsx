@@ -1,34 +1,32 @@
-import React, {
+import clx from "classnames";
+import {
   type FC,
   forwardRef,
   type ForwardRefRenderFunction,
   type PropsWithChildren,
   useEffect,
 } from "react";
-import clx from "classnames";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useZenMode } from "../common/context/ZenModeContext";
-import { useModal, useScript } from "../common/hooks";
-import { IoChevronBackOutline } from "react-icons/io5";
-import { DynamicTree } from "../common/components/tree/DynamicTree";
-import { useForest } from "../common/context/forestContext";
-import { CollectInfoButton } from "./components/CollectInfoButton";
-import { Button } from "../common/components";
 import { GiPresent } from "react-icons/gi";
+import { IoChevronBackOutline } from "react-icons/io5";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
+import { AppRoute } from "../Routes";
+import { useModal, useScript } from "../common/hooks";
+import { useForest, useHelp, useZenMode } from "../common/context";
+import { Button, DynamicTree } from "../common/components";
 import { SendGSolModal } from "../common/components/modals/SendGSolModal";
+import { useSunriseStore } from "../common/store/useSunriseStore";
+import { OrgButtonContent } from "./OrgButtonContent";
+import { charityApps } from "./charities";
+import { CharityDonateButton } from "./components/CharityDonateButton";
+import { CollectInfoButton } from "./components/CollectInfoButton";
+import { PartnerApp } from "./components/PartnerApp";
 import {
   type Charity,
   type Partner,
   type PlaceholderOrg,
 } from "./components/types";
-import { CharityDonateButton } from "./components/CharityDonateButton";
-import { useHelp } from "../common/context/HelpContext";
-import { AppRoute } from "../Routes";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { charityApps } from "./charities";
 import { partnerApps } from "./partners";
-import { PartnerApp } from "./components/PartnerApp";
-import { OrgButtonContent } from "./OrgButtonContent";
 
 const isRealCharity = (
   charity: Charity | PlaceholderOrg
@@ -61,7 +59,7 @@ const _GrowApp: ForwardRefRenderFunction<
 
   const location = useLocation();
   const navigate = useNavigate();
-  const wallet = useWallet();
+  const wallet = useSunriseStore((state) => state.wallet);
   useEffect(() => {
     if (!wallet.connected && location.state?.address === undefined)
       navigate("/");

@@ -1,12 +1,11 @@
 import clx from "classnames";
 import { type ForwardRefRenderFunction, forwardRef, useEffect } from "react";
-
-import { useZenMode } from "../common/context/ZenModeContext";
-import { StakeDashboard } from "./pages/StakeDashboard";
-import { AppRoute } from "../Routes";
-import { useHelp } from "../common/context/HelpContext";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useWallet } from "@solana/wallet-adapter-react";
+
+import { AppRoute } from "../Routes";
+import { useHelp, useZenMode } from "../common/context";
+import { useSunriseStore } from "../common/store/useSunriseStore";
+import { StakeDashboard } from "./pages/StakeDashboard";
 
 const _StakingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -17,7 +16,7 @@ const _StakingApp: ForwardRefRenderFunction<
 
   const location = useLocation();
   const navigate = useNavigate();
-  const wallet = useWallet();
+  const wallet = useSunriseStore((state) => state.wallet);
   useEffect(() => {
     if (!wallet.connected && location.state?.address === undefined)
       navigate("/");

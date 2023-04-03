@@ -2,13 +2,13 @@ import { toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import { useEffect, useState } from "react";
 
-import { useSunriseStake } from "../context/sunriseStakeContext";
+import { useSunriseStake } from "../context/SunriseStakeContext";
+import { useSunriseStore } from "../store/useSunriseStore";
 import { solToCarbon } from "../utils";
-import { useYieldController } from "./useYieldController";
 
 const useCarbon = (): { totalCarbon: number | undefined } => {
   const { details } = useSunriseStake();
-  const yieldControllerState = useYieldController();
+  const yieldControllerState = useSunriseStore((state) => state.yieldState);
   const [totalCarbon, setTotalCarbon] = useState<number>();
 
   useEffect(() => {

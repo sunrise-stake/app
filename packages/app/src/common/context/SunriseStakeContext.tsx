@@ -1,5 +1,4 @@
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { Keypair } from "@solana/web3.js";
 import { type Details } from "@sunrisestake/client";
 import {
   createContext,
@@ -12,6 +11,7 @@ import {
 
 import { SunriseClientWrapper } from "../sunriseClientWrapper";
 import { useLocation } from "react-router-dom";
+import { readonlyWallet } from "../helper";
 import { safeParsePublicKey } from "../utils";
 
 interface SunriseContextProps {
@@ -23,9 +23,6 @@ const defaultValue: SunriseContextProps = {
   details: undefined,
 };
 const SunriseContext = createContext<SunriseContextProps>(defaultValue);
-
-// pass into anchor when the wallet is not yet connected
-const dummyKey = Keypair.generate().publicKey;
 
 const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [client, setClient] = useState<SunriseClientWrapper>();
@@ -82,11 +79,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
       // just get the details from the chain - no client available yet
       SunriseClientWrapper.init(
         connection,
-        {
-          publicKey: dummyKey,
-          signAllTransactions: async (txes) => txes,
-          signTransaction: async (tx) => tx,
-        },
+        readonlyWallet,
         undefined,
         undefined,
         true
