@@ -15,7 +15,7 @@ import {
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Details } from "./types/Details";
-import { MAX_NUM_PRECISION } from "./constants";
+import { type EnvironmentConfig, MAX_NUM_PRECISION } from "./constants";
 import {
   getAccount,
   getAssociatedTokenAddressSync,
@@ -62,7 +62,7 @@ export interface SunriseStakeConfig {
   liqPoolMinProportion: number;
 
   options: Options;
-  impactNFTStateAddress: PublicKey;
+  impactNFTStateAddress: PublicKey | undefined; // a state can exist without an impact nft state
 }
 
 // Return the type of an element in an array
@@ -240,6 +240,7 @@ export const ZERO_BALANCE = {
 export interface Options {
   confirmOptions?: ConfirmOptions;
   verbose?: boolean;
+  environmentOverrides?: Partial<EnvironmentConfig>;
 }
 
 /**

@@ -79,10 +79,7 @@ import {
 import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
-import {
-  LockClient,
-  type LockAccountSummary,
-} from "./lock";
+import { LockClient, type LockAccountSummary } from "./lock";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
@@ -122,17 +119,28 @@ export class SunriseStakeClient {
   liqPoolTokenAccount: PublicKey | undefined;
   lockClient: LockClient | undefined;
 
+  readonly env: EnvironmentConfig;
+
   private constructor(
     readonly provider: AnchorProvider,
-    readonly env: EnvironmentConfig,
+    env: EnvironmentConfig,
     readonly options: Options = {}
   ) {
     this.program = new Program<SunriseStake>(IDL, PROGRAM_ID, provider);
     this.staker = this.provider.publicKey;
+    this.env = {
+      ...env,
+      ...options.environmentOverrides,
+    };
   }
 
   private log(...args: any[]): void {
     Boolean(this.config?.options.verbose) && console.log(...args);
+  }
+
+  // refresh the client's internal state
+  public async refresh(): Promise<void> {
+    await this.init();
   }
 
   private async init(): Promise<void> {
@@ -219,8 +227,11 @@ export class SunriseStakeClient {
       owner: this.bsolTokenAccountAuthority,
     });
 
-    this.lockClient = new LockClient(this.config, this.program, this.staker);
-
+    this.lockClient = await LockClient.build(
+      this.config,
+      this.program,
+      this.staker
+    );
   }
 
   public async sendAndConfirmTransaction(
@@ -238,14 +249,17 @@ export class SunriseStakeClient {
 
   /**
    * Send and confirm multiple transactions in sequence
+   *
    * @param transactions
    * @param signers
    * @param opts
+   * @param withRefresh Refresh the client's internal state after sending the transactions (default: false)
    */
   public async sendAndConfirmTransactions(
     transactions: Transaction[],
     signers: Signer[][] = [],
-    opts?: ConfirmOptions
+    opts?: ConfirmOptions,
+    withRefresh = false
   ): Promise<string[]> {
     const txesWithSigners = zip(transactions, signers, []);
     const txSigs: string[] = [];
@@ -255,6 +269,10 @@ export class SunriseStakeClient {
       const txSig = await this.sendAndConfirmTransaction(tx, signers, opts);
       this.log("Transaction sent: ", txSig);
       txSigs.push(txSig);
+    }
+
+    if (withRefresh) {
+      await this.refresh();
     }
 
     return txSigs;
@@ -1125,17 +1143,18 @@ export class SunriseStakeClient {
             amountLocked: new BN(`${lockAccountDetails.tokenAccount.amount}`),
             yield: lockAccountDetails.lockAccount.yieldAccruedByOwner,
             currentLevel: lockAccountDetails.currentLevel,
-            nextLevelYieldRequired: lockAccountDetails.yieldToNextLevel,
+            yieldToNextLevel: lockAccountDetails.yieldToNextLevel,
           }
         : undefined;
 
-    const nftSummary = {
-      stateAddress: this.config.impactNFTStateAddress,
-      mintAuthority: findImpactNFTMintAuthority(this.config)[0],
-      mint: impactNFT.mint,
-      tokenAccount: impactNFT.tokenAccount,
-    };
-    console.log("nftSummary", nftSummary);
+    const nftSummary = this.config.impactNFTStateAddress
+      ? {
+          stateAddress: this.config.impactNFTStateAddress,
+          mintAuthority: findImpactNFTMintAuthority(this.config)[0],
+          mint: impactNFT.mint,
+          tokenAccount: impactNFT.tokenAccount,
+        }
+      : undefined;
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
       ? nftSummary
       : undefined;
@@ -1355,6 +1374,7 @@ export class SunriseStakeClient {
       .rpc()
       .then(confirm(client.provider.connection));
 
+    console.log("before init env", client.env);
     await client.init();
 
     await client.initEpochReport().then(confirm(client.provider.connection));
@@ -1519,7 +1539,6 @@ export class SunriseStakeClient {
       this.env.impactNFT,
       lamports
     );
-
     transactions.push(lockTx);
 
     return transactions;
@@ -1585,8 +1604,7 @@ export class SunriseStakeClient {
   }
 
   public async getLockAccount(): Promise<LockAccountSummary> {
-    if (!this.lockClient?.lockAccount)
-      throw new Error("init not called");
+    if (!this.lockClient) throw new Error("init not called");
 
     return {
       lockAccount: this.lockClient.lockAccount,
