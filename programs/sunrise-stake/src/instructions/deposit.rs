@@ -75,7 +75,6 @@ pub struct Deposit<'info> {
     #[account(
     mut,
     token::mint = gsol_mint,
-    token::authority = transfer_from.key(),
     )]
     pub mint_gsol_to: Account<'info, TokenAccount>,
 

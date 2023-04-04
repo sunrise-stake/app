@@ -43,6 +43,7 @@ import {
 } from "./constants";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 chai.use(chaiAsPromised);
 
@@ -266,6 +267,24 @@ describe("sunrise-stake", () => {
     await expectLiqPoolTokenBalance(client, expectedLiqPool, 50);
   });
 
+  it("can deposit sol for someone else", async () => {
+    const recipient = Keypair.generate();
+    const lamportsToSend = new BN(100_000);
+    await client.sendAndConfirmTransaction(
+      await client.deposit(lamportsToSend, recipient.publicKey)
+    );
+
+    const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
+      client.config!.gsolMint,
+      recipient.publicKey
+    );
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(
+      recipientTokenAccountAddress
+    );
+    log("Recipient's gSOL balance", gsolBalance.value.uiAmount);
+    expect(gsolBalance.value.amount).to.equal(lamportsToSend.toString());
+  });
+
   it("locks sol for the next epoch", async () => {
     await client.sendAndConfirmTransactions(
       await client.lockGSol(lockLamports),
@@ -374,7 +393,7 @@ describe("sunrise-stake", () => {
 
     details = await client.details();
     expect(details.epochReport.totalOrderedLamports.toNumber()).to.equal(
-      7450000000
+      7450005000
     );
   });
 
