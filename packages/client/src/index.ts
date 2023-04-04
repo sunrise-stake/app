@@ -278,14 +278,16 @@ export class SunriseStakeClient {
     return txSigs;
   }
 
-  createGSolTokenAccountIx(): TransactionInstruction {
-    if (!this.stakerGSolTokenAccount || !this.config)
-      throw new Error("init not called");
+  createGSolTokenAccountIx(
+    account = this.stakerGSolTokenAccount,
+    authority = this.staker
+  ): TransactionInstruction {
+    if (!account || !this.config) throw new Error("init not called");
 
     return createAssociatedTokenAccountIdempotentInstruction(
       this.provider.publicKey,
-      this.stakerGSolTokenAccount,
-      this.staker,
+      account,
+      authority,
       this.config.gsolMint
     );
   }
@@ -303,7 +305,10 @@ export class SunriseStakeClient {
     return this.deposit(lamports);
   }
 
-  public async deposit(lamports: BN): Promise<Transaction> {
+  public async deposit(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -312,14 +317,25 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
+    const recipientAuthority = recipient ?? this.staker;
+    const recipientGsolTokenAccountAddress = recipient
+      ? await utils.token.associatedAddress({
+          mint: this.config.gsolMint,
+          owner: recipientAuthority,
+        })
+      : this.stakerGSolTokenAccount;
+
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
-      this.stakerGSolTokenAccount
+      recipientGsolTokenAccountAddress
     );
 
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx(
+        recipientGsolTokenAccountAddress,
+        recipient
+      );
       transaction.add(createUserTokenAccount);
     }
 
@@ -330,7 +346,7 @@ export class SunriseStakeClient {
       this.marinadeState,
       this.config.stateAddress,
       this.provider.publicKey,
-      this.stakerGSolTokenAccount,
+      recipientGsolTokenAccountAddress,
       lamports
     );
 
