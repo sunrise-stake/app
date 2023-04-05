@@ -1,18 +1,14 @@
 import { Keypair, LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
-import {
-  SunriseStakeClient,
-  Environment,
-  IMPACT_NFT_PROGRAM_ID,
-} from "../client/src";
-import { burnGSol, log, waitForNextEpoch } from "./util";
+import { SunriseStakeClient, Environment } from "../client/src";
+import { burnGSol, waitForNextEpoch } from "./util";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { depositLamports, lockLamports } from "./constants";
-import * as anchor from "@coral-xyz/anchor";
 import { findImpactNFTMintAuthority } from "../client/src/util";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
 import BN from "bn.js";
 import levels from "./impactNFTLevels.json";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 chai.use(chaiAsPromised);
 
@@ -20,60 +16,46 @@ const LEVELS = 8;
 
 export const burnLamports = 10 * LAMPORTS_PER_SOL;
 
-const findImpactNftPda = (seed: Seed, authority: PublicKey) =>
-  anchor.web3.PublicKey.findProgramAddressSync(
-    [Buffer.from(seed), authority.toBuffer()],
-    IMPACT_NFT_PROGRAM_ID
-  )[0];
-
-enum Seed {
-  GlobalState = "global_state",
-}
-
 describe("Impact NFTs", () => {
   let client: SunriseStakeClient;
 
   const treasury = Keypair.generate();
   const mint = Keypair.generate();
 
-  let impactNftStateAddress: PublicKey;
   let impactNftMintAuthority: PublicKey;
 
   let impactNftClient: ImpactNftClient;
 
-  before("register a new Sunrise state and mint gSOL", async () => {
-    client = await SunriseStakeClient.register(
+  before("register a new Sunrise state and impact nft state", async () => {
+    // we need to register the sunrise state before we register impact nft state,
+    // so that we can derive the impact nft mint authority PDA from the sunrise state
+    // so this is just a temporary client to register the sunrise state
+    const environmentWithoutImpactNft = {
+      ...Environment.devnet,
+      impactNFT: {
+        state: undefined,
+      },
+    };
+    const initialClient = await SunriseStakeClient.register(
       treasury.publicKey,
       mint,
-      Environment.devnet,
+      environmentWithoutImpactNft,
       {
         verbose: Boolean(process.env.VERBOSE),
       }
     );
 
-    await client.sendAndConfirmTransaction(
-      await client.deposit(depositLamports)
+    await initialClient.sendAndConfirmTransaction(
+      await initialClient.deposit(depositLamports)
     );
 
-    impactNftMintAuthority = findImpactNFTMintAuthority(client.config!)[0];
-    impactNftStateAddress = findImpactNftPda(
-      Seed.GlobalState,
-      impactNftMintAuthority
-    );
-
-    log("Impact NFT state address: " + impactNftStateAddress.toBase58());
-  });
-
-  it("can register impact nft state", async () => {
-    if (!client.config) throw new Error("Client not initialised");
-
+    impactNftMintAuthority = findImpactNFTMintAuthority(
+      initialClient.config!
+    )[0];
     impactNftClient = await ImpactNftClient.register(
       impactNftMintAuthority,
       LEVELS
     );
-
-    if (!impactNftClient.stateAddress)
-      throw new Error("Impact NFT state not registered");
 
     // Create levels and collections: TODO
     const collections = await Promise.all(
@@ -93,14 +75,29 @@ describe("Impact NFTs", () => {
     }));
     await impactNftClient.registerOffsetTiers(levelsWithOffsetAndCollections);
 
-    // set the newly-generated impactNft state in the client config
-    // so that it can be looked up in the next test
-    client.config.impactNFTStateAddress = impactNftClient.stateAddress;
+    // now that we have the impact nft state address, we can create the real client
+    client = await SunriseStakeClient.get(
+      initialClient.provider,
+      WalletAdapterNetwork.Devnet,
+      {
+        environmentOverrides: {
+          state: initialClient.config!.stateAddress,
+          impactNFT: {
+            state: impactNftClient.stateAddress!,
+          },
+        },
+      }
+    );
   });
 
   it("can mint an impact nft when locking gSOL", async () => {
     const transactions = await client.lockGSol(lockLamports);
-    await client.sendAndConfirmTransactions(transactions);
+    await client.sendAndConfirmTransactions(
+      transactions,
+      undefined,
+      undefined,
+      true
+    );
 
     const details = await client.details();
     expect(details.impactNFTDetails?.tokenAccount).to.exist;

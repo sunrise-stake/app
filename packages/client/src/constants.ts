@@ -28,7 +28,7 @@ export interface EnvironmentConfig {
   percentageStakeToMarinade: number;
   blaze: BlazeConfig;
   impactNFT: {
-    state: PublicKey;
+    state: PublicKey | undefined; // if undefined, impact nft is disabled
   };
 }
 export const Environment: Record<

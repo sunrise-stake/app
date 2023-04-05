@@ -40,6 +40,11 @@ import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
 import { useWallet } from "@solana/wallet-adapter-react";
 
+const hasLockedBalance = (details: Details | undefined): boolean =>
+  details?.lockDetails?.amountLocked
+    ? details.lockDetails.amountLocked.gt(ZERO)
+    : false;
+
 const canBeUpdated = (details: Details | undefined): boolean => {
   if (!details?.lockDetails) return false;
   return (
@@ -159,6 +164,10 @@ const _LockingApp: ForwardRefRenderFunction<
       .catch(handleError);
   };
 
+  const lockText = hasLockedBalance(details)
+    ? "Your Impact NFT is proof of your stake. It grows as your stake matures. Return regularly to upgrade your NFT to the next level."
+    : "Your Impact NFT is proof of your stake. It grows as your stake matures. Re-lock your gSOL to grow it to the next level.";
+
   return (
     <div
       className={clx(
@@ -184,7 +193,7 @@ const _LockingApp: ForwardRefRenderFunction<
           </div>
         </Link>
       </div>
-      {myTree && details?.lockDetails === undefined && (
+      {myTree && details?.impactNFTDetails === undefined && (
         <DynamicTree details={myTree} variant="sm" />
       )}
       {details?.impactNFTDetails === undefined && (
@@ -199,10 +208,7 @@ const _LockingApp: ForwardRefRenderFunction<
           <ImpactNFT details={details.impactNFTDetails} />
           <div className="px-6 py-4">
             <div className="font-bold text-xl mb-2">Your Impact NFT</div>
-            <p className="text-gray-700 text-base">
-              Your Impact NFT is proof of your stake. It grows as your stake
-              matures. Return regularly to upgrade your NFT to the next level.
-            </p>
+            <p className="text-gray-700 text-base">{lockText}</p>
           </div>
           <div className="px-6 pt-4 pb-2">
             <LockDetailTag>
