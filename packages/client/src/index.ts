@@ -379,7 +379,10 @@ export class SunriseStakeClient {
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx(
+        recipientGsolTokenAccountAddress,
+        recipient
+      );
       transaction.add(createUserTokenAccount);
     }
 
