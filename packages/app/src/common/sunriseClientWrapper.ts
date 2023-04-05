@@ -90,10 +90,10 @@ export class SunriseClientWrapper {
     return result;
   };
 
-  async deposit(amount: BN): Promise<string> {
+  async deposit(amount: BN, recipient?: PublicKey): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
-      .makeBalancedDeposit(amount)
+      .makeBalancedDeposit(amount, recipient)
       .then(async (tx) => this.client.sendAndConfirmTransaction(tx));
     // .then(this.triggerUpdateAndReturn.bind(this));
   }
