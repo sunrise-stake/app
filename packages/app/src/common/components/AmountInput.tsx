@@ -71,19 +71,11 @@ const AmountInput: React.FC<AmountInputProps> = ({
   };
 
   const updateAmount = (amountStr: string): void => {
-    console.log("amountStr ", amountStr);
     const parsedValue = solToLamports(amountStr);
     const min = ZERO;
     const max = getMaxBalance();
 
-    console.log("parsedValue ", parsedValue.toString());
-
     setAmount(amountStr);
-    console.log(`Min: ${min.toNumber()}`);
-    console.log(`Max: ${max.toNumber()}`);
-    console.log(
-      `Valid: ${parsedValue.gt(min) && parsedValue.lte(max) ? "true" : "false"}`
-    );
     setValid(parsedValue.gt(min) && parsedValue.lte(max));
   };
 
@@ -106,7 +98,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
         <div className="grow my-auto">
           {showBalance && (
             <div className="flex items-center justify-end">
-              Balance:{" "}
+              Available Balance:{" "}
               <button
                 className="px-2 py-1 rounded-md hover:bg-green text-green hover:text-white"
                 onClick={() => {

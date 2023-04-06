@@ -278,32 +278,40 @@ export class SunriseStakeClient {
     return txSigs;
   }
 
-  createGSolTokenAccountIx(): TransactionInstruction {
-    if (!this.stakerGSolTokenAccount || !this.config)
-      throw new Error("init not called");
+  createGSolTokenAccountIx(
+    account = this.stakerGSolTokenAccount,
+    authority = this.staker
+  ): TransactionInstruction {
+    if (!account || !this.config) throw new Error("init not called");
 
     return createAssociatedTokenAccountIdempotentInstruction(
       this.provider.publicKey,
-      this.stakerGSolTokenAccount,
-      this.staker,
+      account,
+      authority,
       this.config.gsolMint
     );
   }
 
-  public async makeBalancedDeposit(lamports: BN): Promise<Transaction> {
+  public async makeBalancedDeposit(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
     const details = await this.details();
     if (
       marinadeTargetReached(details, this.env.percentageStakeToMarinade) &&
       SOLBLAZE_ENABLED
     ) {
       console.log("Routing deposit to Solblaze");
-      return this.depositToBlaze(lamports);
+      return this.depositToBlaze(lamports, recipient);
     }
     console.log("Depositing to marinade");
-    return this.deposit(lamports);
+    return this.deposit(lamports, recipient);
   }
 
-  public async deposit(lamports: BN): Promise<Transaction> {
+  public async deposit(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -312,14 +320,25 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
+    const recipientAuthority = recipient ?? this.staker;
+    const recipientGsolTokenAccountAddress = recipient
+      ? await utils.token.associatedAddress({
+          mint: this.config.gsolMint,
+          owner: recipientAuthority,
+        })
+      : this.stakerGSolTokenAccount;
+
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
-      this.stakerGSolTokenAccount
+      recipientGsolTokenAccountAddress
     );
 
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx(
+        recipientGsolTokenAccountAddress,
+        recipient
+      );
       transaction.add(createUserTokenAccount);
     }
 
@@ -330,7 +349,7 @@ export class SunriseStakeClient {
       this.marinadeState,
       this.config.stateAddress,
       this.provider.publicKey,
-      this.stakerGSolTokenAccount,
+      recipientGsolTokenAccountAddress,
       lamports
     );
 
@@ -339,18 +358,31 @@ export class SunriseStakeClient {
     return transaction;
   }
 
-  public async depositToBlaze(lamports: BN): Promise<Transaction> {
+  public async depositToBlaze(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
+    const recipientAuthority = recipient ?? this.staker;
+    const recipientGsolTokenAccountAddress = recipient
+      ? await utils.token.associatedAddress({
+          mint: this.config.gsolMint,
+          owner: recipientAuthority,
+        })
+      : this.stakerGSolTokenAccount;
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
-      this.stakerGSolTokenAccount
+      recipientGsolTokenAccountAddress
     );
 
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx(
+        recipientGsolTokenAccountAddress,
+        recipient
+      );
       transaction.add(createUserTokenAccount);
     }
 
@@ -359,7 +391,7 @@ export class SunriseStakeClient {
       this.program,
       this.blazeState,
       this.provider.publicKey,
-      this.stakerGSolTokenAccount,
+      recipientGsolTokenAccountAddress,
       lamports
     );
 
