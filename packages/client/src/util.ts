@@ -14,6 +14,7 @@ import {
   Provider,
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
+import { type SunriseStakeConfig } from "./types/Config";
 import { type Details } from "./types/Details";
 import { type EnvironmentConfig, MAX_NUM_PRECISION } from "./constants";
 import {
@@ -49,20 +50,6 @@ export const enum ProgramDerivedAddressSeed {
   LOCK_TOKEN_ACCOUNT = "lock_token_account",
   IMPACT_NFT_MINT_AUTHORITY = "impact_nft_mint_authority",
   IMPACT_NFT_MINT_ACCOUNT = "impact_nft_mint_account",
-}
-
-export interface SunriseStakeConfig {
-  stateAddress: PublicKey;
-  gsolMint: PublicKey;
-  treasury: PublicKey;
-  updateAuthority: PublicKey;
-  programId: PublicKey;
-  liqPoolProportion: number;
-
-  liqPoolMinProportion: number;
-
-  options: Options;
-  impactNFTStateAddress: PublicKey | undefined; // a state can exist without an impact nft state
 }
 
 // Return the type of an element in an array

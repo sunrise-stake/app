@@ -98,7 +98,7 @@ export const expectMSolTokenBalance = async (
   tolerance = 0 // Allow for a tolerance as the msol calculation is inaccurate. The test uses the price which has limited precision
 ) => {
   const msolBalance = await client.provider.connection.getTokenAccountBalance(
-    client.msolTokenAccount!
+    client.tokenConfig!.msolTokenAccount
   );
   log("mSOL balance", msolBalance.value.amount);
   expectAmount(new BN(msolBalance.value.amount), expectedAmount, tolerance);
@@ -110,7 +110,7 @@ export const expectBSolTokenBalance = async (
   tolerance = 0
 ) => {
   const bsolBalance = await client.provider.connection.getTokenAccountBalance(
-    client.bsolTokenAccount!
+    client.tokenConfig!.bsolTokenAccount
   );
   expectAmount(new BN(bsolBalance.value.amount), expectedAmount, tolerance);
 };
@@ -122,7 +122,7 @@ export const expectLiqPoolTokenBalance = async (
 ) => {
   const liqPoolBalance =
     await client.provider.connection.getTokenAccountBalance(
-      client.liqPoolTokenAccount!
+      client.tokenConfig!.liqPoolTokenAccount
     );
   log("LiqPool balance", liqPoolBalance.value.amount);
   log("Expected amount", expectedAmount);

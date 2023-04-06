@@ -15,7 +15,6 @@ import {
   findMSolTokenAccountAuthority,
   findOrderUnstakeTicketAccount,
   getValidatorIndex,
-  type SunriseStakeConfig,
 } from "./util";
 import {
   type Marinade,
@@ -23,6 +22,7 @@ import {
   MarinadeUtils,
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Program, utils } from "@coral-xyz/anchor";
+import { type SunriseStakeConfig } from "./types/Config";
 import { type BlazeState } from "./types/Solblaze";
 import { type SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";

@@ -5,7 +5,6 @@ import {
   findLockAccount,
   findLockTokenAccount,
   getTokenAccountNullable,
-  type SunriseStakeConfig,
 } from "./util";
 import {
   ComputeBudgetProgram,
@@ -15,6 +14,7 @@ import {
   type Transaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
+import { type SunriseStakeConfig } from "./types/Config";
 import { type LockAccount } from "./types/LockAccount";
 import * as anchor from "@coral-xyz/anchor";
 import {

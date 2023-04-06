@@ -7,13 +7,10 @@ import {
   type Transaction,
 } from "@solana/web3.js";
 import type BN from "bn.js";
-import {
-  findBSolTokenAccountAuthority,
-  findGSolMintAuthority,
-  type SunriseStakeConfig,
-} from "./util";
+import { findBSolTokenAccountAuthority, findGSolMintAuthority } from "./util";
 import { STAKE_POOL_PROGRAM_ID } from "./constants";
 import { type AnchorProvider, type Program, utils } from "@coral-xyz/anchor";
+import { type SunriseStakeConfig } from "./types/Config";
 import { type SunriseStake } from "./types/sunrise_stake";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { type BlazeState } from "./types/Solblaze";
