@@ -21,6 +21,12 @@ interface BlazeConfig {
   bsolMint: PublicKey;
 }
 
+interface MarinadeConfig {
+  stateAddress: PublicKey;
+  msolMintAddress: PublicKey;
+  lpMintAddress: PublicKey;
+}
+
 export interface EnvironmentConfig {
   state: PublicKey;
   holdingAccount: PublicKey;
@@ -30,6 +36,7 @@ export interface EnvironmentConfig {
   impactNFT: {
     state: PublicKey | undefined; // if undefined, impact nft is disabled
   };
+  marinade: MarinadeConfig;
 }
 export const Environment: Record<
   WalletAdapterNetwork | "localnet",
@@ -51,6 +58,17 @@ export const Environment: Record<
     impactNFT: {
       state: new PublicKey("6RzCneyeEqnjiWxrzqfBwHDEpTrbcSkBFFUrtMZnNjpc"),
     },
+    marinade: {
+      stateAddress: new PublicKey(
+        "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
+      ),
+      msolMintAddress: new PublicKey(
+        "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So"
+      ),
+      lpMintAddress: new PublicKey(
+        "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
+      ),
+    },
   },
   // TODO placeholders
   testnet: {
@@ -66,6 +84,17 @@ export const Environment: Record<
     },
     impactNFT: {
       state: PublicKey.default, // TODO
+    },
+    marinade: {
+      stateAddress: new PublicKey(
+        "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
+      ),
+      msolMintAddress: new PublicKey(
+        "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So"
+      ),
+      lpMintAddress: new PublicKey(
+        "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
+      ),
     },
   },
   devnet: {
@@ -84,6 +113,17 @@ export const Environment: Record<
     impactNFT: {
       state: new PublicKey("6iyfwPbbLeYAoUcQkECCPwftFuw3j5VEcXF7xcQeAdX6"),
     },
+    marinade: {
+      stateAddress: new PublicKey(
+        "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
+      ),
+      msolMintAddress: new PublicKey(
+        "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So"
+      ),
+      lpMintAddress: new PublicKey(
+        "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
+      ),
+    },
   },
   localnet: {
     state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
@@ -100,6 +140,17 @@ export const Environment: Record<
     },
     impactNFT: {
       state: PublicKey.default, // TODO
+    },
+    marinade: {
+      stateAddress: new PublicKey(
+        "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
+      ),
+      msolMintAddress: new PublicKey(
+        "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So"
+      ),
+      lpMintAddress: new PublicKey(
+        "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
+      ),
     },
   },
 };
