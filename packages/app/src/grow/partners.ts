@@ -1,12 +1,14 @@
-export const partnerApps = [
+export const partners = [
   {
     name: "Ape Energy Labs",
     website: "https://www.apeenergylabs.com/",
     imageUrl: "partners/AEL_Logo.jpg",
   },
   {
-    name: "Partner 1",
-    imageUrl: "partners/partner0.png",
+    name: "DRiP",
+    website: "/driptip",
+    imageUrl: "partners/drip.jpeg",
+    internal: true,
   },
   {
     name: "Partner 2",

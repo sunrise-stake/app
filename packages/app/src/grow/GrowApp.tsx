@@ -26,8 +26,8 @@ import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { charityApps } from "./charities";
-import { partnerApps } from "./partners";
-import { PartnerApp } from "./components/PartnerApp";
+import { partners } from "./partners";
+import { PartnerButton } from "./components/PartnerButton";
 import { OrgButtonContent } from "./OrgButtonContent";
 
 const isRealCharity = (
@@ -110,14 +110,14 @@ const _GrowApp: ForwardRefRenderFunction<
           <CollectInfoButton>
             <Placeholder>Your App Here</Placeholder>
           </CollectInfoButton>
-          {partnerApps.map((app) =>
-            isRealPartner(app) ? (
-              <PartnerApp partner={app} key={app.name}>
-                <OrgButtonContent>{app.name}</OrgButtonContent>
-              </PartnerApp>
+          {partners.map((partner) =>
+            isRealPartner(partner) ? (
+              <PartnerButton partner={partner} key={partner.name}>
+                <OrgButtonContent>{partner.name}</OrgButtonContent>
+              </PartnerButton>
             ) : (
-              <CollectInfoButton imageUrl={app.imageUrl} key={app.name}>
-                <OrgButtonContent>{app.name}</OrgButtonContent>
+              <CollectInfoButton imageUrl={partner.imageUrl} key={partner.name}>
+                <OrgButtonContent>{partner.name}</OrgButtonContent>
               </CollectInfoButton>
             )
           )}
