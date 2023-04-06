@@ -38,9 +38,9 @@ import {
   type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
-import { 
-  type SunriseStakeConfig, 
-  type SunriseTokenConfig, 
+import {
+  type SunriseStakeConfig,
+  type SunriseTokenConfig,
 } from "./types/Config";
 import {
   type Balance,
@@ -712,7 +712,10 @@ export class SunriseStakeClient {
       throw new Error("init not called");
 
     const { transaction, newTicketAccount, proxyTicketAccount } =
-      await this.marinade.orderUnstake(lamports, this.tokenConfig.msolTokenAccount);
+      await this.marinade.orderUnstake(
+        lamports,
+        this.tokenConfig.msolTokenAccount
+      );
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
@@ -799,11 +802,7 @@ export class SunriseStakeClient {
   }
 
   public async withdrawFromBlaze(amount: BN): Promise<string> {
-    if (
-      !this.blazeState ||
-      !this.config ||
-      !this.stakerGSolTokenAccount
-    )
+    if (!this.blazeState || !this.config || !this.stakerGSolTokenAccount)
       throw new Error("init not called");
 
     const withdrawIx = await blazeWithdrawSol(
@@ -823,11 +822,7 @@ export class SunriseStakeClient {
     newStakeAccount: PublicKey,
     amount: BN
   ): Promise<string> {
-    if (
-      !this.blazeState ||
-      !this.config ||
-      !this.stakerGSolTokenAccount
-    )
+    if (!this.blazeState || !this.config || !this.stakerGSolTokenAccount)
       throw new Error("init not called");
 
     const withdrawStakeIx = await blazeWithdrawStake(
@@ -1195,7 +1190,7 @@ export class SunriseStakeClient {
           }
         : undefined;
 
-      return lockDetails;
+    return lockDetails;
   }
 
   private async getImpactNFTDetails(): Promise<Details["impactNFTDetails"]> {
@@ -1246,7 +1241,8 @@ export class SunriseStakeClient {
         stateAddress: this.config.stateAddress.toBase58(),
         treasury: this.config.treasury.toBase58(),
         msolTokenAccount: this.tokenConfig.msolTokenAccount.toBase58(),
-        msolTokenAccountAuthority: this.tokenConfig.msolTokenAccountAuthority[0].toBase58(),
+        msolTokenAccountAuthority:
+          this.tokenConfig.msolTokenAccountAuthority[0].toBase58(),
       },
       marinadeFinanceProgramId: MARINADE_PROGRAM_ID.toBase58(),
       marinadeStateAddress: this.env.marinade.stateAddress.toBase58(),
@@ -1376,8 +1372,7 @@ export class SunriseStakeClient {
     epochReport,
     bpDetails,
   }: Omit<Details, "extractableYield">): BN {
-    if (!this.marinadeState)
-      throw new Error("init not called");
+    if (!this.marinadeState) throw new Error("init not called");
 
     // deposited in Stake Pool
     const solValueOfMSol = mpDetails.msolValue;
@@ -1477,11 +1472,11 @@ export class SunriseStakeClient {
     if (
       !this.config ||
       !this.tokenConfig ||
-      !this.marinadeState || 
+      !this.marinadeState ||
       !this.stakerGSolTokenAccount
     )
       throw new Error("init not called");
-      
+
     const gsolBalancePromise = this.provider.connection
       .getTokenAccountBalance(this.stakerGSolTokenAccount)
       .catch((e) => {
@@ -1492,29 +1487,29 @@ export class SunriseStakeClient {
         throw e;
       });
 
-      const gsolSupplyPromise = this.provider.connection.getTokenSupply(
-        this.config.gsolMint
-      );
-  
+    const gsolSupplyPromise = this.provider.connection.getTokenSupply(
+      this.config.gsolMint
+    );
+
     const msolLamportsBalancePromise =
       this.provider.connection.getTokenAccountBalance(
-      this.tokenConfig.msolTokenAccount
-    );
+        this.tokenConfig.msolTokenAccount
+      );
     const bsolLamportsBalancePromise =
       this.provider.connection.getTokenAccountBalance(
-      this.tokenConfig.bsolTokenAccount
-    );
+        this.tokenConfig.bsolTokenAccount
+      );
     const liqPoolBalancePromise =
       this.provider.connection.getTokenAccountBalance(
-      this.tokenConfig.liqPoolTokenAccount
-    );
+        this.tokenConfig.liqPoolTokenAccount
+      );
     const treasuryBalancePromise = this.provider.connection.getBalance(
       this.config.treasury
     );
     const holdingAccountBalancePromise = this.provider.connection.getBalance(
       this.env.holdingAccount
     );
-  
+
     const [
       gsolBalance,
       gsolSupply,
@@ -1532,7 +1527,7 @@ export class SunriseStakeClient {
       bsolLamportsBalancePromise,
       holdingAccountBalancePromise,
     ]);
-  
+
     return {
       gsolBalance: gsolBalance.value,
       gsolSupply: gsolSupply.value,
