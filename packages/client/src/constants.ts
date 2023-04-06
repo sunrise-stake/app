@@ -16,6 +16,10 @@ export const IMPACT_NFT_PROGRAM_ID = new PublicKey(
   "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
 );
 
+export const MARINADE_PROGRAM_ID = new PublicKey(
+  "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+);
+
 interface BlazeConfig {
   pool: PublicKey;
   bsolMint: PublicKey;

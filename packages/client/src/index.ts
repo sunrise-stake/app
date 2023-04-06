@@ -10,6 +10,7 @@ import {
   SYSVAR_CLOCK_PUBKEY,
   Transaction,
   type TransactionInstruction,
+  type EpochInfo,
 } from "@solana/web3.js";
 import {
   confirm,
@@ -65,6 +66,7 @@ import {
   NETWORK_FEE,
   SOLBLAZE_ENABLED,
   STAKE_POOL_PROGRAM_ID,
+  MARINADE_PROGRAM_ID,
 } from "./constants";
 import {
   deposit,
@@ -1061,64 +1063,67 @@ export class SunriseStakeClient {
     };
   }
 
-  public async details(): Promise<Details> {
-    if (
-      !this.marinadeState ||
-      !this.stakerGSolTokenAccount ||
-      !this.tokenConfig ||
-      !this.config
-    )
-      throw new Error("init not called");
+  private async getEpochDetails(): Promise<{
+    currentEpoch: EpochInfo;
+    epochReport: EpochReportAccount;
+  }> {
+    if (!this.config) throw new Error("Init not called");
 
-    const currentEpochPromise = this.provider.connection.getEpochInfo();
-
-    const lpMintInfoPromise = this.marinadeState.lpMint.mintInfo();
-    const lpMsolBalancePromise =
-      this.provider.connection.getTokenAccountBalance(
-        this.marinadeState.mSolLeg
-      );
-
-    const solLeg = await this.marinadeState.solLeg();
-    const solLegBalancePromise = this.provider.connection.getBalance(solLeg);
-
-    const balancesPromise = this.balance();
-
-    const lockAccountPromise = await this.getLockAccount();
-
-    const impactNFTPromise = await getImpactNFT(
+    const currentEpoch = await this.provider.connection.getEpochInfo();
+    const { account: epochReport } = await getEpochReportAccount(
       this.config,
-      this.staker,
-      this.provider
+      this.program
     );
 
-    const [
+    return {
       currentEpoch,
-      lpMintInfo,
-      lpSolLegBalance,
-      lpMsolBalance,
-      balances,
-      lockAccountDetails,
-      impactNFT,
-    ] = await Promise.all([
-      currentEpochPromise,
-      lpMintInfoPromise,
-      solLegBalancePromise,
-      lpMsolBalancePromise,
-      balancesPromise,
-      lockAccountPromise,
-      impactNFTPromise,
-    ]);
+      epochReport: epochReport ?? EMPTY_EPOCH_REPORT,
+    };
+  }
+
+  private async getMpDetails(): Promise<Details["mpDetails"]> {
+    // TODO: Return undefined. Don't error
+    if (!this.marinadeState) throw new Error("Marinade not initialized");
+
+    const balance = await this.balance();
+
+    const solValueOfMSol = this.computeLamportsFromMSol(
+      new BN(balance.msolBalance.amount),
+      this.marinadeState
+    );
+
+    return {
+      msolPrice: this.marinadeState.mSolPrice,
+      msolValue: solValueOfMSol,
+      stakeDelta: this.marinadeState.stakeDelta().toNumber(),
+    };
+  }
+
+  private async getLpDetails(balance: Balance): Promise<Details["lpDetails"]> {
+    // TODO: Return undefined. Don't error
+    if (!this.marinadeState) throw new Error("Marinade not initialized");
+
+    const lpMintInfo = await this.marinadeState.lpMint.mintInfo();
+
+    const lpMsolBalance = await this.provider.connection.getTokenAccountBalance(
+      this.marinadeState.mSolLeg
+    );
+
+    const lpMsolShare = proportionalBN(
+      new BN(balance.liqPoolBalance.amount),
+      new BN(lpMsolBalance.value.amount),
+      new BN(lpMintInfo.supply.toString())
+    );
+
+    const solLeg = await this.marinadeState.solLeg();
+    const lpSolLegBalance = await this.provider.connection.getBalance(solLeg);
 
     const availableLiqPoolSolLegBalance = new BN(lpSolLegBalance).sub(
       this.marinadeState.state.rentExemptForTokenAcc
     );
-    const lpMsolShare = proportionalBN(
-      new BN(balances.liqPoolBalance.amount),
-      new BN(lpMsolBalance.value.amount),
-      new BN(lpMintInfo.supply.toString())
-    );
+
     const lpSolShare = proportionalBN(
-      new BN(balances.liqPoolBalance.amount),
+      new BN(balance.liqPoolBalance.amount),
       availableLiqPoolSolLegBalance,
       new BN(lpMintInfo.supply.toString())
     );
@@ -1129,18 +1134,7 @@ export class SunriseStakeClient {
 
     const lpSolValue = lpSolShare.add(solValueOlpMSolShare);
 
-    const solValueOfMSol = this.computeLamportsFromMSol(
-      new BN(balances.msolBalance.amount),
-      this.marinadeState
-    );
-
-    const mpDetails = {
-      msolPrice: this.marinadeState.mSolPrice,
-      msolValue: solValueOfMSol,
-      stakeDelta: this.marinadeState.stakeDelta().toNumber(),
-    };
-
-    const lpDetails = {
+    return {
       mintAddress: this.marinadeState.lpMint.address.toBase58(),
       supply: lpMintInfo.supply,
       mintAuthority: lpMintInfo.mintAuthority?.toBase58(),
@@ -1150,22 +1144,27 @@ export class SunriseStakeClient {
       lpSolValue, // total SOL value of the LP tokens held by the sunrise instance
       msolLeg: this.marinadeState.mSolLeg.toBase58(),
     };
+  }
 
-    const { account: epochReport } = await getEpochReportAccount(
-      this.config,
-      this.program
-    );
+  private async getBpDetails(): Promise<Details["bpDetails"]> {
+    if (!this.config || !this.tokenConfig) throw new Error("Init not called");
 
     const stakePoolInfo = await getStakePoolAccount(
       this.provider.connection,
       this.env.blaze.pool
     );
+
+    const bsolLamportsBalance =
+      await this.provider.connection.getTokenAccountBalance(
+        this.tokenConfig.bsolTokenAccount
+      );
+
     const [bsolPrice, bsolValue] = this.computeLamportsFromBSol(
-      new BN(balances.bsolBalance.amount),
+      new BN(bsolLamportsBalance.value.amount),
       stakePoolInfo
     );
 
-    const bpDetails = {
+    return {
       pool: this.env.blaze.pool.toString(),
       bsolPrice,
       bsolValue,
@@ -1174,6 +1173,10 @@ export class SunriseStakeClient {
         denominator: stakePoolInfo.solWithdrawalFee.denominator,
       },
     };
+  }
+
+  private async getLockDetails(): Promise<Details["lockDetails"]> {
+    const lockAccountDetails = await this.getLockAccount();
 
     const lockDetails: Details["lockDetails"] =
       lockAccountDetails.lockAccount &&
@@ -1192,6 +1195,18 @@ export class SunriseStakeClient {
           }
         : undefined;
 
+      return lockDetails;
+  }
+
+  private async getImpactNFTDetails(): Promise<Details["impactNFTDetails"]> {
+    if (!this.config) throw new Error("Init not called");
+
+    const impactNFT = await getImpactNFT(
+      this.config,
+      this.staker,
+      this.provider
+    );
+
     const nftSummary = this.config.impactNFTStateAddress
       ? {
           stateAddress: this.config.impactNFTStateAddress,
@@ -1204,11 +1219,26 @@ export class SunriseStakeClient {
       ? nftSummary
       : undefined;
 
+    return impactNFTDetails;
+  }
+
+  public async details(): Promise<Details> {
+    if (!this.config || !this.tokenConfig || !this.stakerGSolTokenAccount)
+      throw new Error("Init not called");
+
+    const epochDetails = await this.getEpochDetails();
+    const balances = await this.balance();
+    const mpDetails = await this.getMpDetails();
+    const lpDetails = await this.getLpDetails(balances);
+    const bpDetails = await this.getBpDetails();
+    const lockDetails = await this.getLockDetails();
+    const impactNFTDetails = await this.getImpactNFTDetails();
+
     const detailsWithoutYield: Omit<Details, "extractableYield"> = {
       staker: this.staker.toBase58(),
+      currentEpoch: epochDetails.currentEpoch,
+      epochReport: epochDetails.epochReport,
       balances,
-      currentEpoch,
-      epochReport: epochReport ?? EMPTY_EPOCH_REPORT,
       stakerGSolTokenAccount: this.stakerGSolTokenAccount.toBase58(),
       sunriseStakeConfig: {
         gsolMint: this.config.gsolMint.toBase58(),
@@ -1218,9 +1248,8 @@ export class SunriseStakeClient {
         msolTokenAccount: this.tokenConfig.msolTokenAccount.toBase58(),
         msolTokenAccountAuthority: this.tokenConfig.msolTokenAccountAuthority[0].toBase58(),
       },
-      marinadeFinanceProgramId:
-        this.marinadeState.marinadeFinanceProgramId.toBase58(),
-      marinadeStateAddress: this.marinadeState.marinadeStateAddress.toBase58(),
+      marinadeFinanceProgramId: MARINADE_PROGRAM_ID.toBase58(),
+      marinadeStateAddress: this.env.marinade.stateAddress.toBase58(),
       mpDetails,
       lpDetails,
       bpDetails,
