@@ -1574,7 +1574,11 @@ export type SunriseStake = {
         {
           "name": "nftMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "by the impact nft program. If not, then it is not used (re-locking a lock account does not",
+            "result in a new NFT being minted)"
+          ]
         },
         {
           "name": "nftMintAuthority",
@@ -4073,7 +4077,11 @@ export const IDL: SunriseStake = {
         {
           "name": "nftMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "by the impact nft program. If not, then it is not used (re-locking a lock account does not",
+            "result in a new NFT being minted)"
+          ]
         },
         {
           "name": "nftMintAuthority",
