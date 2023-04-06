@@ -24,7 +24,6 @@ import {
   PROGRAM_ID,
   proportionalBN,
   setUpAnchor,
-  type SunriseStakeConfig,
   ZERO,
   ZERO_BALANCE,
   toSol,
@@ -38,6 +37,7 @@ import {
   type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
 import BN from "bn.js";
+import { type SunriseStakeConfig } from "./types/Config";
 import {
   type Balance,
   type Details,
