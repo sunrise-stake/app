@@ -676,7 +676,7 @@ describe("sunrise-stake", () => {
 
     const liqPoolBalance =
       await client.provider.connection.getTokenAccountBalance(
-        client.liqPoolTokenAccount!
+        client.tokenConfig!.liqPoolTokenAccount
       );
 
     await client.sendAndConfirmTransaction(
