@@ -36,6 +36,7 @@ const stateChangeLogger =
 
 interface SunriseStore {
   details: Details | null;
+  fetchDetails: () => Promise<void>;
   yieldState: BuyAndBurnState | null;
   fetchYieldState: () => Promise<void>;
   wallet: WalletContextState;
@@ -46,6 +47,7 @@ const useSunriseStore = create<SunriseStore>()(
   devtools(
     stateChangeLogger((set) => ({
       details: null,
+      fetchDetails: async () => {},
       yieldState: null,
       fetchYieldState: async () => {
         const yieldState = await getYieldState();
