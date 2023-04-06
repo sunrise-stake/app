@@ -43,8 +43,8 @@ const isRealPartner = (
 };
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
-  <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-green text-xl font-medium text-center">
-    {children}
+  <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-xl font-medium text-center">
+    <div className="pt-4">{children}</div>
   </div>
 );
 
@@ -108,9 +108,7 @@ const _GrowApp: ForwardRefRenderFunction<
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
         <div className="flex overflow-x-scroll gap-4 p-4">
           <CollectInfoButton>
-            <Placeholder>
-              <div className="pt-4">Your App Here</div>
-            </Placeholder>
+            <Placeholder>Your App Here</Placeholder>
           </CollectInfoButton>
           {partnerApps.map((app) =>
             isRealPartner(app) ? (
