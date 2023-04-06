@@ -652,6 +652,18 @@ describe("sunrise-stake", () => {
     expectAmount(lockAccount!.yieldAccruedByOwner, expectedLockedYield, 50);
   });
 
+  it("can re-lock after unlock", async () => {
+    await client.sendAndConfirmTransactions(
+      await client.lockGSol(lockLamports),
+      undefined,
+      undefined,
+      true
+    );
+
+    const { tokenAccount } = await client.getLockAccount();
+    expectAmount(new BN(tokenAccount!.amount.toString()), lockLamports, 0);
+  });
+
   it("can extract earned yield", async () => {
     await expectTreasurySolBalance(client, 0, 50);
 
