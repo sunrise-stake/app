@@ -70,12 +70,15 @@ pub struct LockGSol<'info> {
     pub token_metadata_program: UncheckedAccount<'info>,
     pub associated_token_program: Program<'info, AssociatedToken>,
 
+    /// CHECK: If this is the first time the user is minting an NFT, this account will be initialized
+    /// by the impact nft program. If not, then it is not used (re-locking a lock account does not
+    /// result in a new NFT being minted)
     #[account(
     mut,
     seeds = [state.key().as_ref(), IMPACT_NFT_MINT_ACCOUNT, authority.key().as_ref()],
     bump, // TODO Move to state object?
     )]
-    pub nft_mint: SystemAccount<'info>,
+    pub nft_mint: UncheckedAccount<'info>,
     #[account(
     seeds = [state.key().as_ref(), IMPACT_NFT_MINT_AUTHORITY],
     bump, // TODO Move to state object?
