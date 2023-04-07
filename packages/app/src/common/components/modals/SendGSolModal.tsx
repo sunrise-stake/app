@@ -171,7 +171,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               )}
               {!recipientFromProps && (
                 <input
-                  className="rounded-md text-sm xl:text-lg py-2 px-4 placeholder:text-sm"
+                  className="rounded-md text-sm xl:text-md py-2 px-4 placeholder:text-sm"
                   onChange={(e) => {
                     updateRecipientFromForm(e.target.value);
                   }}
