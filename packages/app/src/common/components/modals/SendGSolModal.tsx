@@ -157,13 +157,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               <div className="font-semibold text-xl m-2 ml-0">Send</div>
               <CurrencySelect selected={currency} select={setCurrency} />
             </div>
-            {currency === "SOL" ? (
-              <div className="text-sm text-sky-600">
-                <MdInfo className="inline stroke-sky-600" />
-                SOL gets staked and send as gSOL
-              </div>
-            ) : null}
-            <div className="flex flex-row items-center">
+            <div className="grow flex flex-row items-center">
               <div className="font-semibold text-xl m-2 ml-0">To</div>
               {recipientFromProps && (
                 <a
@@ -188,6 +182,12 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               )}
             </div>
           </div>
+          {currency === "SOL" ? (
+            <div className="text-sm text-sky-600">
+              <MdInfo className="inline stroke-sky-600" />
+              SOL gets staked and send as gSOL
+            </div>
+          ) : null}
           <div className="flex flex-col sm:flex-row gap-2 mt-4">
             <AmountInput
               className="w-full"
