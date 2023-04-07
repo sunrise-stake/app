@@ -20,6 +20,7 @@ import {
 import { NotificationType, notifyTransaction } from "../notifications";
 import { CurrencySelect } from "../CurrencySelect";
 import { useSolBalance } from "../../hooks/useSolBalance";
+import { MdInfo } from "react-icons/md";
 
 interface SendGSolModalProps {
   recipient?: {
@@ -153,11 +154,17 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
         <div className="flex flex-col">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="flex flex-row">
-              <div className="font-semibold text-xl m-2">Send</div>
+              <div className="font-semibold text-xl m-2 ml-0">Send</div>
               <CurrencySelect selected={currency} select={setCurrency} />
             </div>
+            {currency === "SOL" ? (
+              <div className="text-sm text-sky-600">
+                <MdInfo className="inline stroke-sky-600" />
+                SOL gets staked and send as gSOL
+              </div>
+            ) : null}
             <div className="flex flex-row items-center">
-              <div className="font-semibold text-xl m-2">To</div>
+              <div className="font-semibold text-xl m-2 ml-0">To</div>
               {recipientFromProps && (
                 <a
                   className="font-normal text-lg text-green py-1 mt-1"
@@ -171,7 +178,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               )}
               {!recipientFromProps && (
                 <input
-                  className="rounded-md text-sm xl:text-md py-2 px-4 placeholder:text-sm"
+                  className="grow py-2 px-4 rounded-md text-sm xl:text-md placeholder:text-sm"
                   onChange={(e) => {
                     updateRecipientFromForm(e.target.value);
                   }}
