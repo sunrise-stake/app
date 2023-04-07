@@ -1,4 +1,4 @@
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { type TicketAccount, type Details, toSol } from "@sunrisestake/client";
 import BN from "bn.js";
 import clx from "classnames";
@@ -9,7 +9,6 @@ import { GiCircleForest } from "react-icons/gi";
 
 import {
   solToLamports,
-  toBN,
   toFixedWithPrecision,
   ZERO,
   type UIMode,
@@ -33,10 +32,10 @@ import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
 import { Link, useNavigate } from "react-router-dom";
 import { IoChevronUpOutline, IoChevronDownOutline } from "react-icons/io5";
+import { useSolBalance } from "../../common/hooks/useSolBalance";
 
 const StakeDashboard: FC = () => {
   const wallet = useWallet();
-  const { connection } = useConnection();
   const {
     client,
     details,
@@ -44,7 +43,7 @@ const StakeDashboard: FC = () => {
     client: SunriseClientWrapper | undefined;
     details: Details | undefined;
   } = useSunriseStake();
-  const [solBalance, setSolBalance] = useState<BN>();
+  const solBalance = useSolBalance();
   const [delayedWithdraw, setDelayedWithdraw] = useState(false);
   const [delayedUnstakeTickets, setDelayedUnstakeTickets] = useState<
     TicketAccount[]
@@ -57,7 +56,6 @@ const StakeDashboard: FC = () => {
   const updateBalances = async (): Promise<void> => {
     if (!wallet.publicKey || !client) return;
     try {
-      setSolBalance(await connection.getBalance(wallet.publicKey).then(toBN));
       setDelayedUnstakeTickets(await client.getDelayedUnstakeTickets());
     } catch (error) {
       console.error(error);

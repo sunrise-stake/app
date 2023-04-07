@@ -90,10 +90,10 @@ export class SunriseClientWrapper {
     return result;
   };
 
-  async deposit(amount: BN): Promise<string> {
+  async deposit(amount: BN, recipient?: PublicKey): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
-      .makeBalancedDeposit(amount)
+      .makeBalancedDeposit(amount, recipient)
       .then(async (tx) => this.client.sendAndConfirmTransaction(tx));
     // .then(this.triggerUpdateAndReturn.bind(this));
   }
@@ -169,7 +169,9 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .lockGSol(amount)
-      .then(async (txes) => this.client.sendAndConfirmTransactions(txes))
+      .then(async (txes) =>
+        this.client.sendAndConfirmTransactions(txes, undefined, undefined, true)
+      )
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
@@ -185,7 +187,9 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .updateLockAccount()
-      .then(async (txes) => this.client.sendAndConfirmTransactions(txes));
+      .then(async (txes) =>
+        this.client.sendAndConfirmTransactions(txes, undefined, undefined, true)
+      );
   }
 
   internal(): SunriseStakeClient {

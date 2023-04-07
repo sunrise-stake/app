@@ -11,7 +11,6 @@ import {
   toSol,
   ZERO_BALANCE,
 } from "@sunrisestake/client";
-import BN from "bn.js";
 
 export const filterFirstTransfersForSenderAndRecipient = (
   transfers: Transfer[]
@@ -122,8 +121,12 @@ export const getLockedBalance = async (
   client: SunriseStakeClient,
   address: PublicKey
 ): Promise<number> => {
-  const lockAccountResult = await client.getLockAccount(address);
-  return toSol(new BN(`${lockAccountResult?.tokenAccount?.amount ?? 0}`));
+  const lockedBalanceLamports = await client.lockClient?.getLockedBalance(
+    address
+  );
+  if (lockedBalanceLamports === undefined || lockedBalanceLamports === null)
+    return 0;
+  return toSol(lockedBalanceLamports);
 };
 
 export const earliest = (

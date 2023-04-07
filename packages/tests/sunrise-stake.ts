@@ -42,6 +42,8 @@ import {
   unstakeLamportsUnderLPBalance,
 } from "./constants";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 chai.use(chaiAsPromised);
 
@@ -54,11 +56,19 @@ describe("sunrise-stake", () => {
   let treasury = Keypair.generate();
   const mint = Keypair.generate();
 
+  // when initially set up, the impact nft state is not yet created
+  const initialClientEnvironment = {
+    ...Environment.devnet,
+    impactNFT: {
+      state: undefined,
+    },
+  };
+
   it("can register a new Sunrise state", async () => {
     client = await SunriseStakeClient.register(
       treasury.publicKey,
       mint,
-      Environment.devnet,
+      initialClientEnvironment,
       {
         verbose: Boolean(process.env.VERBOSE),
       }
@@ -151,9 +161,19 @@ describe("sunrise-stake", () => {
 
     await impactNftClient.registerOffsetTiers(levelsWithOffsetAndCollections);
 
-    // set the newly-generated impactNft state in the client config
-    // so that it can be looked up in the next test
-    client.config!.impactNFTStateAddress = impactNftClient.stateAddress;
+    // update the client with the new impact nft state
+    client = await SunriseStakeClient.get(
+      client.provider,
+      WalletAdapterNetwork.Devnet,
+      {
+        environmentOverrides: {
+          impactNFT: {
+            state: impactNftClient.stateAddress,
+          },
+          state: client.env.state,
+        },
+      }
+    );
   });
 
   it("returns zero extractable yield if no SOL has been staked", async () => {
@@ -249,7 +269,10 @@ describe("sunrise-stake", () => {
 
   it("locks sol for the next epoch", async () => {
     await client.sendAndConfirmTransactions(
-      await client.lockGSol(lockLamports)
+      await client.lockGSol(lockLamports),
+      undefined,
+      undefined,
+      true
     );
   });
 
@@ -562,11 +585,12 @@ describe("sunrise-stake", () => {
   });
 
   it("can unlock sol (including a recoverTickets call)", async () => {
-    try {
-      await client.sendAndConfirmTransactions(await client.unlockGSol());
-    } catch (err) {
-      console.log(err);
-    }
+    await client.sendAndConfirmTransactions(
+      await client.unlockGSol(),
+      undefined,
+      undefined,
+      true
+    );
 
     // the epoch report has now been updated to the current epoch
     const currentEpoch = await client.provider.connection.getEpochInfo();
@@ -590,6 +614,18 @@ describe("sunrise-stake", () => {
     console.log("expected locked yield", expectedLockedYield);
 
     expectAmount(lockAccount!.yieldAccruedByOwner, expectedLockedYield, 50);
+  });
+
+  it("can re-lock after unlock", async () => {
+    await client.sendAndConfirmTransactions(
+      await client.lockGSol(lockLamports),
+      undefined,
+      undefined,
+      true
+    );
+
+    const { tokenAccount } = await client.getLockAccount();
+    expectAmount(new BN(tokenAccount!.amount.toString()), lockLamports, 0);
   });
 
   it("can extract earned yield", async () => {
@@ -707,5 +743,41 @@ describe("sunrise-stake", () => {
       client,
       Number(initialStakerGsolBalance) + Number(delegatedStake)
     );
+  });
+
+  it("can deposit sol to marinade for someone else", async () => {
+    const recipient = Keypair.generate();
+    const lamportsToSend = new BN(100_000);
+    await client.sendAndConfirmTransaction(
+      await client.deposit(lamportsToSend, recipient.publicKey)
+    );
+
+    const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
+      client.config!.gsolMint,
+      recipient.publicKey
+    );
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(
+      recipientTokenAccountAddress
+    );
+    log("Recipient's gSOL balance", gsolBalance.value.uiAmount);
+    expect(gsolBalance.value.amount).to.equal(lamportsToSend.toString());
+  });
+
+  it("can deposit sol to spl for someone else", async () => {
+    const recipient = Keypair.generate();
+    const lamportsToSend = new BN(100_000);
+    await client.sendAndConfirmTransaction(
+      await client.depositToBlaze(lamportsToSend, recipient.publicKey)
+    );
+
+    const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
+      client.config!.gsolMint,
+      recipient.publicKey
+    );
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(
+      recipientTokenAccountAddress
+    );
+    log("Recipient's gSOL balance", gsolBalance.value.uiAmount);
+    expect(gsolBalance.value.amount).to.equal(lamportsToSend.toString());
   });
 });

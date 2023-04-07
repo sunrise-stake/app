@@ -1,16 +1,19 @@
 import clx from "classnames";
-import { toSol } from "@sunrisestake/client";
+import { MAX_NUM_PRECISION, toSol } from "@sunrisestake/client";
 import type BN from "bn.js";
 import React from "react";
 import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 
 import {
   getDigits,
+  lamportsToDisplay,
   solToLamports,
   toFixedWithPrecision,
   type UIMode,
   ZERO,
 } from "../utils";
+import { tooltips } from "../content/tooltips";
+import { TooltipPopover } from "./TooltipPopover";
 
 interface AmountInputProps {
   className?: string;
@@ -72,14 +75,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
     const min = ZERO;
     const max = getMaxBalance();
 
-    console.log("parsedValue ", parsedValue.toString());
-
     setAmount(amountStr);
-    console.log(`Min: ${min.toNumber()}`);
-    console.log(`Max: ${max.toNumber()}`);
-    console.log(
-      `Valid: ${parsedValue.gt(min) && parsedValue.lte(max) ? "true" : "false"}`
-    );
     setValid(parsedValue.gt(min) && parsedValue.lte(max));
   };
 
@@ -101,22 +97,23 @@ const AmountInput: React.FC<AmountInputProps> = ({
       >
         <div className="grow my-auto">
           {showBalance && (
-            <div className="text-right">
-              Balance:{" "}
+            <div className="flex items-center justify-end">
+              Available Balance:{" "}
               <button
                 className="px-2 py-1 rounded-md hover:bg-green text-green hover:text-white"
                 onClick={() => {
                   if (balance) {
                     updateAmount(
-                      toFixedWithPrecision(
-                        mode === "STAKE" ? toSol(balance) - 0.1 : toSol(balance)
-                      ).toString()
+                      lamportsToDisplay(getMaxBalance(), MAX_NUM_PRECISION)
                     );
                   }
                 }}
               >
-                {balance ? toFixedWithPrecision(toSol(balance)) : "-"} {token}
+                {balance ? lamportsToDisplay(balance) : "-"} {token}
               </button>
+              {(mode === "UNSTAKE" || mode === "LOCK") && (
+                <TooltipPopover>{tooltips.unstakeBalance}</TooltipPopover>
+              )}
             </div>
           )}
           <div className="flex">

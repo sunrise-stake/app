@@ -1,20 +1,28 @@
-import clx from "classnames";
-import { type FC, type ReactNode } from "react";
+import { type FC, type PropsWithChildren } from "react";
+import { type Partner } from "./types";
 
-interface Props {
-  children?: ReactNode;
-  className?: string;
-}
-
-const PartnerApp: FC<Props> = ({ children, className }) => (
-  <div
-    className={clx(
-      "bg-green backdrop-blur-sm bg-opacity-20 border border-green",
-      className
-    )}
+const PartnerApp: FC<PropsWithChildren & { partner: Partner }> = ({
+  children,
+  partner,
+}) => (
+  <a
+    href={partner.website}
+    target="_blank"
+    rel="noreferrer"
+    className="hover:cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-110 hover:brightness-110 hover:transition-all"
+    style={
+      partner.imageUrl !== undefined
+        ? {
+            backgroundImage: `url(${partner.imageUrl})`,
+            backgroundColor: "grey",
+          }
+        : {
+            backgroundColor: "white",
+          }
+    }
   >
     {children}
-  </div>
+  </a>
 );
 
 export { PartnerApp };

@@ -79,13 +79,7 @@ import {
 import { type BlazeState } from "./types/Solblaze";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
 import { type EpochReportAccount } from "./types/EpochReportAccount";
-import {
-  getLockAccount,
-  type GetLockAccountResult,
-  lockGSol,
-  unlockGSol,
-  updateLockAccount,
-} from "./lock";
+import { LockClient, type LockAccountSummary } from "./lock";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
@@ -123,18 +117,30 @@ export class SunriseStakeClient {
   blazeState: BlazeState | undefined;
 
   liqPoolTokenAccount: PublicKey | undefined;
+  lockClient: LockClient | undefined;
+
+  readonly env: EnvironmentConfig;
 
   private constructor(
     readonly provider: AnchorProvider,
-    readonly env: EnvironmentConfig,
+    env: EnvironmentConfig,
     readonly options: Options = {}
   ) {
     this.program = new Program<SunriseStake>(IDL, PROGRAM_ID, provider);
     this.staker = this.provider.publicKey;
+    this.env = {
+      ...env,
+      ...options.environmentOverrides,
+    };
   }
 
   private log(...args: any[]): void {
     Boolean(this.config?.options.verbose) && console.log(...args);
+  }
+
+  // refresh the client's internal state
+  public async refresh(): Promise<void> {
+    await this.init();
   }
 
   private async init(): Promise<void> {
@@ -220,6 +226,12 @@ export class SunriseStakeClient {
       mint: stakePoolInfo.poolMint,
       owner: this.bsolTokenAccountAuthority,
     });
+
+    this.lockClient = await LockClient.build(
+      this.config,
+      this.program,
+      this.staker
+    );
   }
 
   public async sendAndConfirmTransaction(
@@ -237,14 +249,17 @@ export class SunriseStakeClient {
 
   /**
    * Send and confirm multiple transactions in sequence
+   *
    * @param transactions
    * @param signers
    * @param opts
+   * @param withRefresh Refresh the client's internal state after sending the transactions (default: false)
    */
   public async sendAndConfirmTransactions(
     transactions: Transaction[],
     signers: Signer[][] = [],
-    opts?: ConfirmOptions
+    opts?: ConfirmOptions,
+    withRefresh = false
   ): Promise<string[]> {
     const txesWithSigners = zip(transactions, signers, []);
     const txSigs: string[] = [];
@@ -256,35 +271,47 @@ export class SunriseStakeClient {
       txSigs.push(txSig);
     }
 
+    if (withRefresh) {
+      await this.refresh();
+    }
+
     return txSigs;
   }
 
-  createGSolTokenAccountIx(): TransactionInstruction {
-    if (!this.stakerGSolTokenAccount || !this.config)
-      throw new Error("init not called");
+  createGSolTokenAccountIx(
+    account = this.stakerGSolTokenAccount,
+    authority = this.staker
+  ): TransactionInstruction {
+    if (!account || !this.config) throw new Error("init not called");
 
     return createAssociatedTokenAccountIdempotentInstruction(
       this.provider.publicKey,
-      this.stakerGSolTokenAccount,
-      this.staker,
+      account,
+      authority,
       this.config.gsolMint
     );
   }
 
-  public async makeBalancedDeposit(lamports: BN): Promise<Transaction> {
+  public async makeBalancedDeposit(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
     const details = await this.details();
     if (
       marinadeTargetReached(details, this.env.percentageStakeToMarinade) &&
       SOLBLAZE_ENABLED
     ) {
       console.log("Routing deposit to Solblaze");
-      return this.depositToBlaze(lamports);
+      return this.depositToBlaze(lamports, recipient);
     }
     console.log("Depositing to marinade");
-    return this.deposit(lamports);
+    return this.deposit(lamports, recipient);
   }
 
-  public async deposit(lamports: BN): Promise<Transaction> {
+  public async deposit(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -293,14 +320,25 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
+    const recipientAuthority = recipient ?? this.staker;
+    const recipientGsolTokenAccountAddress = recipient
+      ? await utils.token.associatedAddress({
+          mint: this.config.gsolMint,
+          owner: recipientAuthority,
+        })
+      : this.stakerGSolTokenAccount;
+
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
-      this.stakerGSolTokenAccount
+      recipientGsolTokenAccountAddress
     );
 
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx(
+        recipientGsolTokenAccountAddress,
+        recipient
+      );
       transaction.add(createUserTokenAccount);
     }
 
@@ -311,7 +349,7 @@ export class SunriseStakeClient {
       this.marinadeState,
       this.config.stateAddress,
       this.provider.publicKey,
-      this.stakerGSolTokenAccount,
+      recipientGsolTokenAccountAddress,
       lamports
     );
 
@@ -320,18 +358,31 @@ export class SunriseStakeClient {
     return transaction;
   }
 
-  public async depositToBlaze(lamports: BN): Promise<Transaction> {
+  public async depositToBlaze(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
     if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
       throw new Error("init not called");
 
+    const recipientAuthority = recipient ?? this.staker;
+    const recipientGsolTokenAccountAddress = recipient
+      ? await utils.token.associatedAddress({
+          mint: this.config.gsolMint,
+          owner: recipientAuthority,
+        })
+      : this.stakerGSolTokenAccount;
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
-      this.stakerGSolTokenAccount
+      recipientGsolTokenAccountAddress
     );
 
     const transaction = new Transaction();
 
     if (!gsolTokenAccount) {
-      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      const createUserTokenAccount = this.createGSolTokenAccountIx(
+        recipientGsolTokenAccountAddress,
+        recipient
+      );
       transaction.add(createUserTokenAccount);
     }
 
@@ -340,7 +391,7 @@ export class SunriseStakeClient {
       this.program,
       this.blazeState,
       this.provider.publicKey,
-      this.stakerGSolTokenAccount,
+      recipientGsolTokenAccountAddress,
       lamports
     );
 
@@ -1123,16 +1174,19 @@ export class SunriseStakeClient {
             updatedToEpoch: lockAccountDetails.lockAccount.updatedToEpoch,
             amountLocked: new BN(`${lockAccountDetails.tokenAccount.amount}`),
             yield: lockAccountDetails.lockAccount.yieldAccruedByOwner,
+            currentLevel: lockAccountDetails.currentLevel,
+            yieldToNextLevel: lockAccountDetails.yieldToNextLevel,
           }
         : undefined;
 
-    const nftSummary = {
-      stateAddress: this.config.impactNFTStateAddress,
-      mintAuthority: findImpactNFTMintAuthority(this.config)[0],
-      mint: impactNFT.mint,
-      tokenAccount: impactNFT.tokenAccount,
-    };
-    console.log("nftSummary", nftSummary);
+    const nftSummary = this.config.impactNFTStateAddress
+      ? {
+          stateAddress: this.config.impactNFTStateAddress,
+          mintAuthority: findImpactNFTMintAuthority(this.config)[0],
+          mint: impactNFT.mint,
+          tokenAccount: impactNFT.tokenAccount,
+        }
+      : undefined;
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
       ? nftSummary
       : undefined;
@@ -1352,6 +1406,7 @@ export class SunriseStakeClient {
       .rpc()
       .then(confirm(client.provider.connection));
 
+    console.log("before init env", client.env);
     await client.init();
 
     await client.initEpochReport().then(confirm(client.provider.connection));
@@ -1491,7 +1546,8 @@ export class SunriseStakeClient {
       !this.stakerGSolTokenAccount ||
       !this.config ||
       !this.marinade ||
-      !this.marinadeState
+      !this.marinadeState ||
+      !this.lockClient
     )
       throw new Error("init not called");
 
@@ -1510,22 +1566,18 @@ export class SunriseStakeClient {
       transactions.push(new Transaction().add(recoverInstruction));
     }
 
-    const lockTx = await lockGSol(
-      this.config,
-      this.program,
-      this.staker,
+    const lockTx = await this.lockClient.lockGSol(
       this.stakerGSolTokenAccount,
       this.env.impactNFT,
       lamports
     );
-
     transactions.push(lockTx);
 
     return transactions;
   }
 
   public async updateLockAccount(): Promise<Transaction[]> {
-    if (!this.config) throw new Error("init not called");
+    if (!this.config || !this.lockClient) throw new Error("init not called");
 
     // Before updating a lock account, the epoch report account must be updated to the current epoch,
     // via a recoverTickets instruction.
@@ -1557,11 +1609,7 @@ export class SunriseStakeClient {
 
     // only update if the lock account has not been updated this epoch
     if (lockAccount.updatedToEpoch?.toNumber() < currentEpoch.epoch) {
-      const updateTx = await updateLockAccount(
-        this.config,
-        this.program,
-        this.staker
-      );
+      const updateTx = await this.lockClient.updateLockAccount();
       transactions.push(updateTx);
     }
 
@@ -1569,7 +1617,7 @@ export class SunriseStakeClient {
   }
 
   public async unlockGSol(): Promise<Transaction[]> {
-    if (!this.config) throw new Error("init not called");
+    if (!this.lockClient) throw new Error("init not called");
     if (!this.stakerGSolTokenAccount) throw new Error("No stake found");
 
     // Update a lock account if it has not been updated this epoch
@@ -1578,10 +1626,7 @@ export class SunriseStakeClient {
     // updateLockAccount returns an array of transactions.
     // Theoretically, the unlock transaction could be combined with the update transaction
     // TODO - combine the unlock transaction with the update transaction if possible
-    const unlockTx = await unlockGSol(
-      this.config,
-      this.program,
-      this.staker,
+    const unlockTx = await this.lockClient.unlockGSol(
       this.stakerGSolTokenAccount
     );
 
@@ -1590,13 +1635,17 @@ export class SunriseStakeClient {
     return transactions;
   }
 
-  public async getLockAccount(
-    address: PublicKey = this.staker
-  ): Promise<GetLockAccountResult> {
-    if (!this.stakerGSolTokenAccount || !this.config)
-      throw new Error("init not called");
+  public async getLockAccount(): Promise<LockAccountSummary> {
+    if (!this.lockClient) throw new Error("init not called");
 
-    return getLockAccount(this.config, this.program, address);
+    return {
+      lockAccount: this.lockClient.lockAccount,
+      lockAccountAddress: this.lockClient.lockAccountAddress,
+      tokenAccount: this.lockClient.lockTokenAccount,
+      tokenAccountAddress: this.lockClient.lockTokenAccountAddress,
+      currentLevel: this.lockClient.getCurrentLevel(),
+      yieldToNextLevel: this.lockClient.getYieldToNextLevel(),
+    };
   }
 
   public static async get(
