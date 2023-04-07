@@ -151,33 +151,37 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
         )}
       >
         <div className="flex flex-col">
-          <div className="flex flex-row">
-            <div className="font-semibold text-xl m-2">Send</div>
-            <CurrencySelect selected={currency} select={setCurrency} />
-            <div className="font-semibold text-xl m-2">To</div>
-            {recipientFromProps && (
-              <a
-                className="font-normal text-lg text-green py-1 mt-1"
-                href={recipient?.website}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {recipient?.name ??
-                  (recipient?.address && toShortBase58(recipient.address))}
-              </a>
-            )}
-            {!recipientFromProps && (
-              <input
-                className="mb-4 mt-1 rounded-md text-sm xl:text-lg py-1 px-4 placeholder:text-sm"
-                onChange={(e) => {
-                  updateRecipientFromForm(e.target.value);
-                }}
-                defaultValue={recipient?.address?.toBase58() ?? ""}
-                placeholder="Address"
-              />
-            )}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex flex-row">
+              <div className="font-semibold text-xl m-2">Send</div>
+              <CurrencySelect selected={currency} select={setCurrency} />
+            </div>
+            <div className="flex flex-row items-center">
+              <div className="font-semibold text-xl m-2">To</div>
+              {recipientFromProps && (
+                <a
+                  className="font-normal text-lg text-green py-1 mt-1"
+                  href={recipient?.website}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {recipient?.name ??
+                    (recipient?.address && toShortBase58(recipient.address))}
+                </a>
+              )}
+              {!recipientFromProps && (
+                <input
+                  className="rounded-md text-sm xl:text-lg py-2 px-4 placeholder:text-sm"
+                  onChange={(e) => {
+                    updateRecipientFromForm(e.target.value);
+                  }}
+                  defaultValue={recipient?.address?.toBase58() ?? ""}
+                  placeholder="Address"
+                />
+              )}
+            </div>
           </div>
-          <div className="flex flex-row gap-2 mt-4">
+          <div className="flex flex-col sm:flex-row gap-2 mt-4">
             <AmountInput
               className="w-full"
               token={currency}
@@ -188,7 +192,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               mode="TRANSFER"
               variant="small"
             />
-            <div className="mt-4 float-right cleafix">
+            <div className="mt-4 float-right">
               <Button
                 className="basis-1/4"
                 onClick={() => {
