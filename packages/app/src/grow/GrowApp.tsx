@@ -144,7 +144,7 @@ const _GrowApp: ForwardRefRenderFunction<
       </div>
       <div>
         <h2 className="container font-bold text-xl mt-8 mb-4 text-green text-center">
-          Send gSOL to add someone to your forest.
+          Send a gift to add someone to your forest.
         </h2>
         <div className="flex justify-center items-center mb-8">
           <Button

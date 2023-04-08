@@ -42,8 +42,7 @@ pub struct SplDepositSol<'info> {
     pub depositor: Signer<'info>,
     #[account(
         mut,
-        token::mint = gsol_mint,
-        token::authority = depositor,
+        token::mint = gsol_mint
     )]
     pub depositor_gsol_token_account: Account<'info, TokenAccount>,
 

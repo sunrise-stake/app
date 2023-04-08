@@ -43,6 +43,7 @@ import {
 } from "./constants";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 chai.use(chaiAsPromised);
 
@@ -742,5 +743,41 @@ describe("sunrise-stake", () => {
       client,
       Number(initialStakerGsolBalance) + Number(delegatedStake)
     );
+  });
+
+  it("can deposit sol to marinade for someone else", async () => {
+    const recipient = Keypair.generate();
+    const lamportsToSend = new BN(100_000);
+    await client.sendAndConfirmTransaction(
+      await client.deposit(lamportsToSend, recipient.publicKey)
+    );
+
+    const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
+      client.config!.gsolMint,
+      recipient.publicKey
+    );
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(
+      recipientTokenAccountAddress
+    );
+    log("Recipient's gSOL balance", gsolBalance.value.uiAmount);
+    expect(gsolBalance.value.amount).to.equal(lamportsToSend.toString());
+  });
+
+  it("can deposit sol to spl for someone else", async () => {
+    const recipient = Keypair.generate();
+    const lamportsToSend = new BN(100_000);
+    await client.sendAndConfirmTransaction(
+      await client.depositToBlaze(lamportsToSend, recipient.publicKey)
+    );
+
+    const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
+      client.config!.gsolMint,
+      recipient.publicKey
+    );
+    const gsolBalance = await client.provider.connection.getTokenAccountBalance(
+      recipientTokenAccountAddress
+    );
+    log("Recipient's gSOL balance", gsolBalance.value.uiAmount);
+    expect(gsolBalance.value.amount).to.equal(lamportsToSend.toString());
   });
 });

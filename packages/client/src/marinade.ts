@@ -40,7 +40,7 @@ export const deposit = async (
   marinadeState: MarinadeState,
   stateAddress: PublicKey,
   staker: PublicKey,
-  stakerGsolTokenAccount: PublicKey,
+  recipientGsolTokenAccount: PublicKey,
   lamports: BN
 ): Promise<Transaction> => {
   const sunriseStakeState = await program.account.state.fetch(stateAddress);
@@ -79,7 +79,7 @@ export const deposit = async (
     transferFrom: staker,
     mintMsolTo: msolAssociatedTokenAccountAddress,
     mintLiqPoolTo: liqPoolAssociatedTokenAccountAddress,
-    mintGsolTo: stakerGsolTokenAccount,
+    mintGsolTo: recipientGsolTokenAccount,
     msolMintAuthority: await marinadeState.mSolMintAuthority(),
     msolTokenAccountAuthority,
     systemProgram: SystemProgram.programId,

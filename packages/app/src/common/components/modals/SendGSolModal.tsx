@@ -1,4 +1,4 @@
-import React, { type FC, useCallback, useState } from "react";
+import React, { type FC, useCallback, useMemo, useState } from "react";
 
 import { BaseModal, type ModalProps } from "./";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -24,6 +24,9 @@ import {
   getAssociatedTokenAddress,
 } from "@solana/spl-token";
 import { NotificationType, notifyTransaction } from "../notifications";
+import { CurrencySelect } from "../CurrencySelect";
+import { useSolBalance } from "../../hooks/useSolBalance";
+import { MdInfo } from "react-icons/md";
 
 interface SendGSolModalProps {
   recipient?: {
@@ -40,14 +43,14 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   ...props
 }) => {
   const [amount, setAmount] = useState("");
-
   const [isBusy, setIsBusy] = useState(false);
   const [isValidAmount, setIsValidAmount] = useState(false);
-
-  const { details } = useSunriseStake();
+  const { details, client } = useSunriseStake();
   const { publicKey: senderPubkey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const [recipient, setRecipient] = useState(recipientFromProps);
+  const [currency, setCurrency] = useState<"gSOL" | "SOL">("SOL");
+  const solBalance = useSolBalance();
 
   const updateRecipientFromForm = useCallback(
     (addressString: string) => {
@@ -110,7 +113,44 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
       })
       .catch(handleError);
     console.log("Transfer signature:", signature);
-  }, [recipient, amount, senderPubkey, details, connection, sendTransaction]);
+  }, [recipient, amount, senderPubkey, details, sendTransaction]);
+
+  const depositGSol = useCallback(async (): Promise<void> => {
+    if (!client || !recipient) {
+      return;
+    }
+
+    const signature = await client
+      .deposit(solToLamports(amount), recipient.address)
+      .then((txSig) => {
+        notifyTransaction({
+          type: NotificationType.success,
+          message: "Transfer successful",
+          txid: txSig,
+        });
+        return txSig;
+      })
+      .catch(handleError);
+    console.log("Transfer signature:", signature);
+  }, [recipient, amount, client, sendTransaction]);
+
+  const send = useCallback(async (): Promise<void> => {
+    if (currency === "gSOL") {
+      await transferGSol();
+    } else {
+      await depositGSol();
+    }
+  }, [currency, transferGSol, depositGSol]);
+
+  const balance = useMemo(() => {
+    if (!details) return ZERO;
+
+    if (currency === "gSOL") {
+      return new BN(details.balances.gsolBalance.amount);
+    } else {
+      return solBalance;
+    }
+  }, [details, currency]);
 
   const sendEnabled = !isBusy && isValidAmount && !!recipient;
 
@@ -123,49 +163,59 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
         )}
       >
         <div className="flex flex-col">
-          <div className="font-semibold text-xl mb-2">
-            To{" "}
-            {recipientFromProps && (
-              <a
-                className="font-normal text-lg text-green"
-                href={recipient?.website}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {recipient?.name ??
-                  (recipient?.address && toShortBase58(recipient.address))}
-              </a>
-            )}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex flex-row">
+              <div className="font-semibold text-xl m-2 ml-0">Send</div>
+              <CurrencySelect selected={currency} select={setCurrency} />
+            </div>
+            <div className="grow flex flex-row items-center">
+              <div className="font-semibold text-xl m-2 ml-0">To</div>
+              {recipientFromProps && (
+                <a
+                  className="font-normal text-lg text-green py-1 mt-1"
+                  href={recipient?.website}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {recipient?.name ??
+                    (recipient?.address && toShortBase58(recipient.address))}
+                </a>
+              )}
+              {!recipientFromProps && (
+                <input
+                  className="grow py-2 px-4 rounded-md text-sm xl:text-md placeholder:text-sm"
+                  onChange={(e) => {
+                    updateRecipientFromForm(e.target.value);
+                  }}
+                  defaultValue={recipient?.address?.toBase58() ?? ""}
+                  placeholder="Address"
+                />
+              )}
+            </div>
           </div>
-          {!recipientFromProps && (
-            <input
-              className="mb-4 rounded-md text-sm xl:text-lg py-3 px-4 placeholder:text-sm"
-              onChange={(e) => {
-                updateRecipientFromForm(e.target.value);
-              }}
-              defaultValue={recipient?.address?.toBase58() ?? ""}
-              placeholder="Address"
-            />
-          )}
-          <div className="font-semibold text-xl mb-2">Send gSOL</div>
-          <div className="">
+          {currency === "SOL" ? (
+            <div className="text-sm text-sky-600">
+              <MdInfo className="inline stroke-sky-600" />
+              SOL gets staked and send as gSOL
+            </div>
+          ) : null}
+          <div className="flex flex-col sm:flex-row gap-2 mt-4">
             <AmountInput
-              className="basis-3/4"
-              token="gSOL"
-              balance={new BN(details?.balances.gsolBalance.amount ?? ZERO)}
+              className="w-full"
+              token={currency}
+              balance={balance}
               amount={amount}
               setAmount={setAmount}
               setValid={setIsValidAmount}
               mode="TRANSFER"
               variant="small"
             />
-
-            <div className="mt-4 float-right cleafix">
+            <div className="mt-4 float-right">
               <Button
                 className="basis-1/4"
                 onClick={() => {
                   setIsBusy(true);
-                  transferGSol().finally(() => {
+                  send().finally(() => {
                     setIsBusy(false);
                     props.ok();
                   });
