@@ -27,7 +27,7 @@ export class SunriseClientWrapper {
     private readonly accountListener:
       | ((accountChanged?: PublicKey) => void)
       | undefined,
-
+    private readonly loadingListener: ((loading: boolean) => void) | undefined,
     readonly readonlyWallet: boolean
   ) {
     const accountsToListenTo = [
@@ -52,13 +52,17 @@ export class SunriseClientWrapper {
   }, 5000);
 
   private triggerUpdate(changedAccount?: PublicKey): void {
+    this.loadingListener?.(true);
     this.accountListener?.(changedAccount);
     this.client
       .details()
       .then((details) => {
         this.detailsListener?.(details, changedAccount);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => {
+        this.loadingListener?.(false);
+      });
   }
 
   static async init(
@@ -66,6 +70,7 @@ export class SunriseClientWrapper {
     wallet: AnchorWallet,
     detailsListener?: (details: Details, changedAccount?: PublicKey) => void,
     accountListener?: (changedAccount?: PublicKey) => void,
+    loadingListener?: (loading: boolean) => void,
     readonlyWallet = false
   ): Promise<SunriseClientWrapper> {
     const provider = new AnchorProvider(
@@ -81,6 +86,7 @@ export class SunriseClientWrapper {
       client,
       detailsListener,
       accountListener,
+      loadingListener,
       readonlyWallet
     );
   }
