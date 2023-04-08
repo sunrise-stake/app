@@ -124,6 +124,19 @@ const handleError = (error: Error): void => {
 const toShortBase58 = (address: PublicKey): string =>
   `${address.toBase58().slice(0, 4)}…${address.toBase58().slice(-4)}`;
 
+export const mostRecent = <T extends { timestamp: Date }>(
+  elements: T[]
+): T | undefined =>
+  elements.reduce<T | undefined>((currentMostRecent, next) => {
+    if (currentMostRecent) {
+      return currentMostRecent.timestamp.getTime() > next.timestamp.getTime()
+        ? currentMostRecent
+        : next;
+    } else {
+      return next;
+    }
+  }, undefined);
+
 const addUp = <K extends string, T extends { [key in K]: number }>(
   key: K,
   arr: T[]

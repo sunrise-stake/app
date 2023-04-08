@@ -14,7 +14,7 @@ import {
   getGsolBalance,
   getLockedBalance,
   getTotals,
-  prune,
+  removeDuplicates,
 } from "./util";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 
@@ -178,7 +178,7 @@ export class ForestService {
       treeNode
     );
 
-    return prune({
+    return removeDuplicates({
       tree: treeNode,
       neighbours,
     });
