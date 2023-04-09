@@ -29,6 +29,8 @@ import { charityApps } from "./charities";
 import { partnerApps } from "./partners";
 import { PartnerApp } from "./components/PartnerApp";
 import { OrgButtonContent } from "./OrgButtonContent";
+import { PlaceholderPartnerNFTProject } from "./components/PlaceholderPartnerNFTProject";
+import { PublicKey } from "@solana/web3.js";
 
 const isRealCharity = (
   charity: Charity | PlaceholderOrg
@@ -101,6 +103,52 @@ const _GrowApp: ForwardRefRenderFunction<
         <h1 className="mb-4 font-bold text-green-light text-3xl">
           Grow your forest
         </h1>
+      </div>
+      <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
+        FOUND NFTs (TODO these are for demo purposes only)
+      </h2>
+      <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
+        Coral Tribe (Filtered by update authority)
+      </h2>
+      <div className="w-1/5 max-w-xl">
+        <PlaceholderPartnerNFTProject
+          query={{
+            updateAuthority: new PublicKey(
+              "HovcQ2tv4sibsbHCPA3QdtXrfWwXzPtcD1Xu8ESABRNh"
+            ), // Coral Tribe
+          }}
+        />
+      </div>
+      <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
+        DRiP Earth Day (Filtered by collection and offchain metadata attribute)
+      </h2>
+      <h4 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
+        NOTE - until we have the details from DRiP, we are using a different
+        collection
+      </h4>
+      <div className="w-1/5 max-w-xl">
+        <PlaceholderPartnerNFTProject
+          query={{
+            // collection: new PublicKey("F8FdDYD3PWndYoae9TrBcucXDWFwDvm6bZU2LQT1PwyB")  // DRiP (TODO confirm)
+            collection: new PublicKey(
+              "qwvT8j4nYYh5xo2hdJGkwxiZMNNzgqgnTgkXdGyUhUJ"
+            ), // SuperteamDE
+            jsonFilter: {
+              attributes: [
+                // Superteam DE placeholder
+                {
+                  trait_type: "Shades",
+                  value: "Superfast",
+                },
+                // DRiP data
+                // {
+                //   trait_type: "drop",
+                //   value: "???", // TODO - what is the value for Earth Day?
+                // },
+              ],
+            },
+          }}
+        />
       </div>
       <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
         Use gSOL with our partners.

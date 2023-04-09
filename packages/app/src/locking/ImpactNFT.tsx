@@ -1,12 +1,12 @@
 import { type FC } from "react";
 import { type Details } from "@sunrisestake/client";
-import { useNFT } from "./hooks/useNFT";
+import { useNFTs } from "../common/hooks/nft/useNFTs";
 import { Spinner } from "../common/components";
 
 export const ImpactNFT: FC<{ details: Details["impactNFTDetails"] }> = ({
   details,
 }) => {
-  const nft = useNFT(details?.mint);
+  const nft = useNFTs({ mintAddress: details?.mint })[0];
 
   return (
     <a
