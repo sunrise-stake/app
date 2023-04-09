@@ -3,6 +3,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
 import { CarbonRecovered } from "../../common/components";
+import { Link } from "react-router-dom";
 
 const HubIntro: FC<{
   show: boolean;
@@ -77,6 +78,9 @@ const HubIntro: FC<{
         <WalletMultiButton>
           Start reducing CO<sub>2</sub>&nbsp;emissions
         </WalletMultiButton>
+        <div className="mt-8">
+          <Link to="/driptip">Ugly Link Sunrise x DRiP</Link>
+        </div>
         <CarbonRecovered />
       </Transition.Child>
     </Transition>

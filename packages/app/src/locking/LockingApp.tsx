@@ -78,7 +78,7 @@ const _LockingApp: ForwardRefRenderFunction<
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && location.state?.address === undefined)
+    if (!wallet.connected && active)
       navigate("/");
   }, [wallet.connected]);
 

@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import clx from "classnames";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useModal, useScript } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
@@ -59,12 +59,10 @@ const _GrowApp: ForwardRefRenderFunction<
 
   const { myTree } = useForest();
 
-  const location = useLocation();
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && location.state?.address === undefined)
-      navigate("/");
+    if (!wallet.connected && active) navigate("/");
   }, [wallet.connected]);
 
   useEffect(() => {

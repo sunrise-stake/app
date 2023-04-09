@@ -20,13 +20,7 @@ const _TipjarApp: ForwardRefRenderFunction<
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
 
-  // const location = useLocation();
-  // const navigate = useNavigate();
   const wallet = useWallet();
-  // useEffect(() => {
-  //   if (!wallet.connected && location.state?.address === undefined)
-  //     navigate("/");
-  // }, [wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.TipJar) return; // we are not on the stake page, so don't update zen mode
@@ -45,7 +39,10 @@ const _TipjarApp: ForwardRefRenderFunction<
       {...rest}
     >
       <div className="container mt-5">
-        <Link to="/grow" className="flex items-center text-green">
+        <Link
+          to={wallet.connected ? "/grow" : "/"}
+          className="flex items-center text-green"
+        >
           <div className="flex items-center nowrap">
             <IoChevronBackOutline className="inline" size={48} />
           </div>

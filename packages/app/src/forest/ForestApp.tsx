@@ -11,7 +11,7 @@ import React, {
 import { type TreeComponent } from "./utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { IoChevronForwardOutline } from "react-icons/io5";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
 import { ProfileBox } from "../common/components/profile/ProfileBox";
 import { type TreeNode } from "../api/types";
@@ -96,12 +96,10 @@ const _ForestApp: ForwardRefRenderFunction<
     });
   }, [active, currentHelpRoute]);
 
-  const location = useLocation();
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && location.state?.address === undefined)
-      navigate("/");
+    if (!wallet.connected && active) navigate("/");
   }, [wallet.connected]);
 
   const { myTree, neighbours } = useForest();
