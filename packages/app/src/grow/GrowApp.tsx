@@ -63,7 +63,7 @@ const _GrowApp: ForwardRefRenderFunction<
   const wallet = useWallet();
   useEffect(() => {
     if (!wallet.connected && active) navigate("/");
-  }, [wallet.connected]);
+  }, [active, wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Grow) return; // we are not on the grow page, so don't update zen mode

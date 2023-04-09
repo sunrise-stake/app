@@ -19,7 +19,7 @@ const _StakingApp: ForwardRefRenderFunction<
   const wallet = useWallet();
   useEffect(() => {
     if (!wallet.connected && active) navigate("/");
-  }, [wallet.connected]);
+  }, [active, wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Stake) return; // we are not on the stake page, so don't update zen mode

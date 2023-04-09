@@ -9,7 +9,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   Button,
@@ -74,13 +74,11 @@ const _LockingApp: ForwardRefRenderFunction<
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
 
-  const location = useLocation();
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && active)
-      navigate("/");
-  }, [wallet.connected]);
+    if (!wallet.connected && active) navigate("/");
+  }, [active, wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Lock) return; // we are not on the lock page, so don't update zen mode

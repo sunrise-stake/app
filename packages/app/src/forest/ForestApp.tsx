@@ -100,7 +100,7 @@ const _ForestApp: ForwardRefRenderFunction<
   const wallet = useWallet();
   useEffect(() => {
     if (!wallet.connected && active) navigate("/");
-  }, [wallet.connected]);
+  }, [active, wallet.connected]);
 
   const { myTree, neighbours } = useForest();
   // use this to position the entire forest in space
