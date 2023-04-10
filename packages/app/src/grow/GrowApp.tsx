@@ -29,7 +29,7 @@ import { charityApps } from "./charities";
 import { partnerApps } from "./partners";
 import { PartnerApp } from "./components/PartnerApp";
 import { OrgButtonContent } from "./OrgButtonContent";
-import { PlaceholderPartnerNFTProject } from "./components/PlaceholderPartnerNFTProject";
+import { DonatableArtistNFT } from "./components/DonatableArtistNFT";
 import { PublicKey } from "@solana/web3.js";
 
 const isRealCharity = (
@@ -111,7 +111,7 @@ const _GrowApp: ForwardRefRenderFunction<
         Coral Tribe (Filtered by update authority)
       </h2>
       <div className="w-1/5 max-w-xl">
-        <PlaceholderPartnerNFTProject
+        <DonatableArtistNFT
           query={{
             updateAuthority: new PublicKey(
               "HovcQ2tv4sibsbHCPA3QdtXrfWwXzPtcD1Xu8ESABRNh"
@@ -127,25 +127,19 @@ const _GrowApp: ForwardRefRenderFunction<
         collection
       </h4>
       <div className="w-1/5 max-w-xl">
-        <PlaceholderPartnerNFTProject
+        <DonatableArtistNFT
           query={{
-            // collection: new PublicKey("F8FdDYD3PWndYoae9TrBcucXDWFwDvm6bZU2LQT1PwyB")  // DRiP (TODO confirm)
             collection: new PublicKey(
-              "qwvT8j4nYYh5xo2hdJGkwxiZMNNzgqgnTgkXdGyUhUJ"
-            ), // SuperteamDE
+              "F8FdDYD3PWndYoae9TrBcucXDWFwDvm6bZU2LQT1PwyB"
+            ), // DRiP (TODO confirm)
             jsonFilter: {
-              attributes: [
-                // Superteam DE placeholder
-                {
-                  trait_type: "Shades",
-                  value: "Superfast",
-                },
-                // DRiP data
-                // {
-                //   trait_type: "drop",
-                //   value: "???", // TODO - what is the value for Earth Day?
-                // },
-              ],
+              // attributes: [
+              //   // DRiP data
+              //   // {
+              //   //   trait_type: "drop",
+              //   //   value: "???", // TODO - what is the value for Earth Day?
+              //   // },
+              // ],
             },
           }}
         />
