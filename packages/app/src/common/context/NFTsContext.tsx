@@ -1,4 +1,4 @@
-import { type Connection, type PublicKey } from "@solana/web3.js";
+import { type Connection, PublicKey } from "@solana/web3.js";
 import {
   createContext,
   type FC,
@@ -17,6 +17,7 @@ import {
 } from "@metaplex-foundation/js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { replaceInArray } from "../utils";
+import fetch from "node-fetch";
 
 export type UnloadedNFT = Metadata | Nft | Sft;
 export type GenericNFT = Sft | SftWithToken | Nft | NftWithToken;
@@ -58,6 +59,105 @@ const getAllNFTs = async (
   });
 };
 
+// Based on the Helius API response (not 100% comprehensive)
+interface RawCompressedNFT {
+  id: string; // The Asset ID
+  content: {
+    files: Array<{ uri: string; mime: string }>;
+    metadata: {
+      attributes: Array<{ value: string; trait_type: string }>;
+      description: string;
+      name: string;
+      symbol: string;
+    };
+  };
+  grouping: Array<{ group_key: string; group_value: string }>;
+  creators: Array<{ address: string; share: number; verified: boolean }>;
+  ownership: Array<{
+    owner: string;
+    frozen: boolean;
+    delegated: boolean;
+    ownership_model: string;
+  }>;
+  authorities: Array<{ address: string; scopes: string[] }>;
+}
+
+/**
+ * Given a compressed NFT from the Helius endpoint,
+ * turn it into a GenericNFT object (with some gaps that we don't need)
+ * @param nft
+ */
+const compressedNFTToGenericNFT = (nft: RawCompressedNFT): GenericNFT => {
+  const collection = nft.grouping.find(
+    (grouping) => grouping.group_key === "collection"
+  )?.group_value;
+
+  const updateAuthority = nft.authorities.find(
+    (authority) =>
+      authority.scopes.includes("update") || authority.scopes.includes("full")
+  )?.address;
+
+  const image = nft.content.files.find((file) =>
+    file.mime.startsWith("image/")
+  )?.uri;
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  return {
+    address: new PublicKey(nft.id), // Warning, this is not the token address
+    json: {
+      attributes: nft.content.metadata.attributes,
+      description: nft.content.metadata.description,
+      image,
+      name: nft.content.metadata.name,
+    },
+    ...(collection !== undefined
+      ? {
+          collection: {
+            address: new PublicKey(collection),
+          },
+        }
+      : {}),
+    jsonLoaded: true,
+    ...(updateAuthority !== undefined
+      ? { updateAuthorityAddress: new PublicKey(updateAuthority) }
+      : {}),
+  } as GenericNFT;
+};
+
+/**
+ * Retrieve NFTs from a proxied RPC endpoint
+ * following the nascent Digital Asset Standard RPC schema
+ * https://metaplex.notion.site/Digital-Asset-Standard-Public-2d764bcd8f8940b69150ce11200858cd
+ * @param owner
+ */
+const getAllCompressedNFTs = async (owner: PublicKey): Promise<GenericNFT[]> =>
+  fetch("https://rpc-proxy.danielbkelleher3799.workers.dev/", {
+    method: "POST",
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: "my-id",
+      method: "getAssetsByOwner",
+      params: [
+        "TPFwNh9GsXCtcLjqo6Xwyu92pWU2FY4V6Fr3isqqXkM", // TODO OWNER
+        {
+          sortBy: "created",
+          sortDirection: "desc",
+        },
+        50,
+        1,
+        "",
+        "",
+      ],
+    }),
+  })
+    .then(async (res) => res.json())
+    // remove non-compressedNFTs (loaded elsewhere)
+    .then((res) =>
+      res.result.items
+        .filter((item: any) => item.compression?.compressed)
+        .map(compressedNFTToGenericNFT)
+    );
+
 const isEmptyQuery = (query: NFTQuery): boolean =>
   !query.mintAddress && !query.updateAuthority && !query.collection;
 
@@ -90,7 +190,11 @@ export const NFTsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     void (async () => {
       if (owner === null) return;
-      return getAllNFTs(owner, connection).then(setNfts);
+      const nonCompressedNFTs = getAllNFTs(owner, connection);
+      const compressedNFTs = getAllCompressedNFTs(owner);
+      return Promise.all([nonCompressedNFTs, compressedNFTs])
+        .then((arrays) => arrays.flat())
+        .then(setNfts);
     })();
   }, [owner?.toBase58()]);
 
@@ -128,15 +232,12 @@ export const useNFTs = (query: NFTQuery): GenericNFT[] => {
 
   const loadFilteredNFTs = async (): Promise<GenericNFT[]> => {
     const filteredNfts = nfts.filter(nftFilter(query));
-    console.log("filtered nfts", filteredNfts);
     return Promise.all(filteredNfts.map(loadNFTMetadata));
   };
 
   useEffect(() => {
     void (async () => {
-      console.log("query", query);
       if (isEmptyQuery(query)) return;
-      console.log("querying");
       await loadFilteredNFTs().then(setFilteredNfts);
     })();
   }, [nfts.length]);

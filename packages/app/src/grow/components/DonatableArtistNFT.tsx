@@ -18,7 +18,7 @@ interface Artist {
 
 const getArtist = (nft: GenericNFT): Artist | undefined => {
   const twitterHandle = nft.json?.attributes?.find(
-    (attr) => attr.trait_type === "artis"
+    (attr) => attr.trait_type?.toLowerCase() === "artist"
   )?.value;
 
   const foundRawArtist = artists.find(
@@ -37,7 +37,7 @@ const getArtist = (nft: GenericNFT): Artist | undefined => {
 
 const toCharity = (nft: GenericNFT): Charity | null => {
   if (nft.json?.name === undefined || nft.json?.image === undefined)
-    throw new Error("NFT has no metadata");
+    return null;
 
   const artist = getArtist(nft);
 
@@ -67,16 +67,16 @@ export const DonatableArtistNFT: FC<Props> = ({ query }) => {
   });
 
   return (
-    <div>
+    <div className="flex flex-row w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl justify-center">
       {nfts.map((nft) => {
         const charity = toCharity(nft);
         if (!charity) return null;
         return (
-          <div key={nft.mint.address.toBase58()}>
-            <CharityDonateButton
-              charity={charity}
-              key={nft.address.toBase58()}
-            />
+          <div
+            key={nft.address.toBase58()}
+            className="flex overflow-x-scroll gap-4 p-4 h-40"
+          >
+            <CharityDonateButton charity={charity} />
           </div>
         );
       })}

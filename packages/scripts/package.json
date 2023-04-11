@@ -7,6 +7,8 @@
     "@solana/web3.js": "^1.66.2",
     "@sunrisestake/client": "*",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
+    "@types/node": "^18.15.11",
+    "@types/node-fetch": "^2.6.3",
     "bn.js": "^5.2.1"
   }
 }

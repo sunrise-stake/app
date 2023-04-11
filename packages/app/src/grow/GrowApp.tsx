@@ -105,45 +105,24 @@ const _GrowApp: ForwardRefRenderFunction<
         </h1>
       </div>
       <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
-        FOUND NFTs (TODO these are for demo purposes only)
+        DRiP Earth Day
       </h2>
-      <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
-        Coral Tribe (Filtered by update authority)
-      </h2>
-      <div className="w-1/5 max-w-xl">
-        <DonatableArtistNFT
-          query={{
-            updateAuthority: new PublicKey(
-              "HovcQ2tv4sibsbHCPA3QdtXrfWwXzPtcD1Xu8ESABRNh"
-            ), // Coral Tribe
-          }}
-        />
-      </div>
-      <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
-        DRiP Earth Day (Filtered by collection and offchain metadata attribute)
-      </h2>
-      <h4 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
-        NOTE - until we have the details from DRiP, we are using a different
-        collection
-      </h4>
-      <div className="w-1/5 max-w-xl">
-        <DonatableArtistNFT
-          query={{
-            collection: new PublicKey(
-              "F8FdDYD3PWndYoae9TrBcucXDWFwDvm6bZU2LQT1PwyB"
-            ), // DRiP (TODO confirm)
-            jsonFilter: {
-              // attributes: [
-              //   // DRiP data
-              //   // {
-              //   //   trait_type: "drop",
-              //   //   value: "???", // TODO - what is the value for Earth Day?
-              //   // },
-              // ],
-            },
-          }}
-        />
-      </div>
+      <DonatableArtistNFT
+        query={{
+          collection: new PublicKey(
+            "DRiP2Pn2K6fuMLKQmt5rZWyHiUZ6WK3GChEySUpHSS4x"
+          ), // DRiP (TODO confirm)
+          jsonFilter: {
+            // attributes: [
+            //   // DRiP data
+            //   // {
+            //   //   trait_type: "drop",
+            //   //   value: "???", // TODO - what is the value for Earth Day?
+            //   // },
+            // ],
+          },
+        }}
+      />
       <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
         Use gSOL with our partners.
       </h2>
