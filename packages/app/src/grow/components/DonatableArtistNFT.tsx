@@ -4,11 +4,11 @@ import {
   type GenericNFT,
   type NFTQuery,
 } from "../../common/context/NFTsContext";
-import { CharityDonateButton } from "./CharityDonateButton";
 import { type Charity } from "./types";
 
 import artists from "./artists.json";
 import { PublicKey } from "@solana/web3.js";
+import { DripDonateButton } from "../../tipjar/components.tsx/DripDonateButton";
 
 interface Artist {
   twitter: string;
@@ -67,16 +67,30 @@ export const DonatableArtistNFT: FC<Props> = ({ query }) => {
   });
 
   return (
-    <div className="flex flex-row w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl justify-center">
+    <div className="space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:space-y-0">
       {nfts.map((nft) => {
         const charity = toCharity(nft);
+        const artist = getArtist(nft);
         if (!charity) return null;
         return (
           <div
             key={nft.address.toBase58()}
-            className="flex overflow-x-scroll gap-4 p-4 h-40"
+            className="mb-8 relative h-fit w-full border-[1px] rounded-lg border-[#969696]"
           >
-            <CharityDonateButton charity={charity} />
+            <div className="w-full p-[0.2%] h-[338px]">
+              <img
+                src={charity.imageUrl}
+                alt={charity.name}
+                className="h-full w-full object-center rounded-t-lg"
+              />
+            </div>
+            <div className="w-full p-4">
+              <h3 className="text-2xl text-[#000] font-bold">{charity.name}</h3>
+              <h4 className="py-2 text-[1rem] text-[#000]">
+                {artist?.twitter}
+              </h4>
+              <DripDonateButton charity={charity} />
+            </div>
           </div>
         );
       })}
