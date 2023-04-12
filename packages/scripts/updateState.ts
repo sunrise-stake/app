@@ -18,7 +18,7 @@ import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
       });
   await client.update({
       // dev
-      newTreasury: new PublicKey("8Z8BwUqZTD8XyJ6sdEEeWLaZ9Bg1J7TRDoYPfhkGS9Hr"),
+      newTreasury: new PublicKey("GRrWR48gthj53CpmdvThjh3Nh5XtjNJLsxqdKtNpJyDp"),
       // prod
     // newTreasury: new PublicKey("E7BjB9UQp814RsMPq7U6S4fy6wRzn6tFTYt31kJoskoq"),
   });
