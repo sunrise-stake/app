@@ -17,7 +17,6 @@ import {
 } from "@metaplex-foundation/js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { replaceInArray } from "../utils";
-import fetch from "node-fetch";
 
 export type UnloadedNFT = Metadata | Nft | Sft;
 export type GenericNFT = Sft | SftWithToken | Nft | NftWithToken;
