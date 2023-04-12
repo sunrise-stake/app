@@ -43,7 +43,7 @@ const isRealPartner = (
 };
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
-  <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-green text-xl font-medium text-center">
+  <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-xl font-medium text-center">
     <div className="pt-4">{children}</div>
   </div>
 );

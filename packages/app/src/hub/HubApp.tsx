@@ -23,6 +23,8 @@ import { useForest } from "../common/context/forestContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 
+const LINK_CHEVRON_SIZE = 32;
+
 const _HubApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
@@ -152,8 +154,11 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <div className="flex items-center nowrap">
-              <IoChevronBackOutline className="inline" size={24} />
+            <div className="flex items-center nowrap text-2xl">
+              <IoChevronBackOutline
+                className="inline"
+                size={LINK_CHEVRON_SIZE}
+              />
               <span>Forest</span>
             </div>
           </Link>
@@ -173,9 +178,12 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <div className="flex items-center nowrap">
+            <div className="flex items-center nowrap text-2xl">
               <span>Grow</span>
-              <IoChevronForwardOutline className="inline" size={24} />
+              <IoChevronForwardOutline
+                className="inline"
+                size={LINK_CHEVRON_SIZE}
+              />
             </div>
           </Link>
         </div>
@@ -189,7 +197,9 @@ const _HubApp: ForwardRefRenderFunction<
               )}
             >
               <Link to="/stake">
-                <Button variant="outline">{stakeButtonMessage}</Button>
+                <Button variant="outline" size="lg">
+                  {stakeButtonMessage}
+                </Button>
               </Link>
             </div>
           ) : (
@@ -211,15 +221,21 @@ const _HubApp: ForwardRefRenderFunction<
             )}
           >
             <Link to="/forest" className="flex items-center">
-              <div className="flex items-center nowrap">
-                <IoChevronBackOutline className="inline" size={24} />
+              <div className="flex items-center nowrap text-2xl">
+                <IoChevronBackOutline
+                  className="inline"
+                  size={LINK_CHEVRON_SIZE}
+                />
                 <span>Forest</span>
               </div>
             </Link>
             <Link to="/grow" className="flex items-center">
-              <div className="flex items-center nowrap">
+              <div className="flex items-center nowrap text-2xl">
                 <span>Grow</span>
-                <IoChevronForwardOutline className="inline" size={24} />
+                <IoChevronForwardOutline
+                  className="inline"
+                  size={LINK_CHEVRON_SIZE}
+                />
               </div>
             </Link>
           </div>
@@ -229,10 +245,16 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <Link to="/lock" className="block w-full mt-4 leading-none">
+            <Link
+              to="/lock"
+              className="block w-full mt-4 leading-none text-2xl"
+            >
               Lock
               <br />
-              <IoChevronDownOutline className="inline-block" size={24} />
+              <IoChevronDownOutline
+                className="inline-block"
+                size={LINK_CHEVRON_SIZE}
+              />
             </Link>
           </div>
         </div>

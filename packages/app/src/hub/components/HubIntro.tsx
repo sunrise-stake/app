@@ -3,6 +3,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
 import { CarbonRecovered } from "../../common/components";
+import { Logo } from "../../common/components/Logo";
 
 const HubIntro: FC<{
   show: boolean;
@@ -24,17 +25,15 @@ const HubIntro: FC<{
       }}
     >
       <Transition.Child
-        as="img"
-        className="block w-auto h-16 mx-auto mb-3"
-        src="./logo.png"
-        alt="Sunrise"
         enterFrom="opacity-0"
         enterTo="opacity-100"
         enter="transition-opacity ease-in duration-1000 delay-1000"
         leaveFrom="opacity-100"
         leaveTo="opacity-0"
         leave="transition-opacity ease-out duration-500"
-      />
+      >
+        <Logo className={"block w-auto h-24 mb-2 mx-auto"} />
+      </Transition.Child>
       <Transition.Child
         as="h1"
         className="text-green-light font-bold text-4xl sm:text-6xl"
