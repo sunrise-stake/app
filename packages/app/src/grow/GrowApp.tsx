@@ -29,8 +29,6 @@ import { charityApps } from "./charities";
 import { partners } from "./partners";
 import { PartnerButton } from "./components/PartnerButton";
 import { OrgButtonContent } from "./OrgButtonContent";
-import { DonatableArtistNFT } from "./components/DonatableArtistNFT";
-import { PublicKey } from "@solana/web3.js";
 
 const isRealCharity = (
   charity: Charity | PlaceholderOrg
@@ -45,7 +43,7 @@ const isRealPartner = (
 };
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
-  <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-green text-xl font-medium text-center">
+  <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-xl font-medium text-center">
     <div className="pt-4">{children}</div>
   </div>
 );
@@ -102,25 +100,6 @@ const _GrowApp: ForwardRefRenderFunction<
           Grow your forest
         </h1>
       </div>
-      <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
-        DRiP Earth Day
-      </h2>
-      <DonatableArtistNFT
-        query={{
-          collection: new PublicKey(
-            "DRiP2Pn2K6fuMLKQmt5rZWyHiUZ6WK3GChEySUpHSS4x"
-          ), // DRiP (TODO confirm)
-          jsonFilter: {
-            // attributes: [
-            //   // DRiP data
-            //   // {
-            //   //   trait_type: "drop",
-            //   //   value: "???", // TODO - what is the value for Earth Day?
-            //   // },
-            // ],
-          },
-        }}
-      />
       <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
         Use gSOL with our partners.
       </h2>

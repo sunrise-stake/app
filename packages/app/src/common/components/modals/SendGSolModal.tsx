@@ -5,7 +5,13 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import clx from "classnames";
 import { AmountInput } from "../AmountInput";
 import BN from "bn.js";
-import { handleError, solToLamports, toShortBase58, ZERO } from "../../utils";
+import {
+  handleError,
+  safeParsePublicKey,
+  solToLamports,
+  toShortBase58,
+  ZERO,
+} from "../../utils";
 import { Button } from "../Button";
 import { Spinner } from "../Spinner";
 import { GiPresent } from "react-icons/gi";
@@ -38,7 +44,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
 }) => {
   const [amount, setAmount] = useState("");
   const [isBusy, setIsBusy] = useState(false);
-  const [isValid, setIsValid] = useState(false);
+  const [isValidAmount, setIsValidAmount] = useState(false);
   const { details, client } = useSunriseStake();
   const { publicKey: senderPubkey, sendTransaction } = useWallet();
   const { connection } = useConnection();
@@ -48,9 +54,12 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
 
   const updateRecipientFromForm = useCallback(
     (addressString: string) => {
-      setRecipient({
-        address: new PublicKey(addressString),
-      });
+      const address = safeParsePublicKey(addressString);
+      if (address) {
+        setRecipient({
+          address,
+        });
+      }
     },
     [setRecipient]
   );
@@ -143,6 +152,8 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
     }
   }, [details, currency]);
 
+  const sendEnabled = !isBusy && isValidAmount && !!recipient;
+
   return (
     <BaseModal {...props} showActions={false}>
       <div
@@ -195,7 +206,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               balance={balance}
               amount={amount}
               setAmount={setAmount}
-              setValid={setIsValid}
+              setValid={setIsValidAmount}
               mode="TRANSFER"
               variant="small"
             />
@@ -209,7 +220,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
                     props.ok();
                   });
                 }}
-                disabled={isBusy || !isValid}
+                disabled={!sendEnabled}
                 size="sm"
               >
                 <div className="flex gap-2 w-full justify-center items-center">
