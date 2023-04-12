@@ -94,14 +94,14 @@ const _TipjarApp: ForwardRefRenderFunction<
       <div className="w-full p-4">
         <h3 className="text-2xl text-[#000] font-bold">{items.nftTitle}</h3>
         <h4 className="py-2 text-[1rem] text-[#000]">{items.nameOfArtist}</h4>
-        <Button className="bg-[#145D3E] w-[auto]">Tip the artist</Button>
+        <Button className="w-[auto]">Tip the artist</Button>
       </div>
     </div>
   ));
 
   return (
     <div
-      className={clx("flex flex-col items-center", className)}
+      className={clx("flex flex-col items-center scroll-smooth", className)}
       ref={ref}
       {...rest}
     >
@@ -117,8 +117,9 @@ const _TipjarApp: ForwardRefRenderFunction<
         <div className="flex flex-row justify-between">
           <h2 className="my-4 text-center text-3xl">
             <img src="logo.png" width="40" className="inline mr-4" />
-            <span className="text-green">Sunrise Stake</span> x{" "}
-            <span className="text-[#8559D5]">DRiP</span>
+            <span className="text-[#145D3E]">Sunrise Stake</span>
+            <span className="text-[#FFD660]"> x </span>
+            <span className="text-[#145D3E]">DRiP</span>
           </h2>
           <div className="my-2">
             <WalletMultiButton className="!bg-[#145D3E] !text-white !text-sm">
@@ -154,8 +155,11 @@ const _TipjarApp: ForwardRefRenderFunction<
               </p>
             </div>
             <div className="flex flex-col lg:flex-row">
-              <Button color="ticket" className="lg:mx-8 lg:mb-0 mb-5 font-bold">
-                Tip the artists
+              <Button
+                color="ticket"
+                className="lg:mx-8 lg:mb-0 mb-5 font-bold !text-[#145D3E]"
+              >
+                <a href="#nfts">See available NFTs</a>
               </Button>
               <Button
                 variant="outline"
@@ -172,7 +176,7 @@ const _TipjarApp: ForwardRefRenderFunction<
       </div>
 
       {/* NFTs */}
-      <div className="w-full p-3 py-12 lg:p-16">
+      <div id="nfts" className="w-full p-3 py-12 lg:p-16">
         <div className="space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:space-y-0">
           {NFTs}
         </div>
@@ -181,21 +185,7 @@ const _TipjarApp: ForwardRefRenderFunction<
       <div
         className="w-full min-h-[80vh] px-16 py-8  bg-no-repeat bg-bottom bg-contain"
         style={{ backgroundImage: "url('earth_day/Leaves.png')" }}
-      >
-        <div className="flex justify-center">
-          <div className="flex flex-col items-center justify-center">
-            <img
-              src="earth_day/tipjar.png"
-              className="w-[93px] h-[93px] mb-8 cursor-pointer"
-              alt="TipJar"
-            />
-            <h5 className="text-[145D3E] text-center text-2xl font-normal cursor-pointer">
-              Contribute to the <span className="font-semibold">Tip Jar</span>
-              for the artists
-            </h5>
-          </div>
-        </div>
-      </div>
+      ></div>
     </div>
   );
 };
