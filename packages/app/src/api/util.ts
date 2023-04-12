@@ -124,7 +124,8 @@ export const getLockedBalance = async (
   const lockedBalanceLamports = await client.lockClient?.getLockedBalance(
     address
   );
-  if (!lockedBalanceLamports) return 0;
+  if (lockedBalanceLamports === undefined || lockedBalanceLamports === null)
+    return 0;
   return toSol(lockedBalanceLamports);
 };
 

@@ -24,7 +24,6 @@ import {
 } from "../common/components/notifications";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
-import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 import {
   solToCarbon,
   solToLamports,
@@ -92,13 +91,7 @@ const _LockingApp: ForwardRefRenderFunction<
     });
   }, [active]);
 
-  const {
-    client,
-    details,
-  }: {
-    client: SunriseClientWrapper | undefined;
-    details: Details | undefined;
-  } = useSunriseStake();
+  const { client, details, loading } = useSunriseStake();
 
   const [isBusyUnlock, setIsBusyUnlock] = useState(false);
   const [isBusyUpdate, setIsBusyUpdate] = useState(false);
@@ -139,7 +132,7 @@ const _LockingApp: ForwardRefRenderFunction<
         txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,
-            message: `Upgrading successful (tx: ${index} of ${txes.length})`,
+            message: `Unlocking successful (tx: ${index} of ${txes.length})`,
             txid: tx,
           });
         });
@@ -156,7 +149,7 @@ const _LockingApp: ForwardRefRenderFunction<
         txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,
-            message: `Unlocking successful (tx: ${index} of ${txes.length})`,
+            message: `Updating successful (tx: ${index} of ${txes.length})`,
             txid: tx,
           });
         });
@@ -177,7 +170,7 @@ const _LockingApp: ForwardRefRenderFunction<
       ref={ref}
       {...rest}
     >
-      {!client && (
+      {(!client || loading) && (
         <div className="flex flex-col items-center m-4">
           <h1 className="text-3xl text-center">Loading...</h1>
           <div

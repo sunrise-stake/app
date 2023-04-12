@@ -17,10 +17,12 @@ import { safeParsePublicKey } from "../utils";
 interface SunriseContextProps {
   client: SunriseClientWrapper | undefined;
   details: Details | undefined;
+  loading: boolean;
 }
 const defaultValue: SunriseContextProps = {
   client: undefined,
   details: undefined,
+  loading: false,
 };
 const SunriseContext = createContext<SunriseContextProps>(defaultValue);
 
@@ -33,6 +35,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const location = useLocation();
+  const [loading, setLoading] = useState(false);
 
   const updateClient = async (
     clientToUpdate: SunriseClientWrapper
@@ -57,7 +60,13 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
     console.log("wallet changed", wallet);
     const addressFromUrl = safeParsePublicKey(location.state?.address);
     if (wallet) {
-      SunriseClientWrapper.init(connection, wallet, setDetails, undefined)
+      SunriseClientWrapper.init(
+        connection,
+        wallet,
+        setDetails,
+        undefined,
+        setLoading
+      )
         .then(updateClient)
         .catch(console.error);
     } else if (addressFromUrl !== null) {
@@ -70,6 +79,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
           signAllTransactions: async (txes) => txes,
           signTransaction: async (tx) => tx,
         },
+        undefined,
         undefined,
         undefined,
         true
@@ -89,6 +99,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
         },
         undefined,
         undefined,
+        undefined,
         true
       )
         .then(async (client) => {
@@ -101,7 +112,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, [wallet?.publicKey, location.state?.address]);
 
   return (
-    <SunriseContext.Provider value={{ client, details }}>
+    <SunriseContext.Provider value={{ client, details, loading }}>
       {children}
     </SunriseContext.Provider>
   );
