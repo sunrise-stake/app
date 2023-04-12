@@ -102,6 +102,10 @@ export class LockClient {
     };
   }
 
+  public async refresh(): Promise<void> {
+    await this.init();
+  }
+
   private async init(): Promise<void> {
     const lockTokenAccountPromise = getTokenAccountNullable(
       this.program.provider.connection,

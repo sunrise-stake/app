@@ -1070,7 +1070,7 @@ export class SunriseStakeClient {
 
     const balancesPromise = this.balance();
 
-    const lockAccountPromise = await this.getLockAccount();
+    const lockAccountPromise = await this.getLockAccount(true);
 
     const impactNFTPromise = await getImpactNFT(
       this.config,
@@ -1635,8 +1635,12 @@ export class SunriseStakeClient {
     return transactions;
   }
 
-  public async getLockAccount(): Promise<LockAccountSummary> {
+  public async getLockAccount(
+    withRefresh = false
+  ): Promise<LockAccountSummary> {
     if (!this.lockClient) throw new Error("init not called");
+
+    if (withRefresh) await this.lockClient.refresh();
 
     return {
       lockAccount: this.lockClient.lockAccount,

@@ -49,7 +49,7 @@ const BaseModal: FC<Props> = ({
         className="fixed z-30 inset-0 overflow-y-auto backdrop-blur-sm"
       >
         <div className="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0">
-          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 border border-green text-left bg-white shadow-xll sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg sm:p-6">
+          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 border border-green text-left bg-white shadow-xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
             <div className="-mt-4 flex justify-end">
               <div onClick={clickCancel}>x</div>
             </div>
