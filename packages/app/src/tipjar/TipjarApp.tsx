@@ -190,7 +190,7 @@ const _TipjarApp: ForwardRefRenderFunction<
               alt="TipJar"
             />
             <h5 className="text-[145D3E] text-center text-2xl font-normal cursor-pointer">
-              Contribute to the <span className="font-semibold">Tip Jar</span>{" "}
+              Contribute to the <span className="font-semibold">Tip Jar</span>
               for the artists
             </h5>
           </div>
