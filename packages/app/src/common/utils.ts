@@ -158,6 +158,12 @@ const memoise = <T extends (...args: any[]) => any>(
   }) as T;
 };
 
+const replaceInArray = <T>(arr: T[], oldItem: T, newItem: T): T[] => {
+  const index = arr.indexOf(oldItem);
+  if (index === -1) return arr;
+  return [...arr.slice(0, index), newItem, ...arr.slice(index + 1)];
+};
+
 export {
   addUp,
   round,
@@ -165,6 +171,7 @@ export {
   type UIMode,
   debounce,
   getDigits,
+  replaceInArray,
   safeParsePublicKey,
   safeParsePublicKeyFromUrl,
   settledPromises,

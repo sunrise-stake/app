@@ -29,6 +29,8 @@ import { charityApps } from "./charities";
 import { partners } from "./partners";
 import { PartnerButton } from "./components/PartnerButton";
 import { OrgButtonContent } from "./OrgButtonContent";
+import { DonatableArtistNFT } from "./components/DonatableArtistNFT";
+import { PublicKey } from "@solana/web3.js";
 
 const isRealCharity = (
   charity: Charity | PlaceholderOrg
@@ -100,6 +102,25 @@ const _GrowApp: ForwardRefRenderFunction<
           Grow your forest
         </h1>
       </div>
+      <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
+        DRiP Earth Day
+      </h2>
+      <DonatableArtistNFT
+        query={{
+          collection: new PublicKey(
+            "DRiP2Pn2K6fuMLKQmt5rZWyHiUZ6WK3GChEySUpHSS4x"
+          ), // DRiP (TODO confirm)
+          jsonFilter: {
+            // attributes: [
+            //   // DRiP data
+            //   // {
+            //   //   trait_type: "drop",
+            //   //   value: "???", // TODO - what is the value for Earth Day?
+            //   // },
+            // ],
+          },
+        }}
+      />
       <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
         Use gSOL with our partners.
       </h2>
