@@ -1,7 +1,7 @@
 import { type FC } from "react";
 import { type Details } from "@sunrisestake/client";
-import { useNFT } from "./hooks/useNFT";
-import { Spinner } from "../common/components";
+import { useNFT } from "../hooks/useNFT";
+import { Spinner } from "../../common/components";
 
 export const ImpactNFT: FC<{ details: Details["impactNFTDetails"] }> = ({
   details,

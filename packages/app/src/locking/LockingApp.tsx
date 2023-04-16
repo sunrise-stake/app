@@ -1,10 +1,8 @@
 import clx from "classnames";
 import { toSol, type Details } from "@sunrisestake/client";
 import React, {
-  type FC,
   forwardRef,
   type ForwardRefRenderFunction,
-  type PropsWithChildren,
   useEffect,
   useMemo,
   useState,
@@ -12,6 +10,7 @@ import React, {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import {
+  Badge,
   Button,
   LockForm,
   Panel,
@@ -30,7 +29,7 @@ import {
   toFixedWithPrecision,
   ZERO,
 } from "../common/utils";
-import { ImpactNFT } from "./ImpactNFT";
+import { ImpactNFT } from "./components/ImpactNFT";
 import { IoChevronUpOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
@@ -58,12 +57,6 @@ const canBeUnlocked = (details: Details | undefined): boolean => {
     details.lockDetails.startEpoch.toNumber() < details.currentEpoch.epoch - 1
   );
 };
-
-const LockDetailTag: FC<PropsWithChildren> = ({ children }) => (
-  <span className="inline-flex gap-1 bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-    {children}
-  </span>
-);
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -159,7 +152,7 @@ const _LockingApp: ForwardRefRenderFunction<
 
   const lockText = hasLockedBalance(details)
     ? "Your Impact NFT is proof of your stake. It grows as your stake matures. Return regularly to upgrade your NFT to the next level."
-    : "Your Impact NFT is proof of your stake. It grows as your stake matures. Re-lock your gSOL to grow it to the next level.";
+    : "Your Impact NFT is proof of your stake. It grows as your stake matures. Lock your gSOL to grow it to the next level.";
 
   return (
     <div
@@ -200,18 +193,22 @@ const _LockingApp: ForwardRefRenderFunction<
         <div className="max-w-sm rounded shadow-lg">
           <ImpactNFT details={details.impactNFTDetails} />
           <div className="px-6 py-4">
-            <div className="font-bold text-xl mb-2">Your Impact NFT</div>
+            <div className="text-right">
+              <Badge color="primary">Level: ?</Badge>
+              <Badge color="ticket">Upgradeable?</Badge>
+            </div>
+            <div className="mb-2 font-bold text-xl">Your Impact NFT</div>
             <p className="text-gray-700 text-base">{lockText}</p>
           </div>
           <div className="px-6 pt-4 pb-2">
-            <LockDetailTag>
+            <Badge>
               Locked -{" "}
               {toFixedWithPrecision(
                 toSol(details.lockDetails?.amountLocked ?? ZERO)
               )}{" "}
               gSOL <TooltipPopover>{tooltips.lockCarbon}</TooltipPopover>
-            </LockDetailTag>
-            <LockDetailTag>
+            </Badge>
+            <Badge>
               Yield accrued -{" "}
               {toFixedWithPrecision(
                 toSol(details.lockDetails?.yield ?? ZERO),
@@ -219,8 +216,8 @@ const _LockingApp: ForwardRefRenderFunction<
               )}{" "}
               gSOL
               <TooltipPopover>{tooltips.lockYield}</TooltipPopover>
-            </LockDetailTag>
-            <LockDetailTag>
+            </Badge>
+            <Badge>
               Equivalent carbon price -{" "}
               {toFixedWithPrecision(
                 solToCarbon(toSol(details.lockDetails?.yield ?? ZERO)),
@@ -228,7 +225,7 @@ const _LockingApp: ForwardRefRenderFunction<
               )}{" "}
               tCO₂E
               <TooltipPopover>{tooltips.lockCarbon}</TooltipPopover>
-            </LockDetailTag>
+            </Badge>
             {/* <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"> */}
             {/*  Next level at -{" "} */}
             {/*  TODO */}
