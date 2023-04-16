@@ -6,7 +6,7 @@ export const partners = [
   },
   {
     name: "DRiP",
-    website: "/driptip",
+    website: "/earthday",
     imageUrl: "partners/drip.jpeg",
     internal: true,
   },

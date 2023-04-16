@@ -78,7 +78,7 @@ const HubIntro: FC<{
           Start reducing CO<sub>2</sub>&nbsp;emissions
         </WalletMultiButton>
         <div className="mt-8">
-          <Link to="/driptip">Ugly Link Sunrise x DRiP</Link>
+          <Link to="/earthday">Ugly Link Sunrise x DRiP</Link>
         </div>
         <CarbonRecovered />
       </Transition.Child>
