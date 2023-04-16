@@ -84,7 +84,7 @@ const HubIntro: FC<{
         leaveTo="opacity-0"
         leave="transition-opacity ease-out duration-500"
       >
-        <WalletMultiButton>
+        <WalletMultiButton className="!bg-green hover:!bg-green-light !text-white">
           Start reducing CO<sub>2</sub>&nbsp;emissions
         </WalletMultiButton>
         <div className="mt-8">

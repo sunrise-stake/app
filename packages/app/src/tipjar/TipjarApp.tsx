@@ -26,7 +26,7 @@ const _TipjarApp: ForwardRefRenderFunction<
   const wallet = useWallet();
 
   useEffect(() => {
-    if (currentHelpRoute !== AppRoute.TipJar) return; // we are not on the stake page, so don't update zen mode
+    if (currentHelpRoute !== AppRoute.TipJar) return;
     updateZenMode({
       showBGImage: false,
       showHelpButton: false,
