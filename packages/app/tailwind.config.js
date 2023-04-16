@@ -33,7 +33,7 @@ module.exports = {
         "button": "#238358"
       },
       fontFamily: {
-        sans: ['"Inter var, sans-serif"', defaultTheme.fontFamily.sans],
+        sans: ["Titillium Web", defaultTheme.fontFamily.sans],
       },
       keyframes: {
         "fade-in": {
