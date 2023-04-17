@@ -127,11 +127,11 @@ const _TipjarApp: ForwardRefRenderFunction<
         style={{ backgroundImage: "url('earth_day/hero_background.png')" }}
       >
         <div className="flex flex-col items-center lg:flex-row">
-          <div className="basis-1/2  flex flex-col justify-center lg:justify-start">
+          <div className="basis-1/2 mb-5  flex flex-col justify-center lg:justify-start">
             <h3 className="mb-6 text-5xl font-bold text-white lg:mx-8">
               Earth Day on Solana
             </h3>
-            <div className="lg:mb-6 mb-6 text-lg lg:mx-8">
+            <div className="lg:mb-6 mb-6 text-lg md:w-[80%] lg:mx-8">
               <p>
                 For Earth Day 2023, Sunrise is partnering with DRiP to raise
                 awareness about climate action, tell new stories about the
@@ -143,20 +143,23 @@ const _TipjarApp: ForwardRefRenderFunction<
             <div className="flex flex-col lg:flex-row">
               <Button
                 color="ticket"
-                className="lg:mx-8 lg:mb-0 mb-5 font-bold !text-[#145D3E]"
+                className="lg:mx-8 lg:mb-0 mb-5 md:w-1/2 sm:w-1/2 flex justify-center font-bold !text-[#145D3E]"
               >
                 <a href="#nfts">See available NFTs</a>
               </Button>
               <Button
                 variant="outline"
-                className="border-white text-white font-bold"
+                className="border-white text-white font-bold md:w-1/2 sm:w-1/2 flex justify-center"
               >
                 <a href="https://drip.haus/">Visit DRiP&apos;s webpage</a>
               </Button>
             </div>
           </div>
-          <div className="basis-1/2">
-            <img src="earth_day/hero_picture.png" className="m-auto py-8" />
+          <div className="basis-1/2 w-full lg:p-10">
+            <img
+              src="earth_day/hero_picture.png"
+              className="object-cover m-auto py-8  w-full"
+            />
           </div>
         </div>
       </div>
