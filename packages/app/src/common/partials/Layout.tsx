@@ -37,7 +37,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         leaveTo="opacity-0"
         leave="transition-opacity duration-500"
       >
-        <WalletMultiButton>
+        <WalletMultiButton className="!bg-green hover:!bg-green-light !text-white">
           <FaWallet />
         </WalletMultiButton>
       </Transition>
@@ -64,7 +64,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         </button>
       </Transition>
       <Transition
-        className="z-10 fixed bottom-4 left-4"
+        className="z-10 fixed bottom-4 left-1/2 md:left-4 -translate-x-32 md:translate-x-0"
         show={zenMode.showExternalLinks}
         enterFrom="opacity-0"
         enterTo="opacity-100"
@@ -77,11 +77,6 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
       </Transition>
       <div className="flex flex-col min-h-screen">
         <Toaster />
-        <header>
-          {/* <audio className="fixed top-0 right-0" loop autoPlay controls>
-            <source src="meydan-surreal-forest.mp3" type="audio/mpeg" />
-          </audio> */}
-        </header>
         <main className="grow flex">{children}</main>
       </div>
       <PageHelpModal

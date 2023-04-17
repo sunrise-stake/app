@@ -24,7 +24,7 @@ export enum AppRoute {
   Hub = "/",
   Lock = "/lock",
   Stake = "/stake",
-  TipJar = "/driptip",
+  TipJar = "/earthday",
 }
 
 export const Routes: FC = () => {

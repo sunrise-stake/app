@@ -9,7 +9,7 @@ const ExternalPartner: FC<PartnerProps> = ({ children, partner }) => (
     href={partner.website}
     target="_blank"
     rel="noreferrer"
-    className="hover:cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-110 hover:brightness-110 hover:transition-all"
+    className="transition-all cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-105 hover:brightness-105"
     style={
       partner.imageUrl !== undefined
         ? {
@@ -28,7 +28,7 @@ const ExternalPartner: FC<PartnerProps> = ({ children, partner }) => (
 const InternalPartner: FC<PartnerProps> = ({ children, partner }) => (
   <Link
     to={partner.website}
-    className="hover:cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-110 hover:brightness-110 hover:transition-all"
+    className="transition-all cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-105 hover:brightness-105"
     style={
       partner.imageUrl !== undefined
         ? {
