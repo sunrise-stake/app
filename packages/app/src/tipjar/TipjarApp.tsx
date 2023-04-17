@@ -1,20 +1,18 @@
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { PublicKey } from "@solana/web3.js";
 import clx from "classnames";
 import { type ForwardRefRenderFunction, forwardRef, useEffect } from "react";
-
-import { useZenMode } from "../common/context/ZenModeContext";
-import { AppRoute } from "../Routes";
-import { useHelp } from "../common/context/HelpContext";
-import { Link } from "react-router-dom";
 import { IoChevronBackOutline } from "react-icons/io5";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { toShortBase58 } from "../common/utils";
 import { FaWallet } from "react-icons/fa";
-import { Button } from "../common/components";
+import { Link } from "react-router-dom";
+
+import { AppRoute } from "../Routes";
+import { Button, Logo } from "../common/components";
+import { useZenMode } from "../common/context/ZenModeContext";
+import { useHelp } from "../common/context/HelpContext";
+import { toShortBase58 } from "../common/utils";
 import { DonatableArtistNFT } from "../grow/components/DonatableArtistNFT";
-import { PublicKey } from "@solana/web3.js";
-// import { useLocation, useNavigate } from "react-router-dom";
-// import { useWallet } from "@solana/wallet-adapter-react";
 
 const _TipjarApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -68,28 +66,53 @@ const _TipjarApp: ForwardRefRenderFunction<
       ref={ref}
       {...rest}
     >
-      <div className="container mt-5">
-        <Link
-          to={wallet.connected ? "/grow" : "/"}
-          className="flex items-center text-green"
-        >
-          <div className="flex items-center nowrap">
-            <IoChevronBackOutline className="inline" size={48} />
+      <div className="container">
+        <div className="flex sm:hidden justify-between mt-2">
+          <Link
+            to={wallet.connected ? "/grow" : "/"}
+            className="flex sm:hidden items-center text-green"
+          >
+            <div className="flex align-center items-center text-xl">
+              <IoChevronBackOutline className="inline" size={48} />
+              Back
+            </div>
+          </Link>
+          <WalletMultiButton className="!bg-green hover:!bg-green-light !text-white">
+            {wallet.publicKey ? (
+              <>
+                <FaWallet className="mr-0 sm:mr-2" />
+                <div className="hidden sm:inline text-sm">
+                  {toShortBase58(wallet.publicKey)}
+                </div>
+              </>
+            ) : (
+              "Connect wallet"
+            )}
+          </WalletMultiButton>
+        </div>
+        <div className="flex items-center my-4 leading-none">
+          <Link
+            to={wallet.connected ? "/grow" : "/"}
+            className="hidden sm:flex items-center text-green"
+          >
+            <div className="flex align-center items-center text-xl">
+              <IoChevronBackOutline className="inline" size={48} />
+              Back
+            </div>
+          </Link>
+          <div className="flex grow items-center justify-center gap-4">
+            <Logo className="h-14" />
+            <span className="text-yellow text-3xl font-bold"> x </span>
+            <img className="h-9" alt="DRiP" src="/earth_day/drip-logo.svg" />
           </div>
-        </Link>
-        <div className="flex flex-row justify-between">
-          <h2 className="my-4 text-center text-3xl">
-            <img src="logo.png" width="40" className="inline mr-4" />
-            <span className="text-[#145D3E]">Sunrise Stake</span>
-            <span className="text-[#FFD660]"> x </span>
-            <span className="text-[#145D3E]">DRiP</span>
-          </h2>
-          <div className="my-2">
-            <WalletMultiButton className="!bg-[#145D3E] !text-white !text-sm">
+          <div className="hidden sm:block ">
+            <WalletMultiButton className="!bg-green hover:!bg-green-light !text-white !px-6 !py-4">
               {wallet.publicKey ? (
                 <>
-                  <FaWallet className="mr-2" />
-                  {toShortBase58(wallet.publicKey)}
+                  <FaWallet className="mr-0 sm:mr-2" />
+                  <div className="hidden sm:inline">
+                    {toShortBase58(wallet.publicKey)}
+                  </div>
                 </>
               ) : (
                 "Connect wallet"
@@ -128,7 +151,7 @@ const _TipjarApp: ForwardRefRenderFunction<
                 variant="outline"
                 className="border-white text-white font-bold"
               >
-                <a href="https://drip.haus/">Visit Drip&apos;s webpage</a>
+                <a href="https://drip.haus/">Visit DRiP&apos;s webpage</a>
               </Button>
             </div>
           </div>
@@ -138,7 +161,6 @@ const _TipjarApp: ForwardRefRenderFunction<
         </div>
       </div>
 
-      {/* NFTs */}
       <div id="nfts" className="w-full p-3 py-12 lg:p-16">
         <DonatableArtistNFT
           query={{
