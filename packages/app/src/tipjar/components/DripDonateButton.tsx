@@ -1,4 +1,5 @@
-import React, { type FC } from "react";
+import { type FC } from "react";
+
 import { useModal } from "../../common/hooks";
 import { SendGSolModal } from "../../common/components/modals/SendGSolModal";
 import { Button } from "../../common/components";

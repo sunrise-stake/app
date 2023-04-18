@@ -12,7 +12,7 @@ import { Button, Logo } from "../common/components";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useHelp } from "../common/context/HelpContext";
 import { toShortBase58 } from "../common/utils";
-import { DonatableArtistNFT } from "../grow/components/DonatableArtistNFT";
+import { DonatableArtistNFT } from "./components/DonatableArtistNFT";
 
 const _TipjarApp: ForwardRefRenderFunction<
   HTMLDivElement,

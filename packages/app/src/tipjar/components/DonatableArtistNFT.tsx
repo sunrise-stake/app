@@ -1,14 +1,15 @@
 import { type FC } from "react";
-import { useNFTsFilteredByOffchainMetadata } from "../hooks/useNFTsFilteredByOffchainMetadata";
+import { PublicKey } from "@solana/web3.js";
+
 import {
   type GenericNFT,
   type NFTQuery,
 } from "../../common/context/NFTsContext";
-import { type Charity } from "./types";
+import { useNFTsFilteredByOffchainMetadata } from "../../common/hooks/useNFTsFilteredByOffchainMetadata";
+import { type Charity } from "../../grow/components/types";
 
-import artists from "./artists.json";
-import { PublicKey } from "@solana/web3.js";
-import { DripDonateButton } from "../../tipjar/components.tsx/DripDonateButton";
+import artists from "../data/artists.json";
+import { DripDonateButton } from "./DripDonateButton";
 
 interface Artist {
   twitter: string;

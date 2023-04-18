@@ -2,7 +2,7 @@ import {
   type GenericNFT,
   type NFTQuery,
   useNFTs,
-} from "../../common/context/NFTsContext";
+} from "../context/NFTsContext";
 
 const isSubset = (superObj: any, subObj: any): boolean =>
   Object.keys(subObj).every((key) => {
