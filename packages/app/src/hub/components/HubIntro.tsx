@@ -2,9 +2,10 @@ import { Transition } from "@headlessui/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
-import { CarbonRecovered } from "../../common/components";
+import { Button, CarbonRecovered } from "../../common/components";
 import { Link } from "react-router-dom";
 import { LogoIcon, LogoText } from "../../common/components/Logo";
+import { FaGlobeAmericas } from "react-icons/fa";
 
 const HubIntro: FC<{
   show: boolean;
@@ -88,7 +89,12 @@ const HubIntro: FC<{
           Start reducing CO<sub>2</sub>&nbsp;emissions
         </WalletMultiButton>
         <div className="mt-8">
-          <Link to="/earthday">Ugly Link Sunrise x DRiP</Link>
+          <Link to="/earthday">
+            <Button color="primary" variant="outline">
+              <FaGlobeAmericas />
+              &nbsp;Earth Day Special ➜
+            </Button>
+          </Link>
         </div>
         <CarbonRecovered />
       </Transition.Child>
