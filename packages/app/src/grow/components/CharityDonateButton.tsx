@@ -8,7 +8,7 @@ export const CharityDonateButton: FC<{ charity: Charity }> = ({ charity }) => {
   const sendGSolModal = useModal(() => {});
   return (
     <button
-      className="hover:cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-110 hover:brightness-105 hover:transition-all"
+      className="transition-all cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-105 hover:brightness-105"
       style={
         charity.imageUrl !== undefined
           ? {

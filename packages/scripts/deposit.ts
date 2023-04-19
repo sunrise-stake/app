@@ -1,8 +1,8 @@
-import { SunriseStakeClient } from "../app/src/lib/client/";
-import { PublicKey } from "@solana/web3.js";
+import {SunriseStakeClient} from "../client/src";
 import "./util";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import BN from "bn.js";
+import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 
 const [stateAddress, amountStr] = process.argv.slice(2);
 
@@ -11,7 +11,7 @@ const [stateAddress, amountStr] = process.argv.slice(2);
 
   const client = await SunriseStakeClient.get(
     provider,
-    new PublicKey(stateAddress)
+      process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork|| 'devnet',
   );
   const txSig = await client.deposit(new BN(amountStr));
 

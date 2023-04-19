@@ -21,16 +21,18 @@ const Button: React.FC<ButtonProps> = ({
     className={clx(
       "inline-flex items-center border-2 rounded-lg leading-6 shadow-sm disabled:brightness-75 hover:brightness-125",
       {
-        "border-green-light": color === "primary",
+        "border-green hover:border-green-light": color === "primary",
         "border-danger": color === "danger",
         "border-outset": color === "secondary",
         "border-ticket": color === "ticket",
-        "bg-green-light": color === "primary" && variant === "solid",
+        "bg-green hover:bg-green-light":
+          color === "primary" && variant === "solid",
         "bg-danger": color === "danger" && variant === "solid",
         "bg-outset": color === "secondary" && variant === "solid",
         "bg-ticket": color === "ticket" && variant === "solid",
         "bg-transparent": variant === "outline",
-        "text-green-light": color === "primary" && variant === "outline",
+        "text-green hover:text-green-light":
+          color === "primary" && variant === "outline",
         "text-danger": color === "danger" && variant === "outline",
         "text-outset": color === "secondary" && variant === "outline",
         "text-ticket": color === "ticket" && variant === "outline",
