@@ -33,33 +33,6 @@ const _TipjarApp: ForwardRefRenderFunction<
     });
   }, [active]);
 
-  // const NFTs = NFTsData.map((items, index) => (
-  //   <div
-  //     key={index}
-  //     className="mb-8 relative h-fit w-full border-[1px] rounded-lg border-[#969696]"
-  //   >
-  //     {items.inWallet ? (
-  //       <div className="bg-[#FFD660] px-10 py-2.5 rounded-b-lg absolute top-0 left-1/2 transform -translate-x-1/2">
-  //         <h2 className="color-[#145D3E] text-lg font-semibold whitespace-nowrap ">
-  //           In your wallet
-  //         </h2>
-  //       </div>
-  //     ) : null}
-  //     <div className="w-full p-[0.2%] h-[338px]">
-  //       <img
-  //         src={items.Avatar}
-  //         alt={items.nftTitle}
-  //         className="h-full w-full object-center rounded-t-lg"
-  //       />
-  //     </div>
-  //     <div className="w-full p-4">
-  //       <h3 className="text-2xl text-[#000] font-bold">{items.nftTitle}</h3>
-  //       <h4 className="py-2 text-[1rem] text-[#000]">{items.nameOfArtist}</h4>
-  //       <Button className="w-[auto]">Tip the artist</Button>
-  //     </div>
-  //   </div>
-  // ));
-
   return (
     <div
       className={clx("flex flex-col items-center scroll-smooth", className)}
@@ -169,7 +142,7 @@ const _TipjarApp: ForwardRefRenderFunction<
           query={{
             collection: new PublicKey(
               "DRiP2Pn2K6fuMLKQmt5rZWyHiUZ6WK3GChEySUpHSS4x"
-            ), // DRiP (TODO confirm)
+            ), // DRiP
             jsonFilter: {
               // attributes: [
               //   // DRiP data

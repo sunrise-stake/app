@@ -137,7 +137,7 @@ const getAllCompressedNFTs = async (owner: PublicKey): Promise<GenericNFT[]> =>
       id: "my-id",
       method: "getAssetsByOwner",
       params: [
-        owner,
+        owner.toBase58(),
         {
           sortBy: "created",
           sortDirection: "desc",
