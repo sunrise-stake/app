@@ -26,12 +26,12 @@ const _TipjarApp: ForwardRefRenderFunction<
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.TipJar) return;
     updateZenMode({
-      showBGImage: false,
-      showHelpButton: false,
-      showExternalLinks: false,
+      showBGImage: active,
+      showHelpButton: active,
+      showExternalLinks: active,
       showWallet: false,
     });
-  }, [active]);
+  }, [active, currentHelpRoute]);
 
   return (
     <div

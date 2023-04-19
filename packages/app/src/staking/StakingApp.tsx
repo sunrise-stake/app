@@ -29,7 +29,7 @@ const _StakingApp: ForwardRefRenderFunction<
       showExternalLinks: false,
       showWallet: active,
     });
-  }, [active]);
+  }, [active, currentHelpRoute]);
 
   return (
     <div

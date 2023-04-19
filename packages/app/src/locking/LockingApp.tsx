@@ -87,7 +87,7 @@ const _LockingApp: ForwardRefRenderFunction<
       showExternalLinks: false,
       showWallet: active,
     });
-  }, [active]);
+  }, [active, currentHelpRoute]);
 
   const { client, details, loading } = useSunriseStake();
 

@@ -31,19 +31,17 @@ const _HubApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const wallet = useWallet();
   const { setCurrentHelpRoute, currentHelpRoute } = useHelp();
+  const [zenMode, updateZenMode] = useZenMode();
+  const { myTree } = useForest();
+  const { totalCarbon } = useCarbon();
 
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
   const wasHubNavShown = useRef(false);
-  const [zenMode, updateZenMode] = useZenMode();
-
   const showWalletButton = useMemo(() => {
     return wallet.connected && showHubNav;
   }, [wallet.connected, showHubNav]);
-
-  const { myTree } = useForest();
-  const { totalCarbon } = useCarbon();
   const stakeButtonMessage = useMemo(() => {
     if (myTree?.metadata.type.translucent === true) {
       return "Stake to restore your tree";
@@ -52,7 +50,6 @@ const _HubApp: ForwardRefRenderFunction<
     }
     return "My Stake";
   }, [myTree]);
-
   const showHub = useMemo(() => {
     return wallet.connected && myTree !== undefined;
   }, [wallet.connected, myTree]);
@@ -118,7 +115,7 @@ const _HubApp: ForwardRefRenderFunction<
       showExternalLinks: showHubNav,
       showWallet: showWalletButton,
     });
-  }, [active, currentHelpRoute, showWalletButton]);
+  }, [active, currentHelpRoute, showHubNav, showWalletButton]);
 
   return (
     <div

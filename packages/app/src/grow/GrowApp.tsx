@@ -73,7 +73,7 @@ const _GrowApp: ForwardRefRenderFunction<
       showExternalLinks: false,
       showWallet: active,
     });
-  }, [active]);
+  }, [active, currentHelpRoute]);
 
   const sendGSolModal = useModal(() => {});
 
