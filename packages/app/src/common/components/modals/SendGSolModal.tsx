@@ -1,4 +1,4 @@
-import React, { type FC, useCallback, useMemo, useState } from "react";
+import { type FC, useCallback, useMemo, useState, type ReactNode } from "react";
 
 import { BaseModal, type ModalProps } from "./";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -29,16 +29,18 @@ import { useSolBalance } from "../../hooks/useSolBalance";
 import { MdInfo } from "react-icons/md";
 
 interface SendGSolModalProps {
+  children?: ReactNode;
+  className?: string;
   recipient?: {
     address: PublicKey;
     name?: string;
     imageUrl?: string;
     website?: string;
   };
-  className?: string;
 }
 const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   className = "",
+  children,
   recipient: recipientFromProps,
   ...props
 }) => {
@@ -158,6 +160,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
 
   return (
     <BaseModal {...props} showActions={false}>
+      <div>{children}</div>
       <div
         className={clx(
           "backdrop-blur-sm px-8 py-4 rounded-md bg-green-light text-white",
