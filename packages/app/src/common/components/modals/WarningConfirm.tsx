@@ -6,11 +6,11 @@ const WarningConfirm: FC<{
   children: ReactNode;
 }> = ({ onConfirm, idx, children }) => (
   <>
-    <div className="border border-gray-300 m-5 p-5 text-start bg-gray-100 rounded-md">
+    <div className="border border-green-light m-5 p-5 text-start bg-white rounded-md">
       {children}
     </div>
     <div className="relative flex m-5 p-5">
-      <div className="flex h-5">
+      <div className="flex items-center h-5">
         <input
           id={`checkbox-${idx}`}
           aria-describedby={`checkbox-description-${idx}`}
