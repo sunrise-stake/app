@@ -65,7 +65,7 @@ const HubIntro: FC<{
       >
         <Transition.Child
           as="h2"
-          className="mt-4 mb-16 font-normal text-lg sm:text-3xl"
+          className="mt-4 mb-10 font-normal text-lg sm:text-3xl"
           enterFrom="opacity-0"
           enterTo="opacity-100"
           enter="transition-opacity ease-in duration-1000 delay-1000"
@@ -88,7 +88,7 @@ const HubIntro: FC<{
         <WalletMultiButton className="!bg-green hover:!bg-green-light !text-white">
           Start reducing CO<sub>2</sub>&nbsp;emissions
         </WalletMultiButton>
-        <div className="mt-8">
+        <div className="mt-6">
           <Link to="/earthday">
             <Button color="primary" variant="outline">
               <FaGlobeAmericas />

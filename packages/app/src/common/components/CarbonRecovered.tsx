@@ -11,7 +11,7 @@ const CarbonRecovered: FC = () => {
       <h4 className="flex-auto font-medium center leading-tight text-1xl grid-row">
         so far
       </h4>
-      <h1 className="font-medium leading-tight text-4xl">
+      <h1 className="font-medium leading-tight text-2xl sm:text-4xl">
         {toFixedWithPrecision(totalCarbon)} tCO₂E
       </h1>
       <h4 className="flex-auto font-medium leading-tight text-xl">

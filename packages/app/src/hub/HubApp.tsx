@@ -91,7 +91,7 @@ const _HubApp: ForwardRefRenderFunction<
     updateZenMode({
       ...zenMode,
       showHelpButton: showHubNav,
-      showExternalLinks: showHubNav,
+      showExternalLinks: false,
       showWallet: showWalletButton,
     });
   }, [showHubNav, showWalletButton]);
@@ -112,7 +112,7 @@ const _HubApp: ForwardRefRenderFunction<
     updateZenMode({
       ...zenMode,
       showHelpButton: showHubNav,
-      showExternalLinks: showHubNav,
+      showExternalLinks: false,
       showWallet: showWalletButton,
     });
   }, [active, currentHelpRoute, showHubNav, showWalletButton]);
@@ -218,7 +218,7 @@ const _HubApp: ForwardRefRenderFunction<
             )}
           >
             <Link to="/forest" className="flex items-center">
-              <div className="flex items-center nowrap text-2xl">
+              <div className="flex items-center nowrap text-lg">
                 <IoChevronBackOutline
                   className="inline"
                   size={LINK_CHEVRON_SIZE}
@@ -227,7 +227,7 @@ const _HubApp: ForwardRefRenderFunction<
               </div>
             </Link>
             <Link to="/grow" className="flex items-center">
-              <div className="flex items-center nowrap text-2xl">
+              <div className="flex items-center nowrap text-lg">
                 <span>Grow</span>
                 <IoChevronForwardOutline
                   className="inline"
@@ -242,10 +242,7 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <Link
-              to="/lock"
-              className="block w-full mt-4 leading-none text-2xl"
-            >
+            <Link to="/lock" className="block w-full mt-4 leading-none text-lg">
               Lock
               <br />
               <IoChevronDownOutline
