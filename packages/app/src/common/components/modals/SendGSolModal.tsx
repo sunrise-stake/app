@@ -73,13 +73,15 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
     const transaction = new Transaction();
     const associatedTokenFrom = await getAssociatedTokenAddress(
       mint,
-      senderPubkey
+      senderPubkey,
+      true
     );
     const fromAccount = await getAccount(connection, associatedTokenFrom);
 
     const associatedTokenTo = await getAssociatedTokenAddress(
       mint,
-      recipient.address
+      recipient.address,
+      true
     );
 
     if (!(await connection.getAccountInfo(associatedTokenTo))) {
