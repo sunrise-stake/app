@@ -158,7 +158,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
     <BaseModal {...props} showActions={false}>
       <div
         className={clx(
-          "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md",
+          "backdrop-blur-sm px-8 py-4 rounded-md bg-green-light text-white",
           className
         )}
       >
@@ -172,7 +172,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               <div className="font-semibold text-xl m-2 ml-0">To</div>
               {recipientFromProps && (
                 <a
-                  className="font-normal text-lg text-green py-1 mt-1"
+                  className="font-normal text-lg text-yellow"
                   href={recipient?.website}
                   target="_blank"
                   rel="noreferrer"
@@ -194,12 +194,12 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
             </div>
           </div>
           {currency === "SOL" ? (
-            <div className="text-sm text-sky-600">
-              <MdInfo className="inline stroke-sky-600" />
+            <div className="text-sm text-sky-800">
+              <MdInfo className="inline stroke-sky-800" />
               SOL gets staked and send as gSOL
             </div>
           ) : null}
-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+          <div className="">
             <AmountInput
               className="w-full"
               token={currency}
@@ -208,11 +208,11 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               setAmount={setAmount}
               setValid={setIsValidAmount}
               mode="TRANSFER"
-              variant="small"
+              variant="large"
             />
             <div className="mt-4 float-right">
               <Button
-                className="basis-1/4"
+                color="white"
                 onClick={() => {
                   setIsBusy(true);
                   send().finally(() => {

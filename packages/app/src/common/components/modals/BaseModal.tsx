@@ -4,6 +4,7 @@ import { FiArrowRight } from "react-icons/fi";
 import { GiCancel } from "react-icons/gi";
 
 import { Button } from "../Button";
+import { IoCloseCircleOutline } from "react-icons/io5";
 
 interface ModalProps {
   ok: () => void;
@@ -48,10 +49,15 @@ const BaseModal: FC<Props> = ({
         onClose={clickCancel}
         className="fixed z-30 inset-0 overflow-y-auto backdrop-blur-sm"
       >
-        <div className="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0">
-          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 border border-green text-left bg-white shadow-xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+        <div
+          className="flex min-h-full items-center justify-center p-4 sm:items-center sm:p-0 text-center"
+          onClick={clickCancel}
+        >
+          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 text-left bg-[#fbf7ee] shadow-xl sm:my-8 w-full sm:max-w-lg sm:p-6">
             <div className="-mt-4 flex justify-end">
-              <div onClick={clickCancel}>x</div>
+              <div className="py-4" onClick={clickCancel}>
+                <IoCloseCircleOutline size={40} />
+              </div>
             </div>
             {children}
             {showActions && (
