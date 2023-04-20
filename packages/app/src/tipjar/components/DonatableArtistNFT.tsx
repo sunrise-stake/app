@@ -78,11 +78,11 @@ export const DonatableArtistNFT: FC<Props> = ({ query }) => {
             key={nft.address.toBase58()}
             className="z-10 mb-8 relative h-fit w-full border-[1px] rounded-lg border-[#969696]"
           >
-            <div className="w-full h-[338px]">
+            <div className="w-full max-h-[338px] rounded-t-lg bg-black text-center">
               <img
                 src={charity.imageUrl}
                 alt={charity.name}
-                className="h-full w-full object-center rounded-t-lg"
+                className="inline-block max-h-[338px] object-center rounded-t-lg"
               />
             </div>
             <div className="w-full p-4 bg-white rounded-b-lg">
