@@ -122,7 +122,7 @@ const _TipjarApp: ForwardRefRenderFunction<
               </Button>
               <Button
                 variant="outline"
-                className="md:w-1/2 sm:w-1/2 sm:mx-auto flex justify-center border-white hover:border-[#8454e4] text-white hover:text-[#8454e4] font-bold"
+                className="md:w-1/2 sm:w-1/2 sm:mx-auto flex justify-center border-white hover:border-white text-white hover:text-white font-bold"
               >
                 <a href="https://drip.haus/">Visit DRiP&apos;s webpage</a>
               </Button>

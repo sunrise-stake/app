@@ -185,7 +185,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               )}
               {!recipientFromProps && (
                 <input
-                  className="grow py-2 px-4 rounded-md text-sm xl:text-md placeholder:text-sm"
+                  className="grow py-2 px-4 rounded-md text-sm xl:text-md placeholder:text-sm text-green"
                   onChange={(e) => {
                     updateRecipientFromForm(e.target.value);
                   }}
@@ -196,8 +196,8 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
             </div>
           </div>
           {currency === "SOL" ? (
-            <div className="text-sm text-sky-800">
-              <MdInfo className="inline stroke-sky-800" />
+            <div className="mt-2 mb-4 text-sm text-grey">
+              <MdInfo className="inline stroke-grey" />
               SOL gets staked and send as gSOL
             </div>
           ) : null}
