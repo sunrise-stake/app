@@ -69,6 +69,20 @@ export const DonatableArtistNFT: FC<Props> = ({ query }) => {
 
   return (
     <div className="space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:space-y-0">
+      {nfts.length === 0 ? (
+        <div className="mb-12 text-center">
+          <img className="inline" src="earth_day/tipjar.png" />
+          <h1 className="my-4 text-2xl">
+            Recognition for those who deserve it.
+          </h1>
+          <p>
+            Once you received your Earth Day DRiP NFT, you&apos;ll be able to
+            drop some SOL in your favourite artist&apos;s wallet. DRiP is all
+            about free art, so there&apos;s no obligation. Every lamport is
+            appreciated!
+          </p>
+        </div>
+      ) : null}
       {nfts.map((nft) => {
         const charity = toCharity(nft);
         const artist = getArtist(nft);
