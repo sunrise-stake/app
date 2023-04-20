@@ -96,7 +96,7 @@ const _TipjarApp: ForwardRefRenderFunction<
       </div>
 
       <div
-        className="w-full p-8 bg-cover text-white"
+        className="z-10 w-full p-8 bg-cover text-white"
         style={{ backgroundImage: "url('earth_day/hero_background.png')" }}
       >
         <div className="flex flex-col items-center lg:flex-row">

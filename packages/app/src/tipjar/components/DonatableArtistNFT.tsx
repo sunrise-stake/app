@@ -76,20 +76,18 @@ export const DonatableArtistNFT: FC<Props> = ({ query }) => {
         return (
           <div
             key={nft.address.toBase58()}
-            className="mb-8 relative h-fit w-full border-[1px] rounded-lg border-[#969696]"
+            className="z-10 mb-8 relative h-fit w-full border-[1px] rounded-lg border-[#969696]"
           >
-            <div className="w-full p-[0.2%] h-[338px]">
+            <div className="w-full h-[338px]">
               <img
                 src={charity.imageUrl}
                 alt={charity.name}
                 className="h-full w-full object-center rounded-t-lg"
               />
             </div>
-            <div className="w-full p-4">
-              <h3 className="text-2xl text-[#000] font-bold">{charity.name}</h3>
-              <h4 className="py-2 text-[1rem] text-[#000]">
-                {artist?.twitter}
-              </h4>
+            <div className="w-full p-4 bg-white rounded-b-lg">
+              <h3 className="text-2xl text-black font-bold">{charity.name}</h3>
+              <h4 className="py-2 text-base text-black">{artist?.twitter}</h4>
               <DripDonateButton charity={charity} />
             </div>
           </div>
