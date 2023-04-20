@@ -68,9 +68,9 @@ export const DonatableArtistNFT: FC<Props> = ({ query }) => {
   });
 
   return (
-    <div className="space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:space-y-0">
+    <>
       {nfts.length === 0 ? (
-        <div className="mb-12 text-center">
+        <div className="container mb-12 text-center">
           <img className="inline" src="earth_day/tipjar.png" />
           <h1 className="my-4 text-2xl">
             Recognition for those who deserve it.
@@ -83,30 +83,34 @@ export const DonatableArtistNFT: FC<Props> = ({ query }) => {
           </p>
         </div>
       ) : null}
-      {nfts.map((nft) => {
-        const charity = toCharity(nft);
-        const artist = getArtist(nft);
-        if (!charity) return null;
-        return (
-          <div
-            key={nft.address.toBase58()}
-            className="z-10 mb-8 relative h-fit w-full border-[1px] rounded-lg border-[#969696]"
-          >
-            <div className="w-full max-h-[338px] rounded-t-lg bg-black text-center">
-              <img
-                src={charity.imageUrl}
-                alt={charity.name}
-                className="inline-block max-h-[338px] object-center rounded-t-lg"
-              />
+      <div className="space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:space-y-0">
+        {nfts.map((nft) => {
+          const charity = toCharity(nft);
+          const artist = getArtist(nft);
+          if (!charity) return null;
+          return (
+            <div
+              key={nft.address.toBase58()}
+              className="z-10 mb-8 relative h-fit w-full border-[1px] rounded-lg border-[#969696]"
+            >
+              <div className="w-full max-h-[338px] rounded-t-lg bg-black text-center">
+                <img
+                  src={charity.imageUrl}
+                  alt={charity.name}
+                  className="inline-block max-h-[338px] object-center rounded-t-lg"
+                />
+              </div>
+              <div className="w-full p-4 bg-white rounded-b-lg">
+                <h3 className="text-2xl text-black font-bold">
+                  {charity.name}
+                </h3>
+                <h4 className="py-2 text-base text-black">{artist?.twitter}</h4>
+                <DripDonateButton charity={charity} />
+              </div>
             </div>
-            <div className="w-full p-4 bg-white rounded-b-lg">
-              <h3 className="text-2xl text-black font-bold">{charity.name}</h3>
-              <h4 className="py-2 text-base text-black">{artist?.twitter}</h4>
-              <DripDonateButton charity={charity} />
-            </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 };

@@ -117,8 +117,11 @@ const _TipjarApp: ForwardRefRenderFunction<
               <Button
                 color="ticket"
                 className="md:w-1/2 sm:w-1/2 sm:mx-auto lg:mx-8 mb-4 lg:mb-0 flex justify-center font-bold !text-[#145D3E]"
+                onClick={() => {
+                  document.getElementById("tipjar-app")?.scrollBy(0, 20000);
+                }}
               >
-                <a href="#nfts">See available NFTs</a>
+                See available NFTs
               </Button>
               <Button
                 variant="outline"
@@ -137,7 +140,7 @@ const _TipjarApp: ForwardRefRenderFunction<
         </div>
       </div>
 
-      <div id="nfts" className="w-full p-3 py-12 lg:p-16">
+      <div className="w-full p-3 py-12 lg:p-16">
         <DonatableArtistNFT
           query={{
             collection: new PublicKey(
