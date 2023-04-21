@@ -8,6 +8,8 @@ export const ImpactNFT: FC<{ details: Details["impactNFTDetails"] }> = ({
 }) => {
   const nft = useNFTs({ mintAddress: details?.mint })[0];
 
+  console.log("nft", nft);
+
   return (
     <a
       href={`https://solscan.io/token/${details?.mint.toBase58() ?? ""}`}

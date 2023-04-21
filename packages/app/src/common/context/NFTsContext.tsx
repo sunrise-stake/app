@@ -27,13 +27,23 @@ export interface NFTQuery {
   collection?: PublicKey;
 }
 
+const hasMintAddress = (nft: UnloadedNFT): nft is Metadata =>
+  "mintAddress" in nft;
+
+const matchesMintAddress = (
+  nft: UnloadedNFT,
+  mintAddress: PublicKey
+): boolean =>
+  nft.address.equals(mintAddress) ||
+  (hasMintAddress(nft) && nft.mintAddress.equals(mintAddress));
+
 /**
  * Create a filter function for a given query.
  * @param query
  */
 const nftFilter = (query: NFTQuery) => (nft: UnloadedNFT) => {
   if (query.mintAddress) {
-    return nft.address.equals(query.mintAddress);
+    return matchesMintAddress(nft, query.mintAddress);
   } else if (query.updateAuthority) {
     return nft.updateAuthorityAddress.equals(query.updateAuthority);
   } else if (query.collection) {
