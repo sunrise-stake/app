@@ -6,9 +6,8 @@ import { useNFTs } from "../common/context/NFTsContext";
 export const ImpactNFT: FC<{ details: Details["impactNFTDetails"] }> = ({
   details,
 }) => {
-  const nft = useNFTs({ mintAddress: details?.mint })[0];
-
-  console.log("nft", nft);
+  const { nfts } = useNFTs({ mintAddress: details?.mint });
+  const nft = nfts?.[0];
 
   return (
     <a
