@@ -11,7 +11,7 @@ export const ImpactNFT: FC<{ details: Details["impactNFTDetails"] }> = ({
 
   return (
     <a
-      href={`https://solscan.io/token/${details?.mint.toBase58() ?? ""}`}
+      href={`https://solana.fm/address/${details?.mint.toBase58() ?? ""}`}
       target="_blank"
       rel="noreferrer"
     >
