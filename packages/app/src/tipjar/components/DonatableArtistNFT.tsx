@@ -64,7 +64,7 @@ export const DonatableArtistNFT: FC<Props> = ({ query, onDonate }) => {
 
   return (
     <>
-      {nfts.length === 0 ? (
+      {nfts.filter((nft) => toCharity(nft) !== null).length === 0 ? (
         <div className="container mb-12 text-center">
           <img className="inline" src="earth_day/tipjar.png" />
           <h1 className="my-4 text-3xl">
