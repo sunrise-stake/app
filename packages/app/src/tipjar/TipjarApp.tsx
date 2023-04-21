@@ -20,7 +20,7 @@ import { toShortBase58 } from "../common/utils";
 import { DonatableArtistNFT } from "./components/DonatableArtistNFT";
 
 function generateTweetMessage(artistHandle: string): string {
-  return `I got an awesome NFT to celebrate %23EarthDay with %40sunrisestake %26 %40drip_haus!%0AI just tipped my artist, ${artistHandle}!%0ATip your artist here: https://sunrisestake.com/earthday`;
+  return `I got an awesome NFT to celebrate %23EarthDay with %40sunrisestake %26 %40drip_haus!%0AI just tipped my artist, ${artistHandle}!%0ATip your artist here: https://app.sunrisestake.com/earthday`;
 }
 
 const _TipjarApp: ForwardRefRenderFunction<
