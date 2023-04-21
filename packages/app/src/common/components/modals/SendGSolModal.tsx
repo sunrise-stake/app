@@ -37,11 +37,13 @@ interface SendGSolModalProps {
     imageUrl?: string;
     website?: string;
   };
+  onSend?: () => void;
 }
 const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   className = "",
   children,
   recipient: recipientFromProps,
+  onSend,
   ...props
 }) => {
   const [amount, setAmount] = useState("");
@@ -220,10 +222,15 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
                 color="white"
                 onClick={() => {
                   setIsBusy(true);
-                  send().finally(() => {
-                    setIsBusy(false);
-                    props.ok();
-                  });
+                  send()
+                    .then(() => {
+                      setIsBusy(false);
+                      props.ok();
+                      if (onSend) onSend();
+                    })
+                    .catch(() => {
+                      setIsBusy(false);
+                    });
                 }}
                 disabled={!sendEnabled}
                 size="sm"

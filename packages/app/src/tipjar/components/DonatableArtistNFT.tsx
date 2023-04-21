@@ -6,16 +6,10 @@ import {
   type NFTQuery,
 } from "../../common/context/NFTsContext";
 import { useNFTsFilteredByOffchainMetadata } from "../../common/hooks/useNFTsFilteredByOffchainMetadata";
-import { type Charity } from "../../grow/components/types";
+import { type Artist, type Charity } from "../../grow/types";
 
 import artists from "../data/artists.json";
 import { DripDonateButton } from "./DripDonateButton";
-
-interface Artist {
-  twitter: string;
-  wallet: PublicKey;
-  website: string;
-}
 
 const getArtist = (nft: GenericNFT): Artist | undefined => {
   const twitterHandle = nft.json?.attributes?.find(
@@ -42,7 +36,7 @@ const toCharity = (nft: GenericNFT): Charity | null => {
 
   const artist = getArtist(nft);
 
-  if (!artist) return null;
+  if (artist === undefined) return null;
 
   return {
     website: artist.website,
@@ -54,6 +48,7 @@ const toCharity = (nft: GenericNFT): Charity | null => {
 
 interface Props {
   query: NFTQuery & { jsonFilter?: any };
+  onDonate?: (charity: Artist) => void;
 }
 
 /**
@@ -61,7 +56,7 @@ interface Props {
  * @param query
  * @constructor
  */
-export const DonatableArtistNFT: FC<Props> = ({ query }) => {
+export const DonatableArtistNFT: FC<Props> = ({ query, onDonate }) => {
   const nfts = useNFTsFilteredByOffchainMetadata({
     ...query,
     jsonFilter: query.jsonFilter ?? {},
@@ -105,7 +100,9 @@ export const DonatableArtistNFT: FC<Props> = ({ query }) => {
                   {charity.name}
                 </h3>
                 <h4 className="py-2 text-base text-black">{artist?.twitter}</h4>
-                <DripDonateButton charity={charity} />
+                {artist !== undefined ? (
+                  <DripDonateButton artist={artist} onDonate={onDonate} />
+                ) : null}
               </div>
             </div>
           );

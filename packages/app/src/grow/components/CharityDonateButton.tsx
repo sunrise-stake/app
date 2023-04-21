@@ -1,5 +1,5 @@
 import React, { type FC } from "react";
-import { type Charity } from "./types";
+import { type Charity } from "../types";
 import { useModal } from "../../common/hooks";
 import { SendGSolModal } from "../../common/components/modals/SendGSolModal";
 import { OrgButtonContent } from "../OrgButtonContent";

@@ -3,17 +3,24 @@ import { type FC } from "react";
 import { useModal } from "../../common/hooks";
 import { SendGSolModal } from "../../common/components/modals/SendGSolModal";
 import { Button } from "../../common/components";
-import { type Charity } from "../../grow/components/types";
+import { type Artist } from "../../grow/types";
+import { noop } from "../../common/utils";
 
-export const DripDonateButton: FC<{ charity: Charity }> = ({ charity }) => {
-  const sendGSolModal = useModal(() => {});
+export const DripDonateButton: FC<{
+  artist: Artist;
+  onDonate?: (receiver: Artist) => void;
+}> = ({ artist, onDonate }) => {
+  const sendGSolModal = useModal(noop);
   return (
     <>
       <SendGSolModal
         ok={sendGSolModal.onModalOK}
         cancel={sendGSolModal.onModalClose}
         show={sendGSolModal.modalShown}
-        recipient={charity}
+        recipient={{ address: artist.wallet, name: artist.twitter }}
+        onSend={() => {
+          if (onDonate) onDonate(artist);
+        }}
       >
         <div className="hidden sm:block">
           <div className="mb-4 text-2xl text-center">

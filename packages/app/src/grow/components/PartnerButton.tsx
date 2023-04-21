@@ -1,5 +1,5 @@
 import { type FC, type PropsWithChildren } from "react";
-import { type Partner } from "./types";
+import { type Partner } from "../types";
 import { Link } from "react-router-dom";
 
 type PartnerProps = PropsWithChildren & { partner: Partner };

@@ -16,11 +16,7 @@ import { CollectInfoButton } from "./components/CollectInfoButton";
 import { Button } from "../common/components";
 import { GiPresent } from "react-icons/gi";
 import { SendGSolModal } from "../common/components/modals/SendGSolModal";
-import {
-  type Charity,
-  type Partner,
-  type PlaceholderOrg,
-} from "./components/types";
+import { type Charity, type Partner, type PlaceholderOrg } from "./types";
 import { CharityDonateButton } from "./components/CharityDonateButton";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
