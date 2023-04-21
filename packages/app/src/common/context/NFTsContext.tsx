@@ -172,10 +172,12 @@ const isEmptyQuery = (query: NFTQuery): boolean =>
 
 interface NFTsContextValue {
   nfts: UnloadedNFT[];
+  refresh: () => Promise<void>;
   loadNFTMetadata: (nft: UnloadedNFT) => Promise<GenericNFT>;
 }
 const NFTsContext = createContext<NFTsContextValue>({
   nfts: [],
+  refresh: async () => {},
   loadNFTMetadata: async (nft: UnloadedNFT) =>
     Promise.resolve(nft as GenericNFT),
 });
@@ -193,18 +195,20 @@ export const NFTsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { publicKey: owner } = useWallet();
   const [nfts, setNfts] = useState<UnloadedNFT[]>([]);
 
+  const loadAllNFTs = async (): Promise<void> => {
+    if (owner === null) return;
+    const nonCompressedNFTs = getAllNFTs(owner, connection);
+    const compressedNFTs = getAllCompressedNFTs(owner);
+    return Promise.all([nonCompressedNFTs, compressedNFTs])
+      .then((arrays) => arrays.flat())
+      .then(setNfts);
+  };
+
   /**
    * When the connected wallet changes, load all NFTs for that owner.
    */
   useEffect(() => {
-    void (async () => {
-      if (owner === null) return;
-      const nonCompressedNFTs = getAllNFTs(owner, connection);
-      const compressedNFTs = getAllCompressedNFTs(owner);
-      return Promise.all([nonCompressedNFTs, compressedNFTs])
-        .then((arrays) => arrays.flat())
-        .then(setNfts);
-    })();
+    loadAllNFTs().catch(console.error);
   }, [owner?.toBase58()]);
 
   /**
@@ -224,7 +228,9 @@ export const NFTsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   return (
-    <NFTsContext.Provider value={{ nfts, loadNFTMetadata }}>
+    <NFTsContext.Provider
+      value={{ nfts, loadNFTMetadata, refresh: loadAllNFTs }}
+    >
       {children}
     </NFTsContext.Provider>
   );
@@ -235,21 +241,26 @@ export const NFTsProvider: FC<{ children: ReactNode }> = ({ children }) => {
  * NFTs that match the query.
  * @param query
  */
-export const useNFTs = (query: NFTQuery): GenericNFT[] => {
-  const { nfts, loadNFTMetadata } = useContext(NFTsContext);
+export const useNFTs = (
+  query?: NFTQuery
+): { nfts: GenericNFT[]; refresh: () => Promise<void> } => {
+  const { nfts, loadNFTMetadata, refresh } = useContext(NFTsContext);
   const [filteredNfts, setFilteredNfts] = useState<GenericNFT[]>([]);
 
   const loadFilteredNFTs = async (): Promise<GenericNFT[]> => {
-    const filteredNfts = nfts.filter(nftFilter(query));
+    const filteredNfts =
+      query && !isEmptyQuery(query) ? nfts.filter(nftFilter(query)) : nfts;
     return Promise.all(filteredNfts.map(loadNFTMetadata));
   };
 
   useEffect(() => {
     void (async () => {
-      if (isEmptyQuery(query)) return;
       await loadFilteredNFTs().then(setFilteredNfts);
     })();
   }, [nfts.length]);
 
-  return filteredNfts;
+  return {
+    nfts: filteredNfts,
+    refresh,
+  };
 };
