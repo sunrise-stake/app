@@ -11,22 +11,29 @@ module.exports = {
     },
     extend: {
       colors: {
-        black: "#1e1e1e",
+        black: "#181818",
         blue: "#7bcefa",
-        green: "#2e8555",
-        "green-light": "#4aa172",
-        "green-bright": "#52dc90",
+        green: "#145D3E",
+        "green-light": "#238358",
+        "green-bright": "#52DC90",
+        grey: "#F2F2F2",
+        "grey-dark": "#262626",
+        "grey-medium": "#3E3E3E",
+        orange: "#D6A241",
+        yellow: "#FFD660",
         background: "#ffffff",
-        foreground: "#444444",
-        inset: "#313131",
+        foreground: "#3E3E3E",
+        inset: "#262626",
         outset: "#3f3e3e",
         "inset-border": "#3e3e3e",
         danger: "#bf5a5a",
-        ticket: "#d6a241",
-        warning: "f9c23c",
+        ticket: "#D6A241",
+        warning: "#D6A241",
+        "button-disabled": "#145D3E",
+        "button": "#238358"
       },
       fontFamily: {
-        sans: ['"Open Sans"', defaultTheme.fontFamily.sans],
+        sans: ["Titillium Web", defaultTheme.fontFamily.sans],
       },
       keyframes: {
         "fade-in": {

@@ -1,11 +1,17 @@
-import React, { type FC, useCallback, useMemo, useState } from "react";
+import { type FC, useCallback, useMemo, useState, type ReactNode } from "react";
 
 import { BaseModal, type ModalProps } from "./";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import clx from "classnames";
 import { AmountInput } from "../AmountInput";
 import BN from "bn.js";
-import { handleError, solToLamports, toShortBase58, ZERO } from "../../utils";
+import {
+  handleError,
+  safeParsePublicKey,
+  solToLamports,
+  toShortBase58,
+  ZERO,
+} from "../../utils";
 import { Button } from "../Button";
 import { Spinner } from "../Spinner";
 import { GiPresent } from "react-icons/gi";
@@ -23,22 +29,26 @@ import { useSolBalance } from "../../hooks/useSolBalance";
 import { MdInfo } from "react-icons/md";
 
 interface SendGSolModalProps {
+  children?: ReactNode;
+  className?: string;
   recipient?: {
     address: PublicKey;
     name?: string;
     imageUrl?: string;
     website?: string;
   };
-  className?: string;
+  onSend?: () => void;
 }
 const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   className = "",
+  children,
   recipient: recipientFromProps,
+  onSend,
   ...props
 }) => {
   const [amount, setAmount] = useState("");
   const [isBusy, setIsBusy] = useState(false);
-  const [isValid, setIsValid] = useState(false);
+  const [isValidAmount, setIsValidAmount] = useState(false);
   const { details, client } = useSunriseStake();
   const { publicKey: senderPubkey, sendTransaction } = useWallet();
   const { connection } = useConnection();
@@ -48,9 +58,12 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
 
   const updateRecipientFromForm = useCallback(
     (addressString: string) => {
-      setRecipient({
-        address: new PublicKey(addressString),
-      });
+      const address = safeParsePublicKey(addressString);
+      if (address) {
+        setRecipient({
+          address,
+        });
+      }
     },
     [setRecipient]
   );
@@ -64,13 +77,15 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
     const transaction = new Transaction();
     const associatedTokenFrom = await getAssociatedTokenAddress(
       mint,
-      senderPubkey
+      senderPubkey,
+      true
     );
     const fromAccount = await getAccount(connection, associatedTokenFrom);
 
     const associatedTokenTo = await getAssociatedTokenAddress(
       mint,
-      recipient.address
+      recipient.address,
+      true
     );
 
     if (!(await connection.getAccountInfo(associatedTokenTo))) {
@@ -143,11 +158,14 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
     }
   }, [details, currency]);
 
+  const sendEnabled = !isBusy && isValidAmount && !!recipient;
+
   return (
     <BaseModal {...props} showActions={false}>
+      <div>{children}</div>
       <div
         className={clx(
-          "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md",
+          "backdrop-blur-sm px-8 py-4 rounded-md bg-green-light text-white",
           className
         )}
       >
@@ -161,7 +179,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               <div className="font-semibold text-xl m-2 ml-0">To</div>
               {recipientFromProps && (
                 <a
-                  className="font-normal text-lg text-green py-1 mt-1"
+                  className="font-normal text-lg text-yellow"
                   href={recipient?.website}
                   target="_blank"
                   rel="noreferrer"
@@ -172,7 +190,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               )}
               {!recipientFromProps && (
                 <input
-                  className="grow py-2 px-4 rounded-md text-sm xl:text-md placeholder:text-sm"
+                  className="grow py-2 px-4 rounded-md text-sm xl:text-md placeholder:text-sm text-green"
                   onChange={(e) => {
                     updateRecipientFromForm(e.target.value);
                   }}
@@ -183,33 +201,38 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
             </div>
           </div>
           {currency === "SOL" ? (
-            <div className="text-sm text-sky-600">
-              <MdInfo className="inline stroke-sky-600" />
+            <div className="mt-2 mb-4 text-sm text-grey">
+              <MdInfo className="inline stroke-grey" />
               SOL gets staked and send as gSOL
             </div>
           ) : null}
-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+          <div className="">
             <AmountInput
               className="w-full"
               token={currency}
               balance={balance}
               amount={amount}
               setAmount={setAmount}
-              setValid={setIsValid}
+              setValid={setIsValidAmount}
               mode="TRANSFER"
-              variant="small"
+              variant="large"
             />
             <div className="mt-4 float-right">
               <Button
-                className="basis-1/4"
+                color="white"
                 onClick={() => {
                   setIsBusy(true);
-                  send().finally(() => {
-                    setIsBusy(false);
-                    props.ok();
-                  });
+                  send()
+                    .then(() => {
+                      setIsBusy(false);
+                      props.ok();
+                      if (onSend) onSend();
+                    })
+                    .catch(() => {
+                      setIsBusy(false);
+                    });
                 }}
-                disabled={isBusy || !isValid}
+                disabled={!sendEnabled}
                 size="sm"
               >
                 <div className="flex gap-2 w-full justify-center items-center">

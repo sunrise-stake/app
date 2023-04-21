@@ -22,6 +22,7 @@ import { ZenModeProvider } from "./common/context/ZenModeContext";
 import { ForestProvider } from "./common/context/forestContext";
 import { HelpProvider } from "./common/context/HelpContext";
 import { Routes } from "./Routes";
+import { NFTsProvider } from "./common/context/NFTsContext";
 
 require("./solana-wallet-adapter.css");
 
@@ -51,13 +52,15 @@ const App: FC = () => {
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <SunriseProvider>
-              <ForestProvider>
-                <ZenModeProvider>
-                  <HelpProvider>
-                    <Routes />
-                  </HelpProvider>
-                </ZenModeProvider>
-              </ForestProvider>
+              <NFTsProvider>
+                <ForestProvider>
+                  <ZenModeProvider>
+                    <HelpProvider>
+                      <Routes />
+                    </HelpProvider>
+                  </ZenModeProvider>
+                </ForestProvider>
+              </NFTsProvider>
             </SunriseProvider>
           </WalletModalProvider>
         </WalletProvider>

@@ -1,30 +1,29 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import "../util";
-import { SunriseStakeClient } from "@sunrisestake/app/src/lib/client";
+import { SunriseStakeClient } from "../../client/src";
 import { getMetadataAddress, metadata, provider, uploadMetadata } from "./util";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
-import { findGSolMintAuthority } from "@sunrisestake/app/src/lib/client/util";
-import { SUNRISE_STAKE_STATE } from "@sunrisestake/app/src/lib/constants";
+import { findGSolMintAuthority } from "../../client/src/util";
+import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
 
 (async () => {
-  const client = await SunriseStakeClient.get(provider, SUNRISE_STAKE_STATE);
+  const client = await SunriseStakeClient.get(
+      provider,
+      process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork|| 'devnet',
+  );
 
   const [gsolMintAuthority] = findGSolMintAuthority(client.config!);
   console.log("gsol mint auth", gsolMintAuthority);
 
-  const sunriseStakeState = await client.program.account.state.fetch(
-    client.stateAddress
-  );
-
-  const metadataAddress = getMetadataAddress(sunriseStakeState.gsolMint);
+  const metadataAddress = getMetadataAddress(client.config!.gsolMint);
 
   const accounts = {
-    state: client.stateAddress,
+    state: client.env.state,
     marinadeState: client.marinade!.config.marinadeStateAddress,
-    gsolMint: sunriseStakeState.gsolMint,
+    gsolMint: client.config!.gsolMint,
     gsolMintAuthority,
-    updateAuthority: sunriseStakeState.updateAuthority, // should be equal to the one who is running the script?
+    updateAuthority: client.config!.updateAuthority, // should be equal to the one who is running the script?
     tokenProgram: TOKEN_PROGRAM_ID,
     metadata: metadataAddress,
     tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,

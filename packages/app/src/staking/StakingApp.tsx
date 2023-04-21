@@ -5,7 +5,7 @@ import { useZenMode } from "../common/context/ZenModeContext";
 import { StakeDashboard } from "./pages/StakeDashboard";
 import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 const _StakingApp: ForwardRefRenderFunction<
@@ -15,13 +15,11 @@ const _StakingApp: ForwardRefRenderFunction<
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
 
-  const location = useLocation();
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && location.state?.address === undefined)
-      navigate("/");
-  }, [wallet.connected]);
+    if (!wallet.connected && active) navigate("/");
+  }, [active, wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Stake) return; // we are not on the stake page, so don't update zen mode
@@ -31,7 +29,7 @@ const _StakingApp: ForwardRefRenderFunction<
       showExternalLinks: false,
       showWallet: active,
     });
-  }, [active]);
+  }, [active, currentHelpRoute]);
 
   return (
     <div

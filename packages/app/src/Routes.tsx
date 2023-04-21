@@ -2,7 +2,6 @@ import { EventRouter } from "./common/container/EventRouter";
 import {
   type FC,
   type MutableRefObject,
-  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -12,23 +11,24 @@ import { GrowApp } from "./grow/GrowApp";
 import { HubApp } from "./hub/HubApp";
 import { LockingApp } from "./locking/LockingApp";
 import { StakingApp } from "./staking/StakingApp";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Layout } from "./common/partials/Layout";
-import { debounce, safeParsePublicKeyFromUrl } from "./common/utils";
+import { debounce } from "./common/utils";
 import { useHelp } from "./common/context/HelpContext";
+import { TipjarApp } from "./tipjar/TipjarApp";
 
 export enum AppRoute {
-  Hub = "/",
+  Connect = "/connect", // not a route at present TODO fix
   Forest = "/forest",
   Grow = "/grow",
+  Hub = "/",
   Lock = "/lock",
   Stake = "/stake",
-  Connect = "/connect", // not a route at present TODO fix
+  TipJar = "/earthday",
 }
 
 export const Routes: FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const appRefs = {
     forest: useRef<null | HTMLDivElement>(null),
     grow: useRef<null | HTMLDivElement>(null),
@@ -36,6 +36,7 @@ export const Routes: FC = () => {
     locking: useRef<null | HTMLDivElement>(null),
     lost: useRef<null | HTMLDivElement>(null),
     staking: useRef<null | HTMLDivElement>(null),
+    tipjar: useRef<null | HTMLDivElement>(null),
   };
   const [currentRouteApp, setCurrentRouteApp] =
     useState<null | MutableRefObject<null | HTMLDivElement>>(null);
@@ -48,25 +49,9 @@ export const Routes: FC = () => {
   );
 
   useLayoutEffect(() => {
-    const publicKeyFromUrl = safeParsePublicKeyFromUrl();
-    if (publicKeyFromUrl !== null || location.state?.address !== undefined)
-      return;
-    console.log("scrolling to hub", window.location.hash);
     appRefs.hub.current?.scrollIntoView();
-  }, [appRefs.hub]);
-
-  useEffect(() => {
-    console.log("location", location);
-    if (location.state?.address !== undefined) return;
-    const publicKeyFromUrl = safeParsePublicKeyFromUrl();
-    console.log("publicKeyFromUrl", publicKeyFromUrl);
-    if (publicKeyFromUrl) {
-      console.log("scrolling to forest", window.location.hash);
-      navigate(AppRoute.Forest, {
-        state: { address: publicKeyFromUrl.toBase58() },
-      });
-    }
   }, []);
+
   const { setCurrentHelpRoute } = useHelp();
 
   return (
@@ -125,6 +110,16 @@ export const Routes: FC = () => {
             },
           },
           {
+            path: AppRoute.TipJar,
+            onMatch: () => {
+              appRefs.tipjar.current?.scrollIntoView({
+                behavior: "smooth",
+              });
+              setCurrentRouteApp(appRefs.tipjar);
+              setCurrentHelpRoute(AppRoute.TipJar);
+            },
+          },
+          {
             path: "/*",
             onMatch: () => {
               appRefs.lost.current?.scrollIntoView({
@@ -159,6 +154,12 @@ export const Routes: FC = () => {
           className="App StakingApp"
           ref={appRefs.staking}
           active={currentRouteApp === appRefs.staking}
+        />
+        <TipjarApp
+          id="tipjar-app"
+          className="App TipjarApp"
+          ref={appRefs.tipjar}
+          active={currentRouteApp === appRefs.tipjar}
         />
         <div
           id="lost-app"
