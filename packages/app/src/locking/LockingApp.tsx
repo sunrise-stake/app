@@ -38,6 +38,7 @@ import { tooltips } from "../common/content/tooltips";
 import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useNFTs } from "../common/context/NFTsContext";
 
 const hasLockedBalance = (details: Details | undefined): boolean =>
   details?.lockDetails?.amountLocked
@@ -72,6 +73,7 @@ const _LockingApp: ForwardRefRenderFunction<
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
+  const { refresh } = useNFTs();
 
   const navigate = useNavigate();
   const wallet = useWallet();
@@ -110,6 +112,7 @@ const _LockingApp: ForwardRefRenderFunction<
     return client
       .lockGSol(solToLamports(amount))
       .then((txes) => {
+        refresh().catch(console.error); // refresh NFTs so that the impact NFT shows up
         txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,
@@ -144,6 +147,7 @@ const _LockingApp: ForwardRefRenderFunction<
     return client
       .updateLockAccount()
       .then((txes) => {
+        refresh().catch(console.error); // refresh NFTs so that the impact NFT shows up
         txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,

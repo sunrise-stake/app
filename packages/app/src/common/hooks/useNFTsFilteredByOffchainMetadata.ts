@@ -25,7 +25,7 @@ export const useNFTsFilteredByOffchainMetadata = (
   const matches = (nft: GenericNFT): boolean =>
     isSubset(nft.json, query.jsonFilter);
 
-  const nfts = useNFTs(query);
+  const { nfts } = useNFTs(query);
 
   return nfts.filter(matches);
 };

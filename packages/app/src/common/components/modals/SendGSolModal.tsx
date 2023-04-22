@@ -203,7 +203,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
           {currency === "SOL" ? (
             <div className="mt-2 mb-4 text-sm text-grey">
               <MdInfo className="inline stroke-grey" />
-              SOL gets staked and send as gSOL
+              SOL will be staked and sent as gSOL
             </div>
           ) : null}
           <div className="">

@@ -46,11 +46,7 @@ export const notifyTransaction = (n: {
               {n.txid !== undefined ? (
                 <div className="flex flex-row text-outset">
                   <a
-                    href={
-                      "https://explorer.solana.com/tx/" +
-                      n.txid +
-                      `?cluster=mainnet`
-                    }
+                    href={"https://solana.fm/tx/" + n.txid + `?cluster=mainnet`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex flex-row link link-accent"

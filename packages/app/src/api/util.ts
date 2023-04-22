@@ -32,6 +32,27 @@ export const filterFirstTransfersForSenderAndRecipient = (
   return Object.values(firstTransfers);
 };
 
+const isMintTransfer = (mint: Mint): mint is Required<Mint> =>
+  mint.sender !== undefined && !mint.sender.equals(mint.recipient);
+
+/**
+ * Find all mints for which the recipient is not the sender and return them as transfers
+ * This ensures that transferred gSOL and gSOL that is minted directly into someone else's account
+ * are treated the same way
+ */
+export const mintsWithRecipientsAsTransfers = (mints: Mint[]): Transfer[] => {
+  return mints.filter(isMintTransfer).map((mint) => ({
+    amount: mint.amount,
+    sender: mint.sender,
+    recipient: mint.recipient,
+    timestamp: mint.timestamp,
+  }));
+};
+export const mintsToSelf = (mints: Mint[]): Mint[] =>
+  mints.filter(
+    (mint) => mint.sender === undefined || mint.sender.equals(mint.recipient)
+  );
+
 export const prune = (forest: Forest): Forest => {
   const seen: string[] = [];
   // if a tree node is in the seen array, it's a duplicate, remove it.
