@@ -169,15 +169,24 @@ export const forestToComponents = (forest: Forest): TreeComponent[] => {
       forest: Forest;
       layer: number;
     };
-    const map = nextInQueue.neighbours.map((neighbour) => ({
+
+    if (currentLayer >= result.length) result.push([]);
+
+    // check if any of the neighbours are in the result, or queue, already
+    const allTrees = result.flatMap((treesInLayer) => treesInLayer);
+    const filteredNeighbours = nextInQueue.neighbours.filter(
+      (neighbour) =>
+        !allTrees.includes(neighbour.tree) &&
+        !queue.map((q) => q.forest).includes(neighbour)
+    );
+    const map = filteredNeighbours.map((neighbour) => ({
       forest: neighbour,
       layer: currentLayer + 1,
     }));
     queue.push(...map);
 
-    if (currentLayer >= result.length) result.push([]);
     result[currentLayer].push(
-      ...nextInQueue.neighbours.map((neighbour) => neighbour.tree)
+      ...filteredNeighbours.map((neighbour) => neighbour.tree)
     );
 
     return recursiveForestToFlatTrees(queue, result);

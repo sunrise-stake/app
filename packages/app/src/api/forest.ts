@@ -14,7 +14,6 @@ import {
   getGsolBalance,
   getLockedBalance,
   getTotals,
-  removeDuplicates,
   mintsToSelf,
   mintsWithRecipientsAsTransfers,
 } from "./util";
@@ -189,9 +188,9 @@ export class ForestService {
       treeNode
     );
 
-    return removeDuplicates({
+    return {
       tree: treeNode,
       neighbours,
-    });
+    };
   }
 }
