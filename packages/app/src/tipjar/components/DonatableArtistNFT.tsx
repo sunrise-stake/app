@@ -71,8 +71,8 @@ export const DonatableArtistNFT: FC<Props> = ({ query, onDonate }) => {
             Recognition for those who deserve it.
           </h1>
           <p>
-            Received an Earth Day NFT? Drop some SOL in your artist&apos;s wallet.
-            DRiP is all about free art, so there&apos;s no obligation.
+            Received an Earth Day NFT? Drop some SOL in your artist&apos;s
+            wallet. DRiP is all about free art, so there&apos;s no obligation.
             Every lamport is appreciated!
           </p>
         </div>

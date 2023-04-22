@@ -14,6 +14,8 @@ import {
   getGsolBalance,
   getLockedBalance,
   getTotals,
+  mintsToSelf,
+  mintsWithRecipientsAsTransfers,
   prune,
 } from "./util";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
@@ -104,12 +106,21 @@ export class ForestService {
         getAccountTransfers(address),
       ]
     );
-    const received = transfers.filter((t) => t.recipient.equals(address));
-    const sent = transfers.filter((t) => t.sender.equals(address));
+
+    // get all transfers including gsol minted directly into a recipient's account
+    const enrichedTransfers = [
+      ...transfers,
+      ...mintsWithRecipientsAsTransfers(mints),
+    ];
+    const filteredMints = mintsToSelf(mints);
+    const received = enrichedTransfers.filter((t) =>
+      t.recipient.equals(address)
+    );
+    const sent = enrichedTransfers.filter((t) => t.sender.equals(address));
     const totals = getTotals(
       currentBalance,
       lockedBalance,
-      mints,
+      filteredMints,
       received,
       sent
     );
@@ -117,7 +128,7 @@ export class ForestService {
 
     return {
       address,
-      mints,
+      mints: filteredMints,
       sent,
       received,
       totals,

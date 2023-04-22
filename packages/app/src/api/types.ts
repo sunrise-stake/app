@@ -2,6 +2,7 @@ import { type PublicKey } from "@solana/web3.js";
 
 export interface MintResponse {
   timestamp: string;
+  sender?: string; // the wallet that pays for the mint (assume = the recipient if missing)
   recipient: string;
   amount: number;
 }
@@ -19,7 +20,8 @@ export interface MongoResponse<T> {
 
 export interface Mint {
   timestamp: Date;
-  recipient: PublicKey;
+  sender?: PublicKey; // the wallet that pays for the mint (assume = the recipient if missing)
+  recipient: PublicKey; // the wallet that receives the minted gSOL
   amount: number;
 }
 
