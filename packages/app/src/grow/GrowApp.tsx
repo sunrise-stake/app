@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import clx from "classnames";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useModal, useScript } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
@@ -16,18 +16,14 @@ import { CollectInfoButton } from "./components/CollectInfoButton";
 import { Button } from "../common/components";
 import { GiPresent } from "react-icons/gi";
 import { SendGSolModal } from "../common/components/modals/SendGSolModal";
-import {
-  type Charity,
-  type Partner,
-  type PlaceholderOrg,
-} from "./components/types";
+import { type Charity, type Partner, type PlaceholderOrg } from "./types";
 import { CharityDonateButton } from "./components/CharityDonateButton";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { charityApps } from "./charities";
-import { partnerApps } from "./partners";
-import { PartnerApp } from "./components/PartnerApp";
+import { partners } from "./partners";
+import { PartnerButton } from "./components/PartnerButton";
 import { OrgButtonContent } from "./OrgButtonContent";
 
 const isRealCharity = (
@@ -43,7 +39,7 @@ const isRealPartner = (
 };
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
-  <div className="text-green-light border border-green-light p-8 rounded-md w-40 h-40 hover:scale-110 hover:brightness-125 hover:transition-all text-xl font-medium text-center">
+  <div className="transition-all text-xl font-medium text-center text-green hover:text-green-light border border-green hover:border-green-light p-8 rounded-md w-40 h-40 hover:scale-105 hover:brightness-105">
     <div className="pt-4">{children}</div>
   </div>
 );
@@ -59,13 +55,11 @@ const _GrowApp: ForwardRefRenderFunction<
 
   const { myTree } = useForest();
 
-  const location = useLocation();
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && location.state?.address === undefined)
-      navigate("/");
-  }, [wallet.connected]);
+    if (!wallet.connected && active) navigate("/");
+  }, [active, wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Grow) return; // we are not on the grow page, so don't update zen mode
@@ -75,7 +69,7 @@ const _GrowApp: ForwardRefRenderFunction<
       showExternalLinks: false,
       showWallet: active,
     });
-  }, [active]);
+  }, [active, currentHelpRoute]);
 
   const sendGSolModal = useModal(() => {});
 
@@ -106,18 +100,18 @@ const _GrowApp: ForwardRefRenderFunction<
         Use gSOL with our partners.
       </h2>
       <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] max-w-xl">
-        <div className="flex overflow-x-scroll gap-4 p-4">
+        <div className="flex overflow-x-scroll overflow-y-hidden gap-4 p-4">
           <CollectInfoButton>
             <Placeholder>Your App Here</Placeholder>
           </CollectInfoButton>
-          {partnerApps.map((app) =>
-            isRealPartner(app) ? (
-              <PartnerApp partner={app} key={app.name}>
-                <OrgButtonContent>{app.name}</OrgButtonContent>
-              </PartnerApp>
+          {partners.map((partner) =>
+            isRealPartner(partner) ? (
+              <PartnerButton partner={partner} key={partner.name}>
+                <OrgButtonContent>{partner.name}</OrgButtonContent>
+              </PartnerButton>
             ) : (
-              <CollectInfoButton imageUrl={app.imageUrl} key={app.name}>
-                <OrgButtonContent>{app.name}</OrgButtonContent>
+              <CollectInfoButton imageUrl={partner.imageUrl} key={partner.name}>
+                <OrgButtonContent>{partner.name}</OrgButtonContent>
               </CollectInfoButton>
             )
           )}

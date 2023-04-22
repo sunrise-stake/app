@@ -1,4 +1,4 @@
-import React, { type FC, useCallback, useMemo, useState } from "react";
+import { type FC, useCallback, useMemo, useState, type ReactNode } from "react";
 
 import { BaseModal, type ModalProps } from "./";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -29,17 +29,21 @@ import { useSolBalance } from "../../hooks/useSolBalance";
 import { MdInfo } from "react-icons/md";
 
 interface SendGSolModalProps {
+  children?: ReactNode;
+  className?: string;
   recipient?: {
     address: PublicKey;
     name?: string;
     imageUrl?: string;
     website?: string;
   };
-  className?: string;
+  onSend?: () => void;
 }
 const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   className = "",
+  children,
   recipient: recipientFromProps,
+  onSend,
   ...props
 }) => {
   const [amount, setAmount] = useState("");
@@ -73,13 +77,15 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
     const transaction = new Transaction();
     const associatedTokenFrom = await getAssociatedTokenAddress(
       mint,
-      senderPubkey
+      senderPubkey,
+      true
     );
     const fromAccount = await getAccount(connection, associatedTokenFrom);
 
     const associatedTokenTo = await getAssociatedTokenAddress(
       mint,
-      recipient.address
+      recipient.address,
+      true
     );
 
     if (!(await connection.getAccountInfo(associatedTokenTo))) {
@@ -156,9 +162,10 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
 
   return (
     <BaseModal {...props} showActions={false}>
+      <div>{children}</div>
       <div
         className={clx(
-          "bg-inset bg-opacity-10 backdrop-blur-sm px-8 py-4 rounded-md",
+          "backdrop-blur-sm px-8 py-4 rounded-md bg-green-light text-white",
           className
         )}
       >
@@ -172,7 +179,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               <div className="font-semibold text-xl m-2 ml-0">To</div>
               {recipientFromProps && (
                 <a
-                  className="font-normal text-lg text-green py-1 mt-1"
+                  className="font-normal text-lg text-yellow"
                   href={recipient?.website}
                   target="_blank"
                   rel="noreferrer"
@@ -183,7 +190,7 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               )}
               {!recipientFromProps && (
                 <input
-                  className="grow py-2 px-4 rounded-md text-sm xl:text-md placeholder:text-sm"
+                  className="grow py-2 px-4 rounded-md text-sm xl:text-md placeholder:text-sm text-green"
                   onChange={(e) => {
                     updateRecipientFromForm(e.target.value);
                   }}
@@ -194,12 +201,12 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
             </div>
           </div>
           {currency === "SOL" ? (
-            <div className="text-sm text-sky-600">
-              <MdInfo className="inline stroke-sky-600" />
-              SOL gets staked and send as gSOL
+            <div className="mt-2 mb-4 text-sm text-grey">
+              <MdInfo className="inline stroke-grey" />
+              SOL will be staked and sent as gSOL
             </div>
           ) : null}
-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+          <div className="">
             <AmountInput
               className="w-full"
               token={currency}
@@ -208,17 +215,22 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
               setAmount={setAmount}
               setValid={setIsValidAmount}
               mode="TRANSFER"
-              variant="small"
+              variant="large"
             />
             <div className="mt-4 float-right">
               <Button
-                className="basis-1/4"
+                color="white"
                 onClick={() => {
                   setIsBusy(true);
-                  send().finally(() => {
-                    setIsBusy(false);
-                    props.ok();
-                  });
+                  send()
+                    .then(() => {
+                      setIsBusy(false);
+                      props.ok();
+                      if (onSend) onSend();
+                    })
+                    .catch(() => {
+                      setIsBusy(false);
+                    });
                 }}
                 disabled={!sendEnabled}
                 size="sm"

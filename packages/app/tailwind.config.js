@@ -11,7 +11,7 @@ module.exports = {
     },
     extend: {
       colors: {
-        black: "#1e1e1e",
+        black: "#181818",
         blue: "#7bcefa",
         green: "#145D3E",
         "green-light": "#238358",
@@ -33,7 +33,7 @@ module.exports = {
         "button": "#238358"
       },
       fontFamily: {
-        sans: ['"Inter var, sans-serif"', defaultTheme.fontFamily.sans],
+        sans: ["Titillium Web", defaultTheme.fontFamily.sans],
       },
       keyframes: {
         "fade-in": {

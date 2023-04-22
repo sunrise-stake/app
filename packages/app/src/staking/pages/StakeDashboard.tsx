@@ -265,11 +265,9 @@ const StakeDashboard: FC = () => {
         <InfoBox className="py-2 px-4 rounded text-center">
           <div className="flex flex-row justify-between items-center">
             <GiCircleForest
-              className="hidden sm:block"
-              color="#52dc90"
+              className="hidden sm:block stroke-green"
               size={32}
             />
-
             <div className="mx-auto sm:mx-0 items-center">
               <div className="flex flex-col gap-0 sm:gap-2 items-center justify-end sm:flex-row mb-2 sm:mb-0">
                 <span className="font-bold text-sm sm:text-lg">

@@ -11,7 +11,7 @@ import React, {
 import { type TreeComponent } from "./utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { IoChevronForwardOutline } from "react-icons/io5";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
 import { ProfileBox } from "../common/components/profile/ProfileBox";
 import { type TreeNode } from "../api/types";
@@ -96,13 +96,11 @@ const _ForestApp: ForwardRefRenderFunction<
     });
   }, [active, currentHelpRoute]);
 
-  const location = useLocation();
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && location.state?.address === undefined)
-      navigate("/");
-  }, [wallet.connected]);
+    if (!wallet.connected && active) navigate("/");
+  }, [active, wallet.connected]);
 
   const { myTree, neighbours } = useForest();
   // use this to position the entire forest in space

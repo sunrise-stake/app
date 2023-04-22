@@ -88,7 +88,7 @@ const AmountInput: React.FC<AmountInputProps> = ({
     <div className={className}>
       <div
         className={clx(
-          "flex flex-row justify-between my-auto bg-background rounded-md",
+          "flex flex-row justify-between my-auto py-2 bg-background rounded-md text-green",
           {
             "p-8": variant === "large",
             "px-2": variant === "small",
@@ -98,9 +98,9 @@ const AmountInput: React.FC<AmountInputProps> = ({
         <div className="grow my-auto">
           {showBalance && (
             <div className="flex items-center justify-end">
-              Available Balance:{" "}
+              Balance:{" "}
               <button
-                className="px-2 py-1 rounded-md hover:bg-green text-green hover:text-white"
+                className="px-2 py-1 rounded-md hover:bg-green-light text-green-light hover:text-white font-bold"
                 onClick={() => {
                   if (balance) {
                     updateAmount(

@@ -22,13 +22,13 @@ const DetailEntry: FC<DetailEntryProps> = ({
 }) => (
   <div className="flex flex-row justify-between">
     <div className="flex flex-row gap-2">
-      <div className="text-sm sm:text-lg">{label}</div>
+      <div className="text-sm sm:text-lg text-green">{label}</div>
       <TooltipPopover>{tooltip}</TooltipPopover>
     </div>
     <div className="font-bold text-sm sm:text-lg">
       {value} <span className="text-bold text-xs">SOL</span>{" "}
       {share !== undefined && (
-        <span className="hidden sm:inline text-gray-300 font-normal text-sm">
+        <span className="hidden sm:inline text-gray-500 font-normal text-sm">
           ({share}%)
         </span>
       )}

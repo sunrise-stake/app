@@ -7,7 +7,7 @@ interface GuideProps {
 
 export const BaseGuide: FC<GuideProps> = ({ entries, ...props }) => {
   return (
-    <div className="absolute top-8 bottom-0 inset-x-1 overflow-auto">
+    <div className="absolute top-12 bottom-0 inset-x-1 overflow-auto">
       <div className="grid grid-cols-2 grid-rows-1 gap-4 items-center place-items-center justify-center p-4">
         {entries.map((entry, i) => (
           <GuideEntry key={i} {...entry} imageLeft={i % 2 === 0} />

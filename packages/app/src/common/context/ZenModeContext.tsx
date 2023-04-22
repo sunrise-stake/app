@@ -10,9 +10,8 @@ import {
 
 interface ZenModeSettings {
   showBGImage: boolean;
-  showHelpButton: boolean;
-
   showExternalLinks: boolean;
+  showHelpButton: boolean;
   showWallet: boolean;
 }
 
@@ -21,8 +20,8 @@ const ZenModeContext = createContext<
 >([
   {
     showBGImage: false,
-    showHelpButton: false,
     showExternalLinks: false,
+    showHelpButton: false,
     showWallet: false,
   },
   (v) => v,
@@ -31,15 +30,15 @@ const ZenModeContext = createContext<
 const ZenModeProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [zenMode, updateZenMode] = useState({
     showBGImage: false,
-    showHelpButton: false,
     showExternalLinks: false,
+    showHelpButton: false,
     showWallet: false,
   });
   useEffect(() => {
     updateZenMode({
       showBGImage: true,
-      showHelpButton: true,
       showExternalLinks: true,
+      showHelpButton: true,
       showWallet: false,
     });
   }, []);

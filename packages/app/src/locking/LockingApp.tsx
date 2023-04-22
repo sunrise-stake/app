@@ -9,7 +9,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   Button,
@@ -38,6 +38,7 @@ import { tooltips } from "../common/content/tooltips";
 import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useNFTs } from "../common/context/NFTsContext";
 
 const hasLockedBalance = (details: Details | undefined): boolean =>
   details?.lockDetails?.amountLocked
@@ -72,14 +73,13 @@ const _LockingApp: ForwardRefRenderFunction<
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
+  const { refresh } = useNFTs();
 
-  const location = useLocation();
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
-    if (!wallet.connected && location.state?.address === undefined)
-      navigate("/");
-  }, [wallet.connected]);
+    if (!wallet.connected && active) navigate("/");
+  }, [active, wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Lock) return; // we are not on the lock page, so don't update zen mode
@@ -89,7 +89,7 @@ const _LockingApp: ForwardRefRenderFunction<
       showExternalLinks: false,
       showWallet: active,
     });
-  }, [active]);
+  }, [active, currentHelpRoute]);
 
   const { client, details, loading } = useSunriseStake();
 
@@ -112,6 +112,7 @@ const _LockingApp: ForwardRefRenderFunction<
     return client
       .lockGSol(solToLamports(amount))
       .then((txes) => {
+        refresh().catch(console.error); // refresh NFTs so that the impact NFT shows up
         txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,
@@ -146,6 +147,7 @@ const _LockingApp: ForwardRefRenderFunction<
     return client
       .updateLockAccount()
       .then((txes) => {
+        refresh().catch(console.error); // refresh NFTs so that the impact NFT shows up
         txes.forEach((tx: string, index) => {
           notifyTransaction({
             type: NotificationType.success,

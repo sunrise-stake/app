@@ -2,8 +2,10 @@ import { Transition } from "@headlessui/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
-import { CarbonRecovered } from "../../common/components";
-import { Logo } from "../../common/components/Logo";
+import { Button, CarbonRecovered } from "../../common/components";
+import { Link } from "react-router-dom";
+import { LogoIcon, LogoText } from "../../common/components/Logo";
+import { FaGlobeAmericas } from "react-icons/fa";
 
 const HubIntro: FC<{
   show: boolean;
@@ -24,28 +26,38 @@ const HubIntro: FC<{
         if (onLeft) onLeft();
       }}
     >
-      <Transition.Child
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        enter="transition-opacity ease-in duration-1000 delay-1000"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-        leave="transition-opacity ease-out duration-500"
-      >
-        <Logo className={"block w-auto h-24 mb-2 mx-auto"} />
-      </Transition.Child>
-      <Transition.Child
-        as="h1"
-        className="text-green-light font-bold text-4xl sm:text-6xl"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        enter="transition-opacity ease-in duration-1000"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-        leave="transition-opacity ease-out duration-500"
-      >
-        Sunrise Stake
-      </Transition.Child>
+      <div className="flex justify-center items-center">
+        <Transition.Child
+          className="mr-2"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          enter="transition-opacity ease-in duration-1000"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+          leave="transition-opacity ease-out duration-500"
+        >
+          <LogoIcon className={"block w-auto h-32"} />
+        </Transition.Child>
+        <Transition.Child
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          enter="transition-opacity ease-in duration-1000 delay-1000"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+          leave="transition-opacity ease-out duration-500"
+        >
+          <Transition.Child
+            enterFrom="-translate-x-2"
+            enterTo="translate-x-0"
+            enter="transition-transform ease-in duration-500 delay-1000"
+            leaveFrom="translate-x-0"
+            leaveTo="-translate-x-2"
+            leave="transition-transform ease-out duration-250"
+          >
+            <LogoText className={"block w-auto h-20"} />
+          </Transition.Child>
+        </Transition.Child>
+      </div>
       <Transition.Child
         enterFrom="translate-y-8"
         enterTo="translate-y-0"
@@ -53,7 +65,7 @@ const HubIntro: FC<{
       >
         <Transition.Child
           as="h2"
-          className="mb-16 font-normal text-lg sm:text-3xl"
+          className="mt-4 mb-10 font-normal text-lg sm:text-3xl"
           enterFrom="opacity-0"
           enterTo="opacity-100"
           enter="transition-opacity ease-in duration-1000 delay-1000"
@@ -73,9 +85,17 @@ const HubIntro: FC<{
         leaveTo="opacity-0"
         leave="transition-opacity ease-out duration-500"
       >
-        <WalletMultiButton>
+        <WalletMultiButton className="!bg-green hover:!bg-green-light !text-white">
           Start reducing CO<sub>2</sub>&nbsp;emissions
         </WalletMultiButton>
+        <div className="mt-6">
+          <Link to="/earthday">
+            <Button color="primary" variant="outline">
+              <FaGlobeAmericas />
+              &nbsp;Earth Day Special ➜
+            </Button>
+          </Link>
+        </div>
         <CarbonRecovered />
       </Transition.Child>
     </Transition>
