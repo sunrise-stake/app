@@ -27,6 +27,7 @@ const buildTransferRecord = (transfer: TransferResponse): Transfer => ({
 const buildMintRecord = (mint: MintResponse): Mint => ({
   timestamp: new Date(mint.timestamp),
   recipient: new PublicKey(mint.recipient),
+  sender: mint.sender !== undefined ? new PublicKey(mint.sender) : undefined,
   amount: mint.amount,
 });
 const getDBData = async <T>(
@@ -60,7 +61,7 @@ const getDBData = async <T>(
   }).then(async (resp) => resp.json());
 };
 export const getAccountMints = async (address: PublicKey): Promise<Mint[]> =>
-  getDBData<MintResponse>("mints", ["recipient"], address)
+  getDBData<MintResponse>("mints", ["sender", "recipient"], address)
     .then((resp) => resp.documents)
     .then((mints) => mints.map(buildMintRecord));
 export const getAccountTransfers = async (
