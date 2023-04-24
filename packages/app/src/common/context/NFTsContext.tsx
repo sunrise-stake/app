@@ -73,6 +73,7 @@ interface RawCompressedNFT {
   id: string; // The Asset ID
   content: {
     files: Array<{ uri: string; mime: string }>;
+    json_uri: string;
     metadata: {
       attributes: Array<{ value: string; trait_type: string }>;
       description: string;
@@ -96,7 +97,9 @@ interface RawCompressedNFT {
  * turn it into a GenericNFT object (with some gaps that we don't need)
  * @param nft
  */
-const compressedNFTToGenericNFT = (nft: RawCompressedNFT): GenericNFT => {
+const compressedNFTToGenericNFT = async (
+  nft: RawCompressedNFT
+): Promise<GenericNFT> => {
   const collection = nft.grouping.find(
     (grouping) => grouping.group_key === "collection"
   )?.group_value;
@@ -106,15 +109,24 @@ const compressedNFTToGenericNFT = (nft: RawCompressedNFT): GenericNFT => {
       authority.scopes.includes("update") || authority.scopes.includes("full")
   )?.address;
 
-  const image = nft.content.files.find((file) =>
-    file.mime.startsWith("image/")
-  )?.uri;
+  const offchainMetadata = await fetch(nft.content.json_uri).then(async (res) =>
+    res.json()
+  );
+
+  const image =
+    offchainMetadata.image ??
+    nft.content.files.find((file) => file.mime.startsWith("image/"))?.uri;
+
+  const attributes = [
+    ...(nft.content.metadata.attributes ?? []),
+    ...offchainMetadata.attributes,
+  ];
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   return {
     address: new PublicKey(nft.id), // Warning, this is not the token address
     json: {
-      attributes: nft.content.metadata.attributes,
+      attributes,
       description: nft.content.metadata.description,
       image,
       name: nft.content.metadata.name,
@@ -152,7 +164,7 @@ const getAllCompressedNFTs = async (owner: PublicKey): Promise<GenericNFT[]> =>
           sortBy: "created",
           sortDirection: "desc",
         },
-        50,
+        250,
         1,
         "",
         "",
@@ -161,10 +173,12 @@ const getAllCompressedNFTs = async (owner: PublicKey): Promise<GenericNFT[]> =>
   })
     .then(async (res) => res.json())
     // remove non-compressedNFTs (loaded elsewhere)
-    .then((res) =>
-      res.result.items
-        .filter((item: any) => item.compression?.compressed)
-        .map(compressedNFTToGenericNFT)
+    .then(async (res) =>
+      Promise.all(
+        res.result.items
+          .filter((item: any) => item.compression?.compressed)
+          .map(compressedNFTToGenericNFT)
+      )
     );
 
 const isEmptyQuery = (query: NFTQuery): boolean =>
