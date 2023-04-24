@@ -59,7 +59,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         >
           <BsQuestionCircle
             size={40}
-            className="text-green-light w-4 md:w-12"
+            className="text-green-light w-12"
           />
         </button>
       </Transition>
