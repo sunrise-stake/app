@@ -1,8 +1,8 @@
 // These will be fetched from some data base
-import { type Charity, type PlaceholderOrg } from "./types";
+import { type Charity } from "./types";
 import { PublicKey } from "@solana/web3.js";
 
-export const charityApps: Array<Charity | PlaceholderOrg> = [
+export const charityApps: Charity[] = [
   {
     name: "Urbánika",
     imageUrl: "partners/urbanika.jpg",
@@ -20,5 +20,11 @@ export const charityApps: Array<Charity | PlaceholderOrg> = [
     imageUrl: "logo.png",
     address: new PublicKey("Bup7DZk56XwQUDzuvBz9nzbr8e2iLPVrBpha1KTfEbbJ"),
     website: "https://sunrisestake.com/",
+  },
+  {
+    name: "Bloom",
+    imageUrl: "partners/bloom.png",
+    address: new PublicKey("HDRbSHqQRqZLTUrNiGxxLCviPS7Xjf7MgpFeTb6xc6SC"),
+    website: "https://bloomnetwork.earth/",
   },
 ];
