@@ -18,6 +18,25 @@ export interface Balance {
   holdingAccountBalance: number;
 }
 
+export interface ImpactNFTDetails {
+  stateAddress: PublicKey;
+  mintAuthority: PublicKey;
+  mint: PublicKey;
+  tokenAccount: PublicKey;
+}
+
+export interface LockDetails {
+  amountLocked: BN;
+  startEpoch: BN;
+  updatedToEpoch: BN;
+  yield: BN;
+  lockAccount: PublicKey;
+  lockTokenAccount: PublicKey;
+  currentLevel: Level | null;
+  yieldToNextLevel: BN | null;
+  unrealizedYield: BN | null;
+}
+
 export interface Details {
   // TODO Standardise on number/bigint/BigDecimal
   staker: string;
@@ -61,22 +80,8 @@ export interface Details {
       denominator: BN;
     };
   };
-  lockDetails?: {
-    amountLocked: BN;
-    startEpoch: BN;
-    updatedToEpoch: BN;
-    yield: BN;
-    lockAccount: PublicKey;
-    lockTokenAccount: PublicKey;
-    currentLevel: Level | null;
-    yieldToNextLevel: BN | null;
-  };
-  impactNFTDetails?: {
-    stateAddress: PublicKey;
-    mintAuthority: PublicKey;
-    mint: PublicKey;
-    tokenAccount: PublicKey;
-  };
+  lockDetails?: LockDetails;
+  impactNFTDetails?: ImpactNFTDetails;
 }
 
 export interface WithdrawalFees {

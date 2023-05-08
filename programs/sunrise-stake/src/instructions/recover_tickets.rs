@@ -185,6 +185,12 @@ pub fn recover_tickets_handler<'info>(
         msg!("Claimed total amount");
         msg!("RemainingAccounts {}", ctx.remaining_accounts.len());
         if ctx.remaining_accounts.len() as u64 == ctx.accounts.epoch_report_account.tickets {
+            ctx.accounts.liq_pool_msol_leg.reload()?;
+            ctx.accounts.liq_pool_token_account.reload()?;
+            ctx.accounts.get_msol_from.reload()?;
+            ctx.accounts.get_bsol_from.reload()?;
+            ctx.accounts.marinade_state.reload()?;
+
             // all tickets are recovered. Now we update the epoch report account to the current epoch
             ctx.accounts.epoch_report_account.epoch = ctx.accounts.clock.epoch;
             ctx.accounts.epoch_report_account.tickets = 0;

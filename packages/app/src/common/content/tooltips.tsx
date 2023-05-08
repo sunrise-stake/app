@@ -85,11 +85,17 @@ const tooltips = {
       when you relock.
     </>
   ),
+  unrealizedYield: (
+    <>
+      The yield that your locked stake has accrued, but has not yet been
+      attributed to your account.
+    </>
+  ),
   lockCarbon: (
     <>
       The amount of Carbon Dioxide or equivalent (tCO₂E) that your locked yield
       is equivalent to. NOTE: This is based on current carbon and SOL prices
-      only, and does not equate to an actual amount of carbon offset.
+      only, and does not map directly to an actual amount of carbon offset.
     </>
   ),
 };

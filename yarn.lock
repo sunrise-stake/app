@@ -4144,10 +4144,10 @@
     eventemitter3 "^4.0.7"
     uuid "^8.3.2"
 
-"@sunrisestake/impact-nft-client@0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@sunrisestake/impact-nft-client/-/impact-nft-client-0.0.3.tgz#120f8e84be1f68adc4d54ae9ff3cbfe69556cafa"
-  integrity sha512-ED+NsqMiANzAHEBsOEo+GYVdJ4Vfps28oX2sWaTcSgb/FZg+cfyPm1Gjd25sMTf6bzI0oJK118GYFigd/2NmGQ==
+"@sunrisestake/impact-nft-client@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@sunrisestake/impact-nft-client/-/impact-nft-client-0.0.4.tgz#36a88340d51324f6713249e1a00ccc9ec3e9e3d4"
+  integrity sha512-IyBNbITR+GIPedqs3oOtncf1XadSD6utUo1kK+16DBVVCY9UxZok2PjxPce4PraSrcxzuWn584IDkS8fE5aZ4Q==
   dependencies:
     "@coral-xyz/anchor" "^0.26.0"
     "@metaplex-foundation/js" "0.18.3"

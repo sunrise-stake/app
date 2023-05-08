@@ -20,8 +20,6 @@ const getArtist = (nft: GenericNFT): Artist | undefined => {
     (artist) => artist.twitter.toLowerCase() === twitterHandle?.toLowerCase()
   );
 
-  console.log("Looking for artist", twitterHandle, foundRawArtist);
-
   return foundRawArtist
     ? {
         ...foundRawArtist,
