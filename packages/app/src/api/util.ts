@@ -1,6 +1,5 @@
-// Given a set of transfers, return the first transfer for each sender-recipient pair
-import { type Forest, type Mint, type Totals, type Transfer } from "./types";
-import { addUp, memoise, round } from "../common/utils";
+import { type Mint, type Totals, type Transfer, type TreeNode } from "./types";
+import { addUp, memoise, mostRecent, round } from "../common/utils";
 import { type Connection, PublicKey } from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -53,23 +52,23 @@ export const mintsToSelf = (mints: Mint[]): Mint[] =>
     (mint) => mint.sender === undefined || mint.sender.equals(mint.recipient)
   );
 
-export const prune = (forest: Forest): Forest => {
-  const seen: string[] = [];
-  // if a tree node is in the seen array, it's a duplicate, remove it.
+export const isDeadTree = (tree: TreeNode): boolean =>
+  tree.totals.currentBalance === 0;
 
-  const pruneTree = (forest: Forest): Forest | null => {
-    if (seen.includes(forest.tree.address.toBase58())) return null;
+export const getMostRecentActivity = (tree: TreeNode): Date => {
+  const mostRecentMint = mostRecent(tree.mints);
+  const mostRecentSend = mostRecent(tree.sent);
+  const mostRecentReceipt = mostRecent(tree.received);
 
-    seen.push(forest.tree.address.toBase58());
-    const prunedNeighbours = forest.neighbours
-      .map(pruneTree)
-      .filter((n): n is Forest => n !== null);
-    return { ...forest, neighbours: prunedNeighbours };
-  };
+  const timestamps: number[] = [
+    mostRecentMint,
+    mostRecentSend,
+    mostRecentReceipt,
+  ]
+    .filter((x) => x !== undefined)
+    .map((x) => x?.timestamp.getTime() as number);
 
-  // the cast here is ok, because the seen array starts empty
-  // so the root node will never be pruned
-  return pruneTree(forest) as Forest;
+  return new Date(Math.max(...timestamps));
 };
 
 export const getTotals = (

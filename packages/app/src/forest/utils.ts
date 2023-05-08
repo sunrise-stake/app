@@ -1,5 +1,14 @@
 import { type PublicKey } from "@solana/web3.js";
 import { type Forest, type TreeNode } from "../api/types";
+import { getMostRecentActivity, isDeadTree } from "../api/util";
+
+// If true, include trees with zero current balance in the forest
+const SHOW_DEAD_TREES = false;
+// Remove trees to ensure the total visible stays below this value
+const MAX_TREE_TOTAL_LIMIT = 25;
+// Remove trees at a particular layer to ensure each layer does not get too large.
+// This is a multiplier, so X * layer
+const MAX_TREE_MULTIPLIER_PER_LAYER_LIMIT = 5;
 
 const IMAGE_COUNT = 1; // only one tree image per level and species at the moment
 
@@ -160,27 +169,137 @@ export const forestToComponents = (forest: Forest): TreeComponent[] => {
       forest: Forest;
       layer: number;
     };
-    const map = nextInQueue.neighbours.map((neighbour) => ({
+
+    if (currentLayer >= result.length) result.push([]);
+
+    // check if any of the neighbours are in the result, or queue, already
+    const allTrees = result.flatMap((treesInLayer) => treesInLayer);
+    const filteredNeighbours = nextInQueue.neighbours.filter(
+      (neighbour) =>
+        !allTrees.includes(neighbour.tree) &&
+        !queue.map((q) => q.forest).includes(neighbour)
+    );
+    const map = filteredNeighbours.map((neighbour) => ({
       forest: neighbour,
       layer: currentLayer + 1,
     }));
     queue.push(...map);
 
-    if (currentLayer >= result.length) result.push([]);
     result[currentLayer].push(
-      ...nextInQueue.neighbours.map((neighbour) => neighbour.tree)
+      ...filteredNeighbours.map((neighbour) => neighbour.tree)
     );
 
     return recursiveForestToFlatTrees(queue, result);
   };
 
+  // We have a DAG of trees, we need to convert them into an array of TreeComponents[]
+  // While doing so, we will prune trees based on a number of properties
+  // We need to know the number of trees at each layer *after* this pruning has taken place
+
+  // returns an array of arrays, where each element is a layer
   const flatTrees = recursiveForestToFlatTrees(
     [{ forest, layer: 1 }],
     [[forest.tree]]
   );
-  return flatTrees.flatMap((treesInLayer, layer) =>
+  // convert the array of arrays into a flat array of all the trees, remembering their layer, so that we can order and prune
+  const allTreeNodes = flatTrees.flatMap((treesInLayer, index) =>
+    treesInLayer.map((tree) => ({ tree, layer: index }))
+  );
+
+  // prune all the trees
+  const prunedTrees = prune(allTreeNodes);
+
+  // Convert back to the array of arrays now that they are pruned, so that we can turn them into tree components
+  const treesWithinLayers = prunedTrees.reduce<TreeNode[][]>(
+    (acc, { tree, layer }) => {
+      if (acc[layer] === undefined) acc[layer] = [];
+      acc[layer].push(tree);
+      return acc;
+    },
+    []
+  );
+
+  // now convert the trees to components
+  return treesWithinLayers.flatMap((treesInLayer, layer) =>
     treesInLayer.map((tree, indexInLayer) =>
       treeNodeToComponent(tree, layer, indexInLayer, treesInLayer.length)
     )
   );
+};
+
+interface TreeWithLayer {
+  tree: TreeNode;
+  layer: number;
+}
+interface ComparisonStats {
+  mostRecentActivity: Date;
+  amount: number;
+  layer: number;
+  neighbours: number;
+}
+const comparisonWeights: Record<
+  keyof ComparisonStats,
+  { weight: number; direction: "BIGGER_IS_BETTER" | "SMALLER_IS_BETTER" }
+> = {
+  mostRecentActivity: { weight: 10, direction: "BIGGER_IS_BETTER" },
+  amount: { weight: 5, direction: "BIGGER_IS_BETTER" },
+  layer: { weight: 5, direction: "SMALLER_IS_BETTER" },
+  neighbours: { weight: 20, direction: "BIGGER_IS_BETTER" },
+};
+const getComparisonStats = ({
+  tree,
+  layer,
+}: TreeWithLayer): ComparisonStats => ({
+  amount: tree.totals.amountTotal,
+  mostRecentActivity: getMostRecentActivity(tree),
+  layer,
+  neighbours:
+    tree.totals.uniqueRecipients.length + tree.totals.uniqueSenders.length,
+});
+const compareTrees = (a: TreeWithLayer, b: TreeWithLayer): number => {
+  const statsA = getComparisonStats(a);
+  const statsB = getComparisonStats(b);
+
+  return Object.keys(comparisonWeights).reduce((acc, key) => {
+    const comparisonKey = key as keyof ComparisonStats;
+    const aScore = statsA[comparisonKey];
+    const bScore = statsB[comparisonKey];
+
+    if (
+      aScore > bScore &&
+      comparisonWeights[comparisonKey].direction === "BIGGER_IS_BETTER"
+    ) {
+      return acc - comparisonWeights[comparisonKey].weight;
+    } else {
+      return acc + comparisonWeights[comparisonKey].weight;
+    }
+  }, 0);
+};
+
+const filterByLayer = (sortedTrees: TreeWithLayer[]): TreeWithLayer[] => {
+  const seenAtLayer: number[] = [];
+  return sortedTrees.filter(({ layer }) => {
+    if (seenAtLayer[layer] === undefined) seenAtLayer[layer] = 0;
+    seenAtLayer[layer]++;
+
+    return (
+      seenAtLayer[layer] < (layer + 1) * MAX_TREE_MULTIPLIER_PER_LAYER_LIMIT
+    );
+  });
+};
+
+// Remove trees according to some heuristics to ensure the forest is not too crowded
+export const prune = (trees: TreeWithLayer[]): TreeWithLayer[] => {
+  const filteredTrees = SHOW_DEAD_TREES
+    ? trees
+    : trees.filter(({ tree, layer }) => !isDeadTree(tree) || layer === 0);
+  const sortedTrees = filteredTrees.sort(compareTrees);
+  const totalSubset = sortedTrees.slice(0, MAX_TREE_TOTAL_LIMIT);
+  const layerBasedTotalSubset = filterByLayer(totalSubset);
+
+  console.log("Before prune", trees);
+  console.log("Sorted", sortedTrees);
+  console.log("After prune", layerBasedTotalSubset);
+
+  return layerBasedTotalSubset;
 };
