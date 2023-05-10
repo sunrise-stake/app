@@ -35,7 +35,7 @@ jobs:
       - name: install node_modules
         run: |
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          yarn --frozen-lockfile
+          yarn --frozen-lockfile --network-concurrency 2
 
       - uses: dtolnay/rust-toolchain@stable
         with:
