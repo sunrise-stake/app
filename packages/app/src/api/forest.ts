@@ -16,7 +16,6 @@ import {
   getTotals,
   mintsToSelf,
   mintsWithRecipientsAsTransfers,
-  prune,
 } from "./util";
 import { type SunriseClientWrapper } from "../common/sunriseClientWrapper";
 
@@ -189,9 +188,9 @@ export class ForestService {
       treeNode
     );
 
-    return prune({
+    return {
       tree: treeNode,
       neighbours,
-    });
+    };
   }
 }
