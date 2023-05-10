@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-interface ModalControl {
+export interface ModalControl {
   trigger: () => void;
   modalShown: boolean;
   onModalClose: () => void;

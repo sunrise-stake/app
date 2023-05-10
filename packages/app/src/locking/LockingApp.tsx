@@ -71,7 +71,7 @@ const _LockingApp: ForwardRefRenderFunction<
 
   const [isBusyUnlock, setIsBusyUnlock] = useState(false);
   const [isBusyUpdate, setIsBusyUpdate] = useState(false);
-  const needsUpdate = useMemo(
+  const needsUpgrade = useMemo(
     () => detailsIndicateUpgradePossible(details),
     [details]
   );
@@ -166,17 +166,19 @@ const _LockingApp: ForwardRefRenderFunction<
       {myTree && details?.impactNFTDetails === undefined && (
         <DynamicTree details={myTree} variant="sm" />
       )}
-      {details?.impactNFTDetails === undefined && (
+      {details?.lockDetails === undefined && (
         <div className="mb-3">
           <h1 className="font-bold text-green-light text-3xl text-center">
             Lock gSOL to receive an Impact NFT
           </h1>
         </div>
       )}
-      {details?.impactNFTDetails && details?.lockDetails && (
+      {details?.impactNFTDetails && (
         <div className="max-w-sm rounded shadow-lg">
           <ImpactNFT details={details.impactNFTDetails} />
-          <LockDetailsView lockDetails={details.lockDetails} />
+          {details?.lockDetails && (
+            <LockDetailsView lockDetails={details.lockDetails} />
+          )}
         </div>
       )}
 
@@ -185,9 +187,15 @@ const _LockingApp: ForwardRefRenderFunction<
           <Panel className="flex flex-row mb-9 p-3 sm:p-4 rounded-lg">
             <Button
               color="primary"
-              className={clx("mr-4", needsUpdate && "animate-pulse")}
-              disabled={!needsUpdate}
-              title={upgradeTooltip(needsUpdate)}
+              className={clx(
+                "mr-4",
+                needsUpgrade && "animate-pulse",
+                !needsUpgrade && "brightness-75"
+              )}
+              title={upgradeTooltip(needsUpgrade)}
+              infoDisabled={!needsUpgrade}
+              disabledTitle="Come back later"
+              disabledMessage="Your impact NFT is not yet eligible for the next level."
               onClick={() => {
                 setIsBusyUpdate(true);
                 updateLockAccount().finally(() => {
@@ -203,8 +211,11 @@ const _LockingApp: ForwardRefRenderFunction<
             </Button>
             <Button
               color="secondary"
-              disabled={isBusyUnlock || !unlockAllowed}
+              className={clx(!unlockAllowed && "brightness-75")}
               title="Unlocking is allowed after one full epoch"
+              infoDisabled={isBusyUnlock || !unlockAllowed}
+              disabledTitle="Come back later"
+              disabledMessage="Locked gSOL can be unlocked after one full epoch (2-3 days)."
               onClick={() => {
                 setIsBusyUnlock(true);
                 unlock().finally(() => {
