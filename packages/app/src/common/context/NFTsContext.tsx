@@ -273,8 +273,13 @@ export const useNFTs = (
     })();
   }, [nfts.length]);
 
+  const refreshFilteredNFTs = async (): Promise<void> => {
+    await refresh();
+    await loadFilteredNFTs().then(setFilteredNfts);
+  };
+
   return {
     nfts: filteredNfts,
-    refresh,
+    refresh: refreshFilteredNFTs,
   };
 };

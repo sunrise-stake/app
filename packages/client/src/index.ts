@@ -594,6 +594,67 @@ export class SunriseStakeClient {
       .instruction();
   }
 
+  async updateEpochReport(): Promise<void> {
+    if (
+      !this.marinadeState ||
+      !this.marinade ||
+      !this.config ||
+      !this.msolTokenAccount ||
+      !this.bsolTokenAccount ||
+      !this.stakerGSolTokenAccount ||
+      !this.blazeState
+    )
+      throw new Error("init not called");
+
+    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
+
+    // check the most recent epoch report account
+    // if it is not for the current epoch, then we may need to recover tickets
+    const { address: epochReportAccountAddress, account: epochReport } =
+      await getEpochReportAccount(this.config, this.program);
+
+    if (!epochReport) {
+      // no epoch report account found at all - something went wrong
+      throw new Error("No epoch report account found during recoverTickets");
+    }
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.updateEpochReport>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.config.stateAddress,
+      payer: this.staker,
+      marinadeState: this.marinadeState.marinadeStateAddress,
+      blazeState: this.blazeState.pool,
+      gsolMint: this.config.gsolMint,
+      msolMint: this.marinadeState.mSolMint.address,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolMsolLegAuthority: await this.marinadeState.mSolLegAuthority(),
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getMsolFromAuthority: this.msolTokenAccountAuthority,
+      getBsolFrom: this.bsolTokenAccount,
+      getBsolFromAuthority: this.bsolTokenAccountAuthority,
+      epochReportAccount: epochReportAccountAddress,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      clock: SYSVAR_CLOCK_PUBKEY,
+      marinadeProgram,
+    };
+
+    await this.program.methods
+      .updateEpochReport()
+      .accounts(accounts)
+      .rpc()
+      .then(confirm(this.provider.connection));
+  }
+
   /**
    * Trigger a rebalance without doing anything else.
    */
@@ -1176,6 +1237,7 @@ export class SunriseStakeClient {
             yield: lockAccountDetails.lockAccount.yieldAccruedByOwner,
             currentLevel: lockAccountDetails.currentLevel,
             yieldToNextLevel: lockAccountDetails.yieldToNextLevel,
+            unrealizedYield: lockAccountDetails.unrealizedYield,
           }
         : undefined;
 
@@ -1406,7 +1468,6 @@ export class SunriseStakeClient {
       .rpc()
       .then(confirm(client.provider.connection));
 
-    console.log("before init env", client.env);
     await client.init();
 
     await client.initEpochReport().then(confirm(client.provider.connection));
@@ -1642,13 +1703,27 @@ export class SunriseStakeClient {
 
     if (withRefresh) await this.lockClient.refresh();
 
+    const updatedYieldAccrued = this.lockClient.lockAccount
+      ? await this.lockClient.calculateUpdatedYieldAccrued()
+      : null;
+
+    const currentLevel = this.lockClient.getCurrentLevel();
+
+    // TODO this is a little messy, as we are reversing a calculation that was already made in calculateUpdatedYieldAccrued
+    const unrealizedYield = updatedYieldAccrued?.sub(
+      this.lockClient.lockAccount?.yieldAccruedByOwner ?? ZERO
+    );
+
     return {
       lockAccount: this.lockClient.lockAccount,
       lockAccountAddress: this.lockClient.lockAccountAddress,
       tokenAccount: this.lockClient.lockTokenAccount,
       tokenAccountAddress: this.lockClient.lockTokenAccountAddress,
-      currentLevel: this.lockClient.getCurrentLevel(),
-      yieldToNextLevel: this.lockClient.getYieldToNextLevel(),
+      currentLevel,
+      yieldToNextLevel: this.lockClient.getYieldToNextLevel(
+        currentLevel?.index
+      ),
+      unrealizedYield: unrealizedYield ?? null,
     };
   }
 
