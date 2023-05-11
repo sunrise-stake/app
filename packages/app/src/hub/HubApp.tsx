@@ -22,6 +22,8 @@ import { useCarbon } from "../common/hooks";
 import { useForest } from "../common/context/forestContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
+import { AlertBadge } from "../common/content/Badge";
+import { useLockHubDetails } from "./hooks/useLockHubDetails";
 
 const LINK_CHEVRON_SIZE = 32;
 
@@ -34,6 +36,7 @@ const _HubApp: ForwardRefRenderFunction<
   const [zenMode, updateZenMode] = useZenMode();
   const { myTree } = useForest();
   const { totalCarbon } = useCarbon();
+  const { needsUpgrade: showLockAlert } = useLockHubDetails();
 
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
@@ -242,8 +245,11 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <Link to="/lock" className="block w-full mt-4 leading-none text-lg">
-              Lock
+            <Link to="/lock" className="block w-full mt-4 leading-none">
+              <div className="relative inline-block">
+                <span className="text-2xl">Lock</span>
+                {showLockAlert && <AlertBadge />}
+              </div>
               <br />
               <IoChevronDownOutline
                 className="inline-block"

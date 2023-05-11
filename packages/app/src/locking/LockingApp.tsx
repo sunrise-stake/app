@@ -1,56 +1,32 @@
 import clx from "classnames";
-import { toSol, type Details } from "@sunrisestake/client";
+import { type Details } from "@sunrisestake/client";
 import React, {
-  type FC,
   forwardRef,
   type ForwardRefRenderFunction,
-  type PropsWithChildren,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import {
-  Button,
-  LockForm,
-  Panel,
-  Spinner,
-  TooltipPopover,
-} from "../common/components";
+import { Button, LockForm, Panel, Spinner } from "../common/components";
 import {
   NotificationType,
   notifyTransaction,
 } from "../common/components/notifications";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useSunriseStake } from "../common/context/sunriseStakeContext";
-import {
-  solToCarbon,
-  solToLamports,
-  toFixedWithPrecision,
-  ZERO,
-} from "../common/utils";
+import { solToLamports } from "../common/utils";
 import { ImpactNFT } from "./ImpactNFT";
 import { IoChevronUpOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
-import { tooltips } from "../common/content/tooltips";
 import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useNFTs } from "../common/context/NFTsContext";
-
-const hasLockedBalance = (details: Details | undefined): boolean =>
-  details?.lockDetails?.amountLocked
-    ? details.lockDetails.amountLocked.gt(ZERO)
-    : false;
-
-const canBeUpdated = (details: Details | undefined): boolean => {
-  if (!details?.lockDetails) return false;
-  return (
-    details.lockDetails.updatedToEpoch.toNumber() < details.currentEpoch.epoch
-  );
-};
+import { LockDetailsView } from "./LockDetails";
+import { detailsIndicateUpgradePossible } from "./utils";
 
 // one full epoch has passed since the lock was created
 const canBeUnlocked = (details: Details | undefined): boolean => {
@@ -60,11 +36,11 @@ const canBeUnlocked = (details: Details | undefined): boolean => {
   );
 };
 
-const LockDetailTag: FC<PropsWithChildren> = ({ children }) => (
-  <span className="inline-flex gap-1 bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-    {children}
-  </span>
-);
+const upgradeTooltip = (enabled: boolean): string => {
+  if (!enabled)
+    return "Come back to upgrade your NFT to the next level after it has accrued enough yield";
+  return "Upgrade your NFT to the next level";
+};
 
 const _LockingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -95,7 +71,10 @@ const _LockingApp: ForwardRefRenderFunction<
 
   const [isBusyUnlock, setIsBusyUnlock] = useState(false);
   const [isBusyUpdate, setIsBusyUpdate] = useState(false);
-  const needsUpdate = useMemo(() => canBeUpdated(details), [details]);
+  const needsUpgrade = useMemo(
+    () => detailsIndicateUpgradePossible(details),
+    [details]
+  );
   const unlockAllowed = useMemo(() => canBeUnlocked(details), [details]);
 
   const handleError = (error: Error): void => {
@@ -159,10 +138,6 @@ const _LockingApp: ForwardRefRenderFunction<
       .catch(handleError);
   };
 
-  const lockText = hasLockedBalance(details)
-    ? "Your Impact NFT is proof of your stake. It grows as your stake matures. Return regularly to upgrade your NFT to the next level."
-    : "Your Impact NFT is proof of your stake. It grows as your stake matures. Re-lock your gSOL to grow it to the next level.";
-
   return (
     <div
       className={clx(
@@ -191,7 +166,7 @@ const _LockingApp: ForwardRefRenderFunction<
       {myTree && details?.impactNFTDetails === undefined && (
         <DynamicTree details={myTree} variant="sm" />
       )}
-      {details?.impactNFTDetails === undefined && (
+      {details?.lockDetails === undefined && (
         <div className="mb-3">
           <h1 className="font-bold text-green-light text-3xl text-center">
             Lock gSOL to receive an Impact NFT
@@ -201,42 +176,9 @@ const _LockingApp: ForwardRefRenderFunction<
       {details?.impactNFTDetails && (
         <div className="max-w-sm rounded shadow-lg">
           <ImpactNFT details={details.impactNFTDetails} />
-          <div className="px-6 py-4">
-            <div className="font-bold text-xl mb-2">Your Impact NFT</div>
-            <p className="text-gray-700 text-base">{lockText}</p>
-          </div>
-          <div className="px-6 pt-4 pb-2">
-            <LockDetailTag>
-              Locked -{" "}
-              {toFixedWithPrecision(
-                toSol(details.lockDetails?.amountLocked ?? ZERO)
-              )}{" "}
-              gSOL <TooltipPopover>{tooltips.lockCarbon}</TooltipPopover>
-            </LockDetailTag>
-            <LockDetailTag>
-              Yield accrued -{" "}
-              {toFixedWithPrecision(
-                toSol(details.lockDetails?.yield ?? ZERO),
-                3
-              )}{" "}
-              gSOL
-              <TooltipPopover>{tooltips.lockYield}</TooltipPopover>
-            </LockDetailTag>
-            <LockDetailTag>
-              Equivalent carbon price -{" "}
-              {toFixedWithPrecision(
-                solToCarbon(toSol(details.lockDetails?.yield ?? ZERO)),
-                3
-              )}{" "}
-              tCO₂E
-              <TooltipPopover>{tooltips.lockCarbon}</TooltipPopover>
-            </LockDetailTag>
-            {/* <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"> */}
-            {/*  Next level at -{" "} */}
-            {/*  TODO */}
-            {/*  gSol */}
-            {/* </span> */}
-          </div>
+          {details?.lockDetails && (
+            <LockDetailsView lockDetails={details.lockDetails} />
+          )}
         </div>
       )}
 
@@ -245,9 +187,15 @@ const _LockingApp: ForwardRefRenderFunction<
           <Panel className="flex flex-row mb-9 p-3 sm:p-4 rounded-lg">
             <Button
               color="primary"
-              className="mr-4"
-              disabled={!needsUpdate}
-              title="Upgrade your NFT to the next level after it has accrued enough yield"
+              className={clx(
+                "mr-4",
+                needsUpgrade && "animate-pulse",
+                !needsUpgrade && "brightness-75"
+              )}
+              title={upgradeTooltip(needsUpgrade)}
+              infoDisabled={!needsUpgrade}
+              disabledTitle="Come back later"
+              disabledMessage="Your impact NFT is not yet eligible for the next level."
               onClick={() => {
                 setIsBusyUpdate(true);
                 updateLockAccount().finally(() => {
@@ -263,8 +211,11 @@ const _LockingApp: ForwardRefRenderFunction<
             </Button>
             <Button
               color="secondary"
-              disabled={isBusyUnlock || !unlockAllowed}
+              className={clx(!unlockAllowed && "brightness-75")}
               title="Unlocking is allowed after one full epoch"
+              infoDisabled={isBusyUnlock || !unlockAllowed}
+              disabledTitle="Come back later"
+              disabledMessage="Locked gSOL can be unlocked after one full epoch (2-3 days)."
               onClick={() => {
                 setIsBusyUnlock(true);
                 unlock().finally(() => {

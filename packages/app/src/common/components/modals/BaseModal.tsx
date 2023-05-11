@@ -16,6 +16,7 @@ type Props = ModalProps & {
   children?: ReactNode;
   okEnabled?: boolean;
   showActions?: boolean;
+  cancelVisible?: boolean;
 };
 
 const BaseModal: FC<Props> = ({
@@ -24,6 +25,7 @@ const BaseModal: FC<Props> = ({
   cancel,
   okEnabled = true,
   showActions = true,
+  cancelVisible = true,
   show,
 }) => {
   const clickOk = (): void => {
@@ -73,14 +75,16 @@ const BaseModal: FC<Props> = ({
                   <div className="font-bold">Continue</div>{" "}
                   <FiArrowRight className="ml-2 scale-150" />
                 </Button>
-                <Button
-                  color="secondary"
-                  className="mt-3 items-center w-full justify-center hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
-                  onClick={clickCancel}
-                >
-                  <div className="font-bold">Cancel</div>{" "}
-                  <GiCancel className="ml-2" />
-                </Button>
+                {cancelVisible && (
+                  <Button
+                    color="secondary"
+                    className="mt-3 items-center w-full justify-center hover:opacity-70 sm:col-start-1 sm:mt-0 sm:text-sm"
+                    onClick={clickCancel}
+                  >
+                    <div className="font-bold">Cancel</div>{" "}
+                    <GiCancel className="ml-2" />
+                  </Button>
+                )}
               </div>
             )}
           </Dialog.Panel>

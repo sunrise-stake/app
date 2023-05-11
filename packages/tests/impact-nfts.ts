@@ -26,6 +26,8 @@ describe("Impact NFTs", () => {
 
   let impactNftClient: ImpactNftClient;
 
+  let expectedYield: number;
+
   before("register a new Sunrise state and impact nft state", async () => {
     // we need to register the sunrise state before we register impact nft state,
     // so that we can derive the impact nft mint authority PDA from the sunrise state
@@ -128,5 +130,41 @@ describe("Impact NFTs", () => {
     await waitForNextEpoch(client);
 
     await client.sendAndConfirmTransactions(await client.updateLockAccount());
+
+    const currentEpoch = await client.provider.connection.getEpochInfo();
+    const details = await client.details();
+
+    expectedYield = details.lockDetails!.yield.toNumber();
+    expect(details.lockDetails?.updatedToEpoch.toNumber()).to.equal(
+      currentEpoch.epoch
+    );
+    // the exact number varies depending on other tests
+    expect(expectedYield).to.be.greaterThan(110000000);
+  });
+
+  it("updating again has no effect", async () => {
+    await client.sendAndConfirmTransactions(await client.updateLockAccount());
+
+    const currentEpoch = await client.provider.connection.getEpochInfo();
+    const details = await client.details();
+
+    expect(details.lockDetails?.updatedToEpoch.toNumber()).to.equal(
+      currentEpoch.epoch
+    );
+    expect(details.lockDetails?.yield?.toNumber()).to.equal(expectedYield);
+  });
+
+  it("updating again after the next epoch has no effect if no more yield is added", async () => {
+    await waitForNextEpoch(client);
+
+    await client.sendAndConfirmTransactions(await client.updateLockAccount());
+
+    const currentEpoch = await client.provider.connection.getEpochInfo();
+    const details = await client.details();
+
+    expect(details.lockDetails?.updatedToEpoch.toNumber()).to.equal(
+      currentEpoch.epoch
+    );
+    expect(details.lockDetails?.yield?.toNumber()).to.equal(expectedYield);
   });
 });

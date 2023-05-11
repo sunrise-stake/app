@@ -12,7 +12,7 @@ import {
 
 import { SunriseClientWrapper } from "../sunriseClientWrapper";
 import { useLocation } from "react-router-dom";
-import { safeParsePublicKey } from "../utils";
+import { safeParsePublicKeyFromUrl } from "../utils";
 
 interface SunriseContextProps {
   client: SunriseClientWrapper | undefined;
@@ -58,7 +58,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     console.log("wallet changed", wallet);
-    const addressFromUrl = safeParsePublicKey(location.state?.address);
+    const addressFromUrl = safeParsePublicKeyFromUrl();
     if (wallet) {
       SunriseClientWrapper.init(
         connection,

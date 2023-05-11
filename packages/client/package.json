@@ -25,7 +25,7 @@
     "@project-serum/borsh": "^0.2.5",
     "@solana/spl-token": "^0.3.7",
     "@solana/web3.js": "^1.73.2",
-    "@sunrisestake/impact-nft-client": "0.0.3",
+    "@sunrisestake/impact-nft-client": "0.0.4",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
     "bn.js": "^5.2.1"
   },

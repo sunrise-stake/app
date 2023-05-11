@@ -6,6 +6,7 @@ import {
   findLockTokenAccount,
   getTokenAccountNullable,
   type SunriseStakeConfig,
+  ZERO,
 } from "./util";
 import {
   ComputeBudgetProgram,
@@ -39,6 +40,7 @@ export interface LockAccountSummary {
   tokenAccount: TokenAccount | null; // null if not yet created
   currentLevel: Level | null; // null if not yet created
   yieldToNextLevel: BN | null; // null if max level reached. 0 if not yet created
+  unrealizedYield: BN | null; // null if not yet created
 }
 
 interface ImpactNFTAccounts {
@@ -271,12 +273,13 @@ export class LockClient {
 
   // Return the amount of yield that needs to be accrued (in lamports) to reach the next level
   // Or null if the user is already at the max level, or if impact nfts are disabled
-  public getYieldToNextLevel(): BN | null {
+  public getYieldToNextLevel(currentLevel?: number): BN | null {
     if (!this.impactNFTClient || !this.impactNFTDetails) return null; // impact nfts are disabled
     if (!this.lockAccount) return this.impactNFTDetails.levels[0].offset; // should be 0 for the first level
 
     return this.impactNFTClient.getAmountToNextOffset(
-      this.lockAccount.yieldAccruedByOwner
+      this.lockAccount.yieldAccruedByOwner,
+      currentLevel
     );
   }
 
@@ -393,9 +396,13 @@ export class LockClient {
     return level.collectionMint;
   }
 
+  /**
+   * Given a lock account, calculate the amount of yield accrued since the last update.
+   */
   public async calculateUpdatedYieldAccrued(): Promise<BN> {
     if (!this.lockAccount) throw new Error("User has no lock account");
-    if (!this.lockTokenAccount) throw new Error("User has no lock account");
+    if (!this.lockTokenAccount)
+      throw new Error("User has no lock token account");
 
     const epochReportAccount = await getEpochReportAccount(
       this.config,
@@ -415,23 +422,12 @@ export class LockClient {
 
     const userLockedGsol = new BN(this.lockTokenAccount.amount.toString());
 
-    const userYieldAccrued = yieldAccruedWithUnstakeFee
-      .mul(userLockedGsol)
-      .div(epochReportAccount.currentGsolSupply);
+    const userYieldAccrued = epochReportAccount.currentGsolSupply.eq(ZERO)
+      ? ZERO
+      : yieldAccruedWithUnstakeFee
+          .mul(userLockedGsol)
+          .div(epochReportAccount.currentGsolSupply);
 
-    const updatedUserYieldAccrued =
-      this.lockAccount.yieldAccruedByOwner.add(userYieldAccrued);
-
-    console.log("user yield calculations", {
-      globalYieldAccrued: globalYieldAccruedSinceLastUpdate.toString(),
-      yieldAccruedByOwner: this.lockAccount.yieldAccruedByOwner.toString(),
-      yieldAccruedWithUnstakeFee: yieldAccruedWithUnstakeFee.toString(),
-      userLockedGsol: userLockedGsol.toString(),
-      currentGsolSupply: epochReportAccount.currentGsolSupply.toString(),
-      userYieldAccrued: userYieldAccrued.toString(),
-      updatedUserYieldAccrued: updatedUserYieldAccrued.toString(),
-    });
-
-    return updatedUserYieldAccrued;
+    return this.lockAccount.yieldAccruedByOwner.add(userYieldAccrued);
   }
 }

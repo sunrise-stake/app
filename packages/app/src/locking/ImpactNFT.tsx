@@ -1,17 +1,15 @@
 import { type FC } from "react";
-import { type Details } from "@sunrisestake/client";
+import { type ImpactNFTDetails } from "@sunrisestake/client";
 import { Spinner } from "../common/components";
 import { useNFTs } from "../common/context/NFTsContext";
 
-export const ImpactNFT: FC<{ details: Details["impactNFTDetails"] }> = ({
-  details,
-}) => {
-  const { nfts } = useNFTs({ mintAddress: details?.mint });
+export const ImpactNFT: FC<{ details: ImpactNFTDetails }> = ({ details }) => {
+  const { nfts } = useNFTs({ mintAddress: details.mint });
   const nft = nfts?.[0];
 
   return (
     <a
-      href={`https://solana.fm/address/${details?.mint.toBase58() ?? ""}`}
+      href={`https://solana.fm/address/${details.mint.toBase58()}`}
       target="_blank"
       rel="noreferrer"
     >

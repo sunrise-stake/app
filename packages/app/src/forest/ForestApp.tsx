@@ -119,6 +119,9 @@ const _ForestApp: ForwardRefRenderFunction<
     });
   }, [window.innerWidth]);
 
+  console.log("my tree", myTree);
+  console.log("neighbours", neighbours);
+
   return (
     <div
       className={clx("relative flex justify-center items-center", className)}

@@ -61,6 +61,12 @@ pub mod sunrise_stake {
         recover_tickets_handler(ctx)
     }
 
+    pub fn update_epoch_report<'info>(
+        ctx: Context<'_, '_, '_, 'info, UpdateEpochReport<'info>>,
+    ) -> Result<()> {
+        update_epoch_report_handler(ctx)
+    }
+
     pub fn extract_to_treasury(ctx: Context<ExtractToTreasury>) -> Result<()> {
         extract_to_treasury_handler(ctx)
     }

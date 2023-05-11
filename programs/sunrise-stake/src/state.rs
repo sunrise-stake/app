@@ -232,8 +232,8 @@ impl LockAccount {
             ErrorCode::LockAccountIncorrectOwner
         );
 
-        let yield_accrued = epoch_report_account
-            .all_extractable_yield()
+        let new_accrued_yield = epoch_report_account.all_extractable_yield();
+        let yield_accrued = new_accrued_yield
             .checked_sub(self.sunrise_yield_at_start)
             .unwrap();
 
@@ -258,6 +258,11 @@ impl LockAccount {
             .unwrap();
 
         msg!("yield_accrued_by_owner: {}", self.yield_accrued_by_owner);
+
+        // Update the sunrise yield at start - this name is a little confusing,
+        // but essentially each time the lock account is updated, we interpret this as a new
+        // lock period starting, and we set the sunrise yield at start to the current yield
+        self.sunrise_yield_at_start = new_accrued_yield;
 
         // we are updated to this epoch
         self.updated_to_epoch = Some(epoch_report_account.epoch);

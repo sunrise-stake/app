@@ -172,6 +172,7 @@ describe("sunrise-stake", () => {
           },
           state: client.env.state,
         },
+        verbose: Boolean(process.env.VERBOSE),
       }
     );
   });
@@ -517,8 +518,16 @@ describe("sunrise-stake", () => {
   });
 
   it("can recover previous epoch rebalance tickets by triggering a new rebalance", async () => {
-    const { extractableYield: yieldToExtractBefore } = await client.details();
+    const {
+      extractableYield: yieldToExtractBefore,
+      epochReport: epochReportBefore,
+    } = await client.details();
     log("yield to extract before", yieldToExtractBefore.toString());
+    log(
+      "yield to extract before (in epoch report)",
+      epochReportBefore.extractableYield.toString()
+    );
+    log("tickets to recover: ", epochReportBefore.tickets.toString());
     await client.report();
 
     await client.triggerRebalance();
@@ -526,7 +535,6 @@ describe("sunrise-stake", () => {
     const { extractableYield: yieldToExtractAfter } = await client.details();
     log("\n\n====================\n\n");
     log("yield to extract after", yieldToExtractAfter.toString());
-    await client.report();
 
     // the epoch report account has now been updated to the current epoch and all tickets have been claimed
     const currentEpoch =
@@ -535,6 +543,7 @@ describe("sunrise-stake", () => {
     expect(details.epochReport.epoch.toNumber()).to.equal(currentEpoch.epoch);
     expect(details.epochReport.tickets.toNumber()).to.equal(0);
     expect(details.epochReport.totalOrderedLamports.toNumber()).to.equal(0);
+    expect(details.epochReport.extractableYield.toNumber()).to.equal(0);
   });
 
   it("can detect yield to extract", async () => {
@@ -567,6 +576,25 @@ describe("sunrise-stake", () => {
     log("details", details);
 
     expectAmount(postBurnYieldToExtract, expectedYield, 50);
+  });
+
+  it("can update the epoch report to reflect the extractable yield", async () => {
+    // current epoch report shows zero extractable yield
+    let details = await client.details();
+    expect(details.epochReport.extractableYield.toNumber()).to.equal(0);
+
+    // update the epoch report
+    await client.updateEpochReport();
+
+    // now the epoch report reflects the yield
+    details = await client.details();
+    const reportedYield = details.epochReport.extractableYield;
+    // the on-chain recorded yield is not including the marinade withdrawal fee
+    // TODO fix
+    const reportedYieldLessFee = reportedYield.muln(997).divn(1000);
+    expect(reportedYieldLessFee.toNumber()).to.equal(
+      details.extractableYield.toNumber() // calculated on the client
+    );
   });
 
   it("cannot extract yield while the epoch report is still pointing to the previous epoch", async () => {

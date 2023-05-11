@@ -1,4 +1,4 @@
-use crate::instructions::{InitEpochReport, RecoverTickets};
+use crate::instructions::{InitEpochReport, RecoverTickets, UpdateEpochReport};
 use crate::{
     utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
     ClaimUnstakeTicket, Deposit, DepositStakeAccount, EpochReportAccount, ExtractToTreasury,
@@ -538,6 +538,26 @@ impl<'a> From<RecoverTickets<'a>> for CalculateExtractableYieldProperties<'a> {
 impl<'a> From<&RecoverTickets<'a>> for CalculateExtractableYieldProperties<'a> {
     fn from(recover_tickets: &RecoverTickets<'a>) -> Self {
         recover_tickets.to_owned().into()
+    }
+}
+impl<'a> From<UpdateEpochReport<'a>> for CalculateExtractableYieldProperties<'a> {
+    fn from(update_epoch_report: UpdateEpochReport<'a>) -> Self {
+        Self {
+            marinade_state: update_epoch_report.marinade_state,
+            blaze_state: update_epoch_report.blaze_state,
+            gsol_mint: update_epoch_report.gsol_mint,
+            liq_pool_mint: update_epoch_report.liq_pool_mint,
+            liq_pool_sol_leg_pda: update_epoch_report.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: update_epoch_report.liq_pool_msol_leg,
+            liq_pool_token_account: update_epoch_report.liq_pool_token_account,
+            get_msol_from: update_epoch_report.get_msol_from,
+            get_bsol_from: update_epoch_report.get_bsol_from,
+        }
+    }
+}
+impl<'a> From<&UpdateEpochReport<'a>> for CalculateExtractableYieldProperties<'a> {
+    fn from(update_epoch_report: &UpdateEpochReport<'a>) -> Self {
+        update_epoch_report.to_owned().into()
     }
 }
 /// Calculate the current recoverable yield (in msol) from marinade.
