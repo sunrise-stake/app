@@ -86,8 +86,7 @@ const Button: React.FC<ButtonProps> = ({
       <InfoModal
         title={disabledTitle}
         message={disabledMessage}
-        ok={infoModal.onModalOK}
-        show={infoModal.modalShown}
+        modalControl={infoModal}
       />
       {children}
     </button>

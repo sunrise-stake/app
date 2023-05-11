@@ -1,5 +1,5 @@
 {
-  "installCommand": "yarn install --network-concurrency 10",
+  "installCommand": "yarn install --network-concurrency 2",
   "buildCommand": "yarn build",
   "outputDirectory": "packages/app/build"
 }

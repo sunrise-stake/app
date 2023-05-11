@@ -2,13 +2,23 @@ import { Dialog } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import React, { type FC, type PropsWithChildren } from "react";
 
-import { BaseModal, type ModalProps } from "./";
+import { BaseModal } from "./";
+import { type ModalControl } from "../../hooks";
 
-type InfoModalProps = { title: string; message?: string } & PropsWithChildren &
-  Omit<ModalProps, "cancel">;
+type InfoModalProps = {
+  title: string;
+  message?: string;
+  modalControl: ModalControl;
+} & PropsWithChildren;
 const InfoModal: FC<InfoModalProps> = (props) => {
   return (
-    <BaseModal cancelVisible={false} {...props} cancel={() => {}}>
+    <BaseModal
+      cancelVisible={false}
+      {...props}
+      ok={props.modalControl.onModalOK}
+      cancel={props.modalControl.onModalClose}
+      show={props.modalControl.modalShown}
+    >
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full">
         <ExclamationTriangleIcon
           className="w-8"
