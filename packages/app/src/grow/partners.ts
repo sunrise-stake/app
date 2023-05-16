@@ -10,4 +10,9 @@ export const partners = [
     imageUrl: "partners/drip.jpeg",
     internal: true,
   },
+  {
+    name: "Coinable",
+    website: "https://coinablepay.com/",
+    imageUrl: "partners/coinable.svg",
+  },
 ];

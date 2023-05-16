@@ -15,6 +15,7 @@ const ExternalPartner: FC<PartnerProps> = ({ children, partner }) => (
         ? {
             backgroundImage: `url(${partner.imageUrl})`,
             backgroundColor: "grey",
+            backgroundSize: "contain",
           }
         : {
             backgroundColor: "white",
@@ -34,6 +35,7 @@ const InternalPartner: FC<PartnerProps> = ({ children, partner }) => (
         ? {
             backgroundImage: `url(${partner.imageUrl})`,
             backgroundColor: "grey",
+            backgroundSize: "contain",
           }
         : {
             backgroundColor: "white",
