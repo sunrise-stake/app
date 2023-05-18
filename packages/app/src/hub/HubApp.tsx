@@ -240,7 +240,7 @@ const _HubApp: ForwardRefRenderFunction<
             )}
           >
             <Link to="/forest" className="flex items-center">
-              <div className="flex items-center nowrap text-lg">
+              <div className="flex items-center nowrap text-2xl">
                 <IoChevronBackOutline
                   className="inline"
                   size={LINK_CHEVRON_SIZE}
@@ -249,12 +249,13 @@ const _HubApp: ForwardRefRenderFunction<
               </div>
             </Link>
             <Link to="/grow" className="flex items-center">
-              <div className="flex items-center nowrap text-lg">
+              <div className="flex items-center nowrap text-2xl relative">
                 <span>Grow</span>
                 <IoChevronForwardOutline
                   className="inline"
                   size={LINK_CHEVRON_SIZE}
                 />
+                {showAlerts && <MangroveIcon />}
               </div>
             </Link>
           </div>

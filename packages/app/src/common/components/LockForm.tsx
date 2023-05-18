@@ -10,10 +10,9 @@ import { LockWarningModal } from "./modals/LockWarningModal";
 import { useInfoModal } from "../hooks/useInfoModal";
 import { MangroveFormButton } from "../../rewards/components/MangroveFormButton";
 import { InfoModal } from "./modals/InfoModal";
-// import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
-const LOCK_REWARD_AMOUNT = new BN("1000");
-// const LOCK_REWARD_AMOUNT = new BN(LAMPORTS_PER_SOL); // 1 SOL in lamports
+const LOCK_REWARD_AMOUNT = new BN(LAMPORTS_PER_SOL); // 1 SOL in lamports
 
 interface LockFormProps {
   lock: (amount: string) => Promise<any>;

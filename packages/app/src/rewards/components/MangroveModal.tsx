@@ -18,7 +18,7 @@ export const MangroveModal: FC<Props> = ({ control }) => (
       <img
         src={mangrove}
         alt="Mangrove Reward"
-        className="w-1/3 h-auto object-cover"
+        className="hidden sm:block w-1/3 h-auto object-cover"
       />
       <div className="flex flex-col text-md gap-2 pl-2 text-start">
         <p>
