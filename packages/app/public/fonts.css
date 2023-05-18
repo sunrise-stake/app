@@ -1,0 +1,16 @@
+@font-face {
+  font-display: swap;
+  font-family: 'Titillium Web';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/titillium-web-v15-latin-regular.woff2') format('woff2'),
+       url('/fonts/titillium-web-v15-latin-regular.woff') format('woff');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Titillium Web';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/titillium-web-v15-latin-700.woff2') format('woff2'),
+       url('/fonts/titillium-web-v15-latin-700.woff') format('woff');
+}
