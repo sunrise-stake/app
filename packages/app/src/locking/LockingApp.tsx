@@ -27,6 +27,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useNFTs } from "../common/context/NFTsContext";
 import { LockDetailsView } from "./LockDetails";
 import { detailsIndicateUpgradePossible } from "./utils";
+import { MangroveButton } from "../rewards/components/MangroveButton";
 
 // one full epoch has passed since the lock was created
 const canBeUnlocked = (details: Details | undefined): boolean => {
@@ -167,10 +168,13 @@ const _LockingApp: ForwardRefRenderFunction<
         <DynamicTree details={myTree} variant="sm" />
       )}
       {details?.lockDetails === undefined && (
-        <div className="mb-3">
+        <div className="mb-3 justify-center content-center items-center">
           <h1 className="font-bold text-green-light text-3xl text-center">
             Lock gSOL to receive an Impact NFT
           </h1>
+          <div className={"flex flex-col items-center mt-4"}>
+            <MangroveButton />
+          </div>
         </div>
       )}
       {details?.impactNFTDetails && (
