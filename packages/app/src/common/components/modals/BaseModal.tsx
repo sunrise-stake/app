@@ -52,7 +52,7 @@ const BaseModal: FC<Props> = ({
         className="fixed z-30 inset-0 overflow-y-auto backdrop-blur-sm"
       >
         <div className="flex min-h-full items-center justify-center p-4 sm:items-center sm:p-0 text-center">
-          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 text-left bg-[#fbf7ee] shadow-xl sm:my-8 w-full sm:max-w-lg sm:p-6">
+          <Dialog.Panel className="overflow-hidden rounded-lg px-4 pt-5 pb-4 text-left bg-[#f6f6f6] shadow-xl sm:my-8 w-full sm:max-w-lg sm:p-6">
             <div className="-mt-4 py-4 flex justify-end">
               <button onClick={clickCancel}>
                 <IoCloseCircleOutline size={40} />
