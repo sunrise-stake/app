@@ -22,39 +22,22 @@ export const MangroveModal: FC<Props> = ({ control }) => (
       />
       <div className="flex flex-col text-md gap-2 pl-2 text-start">
         <p>
-          Sunrise has teamed up with{" "}
+          Sunrise is airdropping mangrove NFTs to users. Each mangrove NFT
+          represents 1 mangrove tree that will be planted by{" "}
           <a
             className="font-bold"
             href="https://panasea.io/"
             target="_blank"
             rel="noreferrer"
           >
-            Panasea
-          </a>{" "}
-          and{" "}
-          <a
-            className="font-bold"
-            href="https://coinablepay.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Coinable
-          </a>{" "}
-          to plant mangroves in Costa Rica.
-        </p>
-        <p>
-          You can get your own mangrove NFT{" "}
-          <a className="font-bold" href="https://coinablepay.com/store/panasea">
-            here
+            PanaSea
           </a>
+          .
         </p>
         <h2 className="text-lg text-green font-bold pt-5">
           Claim your Mangrove!
         </h2>
-        <p>
-          As a Sunrise user, we are proud to buy a mangrove in your name! To
-          claim your NFT, you need to:
-        </p>
+        <p>To be eligible for a mangrove NFT you can either:</p>
         <p className="ml-5">
           <ul className="justify-start list-disc">
             <li>
@@ -68,21 +51,21 @@ export const MangroveModal: FC<Props> = ({ control }) => (
               at least 1 gSOL
             </li>
             <li>
-              or{" "}
               <Link
                 to="/grow"
                 className="font-bold"
                 onClick={control.onModalClose}
               >
-                donate
+                Donate
               </Link>{" "}
-              at least 0.05 gSOL ($1) to an impact organisation
+              at least 0.05 gSOL <span className="font-serif">(~$1)</span> to an
+              impact organisation
             </li>
           </ul>
         </p>
         <p>
-          and fill in a short form, before June 8th, to be airdropped an NFT
-          representing one planted mangrove
+          and filling in a short form{" "}
+          <span className="font-bold">before June 8th.</span>
         </p>
         <MangroveDetails />
       </div>

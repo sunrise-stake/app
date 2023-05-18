@@ -70,8 +70,13 @@ const MangroveDetails: FC<Props> = ({ className }) => {
         </p>
         <p>
           For more details, visit{" "}
-          <a href="https://panasea.io/" target="_blank" rel="noreferrer">
-            Panasea
+          <a
+            className="font-bold"
+            href="https://panasea.io/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            PanaSea
           </a>
         </p>
       </div>
