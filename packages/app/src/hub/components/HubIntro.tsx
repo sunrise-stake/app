@@ -6,6 +6,7 @@ import { Button, CarbonRecovered } from "../../common/components";
 import { Link } from "react-router-dom";
 import { LogoIcon, LogoText } from "../../common/components/Logo";
 import { FaGlobeAmericas } from "react-icons/fa";
+import { MangroveButton } from "../../rewards/components/MangroveButton";
 
 const HubIntro: FC<{
   show: boolean;
@@ -89,6 +90,7 @@ const HubIntro: FC<{
           Start reducing CO<sub>2</sub>&nbsp;emissions
         </WalletMultiButton>
         <div className="mt-6">
+          <MangroveButton />
           <Link to="/earthday">
             <Button color="primary" variant="outline">
               <FaGlobeAmericas />

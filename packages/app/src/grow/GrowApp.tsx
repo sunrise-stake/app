@@ -24,6 +24,7 @@ import { charityApps } from "./charities";
 import { partners } from "./partners";
 import { PartnerButton } from "./components/PartnerButton";
 import { OrgButtonContent } from "./OrgButtonContent";
+import { MangroveButton } from "../rewards/components/MangroveButton";
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
   <div className="transition-all text-xl font-medium text-center text-green hover:text-green-light border border-green hover:border-green-light p-8 rounded-md w-40 h-40 hover:scale-105 hover:brightness-105">
@@ -83,6 +84,7 @@ const _GrowApp: ForwardRefRenderFunction<
           Grow your forest
         </h1>
       </div>
+      <MangroveButton />
       <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
         Use gSOL with our partners.
       </h2>
