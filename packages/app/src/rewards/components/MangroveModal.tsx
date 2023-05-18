@@ -64,7 +64,7 @@ export const MangroveModal: FC<Props> = ({ control }) => (
           </ul>
         </p>
         <p>
-          and filling in a short form{" "}
+          and fill in a short form{" "}
           <span className="font-bold">before June 8th.</span>
         </p>
         <MangroveDetails />
