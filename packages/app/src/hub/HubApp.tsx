@@ -24,6 +24,7 @@ import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { AlertBadge } from "../common/content/Badge";
 import { useLockHubDetails } from "./hooks/useLockHubDetails";
+import { MangroveIcon } from "../rewards/components/MangroveIcon";
 
 const LINK_CHEVRON_SIZE = 32;
 
@@ -41,6 +42,8 @@ const _HubApp: ForwardRefRenderFunction<
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
+  const [showAlerts, updateShowAlerts] = useState(false);
+
   const wasHubNavShown = useRef(false);
   const showWalletButton = useMemo(() => {
     return wallet.connected && showHubNav;
@@ -120,6 +123,21 @@ const _HubApp: ForwardRefRenderFunction<
     });
   }, [active, currentHelpRoute, showHubNav, showWalletButton]);
 
+  // show alerts 3s after hub nav is shown
+  useEffect(() => {
+    if (!showHubNav) {
+      updateShowAlerts(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      updateShowAlerts(showHubNav);
+    }, 3000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [showHubNav]);
+
   return (
     <div
       className={clx(
@@ -178,12 +196,13 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <div className="flex items-center nowrap text-2xl">
+            <div className="flex relative items-center nowrap text-2xl">
               <span>Grow</span>
               <IoChevronForwardOutline
                 className="inline"
                 size={LINK_CHEVRON_SIZE}
               />
+              {showAlerts && <MangroveIcon />}
             </div>
           </Link>
         </div>
@@ -249,6 +268,7 @@ const _HubApp: ForwardRefRenderFunction<
               <div className="relative inline-block">
                 <span className="text-2xl">Lock</span>
                 {showLockAlert && <AlertBadge />}
+                {showAlerts && <MangroveIcon />}
               </div>
               <br />
               <IoChevronDownOutline

@@ -28,6 +28,12 @@ import { CurrencySelect } from "../CurrencySelect";
 import { useSolBalance } from "../../hooks/useSolBalance";
 import { MdInfo } from "react-icons/md";
 
+interface SendDetails {
+  amount: BN;
+  recipient: PublicKey;
+  txSig?: string;
+}
+
 interface SendGSolModalProps {
   children?: ReactNode;
   className?: string;
@@ -37,7 +43,7 @@ interface SendGSolModalProps {
     imageUrl?: string;
     website?: string;
   };
-  onSend?: () => void;
+  onSend?: (sendDetails: SendDetails) => void;
 }
 const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   className = "",
@@ -68,9 +74,9 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
     [setRecipient]
   );
 
-  const transferGSol = useCallback(async (): Promise<void> => {
+  const transferGSol = useCallback(async (): Promise<string | null> => {
     if (!senderPubkey || !details || !recipient) {
-      return;
+      return null;
     }
     const mint = new PublicKey(details.sunriseStakeConfig.gsolMint);
 
@@ -116,14 +122,20 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
           message: "Transfer successful",
           txid: tx,
         });
+        return tx;
       })
-      .catch(handleError);
+      .catch((error) => {
+        handleError(error);
+        return null;
+      });
     console.log("Transfer signature:", signature);
+
+    return signature;
   }, [recipient, amount, senderPubkey, details, sendTransaction]);
 
-  const depositGSol = useCallback(async (): Promise<void> => {
+  const depositGSol = useCallback(async (): Promise<string | null> => {
     if (!client || !recipient) {
-      return;
+      return null;
     }
 
     const signature = await client
@@ -136,15 +148,19 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
         });
         return txSig;
       })
-      .catch(handleError);
+      .catch((error) => {
+        handleError(error);
+        return null;
+      });
     console.log("Transfer signature:", signature);
+    return signature;
   }, [recipient, amount, client, sendTransaction]);
 
-  const send = useCallback(async (): Promise<void> => {
+  const send = useCallback(async (): Promise<string | null> => {
     if (currency === "gSOL") {
-      await transferGSol();
+      return transferGSol();
     } else {
-      await depositGSol();
+      return depositGSol();
     }
   }, [currency, transferGSol, depositGSol]);
 
@@ -223,10 +239,15 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
                 onClick={() => {
                   setIsBusy(true);
                   send()
-                    .then(() => {
+                    .then((txSig) => {
                       setIsBusy(false);
                       props.ok();
-                      if (onSend) onSend();
+                      if (onSend && txSig !== null && recipient !== undefined)
+                        onSend({
+                          recipient: recipient.address,
+                          amount: solToLamports(amount),
+                          txSig,
+                        });
                     })
                     .catch(() => {
                       setIsBusy(false);
