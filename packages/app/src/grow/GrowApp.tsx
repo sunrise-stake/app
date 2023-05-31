@@ -8,7 +8,7 @@ import React, {
 import clx from "classnames";
 import { Link, useNavigate } from "react-router-dom";
 import { useZenMode } from "../common/context/ZenModeContext";
-import { useModal, useScript } from "../common/hooks";
+import { useModal } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
@@ -24,7 +24,6 @@ import { charityApps } from "./charities";
 import { partners } from "./partners";
 import { PartnerButton } from "./components/PartnerButton";
 import { OrgButtonContent } from "./OrgButtonContent";
-import { MangroveButton } from "../rewards/components/MangroveButton";
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
   <div className="transition-all text-xl font-medium text-center text-green hover:text-green-light border border-green hover:border-green-light p-8 rounded-md w-40 h-40 hover:scale-105 hover:brightness-105">
@@ -38,8 +37,6 @@ const _GrowApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
-
-  useScript("//embed.typeform.com/next/embed.js");
 
   const { myTree } = useForest();
 
@@ -84,7 +81,6 @@ const _GrowApp: ForwardRefRenderFunction<
           Grow your forest
         </h1>
       </div>
-      <MangroveButton />
       <h2 className="flex font-bold text-xl items-center gap-4 mb-4 text-green">
         Use gSOL with our partners.
       </h2>

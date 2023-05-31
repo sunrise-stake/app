@@ -4,7 +4,6 @@ export * from "./CarbonRecovered";
 export * from "./DetailsBox";
 export * from "./InfoBox";
 export * from "./LockedGSol";
-export * from "./LockForm";
 export * from "./Logo";
 export * from "./Panel";
 export * from "./Spinner";
