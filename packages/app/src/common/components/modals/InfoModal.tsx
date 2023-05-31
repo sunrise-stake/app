@@ -15,6 +15,7 @@ type InfoModalProps = {
   modalControl: ModalControl;
   icon?: JSX.Element;
   showActions?: boolean;
+  ok?: () => void;
 } & PropsWithChildren;
 const InfoModal: FC<InfoModalProps> = ({
   icon = <DefaultIcon />,
@@ -23,7 +24,7 @@ const InfoModal: FC<InfoModalProps> = ({
   <BaseModal
     cancelVisible={false}
     {...props}
-    ok={props.modalControl.onModalOK}
+    ok={props.ok ?? props.modalControl.onModalOK}
     cancel={props.modalControl.onModalClose}
     show={props.modalControl.modalShown}
   >

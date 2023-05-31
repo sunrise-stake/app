@@ -2,17 +2,11 @@ import BN from "bn.js";
 import React, { useState } from "react";
 import { FiArrowDownLeft } from "react-icons/fi";
 
-import { useSunriseStake } from "../context/sunriseStakeContext";
-import { solToLamports, ZERO } from "../utils";
-import { AmountInput, Button, Panel, Spinner } from "./";
-import { useModal } from "../hooks";
-import { LockWarningModal } from "./modals/LockWarningModal";
-import { useInfoModal } from "../hooks/useInfoModal";
-import { MangroveFormButton } from "../../rewards/components/MangroveFormButton";
-import { InfoModal } from "./modals/InfoModal";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-
-const LOCK_REWARD_AMOUNT = new BN(LAMPORTS_PER_SOL); // 1 SOL in lamports
+import { useSunriseStake } from "../common/context/sunriseStakeContext";
+import { useModal } from "../common/hooks";
+import { ZERO } from "../common/utils";
+import { AmountInput, Button, Panel, Spinner } from "../common/components";
+import { LockWarningModal } from "../common/components/modals/LockWarningModal";
 
 interface LockFormProps {
   lock: (amount: string) => Promise<any>;
@@ -24,17 +18,10 @@ const LockForm: React.FC<LockFormProps> = ({ lock }) => {
   const [isBusy, setIsBusy] = useState(false);
   const lockModal = useModal(() => {
     setIsBusy(true);
-    lock(amount)
-      .then(() => {
-        if (solToLamports(amount).gte(LOCK_REWARD_AMOUNT)) {
-          lockRewardModal.trigger();
-        }
-      })
-      .finally(() => {
-        setIsBusy(false);
-      });
+    lock(amount).finally(() => {
+      setIsBusy(false);
+    });
   });
-  const lockRewardModal = useInfoModal();
 
   return (
     <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl">
@@ -43,13 +30,6 @@ const LockForm: React.FC<LockFormProps> = ({ lock }) => {
         cancel={lockModal.onModalClose}
         show={lockModal.modalShown}
       />
-      <InfoModal
-        title="Well done!"
-        modalControl={lockRewardModal}
-        showActions={false}
-      >
-        <MangroveFormButton />
-      </InfoModal>
       <AmountInput
         className="mr-4 basis-3/4"
         token="gSOL"

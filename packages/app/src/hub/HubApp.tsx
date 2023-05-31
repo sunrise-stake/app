@@ -202,7 +202,6 @@ const _HubApp: ForwardRefRenderFunction<
                 className="inline"
                 size={LINK_CHEVRON_SIZE}
               />
-              {showAlerts && <MangroveIcon />}
             </div>
           </Link>
         </div>
@@ -255,7 +254,6 @@ const _HubApp: ForwardRefRenderFunction<
                   className="inline"
                   size={LINK_CHEVRON_SIZE}
                 />
-                {showAlerts && <MangroveIcon />}
               </div>
             </Link>
           </div>
