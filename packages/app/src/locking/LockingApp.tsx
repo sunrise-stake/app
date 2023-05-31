@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { Button, LockForm, Panel, Spinner } from "../common/components";
+import { Button, Panel, Spinner } from "../common/components";
 import {
   NotificationType,
   notifyTransaction,
@@ -28,6 +28,10 @@ import { useNFTs } from "../common/context/NFTsContext";
 import { LockDetailsView } from "./LockDetails";
 import { detailsIndicateUpgradePossible } from "./utils";
 import { MangroveButton } from "../rewards/components/MangroveButton";
+import { useScript } from "../common/hooks";
+import { LockForm } from "./LockForm";
+import { LockingSuccessModal } from "./LockingSuccessModal";
+import { useInfoModal } from "../common/hooks/useInfoModal";
 
 // one full epoch has passed since the lock was created
 const canBeUnlocked = (details: Details | undefined): boolean => {
@@ -51,6 +55,7 @@ const _LockingApp: ForwardRefRenderFunction<
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
   const { refresh } = useNFTs();
+  useScript("//embed.typeform.com/next/embed.js");
 
   const navigate = useNavigate();
   const wallet = useWallet();
@@ -77,6 +82,7 @@ const _LockingApp: ForwardRefRenderFunction<
     [details]
   );
   const unlockAllowed = useMemo(() => canBeUnlocked(details), [details]);
+  const [amount, setAmount] = useState("");
 
   const handleError = (error: Error): void => {
     notifyTransaction({
@@ -89,9 +95,13 @@ const _LockingApp: ForwardRefRenderFunction<
 
   const lock = async (amount: string): Promise<void> => {
     if (!client) return Promise.reject(new Error("Client not initialized"));
+
+    setAmount(amount);
+
     return client
       .lockGSol(solToLamports(amount))
       .then((txes) => {
+        lockingSucessModalControl.trigger();
         refresh().catch(console.error); // refresh NFTs so that the impact NFT shows up
         txes.forEach((tx: string, index) => {
           notifyTransaction({
@@ -138,6 +148,7 @@ const _LockingApp: ForwardRefRenderFunction<
       })
       .catch(handleError);
   };
+  const lockingSucessModalControl = useInfoModal();
 
   return (
     <div
@@ -148,6 +159,10 @@ const _LockingApp: ForwardRefRenderFunction<
       ref={ref}
       {...rest}
     >
+      <LockingSuccessModal
+        control={lockingSucessModalControl}
+        amount={amount}
+      />
       {(!client || loading) && (
         <div className="flex flex-col items-center m-4">
           <h1 className="text-3xl text-center">Loading...</h1>

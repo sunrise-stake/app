@@ -2,10 +2,7 @@ import { Transition } from "@headlessui/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
-import { Button, CarbonRecovered } from "../../common/components";
-import { Link } from "react-router-dom";
-import { LogoIcon, LogoText } from "../../common/components/Logo";
-import { FaGlobeAmericas } from "react-icons/fa";
+import { CarbonRecovered, LogoIcon, LogoText } from "../../common/components";
 import { MangroveButton } from "../../rewards/components/MangroveButton";
 
 const HubIntro: FC<{
@@ -91,12 +88,6 @@ const HubIntro: FC<{
         </WalletMultiButton>
         <div className="mt-6">
           <MangroveButton />
-          <Link to="/earthday">
-            <Button color="primary" variant="outline">
-              <FaGlobeAmericas />
-              &nbsp;Earth Day Special ➜
-            </Button>
-          </Link>
         </div>
         <CarbonRecovered />
       </Transition.Child>
