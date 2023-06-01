@@ -87,8 +87,7 @@
   },
   "devDependencies": {
     "@marinade.finance/marinade-ts-sdk": "^4.0.4",
-    "cross-env": "^7.0.3",
-    "webpack": "^5.82.1"
+    "cross-env": "^7.0.3"
   },
   "browser": {
     "tls": false
