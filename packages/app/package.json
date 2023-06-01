@@ -38,7 +38,6 @@
     "crypto-browserify": "^3.12.0",
     "dayjs": "^1.11.7",
     "dotenv-cli": "^6.0.0",
-    "eslint-config-standard-with-typescript": "^34.0.1",
     "https-browserify": "^1.0.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
