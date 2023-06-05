@@ -120,7 +120,7 @@ Until sufficient liquidity is present on Solana for NCT, Sunrise is maintaining 
 
 Install [solana](https://docs.solana.com/cli/install-solana-cli-tools).
 
-This project uses node v16.18 and yarn v1
+This project uses node v18 and yarn v1
 If you have [nvm](https://github.com/nvm-sh/nvm) installed,
 you can run `nvm use` to switch to the correct version, and `nvm install` to install it.
 
