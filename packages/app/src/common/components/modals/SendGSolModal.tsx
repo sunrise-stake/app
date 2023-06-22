@@ -1,4 +1,11 @@
-import { type FC, useCallback, useMemo, useState, type ReactNode } from "react";
+import {
+  type FC,
+  useCallback,
+  useMemo,
+  useState,
+  type ReactNode,
+  useEffect,
+} from "react";
 
 import { BaseModal, type ModalProps } from "./";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -27,6 +34,7 @@ import { NotificationType, notifyTransaction } from "../notifications";
 import { CurrencySelect } from "../CurrencySelect";
 import { useSolBalance } from "../../hooks/useSolBalance";
 import { MdInfo } from "react-icons/md";
+import { useAddressLookup } from "../../hooks/useAddressLookup";
 
 interface SendDetails {
   amount: BN;
@@ -61,17 +69,37 @@ const SendGSolModal: FC<ModalProps & SendGSolModalProps> = ({
   const [recipient, setRecipient] = useState(recipientFromProps);
   const [currency, setCurrency] = useState<"gSOL" | "SOL">("SOL");
   const solBalance = useSolBalance();
+  const [inputValue, setInputValue] = useState("");
+  const output = useAddressLookup(inputValue);
+  const { resolvedDomain, errorMessage } = output;
+
+  console.log("resolved domain error", errorMessage);
+
+  // 0x9f05e05E331fF3d5210e3Ea6a1b0929529588c82
+  // AD4FEF6XUkbDMrGPuzmjzc7aAG6xvFeGJ5aaesnhDGjT
+
+  useEffect(() => {
+    const address = safeParsePublicKey(resolvedDomain);
+    console.log("address is ", address);
+    if (address) {
+      setRecipient({
+        address,
+      });
+    }
+  }, [setRecipient, resolvedDomain]);
 
   const updateRecipientFromForm = useCallback(
     (addressString: string) => {
-      const address = safeParsePublicKey(addressString);
-      if (address) {
-        setRecipient({
-          address,
-        });
-      }
+      setInputValue(addressString);
+      // const address = safeParsePublicKey(addressString);
+      // console.log("address is ", address);
+      // if (address) {
+      //   setRecipient({
+      //     address,
+      //   });
+      // }
     },
-    [setRecipient]
+    [setRecipient, resolvedDomain]
   );
 
   const transferGSol = useCallback(async (): Promise<string | null> => {

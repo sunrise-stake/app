@@ -8,6 +8,7 @@
     "@heroicons/react": "^2.0.13",
     "@metaplex-foundation/js": "^0.18.3",
     "@popperjs/core": "^2.11.6",
+    "@portal-payments/solana-wallet-names": "^2.0.4",
     "@solana/spl-token": "^0.3.6",
     "@solana/wallet-adapter-base": "^0.9.22",
     "@solana/wallet-adapter-react": "^0.15.30",
