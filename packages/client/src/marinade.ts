@@ -16,19 +16,19 @@ import {
   findOrderUnstakeTicketAccount,
   getValidatorIndex,
   type SunriseStakeConfig,
-} from "./util";
+} from "./util.js";
 import {
   type Marinade,
   type MarinadeState,
   MarinadeUtils,
 } from "@sunrisestake/marinade-ts-sdk";
 import { type Program, utils } from "@coral-xyz/anchor";
-import { type BlazeState } from "./types/Solblaze";
-import { type SunriseStake } from "./types/sunrise_stake";
+import { type BlazeState } from "./types/Solblaze.js";
+import { type SunriseStake } from "./types/sunrise_stake.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
-import { STAKE_POOL_PROGRAM_ID } from "./constants";
-import { type EpochReportAccount } from "./types/EpochReportAccount";
+import { STAKE_POOL_PROGRAM_ID } from "./constants.js";
+import { type EpochReportAccount } from "./types/EpochReportAccount.js";
 
 // export type EpochReportAccount =
 //   IdlAccounts<SunriseStake>["epochReportAccount"];

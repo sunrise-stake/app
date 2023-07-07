@@ -1,6 +1,6 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
-import "./util";
-import {Environment, SunriseStakeClient} from "../client/src";
+import "./util.js";
+import {Environment, SunriseStakeClient} from "../client/src/index.js";
 
 // Used in devnet and for local testing
 const defaultTreasuryKey = "stdeYBs3MUtQN7zqgAQaxvsYemxncJKNDMJhciHct9M";

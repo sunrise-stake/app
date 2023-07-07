@@ -1,19 +1,19 @@
 {
   "name": "@sunrisestake/client",
-  "version": "0.1.7",
+  "version": "0.1.17.module.2",
   "description": "Sunrise Stake Client",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "type": "commonjs",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     }
   },
   "scripts": {
-    "build": "rimraf dist; tsup",
+    "build": "rimraf dist; tsc --module es2015 --target es5 --outDir dist/esm; tsc --module commonjs --target es5 --outDir dist/cjs && yarn typedoc",
     "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx src"
   },
   "files": [
@@ -25,12 +25,13 @@
     "@project-serum/borsh": "^0.2.5",
     "@solana/spl-token": "^0.3.7",
     "@solana/web3.js": "^1.73.2",
-    "@sunrisestake/impact-nft-client": "0.0.4",
+    "@sunrisestake/impact-nft-client": "0.0.5-module.4",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
     "bn.js": "^5.2.1"
   },
   "devDependencies": {
-    "rimraf": "^4.1.2",
-    "tsup": "^6.6.3"
+    "rimraf": "^5.0.1",
+    "tsup": "^6.6.3",
+    "typedoc": "^0.24.8"
   }
 }

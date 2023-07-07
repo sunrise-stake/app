@@ -1,4 +1,7 @@
-import { type SunriseStakeClient, getStakePoolAccount } from "../client/src";
+import {
+  type SunriseStakeClient,
+  getStakePoolAccount,
+} from "../client/src/index.js";
 import {
   Keypair,
   type PublicKey,
@@ -168,7 +171,7 @@ export const networkFeeForConfirmedTransaction = async (
     txSig,
     "confirmed"
   );
-  return tx!.meta!.fee;
+  return tx?.meta!.fee;
 };
 
 export const log = (...args: any[]) => {

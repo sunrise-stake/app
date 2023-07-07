@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import "../util";
-import { SunriseStakeClient } from "../../client/src";
-import { getMetadataAddress, metadata, provider, uploadMetadata } from "./util";
+import "../util.js";
+import { SunriseStakeClient } from "../../client/src/index.js";
+import { getMetadataAddress, metadata, provider, uploadMetadata } from "./util.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
-import { findGSolMintAuthority } from "../../client/src/util";
-import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
+import { findGSolMintAuthority } from "../../client/src/util.js";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 (async () => {
   const client = await SunriseStakeClient.get(
       provider,
-      process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork|| 'devnet',
+      (process.env.REACT_APP_SOLANA_NETWORK || 'devnet') as WalletAdapterNetwork,
   );
 
   const [gsolMintAuthority] = findGSolMintAuthority(client.config!);

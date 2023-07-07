@@ -1,10 +1,10 @@
 import { Keypair, LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
-import { SunriseStakeClient, Environment } from "../client/src";
-import { burnGSol, waitForNextEpoch } from "./util";
+import { SunriseStakeClient, Environment } from "../client/src/index.js";
+import { burnGSol, waitForNextEpoch } from "./util.js";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { depositLamports, lockLamports } from "./constants";
-import { findImpactNFTMintAuthority } from "../client/src/util";
+import { depositLamports, lockLamports } from "./constants.js";
+import { findImpactNFTMintAuthority } from "../client/src/util.js";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
 import BN from "bn.js";
 import levels from "./impactNFTLevels.json";

@@ -7,20 +7,21 @@ import {
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, BN } from "@coral-xyz/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 import {
   type MarinadeState,
   MarinadeUtils,
   Provider,
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
-import { type Details } from "./types/Details";
-import { type EnvironmentConfig, MAX_NUM_PRECISION } from "./constants";
+import { type Details } from "./types/Details.js";
+import { type EnvironmentConfig, MAX_NUM_PRECISION } from "./constants.js";
 import {
   getAccount,
   getAssociatedTokenAddressSync,
   type Account as TokenAccount,
 } from "@solana/spl-token";
+import BN from "bn.js";
 
 // zero bn number
 export const ZERO = new BN(0);

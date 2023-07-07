@@ -1,6 +1,6 @@
 import { type WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { PublicKey } from "@solana/web3.js";
-import { type EpochReportAccount } from "./types/EpochReportAccount";
+import { type EpochReportAccount } from "./types/EpochReportAccount.js";
 import BN from "bn.js";
 
 export const MAX_NUM_PRECISION = 5;
