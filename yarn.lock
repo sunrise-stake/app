@@ -4225,29 +4225,6 @@
     eventemitter3 "^4.0.7"
     uuid "^8.3.2"
 
-"@sunrisestake/client@*":
-  version "0.1.16"
-  resolved "https://registry.yarnpkg.com/@sunrisestake/client/-/client-0.1.16.tgz#8f7d40a99da19f4831f6490a30927615778bf863"
-  integrity sha512-ggGNIXcIIVhscoCLTVUPLSZtee/FRF6c/TWSBbK89lJsy5GXeKBcrJVn67s6kvBJuzcy5VkQuJG7ytXuCVw0OQ==
-  dependencies:
-    "@coral-xyz/anchor" "^0.26.0"
-    "@metaplex-foundation/js" "^0.18.3"
-    "@project-serum/borsh" "^0.2.5"
-    "@solana/spl-token" "^0.3.7"
-    "@solana/web3.js" "^1.73.2"
-    "@sunrisestake/impact-nft-client" "0.0.5-module.3"
-    "@sunrisestake/marinade-ts-sdk" "^4.0.4-alpha.18"
-    bn.js "^5.2.1"
-
-"@sunrisestake/impact-nft-client@0.0.5-module.3":
-  version "0.0.5-module.3"
-  resolved "https://registry.yarnpkg.com/@sunrisestake/impact-nft-client/-/impact-nft-client-0.0.5-module.3.tgz#839174aa0d09f554a2c12a275dc73b32da5f4da1"
-  integrity sha512-NEtliWLSA5CAvvJ5Q1Kc9OnoDLxdG+FUw5ksx9dCJTIrv3xF0wt8xfS3KGLsQWboZeM3r8ADTqeKx/lSZm8tYg==
-  dependencies:
-    "@coral-xyz/anchor" "^0.26.0"
-    "@metaplex-foundation/js" "0.18.3"
-    "@solana/spl-token" "^0.3.7"
-
 "@sunrisestake/impact-nft-client@0.0.5-module.4":
   version "0.0.5-module.4"
   resolved "https://registry.yarnpkg.com/@sunrisestake/impact-nft-client/-/impact-nft-client-0.0.5-module.4.tgz#b89136aad073e336b3914d770d73666159b800b3"

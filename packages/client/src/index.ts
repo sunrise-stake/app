@@ -70,12 +70,7 @@ import {
   triggerRebalance,
   getEpochReportAccount,
 } from "./marinade.js";
-import {
-  blazeDeposit,
-  blazeDepositStake,
-  blazeWithdrawSol,
-  blazeWithdrawStake,
-} from "./blaze.js";
+import { blazeDeposit, blazeWithdrawSol, blazeWithdrawStake } from "./blaze.js";
 import { type BlazeState } from "./types/Solblaze.js";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool.js";
 import { type EpochReportAccount } from "./types/EpochReportAccount.js";
@@ -510,7 +505,7 @@ export class SunriseStakeClient {
    * Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
    * Note, even if there are no tickets to recover, if the epoch report references the previous epoch
    * we call this instruction anyway as part of triggerRebalance, to update the epoch.
-    */
+   */
   async recoverTickets(): Promise<TransactionInstruction | null> {
     if (
       !this.marinadeState ||
