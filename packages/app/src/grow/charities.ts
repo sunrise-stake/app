@@ -27,4 +27,10 @@ export const charityApps: Charity[] = [
     address: new PublicKey("HDRbSHqQRqZLTUrNiGxxLCviPS7Xjf7MgpFeTb6xc6SC"),
     website: "https://bloomnetwork.earth/",
   },
+  {
+    name: "ReGenerOsa",
+    imageUrl: "partners/regenerosa.png",
+    address: new PublicKey("9WHWU8n42suhdpoxwYJ3DrJ31FfwZt2Wuy1LMQQ1pZgn"),
+    website: "https://regenerosa.wixsite.com/regenerosacollective",
+  },
 ];

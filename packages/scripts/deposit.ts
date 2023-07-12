@@ -1,5 +1,5 @@
-import {SunriseStakeClient} from "../client/src";
-import "./util";
+import {SunriseStakeClient} from "../client/src/index.js";
+import "./util.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import BN from "bn.js";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";

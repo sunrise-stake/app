@@ -11,12 +11,12 @@ import {
   findBSolTokenAccountAuthority,
   findGSolMintAuthority,
   type SunriseStakeConfig,
-} from "./util";
-import { STAKE_POOL_PROGRAM_ID } from "./constants";
+} from "./util.js";
+import { STAKE_POOL_PROGRAM_ID } from "./constants.js";
 import { type AnchorProvider, type Program, utils } from "@coral-xyz/anchor";
-import { type SunriseStake } from "./types/sunrise_stake";
+import { type SunriseStake } from "./types/sunrise_stake.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { type BlazeState } from "./types/Solblaze";
+import { type BlazeState } from "./types/Solblaze.js";
 import {
   MarinadeUtils,
   Provider,

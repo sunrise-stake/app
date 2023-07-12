@@ -6,6 +6,7 @@ extends:
   - plugin:prettier/recommended
 plugins:
   - prettier
+  - file-extension-in-import-ts
 ignorePatterns:
   - "**/types/sunrise_stake.ts"
 parser: "@typescript-eslint/parser"
@@ -20,3 +21,13 @@ rules:
   "@typescript-eslint/return-await":
     - error
     - in-try-catch
+#  "import/extensions":
+#    - error
+#    - ignorePackages
+#  "n/file-extension-in-import":
+#    - error
+#    - tryExtensions:
+#      - ".js"
+#      - ".json"
+  "file-extension-in-import-ts/file-extension-in-import-ts":
+    - error

@@ -7,7 +7,7 @@ import {
   getTokenAccountNullable,
   type SunriseStakeConfig,
   ZERO,
-} from "./util";
+} from "./util.js";
 import {
   ComputeBudgetProgram,
   type PublicKey,
@@ -16,22 +16,22 @@ import {
   type Transaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
-import { type LockAccount } from "./types/LockAccount";
+import { type LockAccount } from "./types/LockAccount.js";
 import * as anchor from "@coral-xyz/anchor";
 import {
   type AccountNamespace,
   type AnchorProvider,
   type Program,
 } from "@coral-xyz/anchor";
-import { type SunriseStake } from "./types/sunrise_stake";
+import { type SunriseStake } from "./types/sunrise_stake.js";
 import {
   type Account as TokenAccount,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import BN from "bn.js";
 import { ImpactNftClient, type Level } from "@sunrisestake/impact-nft-client";
-import { type EnvironmentConfig } from "./constants";
-import { getEpochReportAccount } from "./marinade";
+import { type EnvironmentConfig } from "./constants.js";
+import { getEpochReportAccount } from "./marinade.js";
 
 export interface LockAccountSummary {
   lockAccountAddress: PublicKey;

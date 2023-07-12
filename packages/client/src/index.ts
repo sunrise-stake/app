@@ -1,4 +1,4 @@
-import { IDL, type SunriseStake } from "./types/sunrise_stake";
+import { IDL, type SunriseStake } from "./types/sunrise_stake.js";
 import * as anchor from "@coral-xyz/anchor";
 import { type AnchorProvider, Program, utils } from "@coral-xyz/anchor";
 import {
@@ -31,7 +31,7 @@ import {
   findImpactNFTMintAuthority,
   getImpactNFT,
   zip,
-} from "./util";
+} from "./util.js";
 import {
   Marinade,
   MarinadeConfig,
@@ -42,11 +42,11 @@ import {
   type Balance,
   type Details,
   type WithdrawalFees,
-} from "./types/Details";
+} from "./types/Details.js";
 import {
   type SunriseTicketAccountFields,
   type TicketAccount,
-} from "./types/TicketAccount";
+} from "./types/TicketAccount.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -62,39 +62,34 @@ import {
   NETWORK_FEE,
   SOLBLAZE_ENABLED,
   STAKE_POOL_PROGRAM_ID,
-} from "./constants";
+} from "./constants.js";
 import {
   deposit,
   depositStakeAccount,
   liquidUnstake,
   triggerRebalance,
   getEpochReportAccount,
-} from "./marinade";
-import {
-  blazeDeposit,
-  blazeDepositStake,
-  blazeWithdrawSol,
-  blazeWithdrawStake,
-} from "./blaze";
-import { type BlazeState } from "./types/Solblaze";
-import { getStakePoolAccount, type StakePool } from "./decodeStakePool";
-import { type EpochReportAccount } from "./types/EpochReportAccount";
-import { LockClient, type LockAccountSummary } from "./lock";
+} from "./marinade.js";
+import { blazeDeposit, blazeWithdrawSol, blazeWithdrawStake } from "./blaze.js";
+import { type BlazeState } from "./types/Solblaze.js";
+import { getStakePoolAccount, type StakePool } from "./decodeStakePool.js";
+import { type EpochReportAccount } from "./types/EpochReportAccount.js";
+import { LockClient, type LockAccountSummary } from "./lock.js";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
 
 // export all types
-export * from "./types/sunrise_stake";
-export * from "./types/Details";
-export * from "./types/TicketAccount";
-export * from "./types/EpochReportAccount";
-export * from "./types/Solblaze";
+export * from "./types/sunrise_stake.js";
+export * from "./types/Details.js";
+export * from "./types/TicketAccount.js";
+export * from "./types/EpochReportAccount.js";
+export * from "./types/Solblaze.js";
 
 // export all constants
-export * from "./constants";
+export * from "./constants.js";
 
-export { toSol, findImpactNFTMintAuthority, ZERO_BALANCE } from "./util";
+export { toSol, findImpactNFTMintAuthority, ZERO_BALANCE } from "./util.js";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -138,7 +133,9 @@ export class SunriseStakeClient {
     Boolean(this.config?.options.verbose) && console.log(...args);
   }
 
-  // refresh the client's internal state
+  /**
+   * Refresh the client's internal state
+   */
   public async refresh(): Promise<void> {
     await this.init();
   }
@@ -234,6 +231,12 @@ export class SunriseStakeClient {
     );
   }
 
+  /**
+   * Utility function for sending an transaction and waiting for it to confirm.
+   * @param transaction
+   * @param signers
+   * @param opts
+   */
   public async sendAndConfirmTransaction(
     transaction: Transaction,
     signers?: Signer[],
@@ -278,6 +281,11 @@ export class SunriseStakeClient {
     return txSigs;
   }
 
+  /**
+   * Create a new GSol token account for the staker
+   * @param account
+   * @param authority
+   */
   createGSolTokenAccountIx(
     account = this.stakerGSolTokenAccount,
     authority = this.staker
@@ -292,6 +300,11 @@ export class SunriseStakeClient {
     );
   }
 
+  /**
+   * Deposit GSol into the staker's GSol token account
+   * @param lamports
+   * @param recipient The recipient of the gSOL. If not provided, the current staker will be used.
+   */
   public async makeBalancedDeposit(
     lamports: BN,
     recipient?: PublicKey
@@ -308,6 +321,12 @@ export class SunriseStakeClient {
     return this.deposit(lamports, recipient);
   }
 
+  /**
+   * Deposit directly to Marinade
+   * @deprecated - use makeBalancedDeposit instead
+   * @param lamports
+   * @param recipient The recipient of the gSOL. If not provided, the current staker will be used.
+   */
   public async deposit(
     lamports: BN,
     recipient?: PublicKey
@@ -358,6 +377,12 @@ export class SunriseStakeClient {
     return transaction;
   }
 
+  /**
+   * Deposit directly to Solblaze
+   * @deprecated - use makeBalancedDeposit instead
+   * @param lamports
+   * @param recipient The recipient of the gSOL. If not provided, the current staker will be used.
+   */
   public async depositToBlaze(
     lamports: BN,
     recipient?: PublicKey
@@ -400,37 +425,10 @@ export class SunriseStakeClient {
     return transaction;
   }
 
-  public async depositStakeToBlaze(
-    stakeAccountAddress: PublicKey
-  ): Promise<Transaction> {
-    if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
-      throw new Error("init not called");
-
-    const gsolTokenAccount = await this.provider.connection.getAccountInfo(
-      this.stakerGSolTokenAccount
-    );
-
-    const transaction = new Transaction();
-
-    if (!gsolTokenAccount) {
-      const createUserTokenAccount = this.createGSolTokenAccountIx();
-      transaction.add(createUserTokenAccount);
-    }
-
-    const depositTx = await blazeDepositStake(
-      this.config,
-      this.program,
-      this.provider,
-      this.blazeState,
-      this.provider.publicKey,
-      stakeAccountAddress,
-      this.stakerGSolTokenAccount
-    );
-
-    transaction.add(depositTx);
-    return transaction;
-  }
-
+  /**
+   * Deposit an existing SPL Stake account
+   * @param stakeAccountAddress
+   */
   public async depositStakeAccount(
     stakeAccountAddress: PublicKey
   ): Promise<string> {
@@ -468,6 +466,11 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
+  /**
+   * Withdraw GSol from the staker's GSol token account.
+   * Note - this currently uses Marinade only.
+   * @param lamports
+   */
   public async unstake(lamports: BN): Promise<Transaction> {
     if (
       !this.marinadeState ||
@@ -496,9 +499,13 @@ export class SunriseStakeClient {
     return transaction;
   }
 
-  // Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
-  // Note, even if there are no tickets to recover, if the epoch report references the previous epoch
-  // we call this instruction anyway as part of triggerRebalance, to update the epoch.
+  /**
+   * Permissionless admin function.
+   *
+   * Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
+   * Note, even if there are no tickets to recover, if the epoch report references the previous epoch
+   * we call this instruction anyway as part of triggerRebalance, to update the epoch.
+   */
   async recoverTickets(): Promise<TransactionInstruction | null> {
     if (
       !this.marinadeState ||
@@ -594,6 +601,13 @@ export class SunriseStakeClient {
       .instruction();
   }
 
+  /**
+   * Permissionless admin function.
+   *
+   * Update the epoch report account to the current epoch.
+   * The epoch report account is used to track the total yield earned by the protocol
+   * as well as the amount of in-flight delayed unstake tickets created through pool rebalancing.
+   */
   async updateEpochReport(): Promise<void> {
     if (
       !this.marinadeState ||
@@ -656,7 +670,14 @@ export class SunriseStakeClient {
   }
 
   /**
+   * Permissionless admin function.
+   *
    * Trigger a rebalance without doing anything else.
+   *
+   * A rebalance is necessary when the amount of funds in one of the pools is too low.
+   * This happens when too many people withdraw from the liquidity pool at once.
+   * Rebalancing moves a proportion of the stake pool into the liquidity pool, using a delayed unstake.
+   * This must then be redeemed in the next epoch by making a recover-tickets call.
    */
   public async triggerRebalance(): Promise<string> {
     if (
@@ -686,6 +707,9 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
+  /**
+   * Print a detailed report of the current state of the protocol.
+   */
   public async report(): Promise<void> {
     const details = await this.details();
 
@@ -742,6 +766,12 @@ export class SunriseStakeClient {
     });
   }
 
+  /**
+   * Trigger a delayed unstake of the given amount of SOL.
+   * This creates a ticket, which can be redeemed for SOL in the next epoch.
+   * Note - it currently works only with marinade.
+   * @param lamports
+   */
   public async orderUnstake(lamports: BN): Promise<[Transaction, Keypair[]]> {
     if (
       !this.marinadeState ||
@@ -779,6 +809,9 @@ export class SunriseStakeClient {
     };
   }
 
+  /**
+   * Find all delayed-unstake tickets for the current user
+   */
   public async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
     if (!this.marinade) throw new Error("init not called");
 
@@ -802,6 +835,10 @@ export class SunriseStakeClient {
     >;
   }
 
+  /**
+   * Redeem a delayed-unstake ticket and send the SOL to the given address.
+   * @param ticketAccount
+   */
   public async claimUnstakeTicket(
     ticketAccount: TicketAccount
   ): Promise<Transaction> {
@@ -838,6 +875,10 @@ export class SunriseStakeClient {
     return transaction;
   }
 
+  /**
+   * Immediately withdraw the given amount of SOL from the Solblaze stake pool.
+   * @param amount
+   */
   public async withdrawFromBlaze(amount: BN): Promise<string> {
     if (
       !this.blazeState ||
@@ -860,6 +901,11 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
+  /**
+   * Withdraw the given amount of SOL from the Solblaze stake pool into a stake account
+   * @param newStakeAccount
+   * @param amount
+   */
   public async withdrawStakeFromBlaze(
     newStakeAccount: PublicKey,
     amount: BN
@@ -886,7 +932,10 @@ export class SunriseStakeClient {
     return this.sendAndConfirmTransaction(transaction, []);
   }
 
-  // This should be done only once per state, and must be signed by the update authority
+  /**
+   * Create a new EpochReport account for a sunrise state instance.
+   * This should be done only once per state, and must be signed by the update authority
+   */
   public async initEpochReport(): Promise<string> {
     if (
       !this.marinadeState ||
@@ -935,6 +984,11 @@ export class SunriseStakeClient {
       .rpc();
   }
 
+  /**
+   * Get the EpochReport account for this sunrise state instance
+   * The EpochReport account contains running totals of the state's accrued yield,
+   * and is updated regularly
+   */
   public async getEpochReport(): Promise<EpochReportAccount> {
     if (!this.config) {
       throw new Error("init not called");
@@ -948,6 +1002,12 @@ export class SunriseStakeClient {
     return account;
   }
 
+  /**
+   * Create an instruction that extracts yield from the sunrise protocol and sends it to the designated
+   * yield account.
+   *
+   * This is a permissionless crank operation that can be called by anyone.
+   */
   public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
       !this.marinadeState ||
@@ -1000,17 +1060,24 @@ export class SunriseStakeClient {
       .instruction();
   }
 
+  /**
+   * Creates and submits an extractYield transaction that extracts yield from the sunrise protocol and sends it to the designated
+   * yield account.
+   *
+   * This is a permissionless crank operation that can be called by anyone.
+   */
   public async extractYield(): Promise<string> {
     const instruction = await this.extractYieldIx();
     const transaction = new Transaction().add(instruction);
     transaction.feePayer = this.staker;
-    // const res = await this.provider.connection.simulateTransaction(transaction);
-    // console.log(res)
-
-    // throw new Error("Disable");
     return this.sendAndConfirmTransaction(transaction);
   }
 
+  /**
+   * Calculates the cost of withdrawing a given amount of lamports, given the current state of the pools
+   * @param withdrawalLamports
+   * @param details
+   */
   public calculateWithdrawalFee(
     withdrawalLamports: BN,
     details: Details
@@ -1109,6 +1176,10 @@ export class SunriseStakeClient {
     };
   }
 
+  /**
+   * Returns an object containing the current state of the Sunrise protocol,
+   * as well as balances and impact nft status for the user
+   */
   public async details(): Promise<Details> {
     if (
       !this.marinadeState ||
@@ -1439,6 +1510,15 @@ export class SunriseStakeClient {
     return extractableSOLGross.sub(fee);
   }
 
+  /**
+   * Create a new sunrise stake instance.
+   * This sets the Anchor-specified wallet as the updateAuthority of this instance.
+   * It also creates a new "gsol" token - each instance of sunrise is associated with its own token
+   * @param treasury
+   * @param gsolMint
+   * @param env
+   * @param options
+   */
   public static async register(
     treasury: PublicKey,
     gsolMint: Keypair,
@@ -1475,6 +1555,14 @@ export class SunriseStakeClient {
     return client;
   }
 
+  /**
+   * Updates the configuration of the sunrise state instance. This can be used to set a new yield account,
+   * or a new update authority, or set a new liquidity pool proportion.
+   * @param newTreasury
+   * @param newUpdateAuthority
+   * @param newliqPoolProportion
+   * @param newliqPoolMinProportion
+   */
   public async update({
     newTreasury,
     newUpdateAuthority,
@@ -1508,6 +1596,9 @@ export class SunriseStakeClient {
     await this.init();
   }
 
+  /**
+   * Get the user's current balance, and the current gsol supply
+   */
   public async balance(): Promise<Balance> {
     if (!this.marinadeState || !this.stakerGSolTokenAccount || !this.config)
       throw new Error("init not called");
@@ -1602,6 +1693,10 @@ export class SunriseStakeClient {
     };
   }
 
+  /**
+   * Lock some staked gSOL in order to obtain an Impact NFT
+   * @param lamports
+   */
   public async lockGSol(lamports: BN): Promise<Transaction[]> {
     if (
       !this.stakerGSolTokenAccount ||
@@ -1637,6 +1732,10 @@ export class SunriseStakeClient {
     return transactions;
   }
 
+  /**
+   * Update the account that records the yield proportion allocated to a user, by virtue of their
+   * locked gSOL.
+   */
   public async updateLockAccount(): Promise<Transaction[]> {
     if (!this.config || !this.lockClient) throw new Error("init not called");
 
@@ -1677,6 +1776,9 @@ export class SunriseStakeClient {
     return transactions;
   }
 
+  /**
+   * Unlock a user's gSOL so that it can be unstaked
+   */
   public async unlockGSol(): Promise<Transaction[]> {
     if (!this.lockClient) throw new Error("init not called");
     if (!this.stakerGSolTokenAccount) throw new Error("No stake found");
@@ -1696,6 +1798,11 @@ export class SunriseStakeClient {
     return transactions;
   }
 
+  /**
+   * Get a user's lock account, that records the yield proportion allocated to a user, by virtue of their
+   * locked gSOL.
+   * @param withRefresh
+   */
   public async getLockAccount(
     withRefresh = false
   ): Promise<LockAccountSummary> {
@@ -1727,6 +1834,12 @@ export class SunriseStakeClient {
     };
   }
 
+  /**
+   * Create an instance of the Sunrise Client.
+   * @param provider
+   * @param stage
+   * @param options
+   */
   public static async get(
     provider: AnchorProvider,
     stage: keyof typeof Environment,
