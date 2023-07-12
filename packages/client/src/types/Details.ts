@@ -4,7 +4,7 @@ import {
   type PublicKey,
   type TokenAmount,
 } from "@solana/web3.js";
-import { type EpochReportAccount } from "./EpochReportAccount";
+import { type EpochReportAccount } from "./EpochReportAccount.js";
 import { type Level } from "@sunrisestake/impact-nft-client";
 
 export interface Balance {

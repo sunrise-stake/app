@@ -8,7 +8,7 @@ import {
   NETWORK_FEE,
   Environment,
   findImpactNFTMintAuthority,
-} from "../client/src";
+} from "../client/src/index.js";
 import {
   burnGSol,
   expectAmount,
@@ -26,7 +26,7 @@ import {
   expectBSolTokenBalance,
   initializeStakeAccount,
   impactNFTLevels,
-} from "./util";
+} from "./util.js";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
@@ -40,7 +40,7 @@ import {
   orderUnstakeLamports,
   unstakeLamportsExceedLPBalance,
   unstakeLamportsUnderLPBalance,
-} from "./constants";
+} from "./constants.js";
 import { ImpactNftClient } from "@sunrisestake/impact-nft-client";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";

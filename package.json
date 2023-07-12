@@ -16,9 +16,10 @@
         "build": "yarn workspaces run build",
         "app:build": "yarn workspace @sunrisestake/app build",
         "app:start": "yarn workspace @sunrisestake/app start",
-        "report:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node packages/scripts/get.ts",
-        "report:devnet": "cross-env REACT_APP_SOLANA_NETWORK=devnet yarn ts-node packages/scripts/get.ts",
-        "rebalance:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node packages/scripts/rebalance.ts"
+        "report:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node-esm -P packages/client/tsconfig.json packages/scripts/get.ts",
+        "report:devnet": "cross-env REACT_APP_SOLANA_NETWORK=devnet yarn ts-node-esm packages/scripts/get.ts",
+        "updateEpochReport:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node-esm packages/scripts/updateEpochReport.ts",
+        "rebalance:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node-esm packages/scripts/rebalance.ts"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.26.0",
@@ -36,6 +37,7 @@
         "eslint": "^8.33.0",
         "eslint-config-prettier": "^8.6.0",
         "eslint-config-standard-with-typescript": "^34.0.0",
+        "eslint-plugin-file-extension-in-import-ts": "^1.0.2",
         "eslint-plugin-import": "^2.25.3",
         "eslint-plugin-n": "^15.6.1",
         "eslint-plugin-prettier": "^4.2.1",

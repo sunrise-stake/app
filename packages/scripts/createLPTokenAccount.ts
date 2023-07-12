@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {Environment, SunriseStakeClient} from "../client/src";
+import {Environment, SunriseStakeClient} from "../client/src/index.js";
 import { Transaction } from "@solana/web3.js";
-import "./util";
+import "./util.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { createAssociatedTokenAccountIdempotentInstruction } from "@solana/spl-token";
 

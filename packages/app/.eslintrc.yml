@@ -15,5 +15,5 @@ settings:
 plugins:
   - react
 rules:
-  react/react-in-jsx-scope: "off"  
-
+  react/react-in-jsx-scope: "off"
+  file-extension-in-import-ts/file-extension-in-import-ts: "off"

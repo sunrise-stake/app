@@ -1,7 +1,7 @@
-import "./util";
+import "./util.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
-import {SunriseStakeClient} from "../client/src";
+import {SunriseStakeClient} from "../client/src/index.js";
 
 (async () => {
   const provider = AnchorProvider.env();

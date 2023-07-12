@@ -2,13 +2,17 @@
   "name": "@sunrisestake/scripts",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@coral-xyz/anchor": "^0.26.0",
     "@solana/web3.js": "^1.66.2",
     "@sunrisestake/client": "*",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
-    "@types/node": "^18.15.11",
+    "@types/node": "^20.4.0",
     "@types/node-fetch": "^2.6.3",
-    "bn.js": "^5.2.1"
+    "bn.js": "^5.2.1",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^5.1.6"
   }
 }
