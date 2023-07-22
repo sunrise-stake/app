@@ -14,11 +14,7 @@ import {
   SolflareWalletAdapter,
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import {
-  clusterApiUrl,
-  type FetchFn,
-  type FetchMiddleware,
-} from "@solana/web3.js";
+import { clusterApiUrl } from "@solana/web3.js";
 import { type FC, useMemo } from "react";
 
 import { SunriseProvider } from "./common/context/sunriseStakeContext";
@@ -30,19 +26,6 @@ import { NFTsProvider } from "./common/context/NFTsContext";
 import { cachedRPCFetch } from "./api/cachedRPCFetch";
 
 require("./solana-wallet-adapter.css");
-
-const logRPC: FetchMiddleware = (
-  info: Parameters<FetchFn>[0],
-  init: Parameters<FetchFn>[1],
-
-  fetch: (...a: Parameters<FetchFn>) => void
-) => {
-  if (init.method === "POST") {
-    const parsedBody = JSON.parse(init.body);
-    console.log({ method: parsedBody.method, params: parsedBody.params });
-  }
-  fetch(info, init);
-};
 
 const App: FC = () => {
   const network =
@@ -70,7 +53,6 @@ const App: FC = () => {
         endpoint={endpoint}
         config={{
           fetch: cachedRPCFetch,
-          fetchMiddleware: logRPC,
           commitment: "confirmed",
         }}
       >

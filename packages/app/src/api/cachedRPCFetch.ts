@@ -31,7 +31,7 @@ export const cachedRPCFetch: typeof fetch = async (url, options) => {
     const cachedResponse = cache.get(cacheKey);
     if (cachedResponse) {
       console.log("cache hit");
-      return cachedResponse;
+      return cachedResponse.clone();
     } else {
       console.log("cache miss - key: ", cacheKey);
     }
