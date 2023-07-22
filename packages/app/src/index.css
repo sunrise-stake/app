@@ -18,10 +18,10 @@ input[type=number]::-webkit-outer-spin-button {
     overflow: hidden;
     height: 100vh;
     grid-template-areas:
-      "Lost Forest Hub Usage Tipjar"
-      ". . Staking . ."
-      ". . Locking . .";
-    grid-template-columns: 100vw 100vw 100vw 100vw 100vw;
+      "Lost Forest Hub Usage"
+      ". . Staking ."
+      ". . Locking .";
+    grid-template-columns: 100vw 100vw 100vw 100vw;
     grid-template-rows: 100vh 100vh 100vh;
     gap: 0;
   }
@@ -39,9 +39,6 @@ input[type=number]::-webkit-outer-spin-button {
   }
   .UsageApp {
     grid-area: Usage;
-  }
-  .TipjarApp {
-    grid-area: Tipjar;
   }
   .StakingApp {
     grid-area: Staking;
