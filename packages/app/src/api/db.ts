@@ -1,7 +1,9 @@
 import {
+  type GetNeighboursResponse,
   type Mint,
   type MintResponse,
   type MongoResponse,
+  type RawGetNeighboursResponse,
   type Transfer,
   type TransferResponse,
 } from "./types";
@@ -16,6 +18,7 @@ const STUBS = {
   sender: sendingStub,
   recipient: receiptStub,
 };
+const GET_NEIGHBOURS_URL = process.env.REACT_APP_GET_NEIGHBOURS_URL ?? "";
 const MONGODB_API_URL = process.env.REACT_APP_MONGODB_API_URL ?? "";
 const MONGODB_READ_TOKEN = process.env.REACT_APP_MONGODB_READ_TOKEN ?? "";
 const buildTransferRecord = (transfer: TransferResponse): Transfer => ({
@@ -30,6 +33,38 @@ const buildMintRecord = (mint: MintResponse): Mint => ({
   sender: mint.sender !== undefined ? new PublicKey(mint.sender) : undefined,
   amount: mint.amount,
 });
+
+export const getNeighbours = async (
+  address: PublicKey,
+  depth: number
+): Promise<GetNeighboursResponse> =>
+  fetch(`${GET_NEIGHBOURS_URL}/${address.toBase58()}?depth=${depth}`)
+    .then(async (resp) => resp.json() as Promise<RawGetNeighboursResponse>)
+    .then((rawResponse) => ({
+      firstTransfer: new Date(rawResponse.firstTransfer),
+      lastTransfer: new Date(rawResponse.lastTransfer),
+      neighbours: {
+        senderResult: rawResponse.neighbours.senderResult.map((result) => ({
+          ...result,
+          address: new PublicKey(result.address),
+          start: new Date(result.start),
+          end: new Date(result.end),
+          senders: result.senders.map((sender) => new PublicKey(sender)),
+        })),
+        recipientResult: rawResponse.neighbours.recipientResult.map(
+          (result) => ({
+            ...result,
+            address: new PublicKey(result.address),
+            start: new Date(result.start),
+            end: new Date(result.end),
+            recipients: result.recipients.map(
+              (recipient) => new PublicKey(recipient)
+            ),
+          })
+        ),
+      },
+    }));
+
 const getDBData = async <T>(
   collection: "mints" | "transfers",
   types: Array<"recipient" | "sender">,

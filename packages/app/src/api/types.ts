@@ -14,6 +14,66 @@ export interface TransferResponse {
   amount: number;
 }
 
+export interface BalanceDetails {
+  address: PublicKey;
+  balance: number;
+  start: Date;
+  end: Date;
+}
+
+export interface RawBalanceDetails {
+  address: string;
+  balance: number;
+  start: string;
+  end: string;
+}
+
+export type SenderOrRecipientResult =
+  | NeighbourResult["senderResult"][number]
+  | NeighbourResult["recipientResult"][number];
+
+export interface NeighbourResult {
+  senderResult: Array<
+    BalanceDetails & {
+      senders: PublicKey[];
+      degree: number;
+    }
+  >;
+  recipientResult: Array<
+    BalanceDetails & {
+      recipients: PublicKey[];
+      degree: number;
+    }
+  >;
+}
+
+export interface RawNeighbourResult {
+  senderResult: Array<
+    RawBalanceDetails & {
+      senders: string[];
+      degree: number;
+    }
+  >;
+  recipientResult: Array<
+    RawBalanceDetails & {
+      recipients: string[];
+      degree: number;
+    }
+  >;
+}
+
+export interface RawGetNeighboursResponse {
+  neighbours: RawNeighbourResult;
+  firstTransfer: string;
+  lastTransfer: string;
+}
+
+export interface GetNeighboursResponse {
+  neighbours: NeighbourResult;
+  firstTransfer: Date;
+  lastTransfer: Date;
+}
+
 export interface MongoResponse<T> {
   documents: T[];
 }
@@ -34,6 +94,19 @@ export interface Transfer {
 
 export type ParentRelationship = "PARENT_IS_SENDER" | "PARENT_IS_RECIPIENT";
 
+export interface TreeNodeNew {
+  address: PublicKey;
+  balance: number;
+  startDate: Date;
+  mostRecentTransfer: Date;
+  parents: TreeNodeNew[];
+  children: Array<{
+    tree: TreeNodeNew;
+    relationship: ParentRelationship;
+    relationshipStartDate: Date;
+  }>;
+}
+
 // A treeNode is the representation of an account's balance and activity
 // We call it TreeNode instead of Tree, because a "tree" in computer science
 // is usually a collection of nodes, and we don't want to confuse the two.
@@ -49,12 +122,6 @@ export interface TreeNode {
     relationship: ParentRelationship;
     relationshipStartDate: Date;
   };
-}
-
-// A forest is a tree with neighbours
-export interface Forest {
-  tree: TreeNode;
-  neighbours: Forest[];
 }
 
 export type TreeNodeCache = Record<string, Promise<TreeNode>>;

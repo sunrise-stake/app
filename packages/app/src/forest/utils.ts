@@ -1,6 +1,6 @@
 import { type PublicKey } from "@solana/web3.js";
-import { type Forest, type TreeNode } from "../api/types";
-import { getMostRecentActivity, isDeadTree } from "../api/util";
+import { type TreeNodeNew } from "../api/types";
+import { isDeadTree } from "../api/util";
 
 // If true, include trees with zero current balance in the forest
 const SHOW_DEAD_TREES = false;
@@ -64,7 +64,7 @@ export interface TreeComponent {
   translate: Translation;
   metadata: {
     type: TreeType;
-    node: TreeNode;
+    node: TreeNodeNew;
     layer: number;
   };
 }
@@ -127,25 +127,22 @@ const balanceAndAgeToLevel = (balance: number, start: Date): number => {
   }
 };
 
-const hadGSol = (tree: TreeNode): boolean =>
-  tree.totals.currentBalance > 0 ||
-  tree.mints.length > 0 ||
-  tree.sent.length > 0 ||
-  tree.received.length > 0;
+const hadGSol = (tree: TreeNodeNew): boolean =>
+  tree.balance > 0 || tree.parents.length > 0;
 
-const calculateTreeType = (tree: TreeNode): TreeType => {
+const calculateTreeType = (tree: TreeNodeNew): TreeType => {
   const instance = tree.address.toBuffer()[31] % IMAGE_COUNT;
   const species = (tree.address.toBuffer()[30] % SPECIES_COUNT) + 1;
   const didHaveGSol = hadGSol(tree);
-  const translucent = didHaveGSol && tree.totals.currentBalance === 0;
+  const translucent = didHaveGSol && tree.balance === 0;
   const level = didHaveGSol
-    ? balanceAndAgeToLevel(tree.totals.amountTotal, tree.startDate)
+    ? balanceAndAgeToLevel(tree.balance, tree.startDate)
     : 0;
   return { instance, species, level, translucent };
 };
 
 const treeNodeToComponent = (
-  tree: TreeNode,
+  tree: TreeNodeNew,
   layer: number,
   indexInLayer: number,
   totalInLayer: number
@@ -159,14 +156,16 @@ const treeNodeToComponent = (
   },
 });
 
-export const forestToComponents = (forest: Forest): TreeComponent[] => {
+export const forestToComponents = (
+  parentTree: TreeNodeNew
+): TreeComponent[] => {
   const recursiveForestToFlatTrees = (
-    queue: Array<{ forest: Forest; layer: number }>,
-    result: TreeNode[][]
-  ): TreeNode[][] => {
+    queue: Array<{ tree: TreeNodeNew; layer: number }>,
+    result: TreeNodeNew[][]
+  ): TreeNodeNew[][] => {
     if (queue.length === 0) return result;
-    const { forest: nextInQueue, layer: currentLayer } = queue.shift() as {
-      forest: Forest;
+    const { tree: nextInQueue, layer: currentLayer } = queue.shift() as {
+      tree: TreeNodeNew;
       layer: number;
     };
 
@@ -174,20 +173,20 @@ export const forestToComponents = (forest: Forest): TreeComponent[] => {
 
     // check if any of the neighbours are in the result, or queue, already
     const allTrees = result.flatMap((treesInLayer) => treesInLayer);
-    const filteredNeighbours = nextInQueue.neighbours.filter(
-      (neighbour) =>
-        !allTrees.includes(neighbour.tree) &&
-        !queue.map((q) => q.forest).includes(neighbour)
-    );
+    const filteredNeighbours = nextInQueue.children
+      .map((t) => t.tree)
+      .filter(
+        (neighbour) =>
+          !allTrees.includes(neighbour) &&
+          !queue.map((q) => q.tree).includes(neighbour)
+      );
     const map = filteredNeighbours.map((neighbour) => ({
-      forest: neighbour,
+      tree: neighbour,
       layer: currentLayer + 1,
     }));
     queue.push(...map);
 
-    result[currentLayer].push(
-      ...filteredNeighbours.map((neighbour) => neighbour.tree)
-    );
+    result[currentLayer].push(...filteredNeighbours);
 
     return recursiveForestToFlatTrees(queue, result);
   };
@@ -198,8 +197,8 @@ export const forestToComponents = (forest: Forest): TreeComponent[] => {
 
   // returns an array of arrays, where each element is a layer
   const flatTrees = recursiveForestToFlatTrees(
-    [{ forest, layer: 1 }],
-    [[forest.tree]]
+    [{ tree: parentTree, layer: 1 }],
+    [[parentTree]]
   );
   // convert the array of arrays into a flat array of all the trees, remembering their layer, so that we can order and prune
   const allTreeNodes = flatTrees.flatMap((treesInLayer, index) =>
@@ -210,7 +209,7 @@ export const forestToComponents = (forest: Forest): TreeComponent[] => {
   const prunedTrees = prune(allTreeNodes);
 
   // Convert back to the array of arrays now that they are pruned, so that we can turn them into tree components
-  const treesWithinLayers = prunedTrees.reduce<TreeNode[][]>(
+  const treesWithinLayers = prunedTrees.reduce<TreeNodeNew[][]>(
     (acc, { tree, layer }) => {
       if (acc[layer] === undefined) acc[layer] = [];
       acc[layer].push(tree);
@@ -228,7 +227,7 @@ export const forestToComponents = (forest: Forest): TreeComponent[] => {
 };
 
 interface TreeWithLayer {
-  tree: TreeNode;
+  tree: TreeNodeNew;
   layer: number;
 }
 interface ComparisonStats {
@@ -250,11 +249,10 @@ const getComparisonStats = ({
   tree,
   layer,
 }: TreeWithLayer): ComparisonStats => ({
-  amount: tree.totals.amountTotal,
-  mostRecentActivity: getMostRecentActivity(tree),
+  amount: tree.balance,
+  mostRecentActivity: tree.mostRecentTransfer,
   layer,
-  neighbours:
-    tree.totals.uniqueRecipients.length + tree.totals.uniqueSenders.length,
+  neighbours: tree.children.length + tree.parents.length,
 });
 const compareTrees = (a: TreeWithLayer, b: TreeWithLayer): number => {
   const statsA = getComparisonStats(a);
@@ -302,4 +300,61 @@ export const prune = (trees: TreeWithLayer[]): TreeWithLayer[] => {
   console.log("After prune", layerBasedTotalSubset);
 
   return layerBasedTotalSubset;
+};
+
+/**
+ * Find intermediary nodes between start and end
+ */
+export const intermediaries = (
+  start: TreeNodeNew,
+  end: TreeNodeNew
+): TreeNodeNew[] | null => {
+  /**
+   * @param paths A set of paths of nodes from `start`, not including `start`
+   */
+  const innerFindIntermediaries = (
+    paths: TreeNodeNew[][]
+  ): TreeNodeNew[] | null => {
+    // get the first element from the array (the shortest path) - this ensures breadth-first
+    const pathToTest = paths.shift();
+    if (!pathToTest) return null; // if we have no more elements, we failed to find a path
+
+    // work on pathToTest - see if we can find the end node from here.
+    // if so, return the path
+    // if not, add all parents of the end node of the path to create a set of new possible paths
+
+    // The paths are constructed "in reverse", i.e. the first element is the last node in the path from start -> end
+    // Therefore, the first element in the path is the "closest so far" to end
+    const firstInPath = pathToTest[0];
+
+    const found = firstInPath.parents.find((p) =>
+      p.address.equals(end.address)
+    );
+    // we found the end node - we are done
+    if (found) return pathToTest;
+
+    // we didn't find the end node but we have a new set of possible paths based on the parents
+    // just make sure we filter out any nodes we have already visited
+    // to avoid infinite loops
+    const potentialNextSteps = firstInPath.parents.filter(
+      (p) => !pathToTest.find((p2) => p2.address.equals(p.address))
+    );
+    const newPaths = [
+      ...paths,
+      ...potentialNextSteps.map((p) => [p, ...pathToTest]),
+    ];
+    // recursively try with all the new paths until we find the end node or run out
+    return innerFindIntermediaries(newPaths);
+  };
+
+  // use the inner recursive function to find the intermediaries based on a set of paths
+  // The starting path is just the start element itself
+  const result = innerFindIntermediaries([[start]]);
+
+  if (!result) return null;
+
+  result.pop(); // remove the start element
+
+  // since the paths are constructed in reverse, we need to reverse them before returning
+  return result.reverse();
 };
