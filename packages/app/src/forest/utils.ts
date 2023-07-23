@@ -293,13 +293,7 @@ export const prune = (trees: TreeWithLayer[]): TreeWithLayer[] => {
     : trees.filter(({ tree, layer }) => !isDeadTree(tree) || layer === 0);
   const sortedTrees = filteredTrees.sort(compareTrees);
   const totalSubset = sortedTrees.slice(0, MAX_TREE_TOTAL_LIMIT);
-  const layerBasedTotalSubset = filterByLayer(totalSubset);
-
-  console.log("Before prune", trees);
-  console.log("Sorted", sortedTrees);
-  console.log("After prune", layerBasedTotalSubset);
-
-  return layerBasedTotalSubset;
+  return filterByLayer(totalSubset);
 };
 
 /**

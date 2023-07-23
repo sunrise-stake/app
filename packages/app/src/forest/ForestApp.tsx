@@ -132,9 +132,6 @@ const _ForestApp: ForwardRefRenderFunction<
     });
   }, [window.innerWidth]);
 
-  console.log("my tree", myTree);
-  console.log("neighbours", neighbours);
-
   if (!myTree) return <></>;
 
   return (

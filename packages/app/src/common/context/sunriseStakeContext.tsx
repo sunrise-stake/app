@@ -57,7 +57,6 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log("wallet changed", wallet);
     const addressFromUrl = safeParsePublicKeyFromUrl();
     if (wallet) {
       SunriseClientWrapper.init(

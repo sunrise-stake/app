@@ -49,8 +49,6 @@ const UnstakeForm: React.FC<UnstakeFormProps> = ({
 
     const feeNumerator = withdrawalFees.totalFee.muln(100_000);
 
-    console.log("fee ", withdrawalFees.totalFee.toString());
-
     return feeNumerator.div(lamports).toNumber() / 1000;
   }, [client, details, amount]);
 
