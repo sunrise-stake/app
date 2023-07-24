@@ -1,5 +1,5 @@
 import { type PublicKey } from "@solana/web3.js";
-import { type TreeNodeNew } from "../api/types";
+import { type TreeNode } from "../api/types";
 import { isDeadTree } from "../api/util";
 
 // If true, include trees with zero current balance in the forest
@@ -64,7 +64,7 @@ export interface TreeComponent {
   translate: Translation;
   metadata: {
     type: TreeType;
-    node: TreeNodeNew;
+    node: TreeNode;
     layer: number;
   };
 }
@@ -127,10 +127,10 @@ const balanceAndAgeToLevel = (balance: number, start: Date): number => {
   }
 };
 
-const hadGSol = (tree: TreeNodeNew): boolean =>
+const hadGSol = (tree: TreeNode): boolean =>
   tree.balance > 0 || tree.parents.length > 0;
 
-const calculateTreeType = (tree: TreeNodeNew): TreeType => {
+const calculateTreeType = (tree: TreeNode): TreeType => {
   const instance = tree.address.toBuffer()[31] % IMAGE_COUNT;
   const species = (tree.address.toBuffer()[30] % SPECIES_COUNT) + 1;
   const didHaveGSol = hadGSol(tree);
@@ -142,7 +142,7 @@ const calculateTreeType = (tree: TreeNodeNew): TreeType => {
 };
 
 const treeNodeToComponent = (
-  tree: TreeNodeNew,
+  tree: TreeNode,
   layer: number,
   indexInLayer: number,
   totalInLayer: number
@@ -156,16 +156,14 @@ const treeNodeToComponent = (
   },
 });
 
-export const forestToComponents = (
-  parentTree: TreeNodeNew
-): TreeComponent[] => {
+export const forestToComponents = (parentTree: TreeNode): TreeComponent[] => {
   const recursiveForestToFlatTrees = (
-    queue: Array<{ tree: TreeNodeNew; layer: number }>,
-    result: TreeNodeNew[][]
-  ): TreeNodeNew[][] => {
+    queue: Array<{ tree: TreeNode; layer: number }>,
+    result: TreeNode[][]
+  ): TreeNode[][] => {
     if (queue.length === 0) return result;
     const { tree: nextInQueue, layer: currentLayer } = queue.shift() as {
-      tree: TreeNodeNew;
+      tree: TreeNode;
       layer: number;
     };
 
@@ -209,7 +207,7 @@ export const forestToComponents = (
   const prunedTrees = prune(allTreeNodes);
 
   // Convert back to the array of arrays now that they are pruned, so that we can turn them into tree components
-  const treesWithinLayers = prunedTrees.reduce<TreeNodeNew[][]>(
+  const treesWithinLayers = prunedTrees.reduce<TreeNode[][]>(
     (acc, { tree, layer }) => {
       if (acc[layer] === undefined) acc[layer] = [];
       acc[layer].push(tree);
@@ -227,7 +225,7 @@ export const forestToComponents = (
 };
 
 interface TreeWithLayer {
-  tree: TreeNodeNew;
+  tree: TreeNode;
   layer: number;
 }
 interface ComparisonStats {
@@ -300,15 +298,13 @@ export const prune = (trees: TreeWithLayer[]): TreeWithLayer[] => {
  * Find intermediary nodes between start and end
  */
 export const intermediaries = (
-  start: TreeNodeNew,
-  end: TreeNodeNew
-): TreeNodeNew[] | null => {
+  start: TreeNode,
+  end: TreeNode
+): TreeNode[] | null => {
   /**
    * @param paths A set of paths of nodes from `start`, not including `start`
    */
-  const innerFindIntermediaries = (
-    paths: TreeNodeNew[][]
-  ): TreeNodeNew[] | null => {
+  const innerFindIntermediaries = (paths: TreeNode[][]): TreeNode[] | null => {
     // get the first element from the array (the shortest path) - this ensures breadth-first
     const pathToTest = paths.shift();
     if (!pathToTest) return null; // if we have no more elements, we failed to find a path

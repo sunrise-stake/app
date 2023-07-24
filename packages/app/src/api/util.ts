@@ -1,8 +1,4 @@
-import {
-  type NeighbourResult,
-  type SenderOrRecipientResult,
-  type TreeNodeNew,
-} from "./types";
+import { type TreeNode } from "./types";
 import { type Connection, PublicKey } from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -14,7 +10,7 @@ import {
   ZERO_BALANCE,
 } from "@sunrisestake/client";
 
-export const isDeadTree = (tree: TreeNodeNew): boolean => tree.balance === 0;
+export const isDeadTree = (tree: TreeNode): boolean => tree.balance === 0;
 
 // TODO move this to the client and pass in a client instead of a connection
 // also, create a service that listens to accounts and updates the state, rather than
@@ -49,9 +45,3 @@ export const getLockedBalance = async (
     return 0;
   return toSol(lockedBalanceLamports);
 };
-
-// this is a little confusing. If the entry is in the senderResult, it is a recipient
-export const isRecipient = (
-  entry: SenderOrRecipientResult
-): entry is NeighbourResult["senderResult"][number] =>
-  Object.hasOwnProperty.call(entry, "senders");

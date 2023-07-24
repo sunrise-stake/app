@@ -20,7 +20,7 @@ import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { ForestLink } from "./ForestLink";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { type ParentRelationship, type TreeNodeNew } from "../api/types";
+import { type ParentRelationship, type TreeNode } from "../api/types";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -72,8 +72,8 @@ const PerspectiveComponent: FC<{
 );
 
 const getIntermediaries = (
-  treeNode: TreeNodeNew,
-  myTree: TreeNodeNew
+  treeNode: TreeNode,
+  myTree: TreeNode
 ): PublicKey[] => {
   const path = intermediaries(treeNode, myTree);
   if (path) return path.map((p) => p.address);
@@ -81,8 +81,8 @@ const getIntermediaries = (
 };
 
 const relationshipWithTree = (
-  treeNode: TreeNodeNew,
-  myTree: TreeNodeNew
+  treeNode: TreeNode,
+  myTree: TreeNode
 ): ParentRelationship | undefined => {
   const child = myTree.children.find((c) =>
     c.tree.address.equals(treeNode.address)

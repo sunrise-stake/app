@@ -37,7 +37,6 @@ import {
   MarinadeConfig,
   type MarinadeState,
 } from "@sunrisestake/marinade-ts-sdk";
-import BN from "bn.js";
 import {
   type Balance,
   type Details,
@@ -75,6 +74,7 @@ import { type BlazeState } from "./types/Solblaze.js";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool.js";
 import { type EpochReportAccount } from "./types/EpochReportAccount.js";
 import { LockClient, type LockAccountSummary } from "./lock.js";
+import BN from "bn.js";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };

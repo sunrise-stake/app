@@ -3,7 +3,9 @@ import {
   type Mint,
   type MintResponse,
   type MongoResponse,
+  type NeighbourEntry,
   type RawGetNeighboursResponse,
+  type RawNeighbourEntry,
   type Transfer,
   type TransferResponse,
 } from "./types";
@@ -34,6 +36,17 @@ const buildMintRecord = (mint: MintResponse): Mint => ({
   amount: mint.amount,
 });
 
+const fromRawNeighbourEntry = (
+  rawEntry: RawNeighbourEntry
+): NeighbourEntry => ({
+  ...rawEntry,
+  address: new PublicKey(rawEntry.address),
+  start: new Date(rawEntry.start),
+  end: new Date(rawEntry.end),
+  sender: new PublicKey(rawEntry.sender),
+  recipient: new PublicKey(rawEntry.recipient),
+});
+
 export const getNeighbours = async (
   address: PublicKey,
   depth: number
@@ -44,23 +57,11 @@ export const getNeighbours = async (
       firstTransfer: new Date(rawResponse.firstTransfer),
       lastTransfer: new Date(rawResponse.lastTransfer),
       neighbours: {
-        senderResult: rawResponse.neighbours.senderResult.map((result) => ({
-          ...result,
-          address: new PublicKey(result.address),
-          start: new Date(result.start),
-          end: new Date(result.end),
-          senders: result.senders.map((sender) => new PublicKey(sender)),
-        })),
+        senderResult: rawResponse.neighbours.senderResult.map(
+          fromRawNeighbourEntry
+        ),
         recipientResult: rawResponse.neighbours.recipientResult.map(
-          (result) => ({
-            ...result,
-            address: new PublicKey(result.address),
-            start: new Date(result.start),
-            end: new Date(result.end),
-            recipients: result.recipients.map(
-              (recipient) => new PublicKey(recipient)
-            ),
-          })
+          fromRawNeighbourEntry
         ),
       },
     }));
