@@ -46,7 +46,6 @@ const WithdrawTicket: React.FC<WithdrawTicketProps> = ({ ticket, redeem }) => {
         className="relative z-10 h-16 min-w-[10rem] sm:min-w-[12rem] items-center"
         onClick={() => {
           if (!ticketDue) {
-            console.log("Ticket is not due yet");
             setIsClicked((prevState) => !prevState);
             return;
           }

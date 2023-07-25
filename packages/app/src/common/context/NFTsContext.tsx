@@ -151,6 +151,7 @@ const compressedNFTToGenericNFT = async (
  * https://metaplex.notion.site/Digital-Asset-Standard-Public-2d764bcd8f8940b69150ce11200858cd
  * @param owner
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllCompressedNFTs = async (owner: PublicKey): Promise<GenericNFT[]> =>
   fetch("https://rpc-proxy.danielbkelleher3799.workers.dev/", {
     method: "POST",
@@ -212,10 +213,13 @@ export const NFTsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const loadAllNFTs = async (): Promise<void> => {
     if (owner === null) return;
     const nonCompressedNFTs = getAllNFTs(owner, connection);
-    const compressedNFTs = getAllCompressedNFTs(owner);
-    return Promise.all([nonCompressedNFTs, compressedNFTs])
-      .then((arrays) => arrays.flat())
-      .then(setNfts);
+    // While we don't need compressed NFTs, do not retrieve them
+    // const compressedNFTs = getAllCompressedNFTs(owner);
+    // return Promise.all([nonCompressedNFTs, compressedNFTs])
+    //   .then((arrays) => arrays.flat())
+    //   .then(setNfts);
+
+    return nonCompressedNFTs.then(setNfts);
   };
 
   /**

@@ -66,7 +66,7 @@ export const MangroveModal: FC<Props> = ({ control }) => {
               </li>
             </ul>
           </p>
-          <p>Complete the steps before June 8th!</p>
+          <p>Complete the steps before August 8th!</p>
           <MangroveDetails />
         </div>
       </div>

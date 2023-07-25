@@ -14,6 +14,52 @@ export interface TransferResponse {
   amount: number;
 }
 
+export interface BalanceDetails {
+  address: PublicKey;
+  balance: number;
+  start: Date;
+  end: Date;
+}
+
+export interface RawBalanceDetails {
+  address: string;
+  balance: number;
+  start: string;
+  end: string;
+}
+
+export type RawNeighbourEntry = RawBalanceDetails & {
+  sender: string;
+  recipient: string;
+};
+
+export type NeighbourEntry = BalanceDetails & {
+  sender: PublicKey;
+  recipient: PublicKey;
+};
+
+export interface NeighbourResult {
+  senderResult: NeighbourEntry[];
+  recipientResult: NeighbourEntry[];
+}
+
+export interface RawNeighbourResult {
+  senderResult: RawNeighbourEntry[];
+  recipientResult: RawNeighbourEntry[];
+}
+
+export interface RawGetNeighboursResponse {
+  neighbours: RawNeighbourResult;
+  firstTransfer: string;
+  lastTransfer: string;
+}
+
+export interface GetNeighboursResponse {
+  neighbours: NeighbourResult;
+  firstTransfer: Date;
+  lastTransfer: Date;
+}
+
 export interface MongoResponse<T> {
   documents: T[];
 }
@@ -34,49 +80,15 @@ export interface Transfer {
 
 export type ParentRelationship = "PARENT_IS_SENDER" | "PARENT_IS_RECIPIENT";
 
-// A treeNode is the representation of an account's balance and activity
-// We call it TreeNode instead of Tree, because a "tree" in computer science
-// is usually a collection of nodes, and we don't want to confuse the two.
 export interface TreeNode {
   address: PublicKey;
-  mints: Mint[];
-  sent: Transfer[];
-  received: Transfer[];
-  totals: Totals;
+  balance: number;
   startDate: Date;
-  parent?: {
+  mostRecentTransfer: Date;
+  parents: TreeNode[];
+  children: Array<{
     tree: TreeNode;
     relationship: ParentRelationship;
     relationshipStartDate: Date;
-  };
-}
-
-// A forest is a tree with neighbours
-export interface Forest {
-  tree: TreeNode;
-  neighbours: Forest[];
-}
-
-export type TreeNodeCache = Record<string, Promise<TreeNode>>;
-export type ForestAction =
-  | {
-      type: "SET";
-      payload: { key: string; value: Promise<TreeNode> };
-    }
-  | {
-      type: "REMOVE";
-      payload: { key: string };
-    };
-
-export interface Totals {
-  currentBalance: number;
-  amountMinted: number;
-  amountReceived: number;
-  amountSent: number;
-  amountTotal: number;
-  countMints: number;
-  countReceipts: number;
-  countSendings: number;
-  uniqueSenders: PublicKey[];
-  uniqueRecipients: PublicKey[];
+  }>;
 }

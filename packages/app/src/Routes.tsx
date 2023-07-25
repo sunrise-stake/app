@@ -15,7 +15,6 @@ import { Link, useLocation } from "react-router-dom";
 import { Layout } from "./common/partials/Layout";
 import { debounce } from "./common/utils";
 import { useHelp } from "./common/context/HelpContext";
-import { TipjarApp } from "./tipjar/TipjarApp";
 
 export enum AppRoute {
   Connect = "/connect", // not a route at present TODO fix
@@ -24,7 +23,6 @@ export enum AppRoute {
   Hub = "/",
   Lock = "/lock",
   Stake = "/stake",
-  TipJar = "/earthday",
 }
 
 export const Routes: FC = () => {
@@ -36,7 +34,6 @@ export const Routes: FC = () => {
     locking: useRef<null | HTMLDivElement>(null),
     lost: useRef<null | HTMLDivElement>(null),
     staking: useRef<null | HTMLDivElement>(null),
-    tipjar: useRef<null | HTMLDivElement>(null),
   };
   const [currentRouteApp, setCurrentRouteApp] =
     useState<null | MutableRefObject<null | HTMLDivElement>>(null);
@@ -110,16 +107,6 @@ export const Routes: FC = () => {
             },
           },
           {
-            path: AppRoute.TipJar,
-            onMatch: () => {
-              appRefs.tipjar.current?.scrollIntoView({
-                behavior: "smooth",
-              });
-              setCurrentRouteApp(appRefs.tipjar);
-              setCurrentHelpRoute(AppRoute.TipJar);
-            },
-          },
-          {
             path: "/*",
             onMatch: () => {
               appRefs.lost.current?.scrollIntoView({
@@ -154,12 +141,6 @@ export const Routes: FC = () => {
           className="App StakingApp"
           ref={appRefs.staking}
           active={currentRouteApp === appRefs.staking}
-        />
-        <TipjarApp
-          id="tipjar-app"
-          className="App TipjarApp"
-          ref={appRefs.tipjar}
-          active={currentRouteApp === appRefs.tipjar}
         />
         <div
           id="lost-app"
