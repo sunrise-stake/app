@@ -8,19 +8,19 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { type TreeComponent } from "./utils";
+import { intermediaries, type TreeComponent } from "./utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { IoChevronForwardOutline } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
 import { ProfileBox } from "../common/components/profile/ProfileBox";
-import { type TreeNode } from "../api/types";
 import { type PublicKey } from "@solana/web3.js";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { ForestLink } from "./ForestLink";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { type ParentRelationship, type TreeNode } from "../api/types";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -71,13 +71,26 @@ const PerspectiveComponent: FC<{
   </li>
 );
 
-const getIntermediaries = (treeNode: TreeNode): PublicKey[] => {
-  const parent = treeNode.parent?.tree;
+const getIntermediaries = (
+  treeNode: TreeNode,
+  myTree: TreeNode
+): PublicKey[] => {
+  const path = intermediaries(treeNode, myTree);
+  if (path) return path.map((p) => p.address);
+  return [];
+};
 
-  // skip the last tree (one with no parent) as this is not an intermediary, it is the current logged-in user
-  if (parent === undefined || parent.parent === undefined) return [];
+const relationshipWithTree = (
+  treeNode: TreeNode,
+  myTree: TreeNode
+): ParentRelationship | undefined => {
+  const child = myTree.children.find((c) =>
+    c.tree.address.equals(treeNode.address)
+  );
 
-  return [parent.address, ...getIntermediaries(parent)];
+  if (child === undefined) return undefined;
+
+  return child.relationship;
 };
 
 const _ForestApp: ForwardRefRenderFunction<
@@ -119,8 +132,7 @@ const _ForestApp: ForwardRefRenderFunction<
     });
   }, [window.innerWidth]);
 
-  console.log("my tree", myTree);
-  console.log("neighbours", neighbours);
+  if (!myTree) return <></>;
 
   return (
     <div
@@ -136,11 +148,9 @@ const _ForestApp: ForwardRefRenderFunction<
           transformStyle: "preserve-3d",
         }}
       >
-        {myTree && (
-          <PerspectiveComponent details={myTree} locus={locus}>
-            <ForestTree details={myTree} />
-          </PerspectiveComponent>
-        )}
+        <PerspectiveComponent details={myTree} locus={locus}>
+          <ForestTree details={myTree} />
+        </PerspectiveComponent>
         {neighbours?.map((tree) => (
           <PerspectiveComponent
             key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
@@ -158,16 +168,14 @@ const _ForestApp: ForwardRefRenderFunction<
           perspective: "200px",
         }}
       >
-        {myTree && (
-          <PerspectiveComponent
-            details={myTree}
-            style={{ top: "200px", width: "350px", left: "-75px" }}
-            locus={locus}
-          >
-            <input type="checkbox" className="tree-checker opacity-0" />
-            <ProfileBox address={myTree.address} />
-          </PerspectiveComponent>
-        )}
+        <PerspectiveComponent
+          details={myTree}
+          style={{ top: "200px", width: "350px", left: "-75px" }}
+          locus={locus}
+        >
+          <input type="checkbox" className="tree-checker opacity-0" />
+          <ProfileBox address={myTree.address} />
+        </PerspectiveComponent>
         {neighbours?.map((tree) => (
           <PerspectiveComponent
             key={`${tree.address.toBase58()}-${tree.metadata.layer}`}
@@ -177,8 +185,14 @@ const _ForestApp: ForwardRefRenderFunction<
           >
             <ProfileBox
               address={tree.address}
-              relationship={tree.metadata.node.parent?.relationship}
-              intermediaries={getIntermediaries(tree.metadata.node)}
+              relationship={relationshipWithTree(
+                tree.metadata.node,
+                myTree.metadata.node
+              )}
+              intermediaries={getIntermediaries(
+                tree.metadata.node,
+                myTree.metadata.node
+              )}
             />
           </PerspectiveComponent>
         ))}

@@ -1,7 +1,11 @@
 import {
+  type GetNeighboursResponse,
   type Mint,
   type MintResponse,
   type MongoResponse,
+  type NeighbourEntry,
+  type RawGetNeighboursResponse,
+  type RawNeighbourEntry,
   type Transfer,
   type TransferResponse,
 } from "./types";
@@ -16,6 +20,7 @@ const STUBS = {
   sender: sendingStub,
   recipient: receiptStub,
 };
+const GET_NEIGHBOURS_URL = process.env.REACT_APP_GET_NEIGHBOURS_URL ?? "";
 const MONGODB_API_URL = process.env.REACT_APP_MONGODB_API_URL ?? "";
 const MONGODB_READ_TOKEN = process.env.REACT_APP_MONGODB_READ_TOKEN ?? "";
 const buildTransferRecord = (transfer: TransferResponse): Transfer => ({
@@ -30,6 +35,37 @@ const buildMintRecord = (mint: MintResponse): Mint => ({
   sender: mint.sender !== undefined ? new PublicKey(mint.sender) : undefined,
   amount: mint.amount,
 });
+
+const fromRawNeighbourEntry = (
+  rawEntry: RawNeighbourEntry
+): NeighbourEntry => ({
+  ...rawEntry,
+  address: new PublicKey(rawEntry.address),
+  start: new Date(rawEntry.start),
+  end: new Date(rawEntry.end),
+  sender: new PublicKey(rawEntry.sender),
+  recipient: new PublicKey(rawEntry.recipient),
+});
+
+export const getNeighbours = async (
+  address: PublicKey,
+  depth: number
+): Promise<GetNeighboursResponse> =>
+  fetch(`${GET_NEIGHBOURS_URL}/${address.toBase58()}?depth=${depth}`)
+    .then(async (resp) => resp.json() as Promise<RawGetNeighboursResponse>)
+    .then((rawResponse) => ({
+      firstTransfer: new Date(rawResponse.firstTransfer),
+      lastTransfer: new Date(rawResponse.lastTransfer),
+      neighbours: {
+        senderResult: rawResponse.neighbours.senderResult.map(
+          fromRawNeighbourEntry
+        ),
+        recipientResult: rawResponse.neighbours.recipientResult.map(
+          fromRawNeighbourEntry
+        ),
+      },
+    }));
+
 const getDBData = async <T>(
   collection: "mints" | "transfers",
   types: Array<"recipient" | "sender">,

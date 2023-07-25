@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@brokerloop/ttlcache": "^3.2.3",
     "@civic/profile": "^0.1.5",
     "@headlessui/react": "^1.7.12",
     "@heroicons/react": "^2.0.13",

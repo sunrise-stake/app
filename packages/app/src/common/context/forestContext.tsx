@@ -47,13 +47,8 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
     (reload = false) => {
       void (async () => {
         if (service && address) {
-          const forest = await service.getForest(
-            address,
-            depth,
-            undefined,
-            reload
-          );
-          const components = forestToComponents(forest);
+          const parentTree = await service.getForest(address, depth);
+          const components = forestToComponents(parentTree);
           setMyTree(components[0]);
           setNeighbours(components.slice(1));
         }
@@ -74,7 +69,6 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
 
   useEffect(() => {
     if (client) {
-      console.log("creating forest service");
       const service = new ForestService(connection, client);
       setService(service);
     }

@@ -124,20 +124,6 @@ export const depositStakeAccount = async (
   if (!voterAddress) {
     throw new Error("The stake account must be delegated");
   }
-  console.log("voterAddress: ", voterAddress);
-
-  console.log(
-    "validator list: ",
-    marinadeState.state.validatorSystem.validatorList.account.toString()
-  );
-  console.log(
-    "stake list: ",
-    marinadeState.state.stakeSystem.stakeList.account.toString()
-  );
-  console.log(
-    "duplication flag: ",
-    (await marinadeState.validatorDuplicationFlag(voterAddress)).toString()
-  );
 
   const validatorSystem = marinadeState.state.validatorSystem;
   const stakeSystem = marinadeState.state.stakeSystem;
@@ -163,9 +149,6 @@ export const depositStakeAccount = async (
     tokenProgram: TOKEN_PROGRAM_ID,
     marinadeProgram,
   };
-  console.log("accounts: ", accounts);
-
-  console.log("Getting validator index");
   const validatorIndex = await getValidatorIndex(marinadeState, voterAddress);
   return program.methods
     .depositStakeAccount(validatorIndex)

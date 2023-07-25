@@ -6,9 +6,8 @@ export const partners = [
   },
   {
     name: "DRiP",
-    website: "/earthday",
+    website: "https://drip.haus/",
     imageUrl: "partners/drip.jpeg",
-    internal: true,
   },
   {
     name: "Coinable",

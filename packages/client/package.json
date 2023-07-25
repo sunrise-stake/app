@@ -27,7 +27,7 @@
     "@solana/web3.js": "^1.73.2",
     "@sunrisestake/impact-nft-client": "0.0.5-module.4",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
-    "bn.js": "^5.2.1"
+    "bn.js": "^5.1.2"
   },
   "devDependencies": {
     "rimraf": "^5.0.1",

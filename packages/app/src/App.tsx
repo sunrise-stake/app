@@ -23,6 +23,7 @@ import { ForestProvider } from "./common/context/forestContext";
 import { HelpProvider } from "./common/context/HelpContext";
 import { Routes } from "./Routes";
 import { NFTsProvider } from "./common/context/NFTsContext";
+import { cachedRPCFetch } from "./api/cachedRPCFetch";
 
 require("./solana-wallet-adapter.css");
 
@@ -48,7 +49,13 @@ const App: FC = () => {
 
   return (
     <>
-      <ConnectionProvider endpoint={endpoint}>
+      <ConnectionProvider
+        endpoint={endpoint}
+        config={{
+          fetch: cachedRPCFetch,
+          commitment: "confirmed",
+        }}
+      >
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <SunriseProvider>
