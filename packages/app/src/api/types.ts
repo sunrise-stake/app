@@ -1,19 +1,5 @@
 import { type PublicKey } from "@solana/web3.js";
 
-export interface MintResponse {
-  timestamp: string;
-  sender?: string; // the wallet that pays for the mint (assume = the recipient if missing)
-  recipient: string;
-  amount: number;
-}
-
-export interface TransferResponse {
-  timestamp: string;
-  sender: string;
-  recipient: string;
-  amount: number;
-}
-
 export interface BalanceDetails {
   address: PublicKey;
   balance: number;
@@ -58,24 +44,6 @@ export interface GetNeighboursResponse {
   neighbours: NeighbourResult;
   firstTransfer: Date;
   lastTransfer: Date;
-}
-
-export interface MongoResponse<T> {
-  documents: T[];
-}
-
-export interface Mint {
-  timestamp: Date;
-  sender?: PublicKey; // the wallet that pays for the mint (assume = the recipient if missing)
-  recipient: PublicKey; // the wallet that receives the minted gSOL
-  amount: number;
-}
-
-export interface Transfer {
-  timestamp: Date;
-  sender: PublicKey;
-  recipient: PublicKey;
-  amount: number;
 }
 
 export type ParentRelationship = "PARENT_IS_SENDER" | "PARENT_IS_RECIPIENT";
