@@ -3,7 +3,6 @@ use crate::state::{EpochReportAccount, LockAccount, State};
 use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, LOCK_TOKEN_ACCOUNT};
 use crate::utils::token::transfer_to;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 #[derive(Accounts, Clone)]

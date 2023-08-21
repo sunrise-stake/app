@@ -113,6 +113,13 @@ pub mod sunrise_stake {
         lock_gsol_handler(ctx, lamports)
     }
 
+    pub fn add_locked_gsol<'info>(
+        ctx: Context<'_, '_, '_, 'info, AddLockedGSol<'info>>,
+        lamports: u64,
+    ) -> Result<()> {
+        add_locked_gsol_handler(ctx, lamports)
+    }
+
     pub fn unlock_gsol<'info>(ctx: Context<'_, '_, '_, 'info, UnlockGSol<'info>>) -> Result<()> {
         unlock_gsol_handler(ctx)
     }
