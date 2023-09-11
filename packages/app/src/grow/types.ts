@@ -17,6 +17,6 @@ export type Charity = PlaceholderOrg & {
 };
 
 export type Partner = PlaceholderOrg & {
-  website: string;
+  website?: string;
   internal?: boolean;
 };

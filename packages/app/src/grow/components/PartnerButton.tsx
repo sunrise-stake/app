@@ -6,8 +6,8 @@ type PartnerProps = PropsWithChildren & { partner: Partner };
 
 const ExternalPartner: FC<PartnerProps> = ({ children, partner }) => (
   <a
-    href={partner.website}
-    target="_blank"
+    href={partner.website || "#"}
+    target={partner.website ? "_blank" : "_self"}
     rel="noreferrer"
     className="transition-all cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-105 hover:brightness-105"
     style={
@@ -28,7 +28,7 @@ const ExternalPartner: FC<PartnerProps> = ({ children, partner }) => (
 
 const InternalPartner: FC<PartnerProps> = ({ children, partner }) => (
   <Link
-    to={partner.website}
+    to={partner.website || "#"}
     className="transition-all cursor-pointer bg-cover bg-blend-multiply bg-center bg-no-repeat hover:scale-105 hover:brightness-105"
     style={
       partner.imageUrl !== undefined
