@@ -1,9 +1,8 @@
 import { Dialog } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
-import React, { type FC } from "react";
+import { type FC } from "react";
 
 import { BaseModal, type ModalProps } from "./";
-import { MangroveButton } from "../../../rewards/components/MangroveButton";
 
 const LockWarningModal: FC<ModalProps> = (props) => {
   return (
@@ -27,10 +26,6 @@ const LockWarningModal: FC<ModalProps> = (props) => {
             <p className="text-md">
               Locked gSOL will be available to unlock after one full epoch (2-3
               days).
-            </p>
-            <MangroveButton />
-            <p className="text-md">
-              To earn a bonus Mangrove NFT, you must lock at least 0.5 gSOL.
             </p>
           </div>
         </div>

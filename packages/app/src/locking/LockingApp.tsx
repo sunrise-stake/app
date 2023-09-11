@@ -27,7 +27,6 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useNFTs } from "../common/context/NFTsContext";
 import { LockDetailsView } from "./LockDetails";
 import { detailsIndicateUpgradePossible } from "./utils";
-import { MangroveButton } from "../rewards/components/MangroveButton";
 import { useScript } from "../common/hooks";
 import { LockForm } from "./LockForm";
 import { LockingSuccessModal } from "./LockingSuccessModal";
@@ -187,9 +186,6 @@ const _LockingApp: ForwardRefRenderFunction<
           <h1 className="font-bold text-green-light text-3xl text-center">
             Lock gSOL to receive an Impact NFT
           </h1>
-          <div className={"flex flex-col items-center mt-4"}>
-            <MangroveButton />
-          </div>
         </div>
       )}
       {details?.impactNFTDetails && (

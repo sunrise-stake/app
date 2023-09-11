@@ -8,11 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  IoChevronBackOutline,
-  IoChevronDownOutline,
-  IoChevronForwardOutline,
-} from "react-icons/io5";
+import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { Button, Spinner } from "../common/components";
 import { useZenMode } from "../common/context/ZenModeContext";
@@ -22,9 +18,6 @@ import { useCarbon } from "../common/hooks";
 import { useForest } from "../common/context/forestContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
-import { AlertBadge } from "../common/content/Badge";
-import { useLockHubDetails } from "./hooks/useLockHubDetails";
-import { MangroveIcon } from "../rewards/components/MangroveIcon";
 
 const LINK_CHEVRON_SIZE = 32;
 
@@ -37,12 +30,11 @@ const _HubApp: ForwardRefRenderFunction<
   const [zenMode, updateZenMode] = useZenMode();
   const { myTree } = useForest();
   const { totalCarbon } = useCarbon();
-  const { needsUpgrade: showLockAlert } = useLockHubDetails();
 
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
-  const [showAlerts, updateShowAlerts] = useState(false);
+  const [, updateShowAlerts] = useState(false);
 
   const wasHubNavShown = useRef(false);
   const showWalletButton = useMemo(() => {
@@ -255,25 +247,6 @@ const _HubApp: ForwardRefRenderFunction<
                   size={LINK_CHEVRON_SIZE}
                 />
               </div>
-            </Link>
-          </div>
-          <div
-            className={clx(
-              "transition-opacity ease-in duration-500",
-              showHubNav ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <Link to="/lock" className="block w-full mt-4 leading-none">
-              <div className="relative inline-block">
-                <span className="text-2xl">Lock</span>
-                {showLockAlert && <AlertBadge />}
-                {showAlerts && <MangroveIcon />}
-              </div>
-              <br />
-              <IoChevronDownOutline
-                className="inline-block"
-                size={LINK_CHEVRON_SIZE}
-              />
             </Link>
           </div>
         </div>
