@@ -355,6 +355,48 @@ export class LockClient {
       .transaction();
   }
 
+  public async addLockedGSol(
+    sourceGSolTokenAccount: PublicKey,
+    impactNFTConfig: EnvironmentConfig["impactNFT"],
+    lamports: BN
+  ): Promise<Transaction> {
+    if (!this.impactNFTClient) throw new Error("LockClient not initialized");
+    const [epochReportAccount] = findEpochReportAccount(this.config);
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.lockGsol>["accounts"]
+    >[0];
+
+    const preInstructions: TransactionInstruction[] = [];
+
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 500000,
+    });
+    preInstructions.push(modifyComputeUnits);
+
+    const allImpactNFTAccounts = await this.getImpactNFTAccounts();
+    const accounts: Accounts = {
+      state: this.config.stateAddress,
+      gsolMint: this.config.gsolMint,
+      authority: this.authority,
+      sourceGsolAccount: sourceGSolTokenAccount,
+      lockGsolAccount: this.lockTokenAccountAddress,
+      lockAccount: this.lockAccountAddress,
+      epochReportAccount,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      clock: SYSVAR_CLOCK_PUBKEY,
+      ...allImpactNFTAccounts,
+    };
+
+    return this.program.methods
+      .addLockedGsol(lamports)
+      .accounts(accounts)
+      .preInstructions(preInstructions)
+      .transaction();
+  }
+
   public async unlockGSol(
     targetGSolTokenAccount: PublicKey
   ): Promise<Transaction> {

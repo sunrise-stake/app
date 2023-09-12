@@ -103,6 +103,9 @@ describe("Impact NFTs", () => {
 
     const details = await client.details();
     expect(details.impactNFTDetails?.tokenAccount).to.exist;
+    expect(details.lockDetails?.amountLocked.toNumber()).to.eq(
+      lockLamports.toNumber()
+    );
   });
 
   it("cannot re-lock", async () => {
@@ -152,6 +155,35 @@ describe("Impact NFTs", () => {
       currentEpoch.epoch
     );
     expect(details.lockDetails?.yield?.toNumber()).to.equal(expectedYield);
+  });
+
+  it("can add gSOL to existing locked account", async () => {
+    const transactions = await client.addLockedGSol(lockLamports);
+    await client.sendAndConfirmTransactions(
+      transactions,
+      undefined,
+      undefined,
+      true
+    );
+
+    const details = await client.details();
+    expect(details.lockDetails?.amountLocked.toNumber()).to.eq(
+      lockLamports.add(lockLamports).toNumber()
+    );
+    expect(details.impactNFTDetails?.tokenAccount).to.exist;
+  });
+
+  it("cannot add gSOL to existing locked account if epoch is not updated", async () => {
+    await waitForNextEpoch(client);
+    const transactions = await client.addLockedGSol(lockLamports);
+    const shouldFail = client.sendAndConfirmTransactions(
+      transactions,
+      undefined,
+      undefined,
+      true
+    );
+
+    return expect(shouldFail).to.be.rejected;
   });
 
   it("updating again after the next epoch has no effect if no more yield is added", async () => {

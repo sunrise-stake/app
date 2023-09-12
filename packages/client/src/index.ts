@@ -1777,6 +1777,38 @@ export class SunriseStakeClient {
   }
 
   /**
+   * Add some staked gSOL to locked gSOL
+   * @param lamports
+   */
+  public async addLockedGSol(lamports: BN): Promise<Transaction[]> {
+    if (
+      !this.stakerGSolTokenAccount ||
+      !this.config ||
+      !this.marinade ||
+      !this.marinadeState ||
+      !this.lockClient
+    )
+      throw new Error("init not called");
+
+    const transactions: Transaction[] = [];
+
+    const recoverInstruction = await this.recoverTickets();
+
+    if (recoverInstruction) {
+      transactions.push(new Transaction().add(recoverInstruction));
+    }
+
+    const lockTx = await this.lockClient.addLockedGSol(
+      this.stakerGSolTokenAccount,
+      this.env.impactNFT,
+      lamports
+    );
+    transactions.push(lockTx);
+
+    return transactions;
+  }
+
+  /**
    * Unlock a user's gSOL so that it can be unstaked
    */
   public async unlockGSol(): Promise<Transaction[]> {
