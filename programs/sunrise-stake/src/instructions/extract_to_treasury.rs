@@ -87,7 +87,7 @@ pub struct ExtractToTreasury<'info> {
 
     #[account(mut)]
     /// CHECK: Matches state.treasury
-    pub treasury: SystemAccount<'info>, // sunrise-stake treasury
+    pub treasury: UncheckedAccount<'info>, // sunrise-stake treasury
 
     #[account(
     mut,
