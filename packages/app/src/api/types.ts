@@ -42,8 +42,8 @@ export interface RawGetNeighboursResponse {
 
 export interface GetNeighboursResponse {
   neighbours: NeighbourResult;
-  firstTransfer: Date;
-  lastTransfer: Date;
+  firstTransfer: Date | null;
+  lastTransfer: Date | null;
 }
 
 export type ParentRelationship = "PARENT_IS_SENDER" | "PARENT_IS_RECIPIENT";
