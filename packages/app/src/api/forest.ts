@@ -49,8 +49,8 @@ export class ForestService {
     const parentTreeNode = {
       address,
       balance: currentBalance + lockedBalance,
-      startDate: firstTransfer,
-      mostRecentTransfer: lastTransfer,
+      startDate: firstTransfer ?? new Date(), // Default to the current date if for some reason the API returned no date
+      mostRecentTransfer: lastTransfer ?? new Date(),
       parents: [],
       children: [],
     };

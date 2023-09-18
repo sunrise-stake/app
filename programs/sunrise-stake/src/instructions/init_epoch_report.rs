@@ -14,6 +14,7 @@ pub struct InitEpochReport<'info> {
     has_one = marinade_state,
     has_one = blaze_state,
     has_one = update_authority,
+    has_one = treasury,
     )]
     pub state: Box<Account<'info, State>>,
 
@@ -78,7 +79,7 @@ pub struct InitEpochReport<'info> {
     pub get_bsol_from_authority: SystemAccount<'info>, // sunrise-stake PDA
 
     /// CHECK: Matches state.treasury
-    pub treasury: SystemAccount<'info>, // sunrise-stake treasury
+    pub treasury: UncheckedAccount<'info>, // sunrise-stake treasury
 
     #[account(
     init,
