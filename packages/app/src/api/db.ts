@@ -26,8 +26,12 @@ export const getNeighbours = async (
   fetch(`${GET_NEIGHBOURS_URL}/${address.toBase58()}?depth=${depth}`)
     .then(async (resp) => resp.json() as Promise<RawGetNeighboursResponse>)
     .then((rawResponse) => ({
-      firstTransfer: new Date(rawResponse.firstTransfer),
-      lastTransfer: new Date(rawResponse.lastTransfer),
+      firstTransfer: rawResponse.firstTransfer
+        ? new Date(rawResponse.firstTransfer)
+        : null,
+      lastTransfer: rawResponse.lastTransfer
+        ? new Date(rawResponse.lastTransfer)
+        : null,
       neighbours: {
         senderResult: rawResponse.neighbours.senderResult.map(
           fromRawNeighbourEntry
