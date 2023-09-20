@@ -656,6 +656,36 @@ describe("sunrise-stake", () => {
     expectAmount(new BN(tokenAccount!.amount.toString()), lockLamports, 0);
   });
 
+  it("calculates yield accrued by owner correctly after relocking", async () => {
+    let details = await client.details();
+    let { lockAccount } = await client.getLockAccount();
+
+    const previousExtractableYield = details.extractableYield;
+    const previousAccruedYield = lockAccount?.yieldAccruedByOwner;
+
+    // burn 100 gSOL so that there is some unclaimed yield for the crank operation to harvest
+    await burnGSol(new BN(burnLamports), client);
+    await waitForNextEpoch(client);
+    await client.sendAndConfirmTransactions(await client.updateLockAccount());
+
+    details = await client.details();
+    lockAccount = (await client.getLockAccount()).lockAccount;
+
+    const expectedYield = details.extractableYield.sub(
+      previousExtractableYield
+    );
+    const lockedProportion =
+      lockLamports.toNumber() / Number(details.balances.gsolSupply.amount);
+    // expected yield * locked proportion
+    const expectedLockedYield = expectedYield.toNumber() * lockedProportion;
+
+    expectAmount(
+      lockAccount!.yieldAccruedByOwner,
+      expectedLockedYield + previousAccruedYield!.toNumber(),
+      50
+    );
+  });
+
   it("can add locked after re-lock after unlock", async () => {
     await client.sendAndConfirmTransactions(
       await client.addLockedGSol(lockLamports),
@@ -672,6 +702,37 @@ describe("sunrise-stake", () => {
     );
   });
 
+  it("calculates yield accrued by owner correctly after adding more locked gSOL", async () => {
+    let details = await client.details();
+    let { lockAccount } = await client.getLockAccount();
+
+    const previousExtractableYield = details.extractableYield;
+    const previousAccruedYield = lockAccount?.yieldAccruedByOwner;
+
+    // burn 100 gSOL so that there is some unclaimed yield for the crank operation to harvest
+    await burnGSol(new BN(burnLamports), client);
+    await waitForNextEpoch(client);
+    await client.sendAndConfirmTransactions(await client.updateLockAccount());
+
+    details = await client.details();
+    lockAccount = (await client.getLockAccount()).lockAccount;
+
+    const expectedYield = details.extractableYield.sub(
+      previousExtractableYield
+    );
+    const lockedProportion =
+      (2 * lockLamports.toNumber()) /
+      Number(details.balances.gsolSupply.amount);
+    // expected yield * locked proportion
+    const expectedLockedYield = expectedYield.toNumber() * lockedProportion;
+
+    expectAmount(
+      lockAccount!.yieldAccruedByOwner,
+      expectedLockedYield + previousAccruedYield!.toNumber(),
+      50
+    );
+  });
+
   it("can extract earned yield", async () => {
     await expectTreasurySolBalance(client, 0, 50);
 
@@ -680,7 +741,10 @@ describe("sunrise-stake", () => {
 
     // expect the treasury to have 500 SOL minus fees
     // marinade charges a 0.3% fee for liquid unstaking
-    const expectedTreasuryBalance = new BN(burnLamports).muln(997).divn(1000);
+    const expectedTreasuryBalance = new BN(burnLamports)
+      .muln(3)
+      .muln(997)
+      .divn(1000);
     await expectTreasurySolBalance(client, expectedTreasuryBalance, 10);
   });
 
