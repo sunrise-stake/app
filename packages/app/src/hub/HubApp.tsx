@@ -8,7 +8,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
+import {
+  IoChevronBackOutline,
+  IoChevronDownOutline,
+  IoChevronForwardOutline,
+} from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { Button, Spinner } from "../common/components";
 import { useZenMode } from "../common/context/ZenModeContext";
@@ -34,7 +38,6 @@ const _HubApp: ForwardRefRenderFunction<
   const [showIntro, updateShowIntro] = useState(false);
   const [introLeft, updateIntroLeft] = useState(false);
   const [showHubNav, updateShowHubNav] = useState(false);
-  const [, updateShowAlerts] = useState(false);
 
   const wasHubNavShown = useRef(false);
   const showWalletButton = useMemo(() => {
@@ -114,21 +117,6 @@ const _HubApp: ForwardRefRenderFunction<
       showWallet: showWalletButton,
     });
   }, [active, currentHelpRoute, showHubNav, showWalletButton]);
-
-  // show alerts 3s after hub nav is shown
-  useEffect(() => {
-    if (!showHubNav) {
-      updateShowAlerts(false);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      updateShowAlerts(showHubNav);
-    }, 3000);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [showHubNav]);
 
   return (
     <div
@@ -247,6 +235,23 @@ const _HubApp: ForwardRefRenderFunction<
                   size={LINK_CHEVRON_SIZE}
                 />
               </div>
+            </Link>
+          </div>
+          <div
+            className={clx(
+              "transition-opacity ease-in duration-500",
+              showHubNav ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <Link to="/lock" className="block w-full mt-4 leading-none">
+              <div className="relative inline-block">
+                <span className="text-2xl">Lock</span>
+              </div>
+              <br />
+              <IoChevronDownOutline
+                className="inline-block"
+                size={LINK_CHEVRON_SIZE}
+              />
             </Link>
           </div>
         </div>
