@@ -103,6 +103,10 @@ describe("Impact NFTs", () => {
 
     const details = await client.details();
     expect(details.impactNFTDetails?.tokenAccount).to.exist;
+    expect(details.lockDetails?.amountLocked.toNumber()).to.eq(
+      lockLamports.toNumber()
+    );
+    expect(details.lockDetails?.yield.toNumber()).to.eq(0);
   });
 
   it("cannot re-lock", async () => {
@@ -152,6 +156,55 @@ describe("Impact NFTs", () => {
       currentEpoch.epoch
     );
     expect(details.lockDetails?.yield?.toNumber()).to.equal(expectedYield);
+  });
+
+  it("can add gSOL to existing locked account", async () => {
+    const transactions = await client.addLockedGSol(lockLamports);
+    await client.sendAndConfirmTransactions(
+      transactions,
+      undefined,
+      undefined,
+      true
+    );
+
+    const details = await client.details();
+    expect(details.lockDetails?.amountLocked.toNumber()).to.eq(
+      lockLamports.add(lockLamports).toNumber()
+    );
+    expect(details.impactNFTDetails?.tokenAccount).to.exist;
+  });
+
+  it("registers add gSOL correctly", async () => {
+    await burnGSol(new BN(burnLamports), client);
+
+    // Switch to the next epoch so that the lock account can be updated and the yield applied
+    await waitForNextEpoch(client);
+
+    await client.sendAndConfirmTransactions(await client.updateLockAccount());
+
+    const currentEpoch = await client.provider.connection.getEpochInfo();
+    const details = await client.details();
+
+    expectedYield = details.lockDetails!.yield.toNumber();
+    expect(details.lockDetails?.updatedToEpoch.toNumber()).to.equal(
+      currentEpoch.epoch
+    );
+    // the exact number varies depending on other tests
+    // expected yield = 1 * 0.11 SOL + 2 * 0.125 SOL
+    expect(expectedYield).to.be.greaterThan(360000000);
+  });
+
+  it("cannot add gSOL to existing locked account if epoch is not updated", async () => {
+    await waitForNextEpoch(client);
+    const transactions = await client.addLockedGSol(lockLamports);
+    const shouldFail = client.sendAndConfirmTransactions(
+      transactions,
+      undefined,
+      undefined,
+      true
+    );
+
+    return expect(shouldFail).to.be.rejected;
   });
 
   it("updating again after the next epoch has no effect if no more yield is added", async () => {

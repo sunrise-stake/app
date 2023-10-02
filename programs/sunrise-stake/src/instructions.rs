@@ -1,3 +1,4 @@
+mod add_locked_gsol;
 mod claim_unstake_ticket;
 mod create_metadata;
 mod deposit;
@@ -17,6 +18,7 @@ mod update_lock_account;
 mod update_metadata;
 mod update_state;
 
+pub use add_locked_gsol::*;
 pub use claim_unstake_ticket::*;
 pub use create_metadata::*;
 pub use deposit::*;
