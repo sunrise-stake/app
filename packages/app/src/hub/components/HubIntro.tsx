@@ -3,7 +3,6 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
 import { CarbonRecovered, LogoIcon, LogoText } from "../../common/components";
-import { MangroveButton } from "../../rewards/components/MangroveButton";
 
 const HubIntro: FC<{
   show: boolean;
@@ -86,9 +85,6 @@ const HubIntro: FC<{
         <WalletMultiButton className="!bg-green hover:!bg-green-light !text-white">
           Start reducing CO<sub>2</sub>&nbsp;emissions
         </WalletMultiButton>
-        <div className="mt-6">
-          <MangroveButton />
-        </div>
         <CarbonRecovered />
       </Transition.Child>
     </Transition>
