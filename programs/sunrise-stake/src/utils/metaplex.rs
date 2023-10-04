@@ -3,9 +3,11 @@ use crate::CreateMetadata;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke_signed;
 use mpl_token_metadata::{
-    instruction::{create_metadata_accounts_v3, update_metadata_accounts_v2},
-    state::DataV2,
+    types::data_v2::DataV2,
+    instructions::create_metadata_account_v3::*,
+    instructions::update_metadata_account_v2::*,
 };
+use mpl_token_metadata::instructions::CreateMetadataAccountV3;
 
 pub fn create_metadata_account(
     accounts: &CreateMetadata,
@@ -32,7 +34,13 @@ pub fn create_metadata_account(
     ];
 
     invoke_signed(
-        &create_metadata_accounts_v3(
+        &CreateMetadataAccountV3Builder::new()
+            .metadata(accounts.metadata.key())
+            .mint(accounts.gsol_mint.key())
+            .mint_authority(accounts.gsol_mint_authority.key())
+            .payer(accounts.update_authority.key())
+            .update_authority(accounts.update_authority.key())
+            .
             accounts.token_metadata_program.key(),
             accounts.metadata.key(),
             accounts.gsol_mint.key(),
