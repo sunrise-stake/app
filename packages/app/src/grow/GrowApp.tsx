@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import clx from "classnames";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { useModal } from "../common/hooks";
 import { IoChevronBackOutline } from "react-icons/io5";
@@ -24,6 +24,7 @@ import { charityApps } from "./charities";
 import { partners } from "./partners";
 import { PartnerButton } from "./components/PartnerButton";
 import { OrgButtonContent } from "./OrgButtonContent";
+import { LinkWithQuery } from "../common/components/LinkWithQuery";
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
   <div className="transition-all text-xl font-medium text-center text-green hover:text-green-light border border-green hover:border-green-light p-8 rounded-md w-40 h-40 hover:scale-105 hover:brightness-105">
@@ -127,11 +128,11 @@ const _GrowApp: ForwardRefRenderFunction<
       </div>
       <div className="absolute top-0 left-0 mt-4">
         <div className="container">
-          <Link to="/" className="flex items-center text-green">
+          <LinkWithQuery to="/" className="flex items-center text-green">
             <div className="flex items-center nowrap">
               <IoChevronBackOutline className="inline" size={48} />
             </div>
-          </Link>
+          </LinkWithQuery>
         </div>
       </div>
     </div>

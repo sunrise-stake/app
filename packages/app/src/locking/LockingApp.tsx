@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { Button, Panel, Spinner } from "../common/components";
 import {
@@ -27,10 +27,10 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useNFTs } from "../common/context/NFTsContext";
 import { LockDetailsView } from "./LockDetails";
 import { detailsIndicateUpgradePossible } from "./utils";
-import { useScript } from "../common/hooks";
 import { LockForm } from "./LockForm";
 import { LockingSuccessModal } from "./LockingSuccessModal";
 import { useInfoModal } from "../common/hooks/useInfoModal";
+import { LinkWithQuery } from "../common/components/LinkWithQuery";
 
 // one full epoch has passed since the lock was created
 const canBeUnlocked = (details: Details | undefined): boolean => {
@@ -54,8 +54,6 @@ const _LockingApp: ForwardRefRenderFunction<
   const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
   const { refresh } = useNFTs();
-  useScript("//embed.typeform.com/next/embed.js");
-
   const navigate = useNavigate();
   const wallet = useWallet();
   useEffect(() => {
@@ -172,11 +170,14 @@ const _LockingApp: ForwardRefRenderFunction<
         </div>
       )}
       <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] max-w-xl mt-8">
-        <Link to="/" className="flex items-center text-green justify-center">
+        <LinkWithQuery
+          to="/"
+          className="flex items-center text-green justify-center"
+        >
           <div className="flex items-center nowrap">
             <IoChevronUpOutline className="inline" size={48} />
           </div>
-        </Link>
+        </LinkWithQuery>
       </div>
       {myTree && details?.impactNFTDetails === undefined && (
         <DynamicTree details={myTree} variant="sm" />

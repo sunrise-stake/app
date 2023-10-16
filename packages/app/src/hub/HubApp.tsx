@@ -13,7 +13,6 @@ import {
   IoChevronDownOutline,
   IoChevronForwardOutline,
 } from "react-icons/io5";
-import { Link } from "react-router-dom";
 import { Button, Spinner } from "../common/components";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { HubIntro } from "./components/HubIntro";
@@ -22,6 +21,7 @@ import { useCarbon } from "../common/hooks";
 import { useForest } from "../common/context/forestContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
+import { LinkWithQuery } from "../common/components/LinkWithQuery";
 
 const LINK_CHEVRON_SIZE = 32;
 
@@ -145,7 +145,7 @@ const _HubApp: ForwardRefRenderFunction<
       />
       <div className={showHub ? "block" : "hidden"}>
         <div className="flex">
-          <Link
+          <LinkWithQuery
             to="/forest"
             className={clx(
               "hidden md:flex  flex-col justify-center transition-opacity ease-in duration-500",
@@ -159,7 +159,7 @@ const _HubApp: ForwardRefRenderFunction<
               />
               <span>Forest</span>
             </div>
-          </Link>
+          </LinkWithQuery>
           {myTree && (
             <DynamicTree
               details={myTree}
@@ -169,7 +169,7 @@ const _HubApp: ForwardRefRenderFunction<
               }}
             />
           )}
-          <Link
+          <LinkWithQuery
             to="/grow"
             className={clx(
               "hidden md:flex flex-col justify-center transition-opacity ease-in duration-500",
@@ -183,7 +183,7 @@ const _HubApp: ForwardRefRenderFunction<
                 size={LINK_CHEVRON_SIZE}
               />
             </div>
-          </Link>
+          </LinkWithQuery>
         </div>
         <div className="w-full mt-2 text-center">
           {myTree?.metadata?.type?.level !== undefined &&
@@ -194,11 +194,11 @@ const _HubApp: ForwardRefRenderFunction<
                 showHubNav ? "opacity-100" : "opacity-0"
               )}
             >
-              <Link to="/stake">
+              <LinkWithQuery to="/stake">
                 <Button variant="outline" size="lg">
                   {stakeButtonMessage}
                 </Button>
-              </Link>
+              </LinkWithQuery>
             </div>
           ) : (
             <div
@@ -207,9 +207,9 @@ const _HubApp: ForwardRefRenderFunction<
                 showHub ? "opacity-100" : "opacity-0"
               )}
             >
-              <Link to="/stake">
+              <LinkWithQuery to="/stake">
                 <Button variant="outline">{stakeButtonMessage}</Button>
-              </Link>
+              </LinkWithQuery>
             </div>
           )}
           <div
@@ -218,7 +218,7 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <Link to="/forest" className="flex items-center">
+            <LinkWithQuery to="/forest" className="flex items-center">
               <div className="flex items-center nowrap text-2xl">
                 <IoChevronBackOutline
                   className="inline"
@@ -226,8 +226,8 @@ const _HubApp: ForwardRefRenderFunction<
                 />
                 <span>Forest</span>
               </div>
-            </Link>
-            <Link to="/grow" className="flex items-center">
+            </LinkWithQuery>
+            <LinkWithQuery to="/grow" className="flex items-center">
               <div className="flex items-center nowrap text-2xl relative">
                 <span>Grow</span>
                 <IoChevronForwardOutline
@@ -235,15 +235,18 @@ const _HubApp: ForwardRefRenderFunction<
                   size={LINK_CHEVRON_SIZE}
                 />
               </div>
-            </Link>
+            </LinkWithQuery>
           </div>
           <div
             className={clx(
-              "transition-opacity ease-in duration-500",
+              "transition-opacity ease-in duration-500 flex flex-row",
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            <Link to="/lock" className="block w-full mt-4 leading-none">
+            <LinkWithQuery
+              to="/lock"
+              className="block w-full mt-4 leading-none"
+            >
               <div className="relative inline-block">
                 <span className="text-2xl">Lock</span>
               </div>
@@ -252,7 +255,20 @@ const _HubApp: ForwardRefRenderFunction<
                 className="inline-block"
                 size={LINK_CHEVRON_SIZE}
               />
-            </Link>
+            </LinkWithQuery>
+            <LinkWithQuery
+              to="/referral"
+              className="block w-full mt-4 leading-none"
+            >
+              <div className="relative inline-block">
+                <span className="text-2xl">Referral</span>
+              </div>
+              <br />
+              <IoChevronDownOutline
+                className="inline-block"
+                size={LINK_CHEVRON_SIZE}
+              />
+            </LinkWithQuery>
           </div>
         </div>
       </div>

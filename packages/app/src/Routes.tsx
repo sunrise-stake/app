@@ -10,11 +10,13 @@ import { ForestApp } from "./forest/ForestApp";
 import { GrowApp } from "./grow/GrowApp";
 import { HubApp } from "./hub/HubApp";
 import { LockingApp } from "./locking/LockingApp";
+import { ReferralApp } from "./referral/ReferralApp";
 import { StakingApp } from "./staking/StakingApp";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Layout } from "./common/partials/Layout";
 import { debounce } from "./common/utils";
 import { useHelp } from "./common/context/HelpContext";
+import { LinkWithQuery } from "./common/components/LinkWithQuery";
 
 export enum AppRoute {
   Connect = "/connect", // not a route at present TODO fix
@@ -22,6 +24,7 @@ export enum AppRoute {
   Grow = "/grow",
   Hub = "/",
   Lock = "/lock",
+  Referral = "/referral",
   Stake = "/stake",
 }
 
@@ -32,6 +35,7 @@ export const Routes: FC = () => {
     grow: useRef<null | HTMLDivElement>(null),
     hub: useRef<null | HTMLDivElement>(null),
     locking: useRef<null | HTMLDivElement>(null),
+    referral: useRef<null | HTMLDivElement>(null),
     lost: useRef<null | HTMLDivElement>(null),
     staking: useRef<null | HTMLDivElement>(null),
   };
@@ -97,6 +101,16 @@ export const Routes: FC = () => {
             },
           },
           {
+            path: AppRoute.Referral,
+            onMatch: () => {
+              appRefs.referral.current?.scrollIntoView({
+                behavior: "smooth",
+              });
+              setCurrentRouteApp(appRefs.referral);
+              setCurrentHelpRoute(AppRoute.Referral);
+            },
+          },
+          {
             path: AppRoute.Stake,
             onMatch: () => {
               appRefs.staking.current?.scrollIntoView({
@@ -136,6 +150,12 @@ export const Routes: FC = () => {
           ref={appRefs.locking}
           active={currentRouteApp === appRefs.locking}
         />
+        <ReferralApp
+          id="referral-app"
+          className="App ReferralApp"
+          ref={appRefs.referral}
+          active={currentRouteApp === appRefs.referral}
+        />
         <StakingApp
           id="staking-app"
           className="App StakingApp"
@@ -150,12 +170,12 @@ export const Routes: FC = () => {
           <p className="text-2xl font-bold">
             Oh, oh. You&apos;ve got lost in the woods... 🐺
           </p>
-          <Link
+          <LinkWithQuery
             className="mt-2 px-5 py-3 border-2 border-green rounded-lg leading-6 text-green text-xl"
             to="/"
           >
             Back home
-          </Link>
+          </LinkWithQuery>
         </div>
       </div>
     </Layout>

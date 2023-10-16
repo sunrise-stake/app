@@ -6,7 +6,7 @@ import {
   FaTwitter,
 } from "react-icons/fa";
 import { Panel } from "./Panel";
-import { type FC } from "react";
+import React, { type FC } from "react";
 
 export const ExternalLinks: FC = () => {
   return (
