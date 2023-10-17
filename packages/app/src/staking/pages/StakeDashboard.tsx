@@ -135,7 +135,7 @@ const StakeDashboard: FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: "620px" }} className="mx-auto relative">
+    <div>
       <div>
         <LinkWithQuery
           to="/"
@@ -306,7 +306,7 @@ const StakeDashboard: FC = () => {
           className="flex items-center text-green justify-center mb-8"
         >
           <div className="flex flex-col items-center nowrap">
-            <span>Lock</span>
+            <span className="text-2xl">Lock</span>
             <IoChevronDownOutline className="inline" size={48} />
           </div>
         </LinkWithQuery>

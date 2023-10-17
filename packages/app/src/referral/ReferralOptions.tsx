@@ -1,4 +1,4 @@
-import React, { type FC, useMemo } from "react";
+import React, { type FC } from "react";
 import { ShareButton } from "./ShareButton";
 import { FaShareSquare } from "react-icons/fa";
 import { Tweet } from "../common/components/Tweet";
@@ -6,15 +6,11 @@ import { CopyButton } from "./CopyButton";
 import { Card } from "../common/container/Card";
 import { ReferTweetButton } from "./ReferTweetButton";
 import { QRCodeCard } from "./QRCodeCard";
-import { isMobilePortrait } from "../common/utils";
-import { useWindowSize } from "usehooks-ts";
+import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 export const ReferralOptions: FC<{ link: string }> = ({ link }) => {
-  const windowSize = useWindowSize();
-  const isPortrait = useMemo(
-    () => isMobilePortrait(windowSize.width),
-    [windowSize]
-  );
+  const { screenType } = useScreenOrientation();
+  const isPortrait = screenType === "mobilePortrait";
   const shareSupported = window.navigator?.canShare?.();
 
   return (

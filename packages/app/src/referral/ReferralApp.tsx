@@ -17,9 +17,9 @@ import { LinkWithQuery } from "../common/components/LinkWithQuery";
 import { TopicContainer } from "../common/container/TopicContainer";
 import { Card } from "../common/container/Card";
 import { ReferralOptions } from "./ReferralOptions";
-import { ReferralLink } from "./ReferralLink";
 import { isMobilePortrait } from "../common/utils";
 import { useWindowSize } from "usehooks-ts";
+import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 const Title: FC = () => (
   <div className="topic-title w-full mt-8">
@@ -59,6 +59,7 @@ const _ReferralApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
+  const { screenType } = useScreenOrientation();
 
   const navigate = useNavigate();
   const wallet = useWallet();
@@ -73,12 +74,13 @@ const _ReferralApp: ForwardRefRenderFunction<
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Lock) return; // we are not on the lock page, so don't update zen mode
-    updateZenMode({
+    updateZenMode((prev) => ({
+      ...prev,
       showBGImage: false,
       showHelpButton: true,
-      showExternalLinks: false,
       showWallet: active,
-    });
+      showExternalLinks: screenType !== "mobilePortrait",
+    }));
   }, [active, currentHelpRoute]);
 
   return (
@@ -101,7 +103,6 @@ const _ReferralApp: ForwardRefRenderFunction<
         <div className="mx-4 mb-3 flex flex-col items-center">
           <Wrapper>
             <ReferralOptions link={link} />
-            <ReferralLink link={link} />
           </Wrapper>
         </div>
       )}

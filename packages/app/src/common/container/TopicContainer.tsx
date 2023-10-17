@@ -36,7 +36,7 @@ const _TopicContainer: ForwardRefRenderFunction<
 > = ({ children, titleContents, className, active = false, ...rest }, ref) => (
   <div
     className={clx(
-      "container mx-auto flex flex-col justify-start items-center",
+      "relative flex flex-col justify-start items-center",
       className
     )}
     ref={ref}

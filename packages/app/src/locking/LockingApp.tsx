@@ -31,6 +31,7 @@ import { LockForm } from "./LockForm";
 import { LockingSuccessModal } from "./LockingSuccessModal";
 import { useInfoModal } from "../common/hooks/useInfoModal";
 import { LinkWithQuery } from "../common/components/LinkWithQuery";
+import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 // one full epoch has passed since the lock was created
 const canBeUnlocked = (details: Details | undefined): boolean => {
@@ -56,18 +57,20 @@ const _LockingApp: ForwardRefRenderFunction<
   const { refresh } = useNFTs();
   const navigate = useNavigate();
   const wallet = useWallet();
+  const { screenType } = useScreenOrientation();
   useEffect(() => {
     if (!wallet.connected && active) navigate("/");
   }, [active, wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Lock) return; // we are not on the lock page, so don't update zen mode
-    updateZenMode({
+    updateZenMode((prev) => ({
+      ...prev,
       showBGImage: false,
       showHelpButton: true,
-      showExternalLinks: false,
       showWallet: active,
-    });
+      showExternalLinks: screenType !== "mobilePortrait",
+    }));
   }, [active, currentHelpRoute]);
 
   const { client, details, loading } = useSunriseStake();

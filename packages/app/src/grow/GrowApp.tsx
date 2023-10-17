@@ -25,6 +25,7 @@ import { partners } from "./partners";
 import { PartnerButton } from "./components/PartnerButton";
 import { OrgButtonContent } from "./OrgButtonContent";
 import { LinkWithQuery } from "../common/components/LinkWithQuery";
+import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 const Placeholder: FC<PropsWithChildren> = ({ children }) => (
   <div className="transition-all text-xl font-medium text-center text-green hover:text-green-light border border-green hover:border-green-light p-8 rounded-md w-40 h-40 hover:scale-105 hover:brightness-105">
@@ -43,18 +44,20 @@ const _GrowApp: ForwardRefRenderFunction<
 
   const navigate = useNavigate();
   const wallet = useWallet();
+  const { screenType } = useScreenOrientation();
   useEffect(() => {
     if (!wallet.connected && active) navigate("/");
   }, [active, wallet.connected]);
 
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Grow) return; // we are not on the grow page, so don't update zen mode
-    updateZenMode({
+    updateZenMode((prev) => ({
+      ...prev,
       showBGImage: false,
       showHelpButton: true,
-      showExternalLinks: false,
+      showExternalLinks: screenType !== "mobilePortrait",
       showWallet: active,
-    });
+    }));
   }, [active, currentHelpRoute]);
 
   const sendGSolModal = useModal(() => {});

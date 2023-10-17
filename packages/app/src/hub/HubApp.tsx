@@ -22,6 +22,7 @@ import { useForest } from "../common/context/forestContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { LinkWithQuery } from "../common/components/LinkWithQuery";
+import { useScreenOrientation } from "./hooks/useScreenOrientation";
 
 const LINK_CHEVRON_SIZE = 32;
 
@@ -31,7 +32,7 @@ const _HubApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const wallet = useWallet();
   const { setCurrentHelpRoute, currentHelpRoute } = useHelp();
-  const [zenMode, updateZenMode] = useZenMode();
+  const [, updateZenMode] = useZenMode();
   const { myTree } = useForest();
   const { totalCarbon } = useCarbon();
 
@@ -40,6 +41,7 @@ const _HubApp: ForwardRefRenderFunction<
   const [showHubNav, updateShowHubNav] = useState(false);
 
   const wasHubNavShown = useRef(false);
+  const { screenType } = useScreenOrientation();
   const showWalletButton = useMemo(() => {
     return wallet.connected && showHubNav;
   }, [wallet.connected, showHubNav]);
@@ -76,46 +78,53 @@ const _HubApp: ForwardRefRenderFunction<
 
   // Once intro is done, and tree data available show hub
   useEffect(() => {
-    if (introLeft && myTree) {
-      const tid = setTimeout(() => {
-        if (!wasHubNavShown.current) updateShowHubNav(true);
-      }, 5000);
+    console.log("ShowHub useEffect");
+    if (myTree) {
+      const showNavTid = setTimeout(() => {
+        console.log("ShowHub useEffect timeout");
+        if (!wasHubNavShown.current) {
+          updateShowHubNav(true);
+        } else {
+          console.log("ShowHub useEffect timeout else", {
+            wasHubNavShown: wasHubNavShown.current,
+          });
+        }
+      }, 3000);
+
+      const showLinksTid = setTimeout(() => {
+        console.log("showLinks useEffect timeout");
+        updateZenMode((prev) => ({
+          ...prev,
+          showExternalLinks: screenType !== "mobilePortrait",
+        }));
+      }, 6000);
 
       return () => {
-        clearTimeout(tid);
+        console.log("ShowHub useEffect cleanup");
+        clearTimeout(showNavTid);
+        clearTimeout(showLinksTid);
       };
+    } else {
+      console.log("ShowHub useEffect else", { introLeft, myTree });
     }
   }, [myTree, introLeft]);
 
   useEffect(() => {
     if (showHubNav) wasHubNavShown.current = true;
-    updateZenMode({
-      ...zenMode,
+    updateZenMode((prev) => ({
+      ...prev,
       showHelpButton: showHubNav,
-      showExternalLinks: false,
       showWallet: showWalletButton,
-    });
+    }));
   }, [showHubNav, showWalletButton]);
 
   useEffect(() => {
-    setTimeout(() => {
-      updateZenMode({
-        ...zenMode,
-        showHelpButton: true,
-        showExternalLinks: true,
-        showWallet: false,
-      });
-    }, 3000);
-  }, []);
-
-  useEffect(() => {
     if (currentHelpRoute !== AppRoute.Hub) return; // we are not on the hub page, so don't update zen mode
-    updateZenMode({
-      ...zenMode,
+    updateZenMode((prev) => ({
+      ...prev,
       showHelpButton: showHubNav,
-      showExternalLinks: false,
       showWallet: showWalletButton,
-    });
+    }));
   }, [active, currentHelpRoute, showHubNav, showWalletButton]);
 
   return (
