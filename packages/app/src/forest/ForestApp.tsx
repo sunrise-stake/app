@@ -11,7 +11,7 @@ import React, {
 import { intermediaries, type TreeComponent } from "./utils";
 import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { IoChevronForwardOutline } from "react-icons/io5";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useForest } from "../common/context/forestContext";
 import { ProfileBox } from "../common/components/profile/ProfileBox";
 import { type PublicKey } from "@solana/web3.js";
@@ -21,6 +21,8 @@ import { AppRoute } from "../Routes";
 import { ForestLink } from "./ForestLink";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { type ParentRelationship, type TreeNode } from "../api/types";
+import { LinkWithQuery } from "../common/components/LinkWithQuery";
+import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -97,16 +99,17 @@ const _ForestApp: ForwardRefRenderFunction<
   HTMLDivElement,
   { className?: string; active?: boolean } & React.HTMLAttributes<HTMLElement>
 > = ({ className, active = false, ...rest }, ref) => {
-  const [zenMode, updateZenMode] = useZenMode();
+  const [, updateZenMode] = useZenMode();
   const { currentHelpRoute } = useHelp();
+  const { screenType } = useScreenOrientation();
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Forest) return; // we are not on the forest page, so don't update zen mode
-    updateZenMode({
-      ...zenMode,
+    updateZenMode((prev) => ({
+      ...prev,
       showHelpButton: true,
-      showExternalLinks: false,
+      showExternalLinks: screenType !== "mobilePortrait",
       showWallet: false,
-    });
+    }));
   }, [active, currentHelpRoute]);
 
   const navigate = useNavigate();
@@ -199,11 +202,11 @@ const _ForestApp: ForwardRefRenderFunction<
       </ul>
       <div className="absolute top-0 right-0 mt-4">
         <div className="container">
-          <Link to="/" className="flex items-center text-green">
+          <LinkWithQuery to="/" className="flex items-center text-green">
             <div className="flex items-center nowrap">
               <IoChevronForwardOutline className="inline" size={48} />
             </div>
-          </Link>
+          </LinkWithQuery>
         </div>
       </div>
       {currentHelpRoute === AppRoute.Forest && (

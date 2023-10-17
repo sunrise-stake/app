@@ -8,7 +8,7 @@ import {
   useEffect,
 } from "react";
 
-interface ZenModeSettings {
+export interface ZenModeSettings {
   showBGImage: boolean;
   showExternalLinks: boolean;
   showHelpButton: boolean;
@@ -16,7 +16,7 @@ interface ZenModeSettings {
 }
 
 const ZenModeContext = createContext<
-  [ZenModeSettings, Dispatch<ZenModeSettings>]
+  [ZenModeSettings, Dispatch<React.SetStateAction<ZenModeSettings>>]
 >([
   {
     showBGImage: false,
@@ -50,7 +50,9 @@ const ZenModeProvider: FC<{ children: ReactNode }> = ({ children }) => {
   );
 };
 
-const useZenMode = (): [ZenModeSettings, Dispatch<ZenModeSettings>] =>
-  useContext(ZenModeContext);
+const useZenMode = (): [
+  ZenModeSettings,
+  Dispatch<React.SetStateAction<ZenModeSettings>>
+] => useContext(ZenModeContext);
 
 export { ZenModeProvider, useZenMode };

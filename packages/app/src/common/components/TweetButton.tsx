@@ -1,8 +1,8 @@
 import React from "react";
 import toast, { type Toast } from "react-hot-toast";
 
-import { useScript } from "../hooks";
 import { BaseModal } from "./modals";
+import { Tweet } from "./Tweet";
 
 interface TweetButtonProps {
   amount: string;
@@ -10,8 +10,6 @@ interface TweetButtonProps {
 }
 
 const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
-  useScript("https://platform.twitter.com/widgets.js");
-
   return (
     <BaseModal
       ok={() => {
@@ -43,21 +41,11 @@ const TweetButton: React.FC<TweetButtonProps> = ({ t }) => {
       </div>
 
       <div className="flex flex-row justify-center mb-16">
-        <a
-          href="https://twitter.com/share?ref_src=twsrc%5Etfw"
-          className="twitter-share-button"
-          data-size="large"
-          data-text="I just staked with Sunrise, offsetting carbon and making Solana stronger."
-          data-url="https://app.sunrisestake.com/"
-          data-via="sunrisestake"
-          // data-hashtags=""
-          // data-related=""
-          data-show-count="false"
-        >
-          Tweet
-        </a>
+        <Tweet
+          url="https://app.sunrisestake.com/"
+          tweet="I just staked with Sunrise, offsetting carbon and making Solana stronger."
+        />
       </div>
-      {/* </div> */}
     </BaseModal>
   );
 };
