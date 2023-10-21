@@ -42,7 +42,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         </WalletMultiButton>
       </Transition>
       <Transition
-        className="z-10 fixed bottom-4 right-8"
+        className="z-10 fixed bottom-4 right-4"
         show={zenMode.showHelpButton}
         unmount={false}
         enterFrom="opacity-0"

@@ -22,7 +22,6 @@ import { ForestLink } from "./ForestLink";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { type ParentRelationship, type TreeNode } from "../api/types";
 import { LinkWithQuery } from "../common/components/LinkWithQuery";
-import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 const ForestTree: FC<{ details: TreeComponent; style?: CSSProperties }> = ({
   details,
@@ -101,13 +100,12 @@ const _ForestApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const [, updateZenMode] = useZenMode();
   const { currentHelpRoute } = useHelp();
-  const { screenType } = useScreenOrientation();
   useEffect(() => {
     if (currentHelpRoute !== AppRoute.Forest) return; // we are not on the forest page, so don't update zen mode
     updateZenMode((prev) => ({
       ...prev,
       showHelpButton: true,
-      showExternalLinks: screenType !== "mobilePortrait",
+      showExternalLinks: true,
       showWallet: false,
     }));
   }, [active, currentHelpRoute]);

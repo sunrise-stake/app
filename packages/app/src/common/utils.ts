@@ -177,8 +177,6 @@ const replaceInArray = <T>(arr: T[], oldItem: T, newItem: T): T[] => {
   return [...arr.slice(0, index), newItem, ...arr.slice(index + 1)];
 };
 
-const isMobilePortrait = (width: number): boolean => width < 768;
-
 export {
   addUp,
   round,
@@ -200,5 +198,4 @@ export {
   memoise,
   handleError,
   noop,
-  isMobilePortrait,
 };

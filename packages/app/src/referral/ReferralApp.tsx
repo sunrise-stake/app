@@ -1,10 +1,9 @@
-import React, {
+import clx from "classnames";
+import {
   type FC,
   forwardRef,
   type ForwardRefRenderFunction,
-  type PropsWithChildren,
   useEffect,
-  useMemo,
 } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,12 +13,8 @@ import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { LinkWithQuery } from "../common/components/LinkWithQuery";
-import { TopicContainer } from "../common/container/TopicContainer";
 import { Card } from "../common/container/Card";
 import { ReferralOptions } from "./ReferralOptions";
-import { isMobilePortrait } from "../common/utils";
-import { useWindowSize } from "usehooks-ts";
-import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 const Title: FC = () => (
   <div className="topic-title w-full mt-8">
@@ -31,27 +26,11 @@ const Title: FC = () => (
         <IoChevronUpOutline className="inline" size={48} />
       </div>
     </LinkWithQuery>
-    <h1 className="font-bold text-green-light text-4xl text-center mb-4">
+    <h1 className="font-bold text-green-light text-3xl text-center mb-4">
       Share Your Referral Link
     </h1>
   </div>
 );
-
-const Wrapper: FC<PropsWithChildren> = ({ children }) => {
-  const windowSize = useWindowSize();
-  const isPortrait = useMemo(
-    () => isMobilePortrait(window.innerWidth),
-    [windowSize]
-  );
-
-  return isPortrait ? (
-    <div>{children}</div>
-  ) : (
-    <Card size="large" orientation="horizontal">
-      {children}
-    </Card>
-  );
-};
 
 const _ReferralApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -59,7 +38,6 @@ const _ReferralApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
-  const { screenType } = useScreenOrientation();
 
   const navigate = useNavigate();
   const wallet = useWallet();
@@ -79,17 +57,18 @@ const _ReferralApp: ForwardRefRenderFunction<
       showBGImage: false,
       showHelpButton: true,
       showWallet: active,
-      showExternalLinks: screenType !== "mobilePortrait",
+      showExternalLinks: true,
     }));
   }, [active, currentHelpRoute]);
 
   return (
-    <TopicContainer
-      className={className}
+    <div
+      className={clx("relative flex flex-col items-center pt-8", className)}
       ref={ref}
       {...rest}
-      titleContents={<Title />}
     >
+      <Title />
+      <div className="relative flex flex-col items-center pt-8"></div>
       {link === null && (
         <div className="flex flex-col items-center m-4">
           <h1 className="text-3xl text-center">Loading...</h1>
@@ -100,13 +79,17 @@ const _ReferralApp: ForwardRefRenderFunction<
         </div>
       )}
       {link !== null && (
-        <div className="mx-4 mb-3 flex flex-col items-center">
-          <Wrapper>
+        <div className="mb-20 flex flex-col items-center">
+          <Card
+            className="bg-green-light"
+            size="large"
+            orientation="horizontal"
+          >
             <ReferralOptions link={link} />
-          </Wrapper>
+          </Card>
         </div>
       )}
-    </TopicContainer>
+    </div>
   );
 };
 
