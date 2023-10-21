@@ -3,7 +3,7 @@ import { useCopyToClipboard } from "usehooks-ts";
 
 import { Card } from "../common/container/Card";
 import { QRCodeCard } from "./QRCodeCard";
-import { ReferTweetButton } from "./ReferTweetButton";
+import { FaTwitter } from "react-icons/fa";
 
 export const ReferralOptions: FC<{ link: string }> = ({ link }) => {
   const [, copy] = useCopyToClipboard();
@@ -36,15 +36,29 @@ export const ReferralOptions: FC<{ link: string }> = ({ link }) => {
           }
         ></Card>
       </button>
-      <Card
-        size="medium"
-        title={"Share"}
-        image={
-          <ReferTweetButton link={link}>
-            <img src="/sowing.png" alt="Share link" />
-          </ReferTweetButton>
-        }
-      ></Card>
+      <a
+        href={`https://twitter.com/share?text=Join my forest on @SunriseStake!%0A%0AJoin me and the Solana community in making a collective positive environmental impact:%0A${link}`}
+        target="_blank"
+        rel="noreferrer"
+        referrerPolicy="origin"
+      >
+        <Card
+          size="medium"
+          title={
+            <>
+              <FaTwitter size={20} title="Twitter" />
+              Share
+            </>
+          }
+          image={
+            <img
+              src="/sowing.png"
+              className="w-full h-full object-contain"
+              alt="Copy"
+            />
+          }
+        />
+      </a>
       <QRCodeCard link={link} type="sunrise" />
       <QRCodeCard link={link} type="solanapay" />
     </div>

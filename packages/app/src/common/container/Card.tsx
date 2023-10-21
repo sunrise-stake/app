@@ -3,7 +3,7 @@ import clx from "classnames";
 
 interface CardProps {
   className?: string;
-  title?: string;
+  title?: string | ReactNode;
   image?: ReactNode;
   orientation?: "horizontal" | "vertical";
   size?: "small" | "medium" | "large";
