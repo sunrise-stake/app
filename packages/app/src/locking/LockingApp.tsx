@@ -181,7 +181,7 @@ const _LockingApp: ForwardRefRenderFunction<
         </LinkWithQuery>
       </div>
       {myTree && details?.impactNFTDetails === undefined && (
-        <DynamicTree details={myTree} variant="sm" />
+        <DynamicTree className="-mb-11" details={myTree} variant="sm" />
       )}
       {details?.lockDetails === undefined && (
         <div className="mb-3 justify-center content-center items-center">
