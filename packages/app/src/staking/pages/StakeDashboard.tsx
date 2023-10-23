@@ -30,9 +30,10 @@ import { useCarbon } from "../../common/hooks";
 import { tooltips } from "../../common/content/tooltips";
 import { type SunriseClientWrapper } from "../../common/sunriseClientWrapper";
 import { StakeForm, UnstakeForm, WithdrawTicket } from "../components";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { IoChevronUpOutline, IoChevronDownOutline } from "react-icons/io5";
 import { useSolBalance } from "../../common/hooks/useSolBalance";
+import { LinkWithQuery } from "../../common/components/LinkWithQuery";
 
 const StakeDashboard: FC = () => {
   const wallet = useWallet();
@@ -134,16 +135,16 @@ const StakeDashboard: FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: "620px" }} className="mx-auto relative">
+    <div>
       <div>
-        <Link
+        <LinkWithQuery
           to="/"
           className="flex items-center text-green justify-center mb-8"
         >
           <div className="flex items-center nowrap">
             <IoChevronUpOutline className="inline" size={48} />
           </div>
-        </Link>
+        </LinkWithQuery>
       </div>
       <div className="flex">
         <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
@@ -300,15 +301,15 @@ const StakeDashboard: FC = () => {
         })}
       </div>
       <div>
-        <Link
+        <LinkWithQuery
           to="/lock"
           className="flex items-center text-green justify-center mb-8"
         >
           <div className="flex flex-col items-center nowrap">
-            <span>Lock</span>
+            <span className="text-2xl">Lock</span>
             <IoChevronDownOutline className="inline" size={48} />
           </div>
-        </Link>
+        </LinkWithQuery>
       </div>
     </div>
   );

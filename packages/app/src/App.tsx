@@ -5,11 +5,7 @@ import {
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
-  BackpackWalletAdapter,
-  BraveWalletAdapter,
   CoinbaseWalletAdapter,
-  ExodusWalletAdapter,
-  GlowWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
   TorusWalletAdapter,
@@ -36,13 +32,9 @@ const App: FC = () => {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
-      new GlowWalletAdapter(),
       new SolflareWalletAdapter(),
       new TorusWalletAdapter(),
-      new BackpackWalletAdapter(),
-      new ExodusWalletAdapter(),
       new CoinbaseWalletAdapter(),
-      new BraveWalletAdapter(),
     ],
     []
   );

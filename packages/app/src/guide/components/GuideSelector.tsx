@@ -7,6 +7,7 @@ import { StakeGuide } from "../content/StakeGuide";
 import { useHelp } from "../../common/context/HelpContext";
 import { AppRoute } from "../../Routes";
 import { ConnectGuide } from "../content/ConnectGuide";
+import { ReferGuide } from "../content/ReferGuide";
 
 export const GuideSelector: FC = () => {
   const { currentHelpRoute } = useHelp();
@@ -26,6 +27,8 @@ export const GuideSelector: FC = () => {
       return <StakeGuide />;
     case AppRoute.Connect:
       return <ConnectGuide />;
+    case AppRoute.Referral:
+      return <ReferGuide />;
     default:
       return <></>;
   }

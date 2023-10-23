@@ -6,16 +6,46 @@ import {
   type WithdrawalFees,
   type Environment,
 } from "@sunrisestake/client";
-import { type Connection, type PublicKey, Transaction } from "@solana/web3.js";
+import {
+  type Connection,
+  PublicKey,
+  Transaction,
+  type TransactionInstruction,
+} from "@solana/web3.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import type BN from "bn.js";
 import { type AnchorWallet } from "@solana/wallet-adapter-react";
 import { debounce } from "./utils";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
+// TODO remove once this is exported from the client
+const PROGRAM_ID = new PublicKey("sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6");
+const isDepositIx = (ix: TransactionInstruction): boolean =>
+  ix.programId.equals(PROGRAM_ID);
+
 const stage =
   (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
+
+const addReferrer = (): ((tx: Transaction) => Transaction) => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const referrerString = urlParams.get("referrer");
+  const referrer =
+    referrerString !== null ? new PublicKey(referrerString) : undefined;
+  if (!referrer) return (tx: Transaction) => tx;
+
+  return (tx: Transaction) => {
+    const depositInstruction = tx.instructions.find(isDepositIx);
+    if (depositInstruction) {
+      depositInstruction.keys.push({
+        pubkey: referrer,
+        isSigner: false,
+        isWritable: false,
+      });
+    }
+    return tx;
+  };
+};
 
 export class SunriseClientWrapper {
   constructor(
@@ -100,6 +130,7 @@ export class SunriseClientWrapper {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
       .makeBalancedDeposit(amount, recipient)
+      .then(addReferrer())
       .then(async (tx) => this.client.sendAndConfirmTransaction(tx));
     // .then(this.triggerUpdateAndReturn.bind(this));
   }

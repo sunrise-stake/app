@@ -19,7 +19,7 @@ input[type=number]::-webkit-outer-spin-button {
     height: 100vh;
     grid-template-areas:
       "Lost Forest Hub Usage"
-      ". . Staking ."
+      ". . Staking Referral"
       ". . Locking .";
     grid-template-columns: 100vw 100vw 100vw 100vw;
     grid-template-rows: 100vh 100vh 100vh;
@@ -45,6 +45,9 @@ input[type=number]::-webkit-outer-spin-button {
   }
   .LockingApp {
     grid-area: Locking;
+  }
+  .ReferralApp {
+    grid-area: Referral;
   }
 
   @keyframes float-up-down {
