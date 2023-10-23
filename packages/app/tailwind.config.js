@@ -43,12 +43,7 @@ module.exports = {
             },
             animation: {
                 "fade-in": "fade-in 150ms ease-out",
-            },
-            backgroundImage: theme => ({
-                'wood-sm': "url('/public/wood-vert.png')",
-                'wood-md': "url('/public/wood-transparent-thin.png')",
-                'wood-lg': "url('/public/wood-transparent-thin.png')"
-            })
+            }
         },
     },
     plugins: [
