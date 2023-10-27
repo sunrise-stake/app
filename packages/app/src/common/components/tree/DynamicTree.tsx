@@ -71,12 +71,20 @@ const width = (index: number, total: number): string => {
 };
 
 export const DynamicTree: FC<{
-  details: TreeComponent;
-  style?: CSSProperties;
-  onClick?: () => void;
   className?: string;
+  details: TreeComponent;
+  islandHeight?: number;
+  onClick?: () => void;
+  style?: CSSProperties;
   variant?: "sm" | "md";
-}> = ({ details, style = {}, onClick, className = "", variant = "md" }) => {
+}> = ({
+  className = "",
+  details,
+  islandHeight = 300,
+  onClick,
+  style = {},
+  variant = "md",
+}) => {
   const { level, species } = details.metadata.type;
 
   const treeImages = [];
@@ -119,8 +127,8 @@ export const DynamicTree: FC<{
       <Island
         className={
           variant === "sm"
-            ? "w-[300px] h-[300px] scale-50"
-            : "w-[300px] h-[300px]"
+            ? `w-[300px] h-[${islandHeight}px] scale-50`
+            : `w-[300px] h-[${islandHeight}px]`
         }
       >
         {components}

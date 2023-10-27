@@ -1,5 +1,6 @@
-import clx from "classnames";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { type Details } from "@sunrisestake/client";
+import clx from "classnames";
 import React, {
   forwardRef,
   type ForwardRefRenderFunction,
@@ -23,7 +24,6 @@ import { DynamicTree } from "../common/components/tree/DynamicTree";
 import { useForest } from "../common/context/forestContext";
 import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useNFTs } from "../common/context/NFTsContext";
 import { LockDetailsView } from "./LockDetails";
 import { detailsIndicateUpgradePossible } from "./utils";
@@ -31,7 +31,6 @@ import { LockForm } from "./LockForm";
 import { LockingSuccessModal } from "./LockingSuccessModal";
 import { useInfoModal } from "../common/hooks/useInfoModal";
 import { LinkWithQuery } from "../common/components/LinkWithQuery";
-import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 // one full epoch has passed since the lock was created
 const canBeUnlocked = (details: Details | undefined): boolean => {
@@ -57,7 +56,6 @@ const _LockingApp: ForwardRefRenderFunction<
   const { refresh } = useNFTs();
   const navigate = useNavigate();
   const wallet = useWallet();
-  const { screenType } = useScreenOrientation();
   useEffect(() => {
     if (!wallet.connected && active) navigate("/");
   }, [active, wallet.connected]);
@@ -69,7 +67,7 @@ const _LockingApp: ForwardRefRenderFunction<
       showBGImage: false,
       showHelpButton: true,
       showWallet: active,
-      showExternalLinks: screenType !== "mobilePortrait",
+      showExternalLinks: true,
     }));
   }, [active, currentHelpRoute]);
 
@@ -153,7 +151,7 @@ const _LockingApp: ForwardRefRenderFunction<
   return (
     <div
       className={clx(
-        "container mx-auto flex flex-col justify-start items-center",
+        "container mx-auto flex flex-col justify-start items-center pb-12",
         className
       )}
       ref={ref}
@@ -183,7 +181,7 @@ const _LockingApp: ForwardRefRenderFunction<
         </LinkWithQuery>
       </div>
       {myTree && details?.impactNFTDetails === undefined && (
-        <DynamicTree details={myTree} variant="sm" />
+        <DynamicTree className="-mb-11" details={myTree} variant="sm" />
       )}
       {details?.lockDetails === undefined && (
         <div className="mb-3 justify-center content-center items-center">

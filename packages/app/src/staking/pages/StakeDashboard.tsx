@@ -303,7 +303,7 @@ const StakeDashboard: FC = () => {
       <div>
         <LinkWithQuery
           to="/lock"
-          className="flex items-center text-green justify-center mb-8"
+          className="flex items-center text-green justify-center"
         >
           <div className="flex flex-col items-center nowrap">
             <span className="text-2xl">Lock</span>

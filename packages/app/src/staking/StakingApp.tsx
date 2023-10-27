@@ -7,7 +7,6 @@ import { AppRoute } from "../Routes";
 import { useHelp } from "../common/context/HelpContext";
 import { useNavigate } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useScreenOrientation } from "../hub/hooks/useScreenOrientation";
 
 const _StakingApp: ForwardRefRenderFunction<
   HTMLDivElement,
@@ -15,7 +14,6 @@ const _StakingApp: ForwardRefRenderFunction<
 > = ({ className, active = false, ...rest }, ref) => {
   const { currentHelpRoute } = useHelp();
   const [, updateZenMode] = useZenMode();
-  const { screenType } = useScreenOrientation();
 
   const navigate = useNavigate();
   const wallet = useWallet();
@@ -29,14 +27,14 @@ const _StakingApp: ForwardRefRenderFunction<
       ...prev,
       showBGImage: false,
       showHelpButton: true,
-      showExternalLinks: screenType !== "mobilePortrait",
+      showExternalLinks: true,
       showWallet: active,
     }));
   }, [active, currentHelpRoute]);
 
   return (
     <div
-      className={clx("container flex flex-col items-center", className)}
+      className={clx("flex flex-col items-center pb-14", className)}
       ref={ref}
       {...rest}
     >

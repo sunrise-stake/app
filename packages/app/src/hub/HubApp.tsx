@@ -22,7 +22,6 @@ import { useForest } from "../common/context/forestContext";
 import { useHelp } from "../common/context/HelpContext";
 import { AppRoute } from "../Routes";
 import { LinkWithQuery } from "../common/components/LinkWithQuery";
-import { useScreenOrientation } from "./hooks/useScreenOrientation";
 
 const LINK_CHEVRON_SIZE = 32;
 
@@ -41,7 +40,6 @@ const _HubApp: ForwardRefRenderFunction<
   const [showHubNav, updateShowHubNav] = useState(false);
 
   const wasHubNavShown = useRef(false);
-  const { screenType } = useScreenOrientation();
   const showWalletButton = useMemo(() => {
     return wallet.connected && showHubNav;
   }, [wallet.connected, showHubNav]);
@@ -95,7 +93,7 @@ const _HubApp: ForwardRefRenderFunction<
         console.log("showLinks useEffect timeout");
         updateZenMode((prev) => ({
           ...prev,
-          showExternalLinks: screenType !== "mobilePortrait",
+          showExternalLinks: true,
         }));
       }, 6000);
 
@@ -130,154 +128,159 @@ const _HubApp: ForwardRefRenderFunction<
   return (
     <div
       className={clx(
-        "flex flex-col items-center justify-center text-center text-green",
+        "flex flex-col items-center justify-center pt-2 pb-10 text-center text-green",
         className
       )}
       ref={ref}
       {...rest}
     >
-      <Spinner
-        className={
-          (introLeft && !showHub) || totalCarbon === undefined
-            ? "block"
-            : "hidden"
-        }
-      />
-      <HubIntro
-        show={showIntro}
-        onEnter={() => {
-          updateIntroLeft(false);
-        }}
-        onLeft={() => {
-          updateIntroLeft(true);
-        }}
-      />
-      <div className={showHub ? "block" : "hidden"}>
-        <div className="flex">
-          <LinkWithQuery
-            to="/forest"
-            className={clx(
-              "hidden md:flex  flex-col justify-center transition-opacity ease-in duration-500",
-              showHubNav ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <div className="flex items-center nowrap text-2xl">
-              <IoChevronBackOutline
-                className="inline"
-                size={LINK_CHEVRON_SIZE}
-              />
-              <span>Forest</span>
-            </div>
-          </LinkWithQuery>
-          {myTree && (
-            <DynamicTree
-              details={myTree}
-              className={`FloatingTree mb-8`}
-              onClick={() => {
-                updateShowHubNav(!showHubNav);
-              }}
-            />
-          )}
-          <LinkWithQuery
-            to="/grow"
-            className={clx(
-              "hidden md:flex flex-col justify-center transition-opacity ease-in duration-500",
-              showHubNav ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <div className="flex relative items-center nowrap text-2xl">
-              <span>Grow</span>
-              <IoChevronForwardOutline
-                className="inline"
-                size={LINK_CHEVRON_SIZE}
-              />
-            </div>
-          </LinkWithQuery>
-        </div>
-        <div className="w-full mt-2 text-center">
-          {myTree?.metadata?.type?.level !== undefined &&
-          myTree?.metadata?.type?.level > 0 ? (
-            <div
-              className={clx(
-                "transition-opacity ease-in duration-500",
-                showHubNav ? "opacity-100" : "opacity-0"
+      <div className="w-full max-h-full m-auto overflow-auto">
+        <div className="flex justify-center">
+          <Spinner
+            className={
+              (introLeft && !showHub) || totalCarbon === undefined
+                ? "block"
+                : "hidden"
+            }
+          />
+          <HubIntro
+            show={showIntro}
+            onEnter={() => {
+              updateIntroLeft(false);
+            }}
+            onLeft={() => {
+              updateIntroLeft(true);
+            }}
+          />
+          <div className={showHub ? "block max-w-sm pb-5" : "hidden"}>
+            <div className="flex justify-center">
+              <LinkWithQuery
+                to="/forest"
+                className={clx(
+                  "hidden md:flex flex-col justify-center transition-opacity ease-in duration-500",
+                  showHubNav ? "opacity-100" : "opacity-0"
+                )}
+              >
+                <div className="flex items-center nowrap text-2xl">
+                  <IoChevronBackOutline
+                    className="inline"
+                    size={LINK_CHEVRON_SIZE}
+                  />
+                  <span>Forest</span>
+                </div>
+              </LinkWithQuery>
+              {myTree && (
+                <DynamicTree
+                  className={`FloatingTree mb-8`}
+                  details={myTree}
+                  islandHeight={400}
+                  onClick={() => {
+                    updateShowHubNav(!showHubNav);
+                  }}
+                />
               )}
-            >
-              <LinkWithQuery to="/stake">
-                <Button variant="outline" size="lg">
-                  {stakeButtonMessage}
-                </Button>
+              <LinkWithQuery
+                to="/grow"
+                className={clx(
+                  "hidden md:flex flex-col justify-center transition-opacity ease-in duration-500",
+                  showHubNav ? "opacity-100" : "opacity-0"
+                )}
+              >
+                <div className="flex relative items-center nowrap text-2xl">
+                  <span>Grow</span>
+                  <IoChevronForwardOutline
+                    className="inline"
+                    size={LINK_CHEVRON_SIZE}
+                  />
+                </div>
               </LinkWithQuery>
             </div>
-          ) : (
-            <div
-              className={clx(
-                "transition-opacity ease-in duration-500",
-                showHub ? "opacity-100" : "opacity-0"
+            <div className="w-full mt-2 text-center">
+              {myTree?.metadata?.type?.level !== undefined &&
+              myTree?.metadata?.type?.level > 0 ? (
+                <div
+                  className={clx(
+                    "transition-opacity ease-in duration-500",
+                    showHubNav ? "opacity-100" : "opacity-0"
+                  )}
+                >
+                  <LinkWithQuery to="/stake">
+                    <Button variant="outline" size="lg">
+                      {stakeButtonMessage}
+                    </Button>
+                  </LinkWithQuery>
+                </div>
+              ) : (
+                <div
+                  className={clx(
+                    "transition-opacity ease-in duration-500",
+                    showHub ? "opacity-100" : "opacity-0"
+                  )}
+                >
+                  <LinkWithQuery to="/stake">
+                    <Button variant="outline">{stakeButtonMessage}</Button>
+                  </LinkWithQuery>
+                </div>
               )}
-            >
-              <LinkWithQuery to="/stake">
-                <Button variant="outline">{stakeButtonMessage}</Button>
-              </LinkWithQuery>
+              <div
+                className={clx(
+                  "flex md:hidden justify-between my-4 transition-opacity ease-in duration-500",
+                  showHubNav ? "opacity-100" : "opacity-0"
+                )}
+              >
+                <LinkWithQuery to="/forest" className="flex items-center">
+                  <div className="flex items-center nowrap text-2xl">
+                    <IoChevronBackOutline
+                      className="inline"
+                      size={LINK_CHEVRON_SIZE}
+                    />
+                    <span>Forest</span>
+                  </div>
+                </LinkWithQuery>
+                <LinkWithQuery to="/grow" className="flex items-center">
+                  <div className="flex items-center nowrap text-2xl relative">
+                    <span>Grow</span>
+                    <IoChevronForwardOutline
+                      className="inline"
+                      size={LINK_CHEVRON_SIZE}
+                    />
+                  </div>
+                </LinkWithQuery>
+              </div>
+              <div
+                className={clx(
+                  "transition-opacity ease-in duration-500 flex flex-row",
+                  showHubNav ? "opacity-100" : "opacity-0"
+                )}
+              >
+                <LinkWithQuery
+                  to="/lock"
+                  className="block w-full mt-4 leading-none"
+                >
+                  <div className="relative inline-block">
+                    <span className="text-2xl">Lock</span>
+                  </div>
+                  <br />
+                  <IoChevronDownOutline
+                    className="inline-block"
+                    size={LINK_CHEVRON_SIZE}
+                  />
+                </LinkWithQuery>
+                <LinkWithQuery
+                  to="/referral"
+                  className="block w-full mt-4 leading-none"
+                >
+                  <div className="relative inline-block">
+                    <span className="text-2xl">Referral</span>
+                  </div>
+                  <br />
+                  <IoChevronDownOutline
+                    className="inline-block -rotate-45"
+                    size={LINK_CHEVRON_SIZE}
+                  />
+                </LinkWithQuery>
+              </div>
             </div>
-          )}
-          <div
-            className={clx(
-              "flex md:hidden justify-between my-4 transition-opacity ease-in duration-500",
-              showHubNav ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <LinkWithQuery to="/forest" className="flex items-center">
-              <div className="flex items-center nowrap text-2xl">
-                <IoChevronBackOutline
-                  className="inline"
-                  size={LINK_CHEVRON_SIZE}
-                />
-                <span>Forest</span>
-              </div>
-            </LinkWithQuery>
-            <LinkWithQuery to="/grow" className="flex items-center">
-              <div className="flex items-center nowrap text-2xl relative">
-                <span>Grow</span>
-                <IoChevronForwardOutline
-                  className="inline"
-                  size={LINK_CHEVRON_SIZE}
-                />
-              </div>
-            </LinkWithQuery>
-          </div>
-          <div
-            className={clx(
-              "transition-opacity ease-in duration-500 flex flex-row",
-              showHubNav ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <LinkWithQuery
-              to="/lock"
-              className="block w-full mt-4 leading-none"
-            >
-              <div className="relative inline-block">
-                <span className="text-2xl">Lock</span>
-              </div>
-              <br />
-              <IoChevronDownOutline
-                className="inline-block"
-                size={LINK_CHEVRON_SIZE}
-              />
-            </LinkWithQuery>
-            <LinkWithQuery
-              to="/referral"
-              className="block w-full mt-4 leading-none"
-            >
-              <div className="relative inline-block">
-                <span className="text-2xl">Referral</span>
-              </div>
-              <br />
-              <IoChevronDownOutline
-                className="inline-block"
-                size={LINK_CHEVRON_SIZE}
-              />
-            </LinkWithQuery>
           </div>
         </div>
       </div>
