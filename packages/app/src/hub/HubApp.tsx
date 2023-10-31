@@ -270,7 +270,7 @@ const _HubApp: ForwardRefRenderFunction<
               className="block w-full mt-4 leading-none"
             >
               <div className="relative inline-block">
-                <span className="text-2xl">Referral</span>
+                <span className="text-2xl">Refer</span>
               </div>
               <br />
               <IoChevronDownOutline
