@@ -3,6 +3,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
 import { CarbonRecovered, LogoIcon, LogoText } from "../../common/components";
+import { BreakpointHero } from "../../referral/BreakpointHero";
 
 const HubIntro: FC<{
   show: boolean;
@@ -83,8 +84,10 @@ const HubIntro: FC<{
         leave="transition-opacity ease-out duration-500"
       >
         <WalletMultiButton className="!bg-green hover:!bg-green-light !text-white">
-          Start reducing CO<sub>2</sub>&nbsp;emissions
+          Connect Wallet
+          {/* Start reducing CO<sub>2</sub>&nbsp;emissions */}
         </WalletMultiButton>
+        <BreakpointHero />
         <CarbonRecovered />
       </Transition.Child>
     </Transition>
