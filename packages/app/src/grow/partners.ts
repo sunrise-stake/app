@@ -10,7 +10,13 @@ export const partners = [
     imageUrl: "partners/drip.jpeg",
   },
   {
-    name: "Coinable",
-    imageUrl: "partners/coinable.svg",
+    name: "undust.me",
+    website: "https://undust.me/",
+    imageUrl: "partners/undustme.png",
+  },
+  {
+    name: "ecoToken",
+    website: "https://app.ecotoken.earth/",
+    imageUrl: "partners/ecotoken.png",
   },
 ];
