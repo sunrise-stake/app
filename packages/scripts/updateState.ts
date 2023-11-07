@@ -22,6 +22,8 @@ import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
       // prod old treasury (Yield Controller)
     // newTreasury: new PublicKey("E7BjB9UQp814RsMPq7U6S4fy6wRzn6tFTYt31kJoskoq"),
       // prod new treasury (Offset Bridge)
-      newTreasury: new PublicKey("6HQrvpMJFqMj35JqMReyhnUrRXNucAAB6FywdDu7xPKA"),
+      // newTreasury: new PublicKey("6HQrvpMJFqMj35JqMReyhnUrRXNucAAB6FywdDu7xPKA"),
+      // devnet new treasury (Yield Router)
+      newTreasury: new PublicKey("Csr9LRZ4K2kYWHeHrvTJZYqA55jNSDhxtszJT3yRicQS"),
   });
 })().catch(console.error);
