@@ -16,10 +16,11 @@
         "build": "yarn workspaces run build",
         "app:build": "yarn workspace @sunrisestake/app build",
         "app:start": "yarn workspace @sunrisestake/app start",
-        "report:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node-esm -P packages/client/tsconfig.json packages/scripts/get.ts",
-        "report:devnet": "cross-env REACT_APP_SOLANA_NETWORK=devnet yarn ts-node-esm packages/scripts/get.ts",
-        "updateEpochReport:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node-esm packages/scripts/updateEpochReport.ts",
-        "rebalance:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta yarn ts-node-esm packages/scripts/rebalance.ts"
+        "report:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta bun packages/scripts/get.ts",
+        "report:devnet": "cross-env REACT_APP_SOLANA_NETWORK=devnet bun packages/scripts/get.ts",
+        "extract:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta bun packages/scripts/extract.ts",
+        "updateEpochReport:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta bun packages/scripts/updateEpochReport.ts",
+        "rebalance:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta bun packages/scripts/rebalance.ts"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.26.0",
