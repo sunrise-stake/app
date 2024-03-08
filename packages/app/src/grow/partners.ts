@@ -1,13 +1,18 @@
 export const partners = [
   {
+    name: "ecoToken",
+    website: "https://app.ecotoken.earth/",
+    imageUrl: "partners/ecotoken.png",
+  },
+  {
+    name: "Stockpile",
+    website: "https://www.stockpile.so/",
+    imageUrl: "partners/stockpile.png",
+  },
+  {
     name: "Ape Energy Labs",
     website: "https://www.apeenergylabs.com/",
     imageUrl: "partners/AEL_Logo.jpg",
-  },
-  {
-    name: "DRiP",
-    website: "https://drip.haus/",
-    imageUrl: "partners/drip.jpeg",
   },
   {
     name: "undust.me",
@@ -15,8 +20,8 @@ export const partners = [
     imageUrl: "partners/undustme.png",
   },
   {
-    name: "ecoToken",
-    website: "https://app.ecotoken.earth/",
-    imageUrl: "partners/ecotoken.png",
+    name: "DRiP",
+    website: "https://drip.haus/",
+    imageUrl: "partners/drip.jpeg",
   },
 ];

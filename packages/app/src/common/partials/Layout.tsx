@@ -42,7 +42,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         </WalletMultiButton>
       </Transition>
       <Transition
-        className="z-10 fixed bottom-4 right-8"
+        className="z-10 fixed bottom-4 right-8 text-green flex items-center"
         show={zenMode.showHelpButton}
         unmount={false}
         enterFrom="opacity-0"
@@ -52,6 +52,14 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         leaveTo="opacity-0"
         leave="transition-opacity duration-500"
       >
+        <a
+          href="https://www.sunrisestake.com/impressum"
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm mr-2"
+        >
+          [Legal]
+        </a>
         <button
           onClick={() => {
             updateShowPageHelp(!showPageHelp);
