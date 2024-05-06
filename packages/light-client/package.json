@@ -1,0 +1,35 @@
+{
+  "name": "@sunrisestake/light-client",
+  "version": "0.0.1",
+  "description": "Sunrise Stake Light Client",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rimraf dist; tsc --module es2015 --target es5 --outDir dist/esm; tsc --module commonjs --target es5 --outDir dist/cjs && yarn typedoc",
+    "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.26.0",
+    "@project-serum/borsh": "^0.2.5",
+    "@solana/spl-token": "^0.3.7",
+    "@solana/web3.js": "^1.73.2",
+    "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
+    "bn.js": "^5.1.2"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1",
+    "tsup": "^6.6.3",
+    "typedoc": "^0.24.8"
+  }
+}
