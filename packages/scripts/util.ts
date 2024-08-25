@@ -1,6 +1,7 @@
 import os from "os";
 import {Cluster, clusterApiUrl, PublicKey} from "@solana/web3.js";
 import {AnchorProvider} from "@coral-xyz/anchor";
+import {Environment} from "@sunrisestake/client";
 
 export const idWallet = os.homedir() + "/.config/solana/id.json";
 
@@ -20,3 +21,5 @@ export const readOnlyProvider = (publicKey: PublicKey): AnchorProvider => {
         envProvider.opts,
     );
 }
+
+export const SUNRISE_STAKE_STATE = Environment["mainnet-beta"];

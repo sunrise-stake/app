@@ -269,6 +269,11 @@ export const findAllTickets = async (
 
     tickets.push(orderUnstakeTicketAccount);
   }
+  // Uncomment to inject one not found by the above script
+  //   tickets.push(new PublicKey("..."));
+  console.log("found tickets", tickets.map((t) => t.toBase58()).join(", "));
+  console.log("expected count", expectedCount);
+
   // get the actual accounts (in case they have been closed somehow in the meantime)
   // TODO Later add pagination here in case the count is too high for one call
   const accountInfos = await connection.getMultipleAccountsInfo(tickets);

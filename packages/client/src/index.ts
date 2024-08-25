@@ -555,6 +555,8 @@ export class SunriseStakeClient {
       epochReport.tickets.toNumber()
     );
 
+    console.log("Previous epoch tickets: ", previousEpochTickets.length);
+
     const previousEpochTicketAccountMetas = previousEpochTickets.map(
       (ticket) => ({
         pubkey: ticket,
@@ -562,6 +564,11 @@ export class SunriseStakeClient {
         isWritable: true,
       })
     );
+
+    if (previousEpochTickets.length === 0) {
+      this.log("No tickets to recover");
+      return null;
+    }
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.recoverTickets>["accounts"]
@@ -626,6 +633,8 @@ export class SunriseStakeClient {
     // if it is not for the current epoch, then we may need to recover tickets
     const { address: epochReportAccountAddress, account: epochReport } =
       await getEpochReportAccount(this.config, this.program);
+
+    console.log("Epoch report account: ", epochReportAccountAddress.toString());
 
     if (!epochReport) {
       // no epoch report account found at all - something went wrong
@@ -758,7 +767,6 @@ export class SunriseStakeClient {
       "Extractable Yield": `${toSol(details.extractableYield)}`,
       "Epoch Report Epoch": `${details.epochReport.epoch.toNumber()}`,
       "Current Epoch": `${details.currentEpoch.epoch}`,
-      "Epoch Report Tickets": `${details.epochReport.tickets.toNumber()}`,
     };
 
     Object.keys(report).forEach((key) => {
