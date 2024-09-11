@@ -565,7 +565,10 @@ export class SunriseStakeClient {
       })
     );
 
-    if (previousEpochTickets.length === 0) {
+    if (
+      previousEpochTickets.length === 0 &&
+      process.env.OVERRIDE_NULL_RECOVER !== undefined
+    ) {
       this.log("No tickets to recover");
       return null;
     }

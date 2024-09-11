@@ -271,7 +271,11 @@ export const findAllTickets = async (
   }
   // Uncomment to inject one not found by the above script
   //   tickets.push(new PublicKey("..."));
-  console.log("found tickets", tickets.map((t) => t.toBase58()).join(", "));
+  if (tickets.length)
+    console.log(
+      "potential tickets",
+      tickets.map((t) => t.toBase58()).join(", ")
+    );
   console.log("expected count", expectedCount);
 
   // get the actual accounts (in case they have been closed somehow in the meantime)
@@ -279,7 +283,7 @@ export const findAllTickets = async (
   const accountInfos = await connection.getMultipleAccountsInfo(tickets);
 
   // remove missing accounts and return the pubkeys of the non-missing ones.
-  return accountInfos
+  const filteredTickets = accountInfos
     .map((accountInfo, i): [PublicKey, ArrayElement<typeof accountInfos>] => [
       tickets[i],
       accountInfo,
@@ -289,6 +293,13 @@ export const findAllTickets = async (
         element[1] !== null
     )
     .map(([ticket]) => ticket);
+
+  console.log(
+    "found tickets",
+    filteredTickets.map((t) => t.toBase58()).join(", ")
+  );
+
+  return filteredTickets;
 };
 
 export const proportionalBN = (

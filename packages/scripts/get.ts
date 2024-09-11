@@ -1,8 +1,8 @@
 import {SunriseStakeClient} from "../client/src/index.js";
 import "./util.js";
-import { AnchorProvider } from "@coral-xyz/anchor";
+import {AnchorProvider} from "@coral-xyz/anchor";
 import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
-import {readOnlyProvider} from "./util.js";
+import {readOnlyProvider, recursiveToString} from "./util.js";
 import {PublicKey} from "@solana/web3.js";
 
 const getProvider = () => {
@@ -23,8 +23,8 @@ const getProvider = () => {
         verbose: true,
       });
 
-  if (process.env.VERBOSE) console.log(await client.config);
-  if (process.env.VERBOSE) console.log(await client.details());
+  if (process.env.VERBOSE) console.log("Config:", recursiveToString(await client.config));
+  if (process.env.VERBOSE) console.log("Details", recursiveToString(await client.details()));
 
   await client.report();
 })().catch(console.error);
