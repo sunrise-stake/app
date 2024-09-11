@@ -16,9 +16,11 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = { version = "0.26.0", features = ["init-if-needed", "allow-missing-optionals"] }
-anchor-spl = "0.26.0"
+anchor-lang = { version = "0.30.1", features = ["init-if-needed", "allow-missing-optionals"] }
+anchor-spl = "0.30.1"
+ahash = "0.7.8"
 impact-nft-cpi = { path = "../../dependencies/impact-nft-cpi"  }
 marinade-cpi = "0.3.0"
-spl-stake-pool = {version = "0.6.4", features = ["no-entrypoint"] }
-mpl-token-metadata = { version="1.4.1", features = ["no-entrypoint"] }
+spl-stake-pool = {version = "1.0.0", features = ["no-entrypoint"] }
+mpl-token-metadata = "4.1.2"
+spl-token-2022 = { version = "3.0.4", features = ["no-entrypoint"] }

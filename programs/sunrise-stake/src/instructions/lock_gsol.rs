@@ -138,13 +138,13 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
     let mint_authority_seeds = &[
         state_address.as_ref(),
         IMPACT_NFT_MINT_AUTHORITY,
-        &[*ctx.bumps.get("nft_mint_authority").unwrap()],
+        &[ctx.bumps.nft_mint_authority],
     ];
     let mint_seeds = &[
         state_address.as_ref(),
         IMPACT_NFT_MINT_ACCOUNT,
         ctx.accounts.authority.key.as_ref(),
-        &[*ctx.bumps.get("nft_mint").unwrap()],
+        &[ctx.bumps.nft_mint],
     ];
     let pda_signer = &[&mint_authority_seeds[..], &mint_seeds[..]];
 

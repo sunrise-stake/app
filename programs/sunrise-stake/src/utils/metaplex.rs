@@ -1,11 +1,12 @@
+use anchor_lang::idl::IdlInstruction::Create;
 use crate::utils::seeds::GSOL_MINT_AUTHORITY;
 use crate::CreateMetadata;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke_signed;
-use mpl_token_metadata::{
-    instruction::{create_metadata_accounts_v3, update_metadata_accounts_v2},
-    state::DataV2,
-};
+// use mpl_token_metadata::{
+//     instruction::{create_metadata_accounts_v3, update_metadata_accounts_v2},
+//     state::DataV2,
+// };
 
 pub fn create_metadata_account(
     accounts: &CreateMetadata,
@@ -32,7 +33,20 @@ pub fn create_metadata_account(
     ];
 
     invoke_signed(
-        &create_metadata_accounts_v3(
+        &mpl_token_metadata::instructions::CreateMetadataAccountV3(CreateMetadata {
+            state: Box::new(()),
+            marinade_state: Box::new(()),
+            gsol_mint: Box::new(()),
+            gsol_mint_authority: (),
+            update_authority: (),
+            system_program: (),
+            rent: (),
+            token_program: (),
+            metadata: AccountInfo {},
+            token_metadata_program: accounts.token_metadata_program.key(),
+        }, name, symbol, uri)
+
+
             accounts.token_metadata_program.key(),
             accounts.metadata.key(),
             accounts.gsol_mint.key(),
