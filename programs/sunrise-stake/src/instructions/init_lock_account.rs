@@ -47,7 +47,7 @@ pub fn init_lock_account_handler(ctx: Context<InitLockAccount>) -> Result<()> {
     ctx.accounts.lock_account.updated_to_epoch = None;
     ctx.accounts.lock_account.owner = ctx.accounts.authority.key();
     ctx.accounts.lock_account.token_account = ctx.accounts.lock_gsol_account.key();
-    ctx.accounts.lock_account.bump = ctx.bumps.lock_account;
+    ctx.accounts.lock_account.bump = *ctx.bumps.get("lock_account").unwrap();
     ctx.accounts.lock_account.sunrise_yield_at_start = 0;
     ctx.accounts.lock_account.yield_accrued_by_owner = 0;
     Ok(())

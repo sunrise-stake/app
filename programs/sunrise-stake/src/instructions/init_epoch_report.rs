@@ -104,7 +104,7 @@ pub fn init_epoch_report_handler<'info>(
     ctx.accounts.epoch_report_account.tickets = 0;
     ctx.accounts.epoch_report_account.total_ordered_lamports = 0;
     ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
-    ctx.accounts.epoch_report_account.bump = ctx.bumps.epoch_report_account;
+    ctx.accounts.epoch_report_account.bump = *ctx.bumps.get("epoch_report_account").unwrap();
 
     let calculate_yield_accounts: CalculateExtractableYieldProperties = ctx.accounts.deref().into();
     let extractable_yield = marinade::calculate_extractable_yield(&calculate_yield_accounts)?;

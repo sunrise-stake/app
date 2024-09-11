@@ -109,7 +109,7 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
     let mint_authority_seeds = &[
         state_address.as_ref(),
         IMPACT_NFT_MINT_AUTHORITY,
-        &[ctx.bumps.nft_mint_authority],
+        &[*ctx.bumps.get("nft_mint_authority").unwrap()],
     ];
     msg!(
         "Mint authority {:?} seeds: {:?}",
