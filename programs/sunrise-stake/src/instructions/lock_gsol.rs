@@ -7,10 +7,10 @@ use crate::utils::token::transfer_to;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use impact_nft_cpi::cpi::accounts::MintNft;
-use impact_nft_cpi::cpi::mint_nft as cpi_mint_nft;
-use impact_nft_cpi::program::ImpactNft;
-use impact_nft_cpi::GlobalState as ImpactNftState;
+use crate::impact_nft_cpi::cpi::accounts::MintNft;
+use crate::impact_nft_cpi::cpi::mint_nft as cpi_mint_nft;
+use crate::impact_nft_cpi::program::ImpactNft;
+use crate::impact_nft_cpi::GlobalState as ImpactNftState;
 
 #[derive(Accounts, Clone)]
 #[instruction(lamports: u64)]

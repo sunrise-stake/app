@@ -1,18 +1,26 @@
-use anchor_lang::idl::IdlInstruction::Create;
+use crate::state::State;
 use crate::utils::seeds::GSOL_MINT_AUTHORITY;
-use crate::CreateMetadata;
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::program::invoke_signed;
-// use mpl_token_metadata::{
-//     instruction::{create_metadata_accounts_v3, update_metadata_accounts_v2},
-//     state::DataV2,
-// };
+use anchor_lang::Key;
+use anchor_spl::metadata::mpl_token_metadata::types::DataV2;
+use anchor_spl::metadata::{create_metadata_accounts_v3, update_metadata_accounts_v2, CreateMetadataAccountsV3, UpdateMetadataAccountsV2};
+
+struct MetadataAccounts<'a> {
+    state: Account<'a, State>,
+    metadata: AccountInfo<'a>,
+    gsol_mint: AccountInfo<'a>,
+    gsol_mint_authority: AccountInfo<'a>,
+    update_authority: AccountInfo<'a>,
+    token_metadata_program: AccountInfo<'a>,
+    system_program: AccountInfo<'a>,
+    rent: AccountInfo<'a>,
+}
 
 pub fn create_metadata_account(
-    accounts: &CreateMetadata,
+    accounts: &MetadataAccounts,
     uri: String,
     name: String,
-    symbol: String,
+    symbol: String
 ) -> Result<()> {
     let state_address = accounts.state.key();
     let seeds = &[
@@ -20,62 +28,43 @@ pub fn create_metadata_account(
         GSOL_MINT_AUTHORITY,
         &[accounts.state.gsol_mint_authority_bump],
     ];
-    let pda_signer = &[&seeds[..]];
 
-    let account_info = vec![
-        accounts.metadata.to_account_info(),
-        accounts.gsol_mint.to_account_info(),
-        accounts.gsol_mint_authority.to_account_info(),
-        accounts.update_authority.to_account_info(), // payer
-        accounts.gsol_mint_authority.to_account_info(), // update authority of metadata account
-        accounts.system_program.to_account_info(),
-        accounts.rent.to_account_info(),
-    ];
-
-    invoke_signed(
-        &mpl_token_metadata::instructions::CreateMetadataAccountV3(CreateMetadata {
-            state: Box::new(()),
-            marinade_state: Box::new(()),
-            gsol_mint: Box::new(()),
-            gsol_mint_authority: (),
-            update_authority: (),
-            system_program: (),
-            rent: (),
-            token_program: (),
-            metadata: AccountInfo {},
-            token_metadata_program: accounts.token_metadata_program.key(),
-        }, name, symbol, uri)
-
-
-            accounts.token_metadata_program.key(),
-            accounts.metadata.key(),
-            accounts.gsol_mint.key(),
-            accounts.gsol_mint_authority.key(),
-            accounts.update_authority.key(),    // payer
-            accounts.gsol_mint_authority.key(), // the mint and update authority of the token are the same
+    let cpi_ctx = CpiContext::new(
+        accounts.token_metadata_program.clone(),
+        CreateMetadataAccountsV3 {
+            metadata: accounts.metadata.clone(),
+            mint,
+            mint_authority: accounts.update_authority.clone(),
+            payer,
+            update_authority: accounts.update_authority.clone(),
+            system_program,
+            rent,
+        }
+    );
+    create_metadata_accounts_v3(
+        cpi_ctx.with_signer(&[&seeds]),
+        DataV2 {
             name,
             symbol,
             uri,
-            None,
-            0,
-            true,
-            true,
-            None,
-            None,
-            None,
-        ),
-        account_info.as_slice(),
-        pda_signer,
+            seller_fee_basis_points: 0,
+            creators: None,
+            collection: None,
+            uses: None,
+        },
+        false,
+        false,
+        None,
     )?;
 
     Ok(())
 }
 
 pub fn update_metadata_account(
-    accounts: &CreateMetadata,
+    accounts: &MetadataAccounts,
     uri: String,
     name: String,
-    symbol: String,
+    symbol: String
 ) -> Result<()> {
     let state_address = accounts.state.key();
     let seeds = &[
@@ -83,35 +72,28 @@ pub fn update_metadata_account(
         GSOL_MINT_AUTHORITY,
         &[accounts.state.gsol_mint_authority_bump],
     ];
-    let pda_signer = &[&seeds[..]];
 
-    let account_info = vec![
-        accounts.metadata.to_account_info(),            // payer
-        accounts.gsol_mint_authority.to_account_info(), // update authority of metadata account
-    ];
-
-    let token_metadata = DataV2 {
-        name,
-        symbol,
-        uri,
-        seller_fee_basis_points: 0,
-        creators: None,
-        collection: None,
-        uses: None,
-    };
-
-    invoke_signed(
-        &update_metadata_accounts_v2(
-            accounts.token_metadata_program.key(),
-            accounts.metadata.key(),
-            accounts.gsol_mint_authority.key(),
-            Some(accounts.gsol_mint_authority.key()),
-            Some(token_metadata),
-            None,
-            Some(true),
-        ),
-        account_info.as_slice(),
-        pda_signer,
+    let cpi_ctx = CpiContext::new(
+        accounts.token_metadata_program.clone(),
+        UpdateMetadataAccountsV2 {
+            metadata: accounts.metadata.clone(),
+            update_authority: accounts.update_authority.clone(),
+        }
+    );
+    update_metadata_accounts_v2(
+        cpi_ctx.with_signer(&[&seeds]),
+        None,
+        Some(DataV2 {
+            name,
+            symbol,
+            uri,
+            seller_fee_basis_points: 0,
+            creators: None,
+            collection: None,
+            uses: None,
+        }),
+        None,
+        None,
     )?;
 
     Ok(())

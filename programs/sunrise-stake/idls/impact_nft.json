@@ -1,0 +1,1009 @@
+{
+  "address": "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc",
+  "metadata": {
+    "name": "impact_nft",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "add_levels",
+      "discriminator": [
+        101,
+        239,
+        15,
+        85,
+        60,
+        13,
+        183,
+        192
+      ],
+      "accounts": [
+        {
+          "name": "admin_update_authority",
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "global_state"
+        },
+        {
+          "name": "offset_tiers",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  115,
+                  101,
+                  116,
+                  95,
+                  116,
+                  105,
+                  101,
+                  114,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "Level"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_global_state",
+      "discriminator": [
+        53,
+        127,
+        207,
+        143,
+        222,
+        244,
+        229,
+        115
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin_update_authority",
+          "signer": true
+        },
+        {
+          "name": "global_state",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_authority",
+          "docs": [
+            "The account Metaplex recognizes as the update_authority for",
+            "the tokens. Any instruction that uses it still requires at least",
+            "one of the EOA and PDA authorities for checking validity, but it",
+            "can be used with either"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "GlobalStateCreateInput"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_offset_tiers",
+      "discriminator": [
+        155,
+        202,
+        217,
+        142,
+        28,
+        193,
+        122,
+        152
+      ],
+      "accounts": [
+        {
+          "name": "admin_update_authority",
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "global_state"
+        },
+        {
+          "name": "offset_tiers",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  115,
+                  101,
+                  116,
+                  95,
+                  116,
+                  105,
+                  101,
+                  114,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "OffsetTiersInput"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "mint_nft",
+      "discriminator": [
+        211,
+        57,
+        6,
+        167,
+        15,
+        219,
+        35,
+        251
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin_mint_authority",
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "token_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "global_state"
+        },
+        {
+          "name": "offset_tiers",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  115,
+                  101,
+                  116,
+                  95,
+                  116,
+                  105,
+                  101,
+                  114,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "offset_metadata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  115,
+                  101,
+                  116,
+                  95,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "metadata",
+          "writable": true
+        },
+        {
+          "name": "master_edition",
+          "writable": true
+        },
+        {
+          "name": "mint_nft_to",
+          "docs": [
+            "TODO move to init here using anchor's spl-token integration?"
+          ],
+          "writable": true
+        },
+        {
+          "name": "mint_nft_to_owner"
+        },
+        {
+          "name": "collection_mint"
+        },
+        {
+          "name": "collection_metadata",
+          "writable": true
+        },
+        {
+          "name": "collection_master_edition"
+        },
+        {
+          "name": "collection_authority_record"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_metadata_program",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "offset_amount",
+          "type": "u64"
+        },
+        {
+          "name": "principal",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_global_state",
+      "discriminator": [
+        72,
+        50,
+        207,
+        20,
+        119,
+        37,
+        44,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "admin_update_authority",
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "global_state",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "GlobalStateUpdateInput"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_nft",
+      "discriminator": [
+        97,
+        5,
+        62,
+        85,
+        23,
+        92,
+        96,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "admin_mint_authority",
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "token_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "global_state"
+        },
+        {
+          "name": "offset_tiers",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  115,
+                  101,
+                  116,
+                  95,
+                  116,
+                  105,
+                  101,
+                  114,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "offset_metadata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  115,
+                  101,
+                  116,
+                  95,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "metadata",
+          "writable": true
+        },
+        {
+          "name": "new_collection_mint"
+        },
+        {
+          "name": "new_collection_metadata",
+          "writable": true
+        },
+        {
+          "name": "new_collection_master_edition"
+        },
+        {
+          "name": "collection_mint"
+        },
+        {
+          "name": "collection_metadata",
+          "writable": true
+        },
+        {
+          "name": "collection_master_edition"
+        },
+        {
+          "name": "collection_authority_record"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "token_metadata_program",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        }
+      ],
+      "args": [
+        {
+          "name": "offset_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_offset_tiers",
+      "discriminator": [
+        130,
+        140,
+        14,
+        153,
+        113,
+        168,
+        26,
+        245
+      ],
+      "accounts": [
+        {
+          "name": "admin_update_authority",
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "global_state"
+        },
+        {
+          "name": "offset_tiers",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  115,
+                  101,
+                  116,
+                  95,
+                  116,
+                  105,
+                  101,
+                  114,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "OffsetTiersInput"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GlobalState",
+      "discriminator": [
+        163,
+        46,
+        74,
+        168,
+        216,
+        123,
+        133,
+        98
+      ]
+    },
+    {
+      "name": "OffsetMetadata",
+      "discriminator": [
+        215,
+        158,
+        251,
+        84,
+        102,
+        121,
+        147,
+        129
+      ]
+    },
+    {
+      "name": "OffsetTiers",
+      "discriminator": [
+        128,
+        104,
+        178,
+        197,
+        181,
+        66,
+        189,
+        30
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAdminAuthority",
+      "msg": "Wrong admin authority for offset state"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidMintAuthority",
+      "msg": "Wrong mint authority for offset state"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidOffsetMetadata",
+      "msg": "Invalid offset metadata pda"
+    },
+    {
+      "code": 6003,
+      "name": "NoOffsetTiers",
+      "msg": "Invalid offset tiers pda"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidUpdateForMint",
+      "msg": "Invalid update for mint"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidFeeRecipient",
+      "msg": "Invalid fee recipient account"
+    }
+  ],
+  "types": [
+    {
+      "name": "CoinType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Native"
+          },
+          {
+            "name": "Spl"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fee",
+            "type": "u64"
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_type",
+            "type": {
+              "defined": {
+                "name": "FeeType"
+              }
+            }
+          },
+          {
+            "name": "coin_type",
+            "type": {
+              "defined": {
+                "name": "CoinType"
+              }
+            }
+          },
+          {
+            "name": "spl_token_mint",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Fixed"
+          },
+          {
+            "name": "Percentage"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin_update_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin_mint_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "levels",
+            "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "FeeConfig"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalStateCreateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin_mint_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "levels",
+            "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "FeeConfig"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalStateUpdateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin_update_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin_mint_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "levels",
+            "type": "u16"
+          },
+          {
+            "name": "fee",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "FeeConfig"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Level",
+      "docs": [
+        "* The Level struct is used to store the offset tiers."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "offset",
+            "type": "u64"
+          },
+          {
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "collection_mint",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OffsetMetadata",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "current_level_index",
+            "type": "u16"
+          },
+          {
+            "name": "offset",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OffsetTiers",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "levels",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Level"
+                }
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OffsetTiersInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "levels",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Level"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

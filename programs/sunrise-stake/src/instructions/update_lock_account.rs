@@ -6,10 +6,10 @@ use crate::utils::seeds::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use impact_nft_cpi::cpi::accounts::UpdateNft;
-use impact_nft_cpi::cpi::update_nft as cpi_update_nft;
-use impact_nft_cpi::program::ImpactNft;
-use impact_nft_cpi::GlobalState as ImpactNftState;
+use crate::impact_nft_cpi::cpi::accounts::UpdateNft;
+use crate::impact_nft_cpi::cpi::update_nft as cpi_update_nft;
+use crate::impact_nft_cpi::program::ImpactNft;
+use crate::impact_nft_cpi::GlobalState as ImpactNftState;
 
 #[derive(Accounts, Clone)]
 pub struct UpdateLockAccount<'info> {

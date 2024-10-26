@@ -4,7 +4,7 @@ use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::State as MarinadeState;
+use crate::marinade::State as MarinadeState;
 
 #[account]
 pub struct State {

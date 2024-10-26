@@ -2,14 +2,15 @@ import { IDL, type SunriseStake } from "./types/sunrise_stake.js";
 import * as anchor from "@coral-xyz/anchor";
 import { type AnchorProvider, Program, utils } from "@coral-xyz/anchor";
 import {
-  type ConfirmOptions,
-  Keypair,
-  PublicKey,
-  type Signer,
-  SystemProgram,
-  SYSVAR_CLOCK_PUBKEY,
-  Transaction,
-  type TransactionInstruction,
+    ComputeBudgetProgram,
+    type ConfirmOptions,
+    Keypair,
+    PublicKey,
+    type Signer,
+    SystemProgram,
+    SYSVAR_CLOCK_PUBKEY,
+    Transaction,
+    type TransactionInstruction,
 } from "@solana/web3.js";
 import {
   confirm,
@@ -242,6 +243,18 @@ export class SunriseStakeClient {
     signers?: Signer[],
     opts?: ConfirmOptions
   ): Promise<string> {
+      // add priority fee
+      // const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+      //     units: 300,
+      // });
+
+      const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+          microLamports: 20000,
+      });
+
+      transaction.add(addPriorityFee);
+
+
     return this.provider
       .sendAndConfirm(transaction, signers, opts)
       .catch((e) => {

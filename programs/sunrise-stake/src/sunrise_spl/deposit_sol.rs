@@ -1,9 +1,9 @@
-use crate::{
-    utils::{seeds, token as TokenUtils},
-    State,
-};
+use crate::{utils, utils::{seeds, token as TokenUtils}, State};
 use anchor_lang::{prelude::*, solana_program::program::invoke};
 use anchor_spl::token::{Mint, Token, TokenAccount};
+use crate::spl_stake_pool::cpi::accounts::{DepositSol, WithdrawSol};
+use crate::spl_stake_pool::cpi::{deposit_sol, withdraw_sol};
+use crate::sunrise_spl::SplWithdrawSol;
 
 ///   CPI Instructions
 
@@ -79,39 +79,25 @@ pub struct SplDepositSol<'info> {
 
 impl<'info> SplDepositSol<'info> {
     fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, spl_stake_pool::ID);
+        require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
         Ok(())
     }
 
     pub fn deposit_sol(&mut self, amount: u64) -> Result<()> {
         self.check_stake_pool_program()?;
 
-        invoke(
-            &spl_stake_pool::instruction::deposit_sol(
-                &spl_stake_pool::ID,
-                self.stake_pool.key,
-                self.stake_pool_withdraw_authority.key,
-                self.reserve_stake_account.key,
-                self.depositor.key,
-                &self.bsol_token_account.key(),
-                self.manager_fee_account.key,
-                &self.bsol_token_account.key(),
-                self.stake_pool_token_mint.key,
-                self.token_program.key,
-                amount,
-            ),
-            &[
-                self.stake_pool_program.clone(),
-                self.stake_pool.clone(),
-                self.stake_pool_withdraw_authority.clone(),
-                self.reserve_stake_account.clone(),
-                self.depositor.to_account_info(),
-                self.manager_fee_account.clone(),
-                self.bsol_token_account.to_account_info(),
-                self.stake_pool_token_mint.clone(),
-                self.system_program.to_account_info(),
-                self.token_program.to_account_info(),
-            ],
+        let bump = self.state.bsol_authority_bump;
+        let state_key = self.state.to_account_info().key;
+        let seeds = [state_key.as_ref(), seeds::BSOL_ACCOUNT, &[bump]];
+
+        let deposit_sol_accounts: DepositSol = self.into();
+        let cpi_ctx: CpiContext<'_, '_, '_, 'info, DepositSol> = CpiContext::new(
+            self.stake_pool_program.clone(),
+            deposit_sol_accounts
+        );
+        deposit_sol(
+            cpi_ctx.with_signer(&[&seeds]),
+            amount
         )?;
 
         TokenUtils::mint_to(
@@ -127,5 +113,39 @@ impl<'info> SplDepositSol<'info> {
         self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(amount).unwrap();
 
         Ok(())
+    }
+}
+
+
+impl<'a> From<SplDepositSol<'a>> for DepositSol<'a> {
+    fn from(props: SplDepositSol<'a>) -> Self {
+        Self {
+            // The SPL stake pool being deposited into
+            stake_pool: props.stake_pool,
+            // The PDA able to withdraw from the stake pool into the sunrise pool
+            stake_pool_withdraw_authority: props.stake_pool_withdraw_authority.clone(),
+            // The account for SOL not yet staked against validators (where the SOL goes)
+            reserve_stake_account: props.reserve_stake_account,
+            // The account that fees are paid into
+            fee_account: props.manager_fee_account.to_account_info(),
+            // The mint account of the pool token e.g. bSOL
+            pool_token_mint: props.stake_pool_token_mint,
+            // The sender of SOL (the Sunrise user)
+            depositer: props.depositor.to_account_info(),
+            // Not sure if this is different to the above TODO
+            deposit_authority: props.depositor.to_account_info(),  // TODO ???
+            // The recipient of the pool tokens
+            user_account:  props.bsol_token_account.to_account_info(),  // TODO ???
+            // The account that referral fees are paid into
+            referral_fee_account: props.manager_fee_account.to_account_info(),  // TODO ???
+            system_program: props.system_program.to_account_info(),
+            token_program_id: props.token_program.to_account_info(),
+        }
+    }
+}
+
+impl<'a> From<&SplDepositSol<'a>> for DepositSol<'a> {
+    fn from(accounts: &SplDepositSol<'a>) -> Self {
+        accounts.to_owned().into()
     }
 }

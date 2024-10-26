@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::borsh::try_from_slice_unchecked;
-use spl_stake_pool::state::StakePool;
+use crate::spl_stake_pool::accounts::StakePool;
 
 pub fn deserialize_spl_stake_pool(stake_pool_account: &AccountInfo) -> Result<StakePool> {
     try_from_slice_unchecked::<StakePool>(&stake_pool_account.data.borrow())

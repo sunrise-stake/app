@@ -7,6 +7,9 @@ skip-lint = false
 [programs.localnet]
 sunrise_stake = "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
 
+[toolchain]
+anchor_version = "0.30.1"
+
 [registry]
 url = "https://api.apr.dev"
 

@@ -1,15 +1,15 @@
-use crate::{
-    utils::{seeds, token as TokenUtils},
-    State,
-};
+use crate::{spl_stake_pool, utils::{seeds, token as TokenUtils}, State};
 use anchor_lang::{
     prelude::*,
     solana_program::{
-        borsh::try_from_slice_unchecked, instruction::Instruction, program::invoke,
-        stake::state::StakeState,
+        instruction::Instruction, program::invoke,
     },
 };
+use anchor_lang::solana_program::{borsh0_10, borsh1};
+use anchor_lang::solana_program::stake::state::StakeStateV2;
 use anchor_spl::token::{Mint, Token, TokenAccount};
+use crate::spl_stake_pool::cpi::accounts::{DepositStake, WithdrawStake};
+use crate::spl_stake_pool::cpi::{deposit_stake, withdraw_stake};
 
 ///   CPI Instructions
 
@@ -129,51 +129,38 @@ impl<'info> SplDepositStake<'info> {
         self.check_stake_pool_program()?;
 
         let stake_account_info =
-            try_from_slice_unchecked::<StakeState>(&self.stake_account.data.borrow())?;
+            borsh1::try_from_slice_unchecked::<StakeStateV2>(&self.stake_account.data.borrow())?;
         let stake_amount = match stake_account_info.delegation() {
             Some(delegation) => delegation.stake,
             None => return Err(crate::ErrorCode::NotDelegated.into()),
         };
 
-        // Returns a Vec<Instruction> of length 3. Ix1 and Ix2 are instructions to
-        // transfer staker and withdrawer authority to the stake pool's withdraw authority,
-        // a prerequisite for calling Ix3
-        let deposit_state_instructions = &spl_stake_pool::instruction::deposit_stake(
-            &spl_stake_pool::ID,
-            self.stake_pool.key,
-            self.validator_list.key,
-            self.stake_pool_withdraw_authority.key,
-            self.stake_account.key,
-            self.stake_account_depositor.key,
-            self.validator_stake_account.key,
-            self.reserve_stake_account.key,
-            &self.bsol_token_account.key(),
-            self.manager_fee_account.key,
-            &self.bsol_token_account.key(),
-            self.stake_pool_token_mint.key,
-            self.token_program.key,
-        );
+        let bump = self.state.bsol_authority_bump;
+        let state_key = self.state.to_account_info().key;
+        let seeds = [state_key.as_ref(), seeds::BSOL_ACCOUNT, &[bump]];
 
-        self.authorize_stake_pool(&deposit_state_instructions[..])?;
-        invoke(
-            &deposit_state_instructions[2],
-            &[
-                self.stake_pool_program.clone(),
-                self.stake_pool.clone(),
-                self.validator_list.clone(),
-                self.stake_pool_deposit_authority.clone(),
-                self.stake_pool_withdraw_authority.clone(),
-                self.stake_account.clone(),
-                self.validator_stake_account.clone(),
-                self.reserve_stake_account.clone(),
-                self.manager_fee_account.clone(),
-                self.bsol_token_account.to_account_info(),
-                self.stake_pool_token_mint.clone(),
-                self.sysvar_clock.clone(),
-                self.sysvar_stake_history.clone(),
-                self.token_program.to_account_info(),
-                self.native_stake_program.clone(),
-            ],
+        let cpi_ctx = CpiContext::new(
+            self.stake_pool_program.clone(),
+            DepositStake {
+                stake_pool: self.stake_pool.clone(),
+                validator_stake_list: self.validator_list.clone(),
+                stake_pool_deposit_authority: self.stake_account_depositor.to_account_info(),
+                stake_pool_withdraw_authority: self.stake_pool_withdraw_authority.clone(),
+                stake_account: self.stake_account.to_account_info(),
+                validator_stake_account: self.validator_stake_account.to_account_info(),
+                reserve_stake_account: self.reserve_stake_account.to_account_info(),
+                user_account: self.bsol_token_account.to_account_info(),
+                pool_tokens_amount: self.manager_fee_account.to_account_info(),
+                pool_fees_amount: self.manager_fee_account.to_account_info(),
+                pool_token_mint_account: self.stake_pool_token_mint.clone(),
+                sysvar_clock_account: self.sysvar_clock.clone(),
+                sysvar_stake_history_account: self.sysvar_stake_history.to_account_info(),
+                pool_token_program_id: self.token_program.to_account_info(),
+                stake_program_id: self.native_stake_program.to_account_info()
+            }
+        );
+        deposit_stake(
+            cpi_ctx.with_signer(&[&seeds]),
         )?;
 
         TokenUtils::mint_to(
