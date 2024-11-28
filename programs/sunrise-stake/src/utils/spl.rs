@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::borsh::try_from_slice_unchecked;
+use anchor_lang::solana_program::borsh0_10::try_from_slice_unchecked;
 use crate::spl_stake_pool::accounts::StakePool;
 
 pub fn deserialize_spl_stake_pool(stake_pool_account: &AccountInfo) -> Result<StakePool> {

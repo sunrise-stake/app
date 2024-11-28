@@ -2,20 +2,19 @@ use crate::state::State;
 use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::mint_to;
 use crate::utils::{marinade, marinade::amount_to_be_deposited_in_liq_pool};
+use crate::marinade::accounts::MarinadeState;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
 pub struct Deposit<'info> {
     #[account(mut,has_one = marinade_state)]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, MarinadeState>>,
 
     #[account(mut)]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: Box<Account<'info, State>>,
 
     #[account(
     mut,
@@ -89,7 +88,7 @@ pub struct Deposit<'info> {
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub marinade_program: Program<'info, MarinadeFinance>,
+    pub marinade_program: Program<'info, Marinade>,
 }
 
 pub fn deposit_handler(ctx: Context<Deposit>, lamports: u64) -> Result<()> {

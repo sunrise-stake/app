@@ -134,7 +134,7 @@ impl<'a> From<LiquidUnstake<'a>> for WithdrawSol<'a> {
     }
 }
 
-impl<'a> From<&SplWithdrawSol<'a>> for WithdrawSol<'a> {
+impl<'a> From<&LiquidUnstake<'a>> for WithdrawSol<'a> {
     fn from(accounts: &LiquidUnstake<'a>) -> Self {
         accounts.to_owned().into()
     }

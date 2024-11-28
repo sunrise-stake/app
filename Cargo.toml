@@ -17,3 +17,6 @@ codegen-units = 1
 libraries = [
     { git = "https://github.com/crytic/solana-lints", pattern = "lints/*" },
 ]
+
+#[patch.crates-io]
+#solana-program = "=2.0.3"
