@@ -327,7 +327,16 @@ export class SunriseStakeClient {
         "Helius URL not set - cannot set priority fee. Either set heliusUrl in the environment or disable addPriorityFee in the options"
       );
     }
-    const priorityFee = await getPriorityFee(this.env.heliusUrl, tx);
+    let priorityFee: number;
+    try {
+      priorityFee = await getPriorityFee(this.env.heliusUrl, tx);
+    } catch (e) {
+      console.error(
+        "Error getting priority fee from Helius - proceeding without priority fee",
+        e
+      );
+      return tx;
+    }
 
     const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
       microLamports: priorityFee,
