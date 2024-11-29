@@ -43,7 +43,7 @@ use spl_stake_pool::state::StakePool;
 ///  10. `[]` Sysvar clock account (required)
 ///  11. `[]` Pool token program id
 ///  12. `[]` Stake program id,
-///  userdata: amount of pool tokens to withdraw
+///      userdata: amount of pool tokens to withdraw
 
 #[derive(Accounts)]
 pub struct SplWithdrawStake<'info> {
