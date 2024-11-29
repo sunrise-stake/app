@@ -30,6 +30,9 @@ export interface EnvironmentConfig {
   impactNFT: {
     state: PublicKey | undefined; // if undefined, impact nft is disabled
   };
+  // This is used to get recommended priority fees.
+  // if not set, priority fees are not used.
+  heliusUrl: string | undefined;
 }
 export const Environment: Record<
   WalletAdapterNetwork | "localnet",
@@ -51,6 +54,8 @@ export const Environment: Record<
     impactNFT: {
       state: new PublicKey("6RzCneyeEqnjiWxrzqfBwHDEpTrbcSkBFFUrtMZnNjpc"),
     },
+    // Private Sunrise Helius Secure RPC
+    heliusUrl: "https://weary-fayre-fast-mainnet.helius-rpc.com",
   },
   // TODO placeholders
   testnet: {
@@ -67,6 +72,7 @@ export const Environment: Record<
     impactNFT: {
       state: PublicKey.default, // TODO
     },
+    heliusUrl: undefined,
   },
   devnet: {
     state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
@@ -84,6 +90,8 @@ export const Environment: Record<
     impactNFT: {
       state: new PublicKey("6iyfwPbbLeYAoUcQkECCPwftFuw3j5VEcXF7xcQeAdX6"),
     },
+    // Private Sunrise Helius Secure RPC
+    heliusUrl: "https://indirect-josi-fast-devnet.helius-rpc.com",
   },
   localnet: {
     state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
@@ -101,6 +109,7 @@ export const Environment: Record<
     impactNFT: {
       state: PublicKey.default, // TODO
     },
+    heliusUrl: undefined,
   },
 };
 
