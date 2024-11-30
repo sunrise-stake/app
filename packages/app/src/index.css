@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
 
@@ -63,8 +63,12 @@ input[type=number]::-webkit-outer-spin-button {
   }
 
   @keyframes float-circle {
-    from { transform: rotate(0deg) translateX(5px) rotate(0deg); }
-    to   { transform: rotate(360deg) translateX(5px) rotate(-360deg); }
+    from {
+      transform: rotate(0deg) translateX(5px) rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg) translateX(5px) rotate(-360deg);
+    }
   }
 
   .FloatingTree {
@@ -74,7 +78,7 @@ input[type=number]::-webkit-outer-spin-button {
   .ForestTree {
     animation: 8s linear infinite float-circle;
   }
-  
+
   .appearance-textfield {
     appearance: textfield;
   }
@@ -114,7 +118,6 @@ input[type=number]::-webkit-outer-spin-button {
   border-bottom: 10px solid transparent;
 }
 
-
 /* TODO TEMP do properly with tailwind or whatever */
 .tree {
   margin-top: 25px;
@@ -125,6 +128,36 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 @keyframes fadein {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.water-liquid {
+  animation: liquid-rise 5s infinite alternate;
+}
+
+.water-wave {
+  animation: bowl-spin 40s infinite alternate;
+}
+
+@keyframes bowl-spin {
+  from {
+    transform: translateX(-20px);
+  }
+  to {
+    transform: translateX(-900px);
+  }
+}
+
+@keyframes liquid-rise {
+  from {
+    transform: scale(0.75) translateY(10px);
+  }
+  to {
+    transform: scale(1) translateY(0);
+  }
 }
