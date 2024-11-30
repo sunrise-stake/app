@@ -18,9 +18,9 @@ import {Transaction} from "@solana/web3.js";
     return;
   }
 
-  // const txSig = await client.sendAndConfirmTransaction(
-  //     new Transaction().add(recoverIx)
-  // );
-  //
-  // console.log("Action complete:", txSig)
+  const txSig = await client.sendAndConfirmTransaction(
+      new Transaction().add(recoverIx)
+  );
+
+  console.log("Action complete:", txSig)
 })().catch(console.error);

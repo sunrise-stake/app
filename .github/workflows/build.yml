@@ -133,7 +133,6 @@ jobs:
       - name: run tests
         run: |
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          ls node_modules/.bin
           yarn test
 
       - uses: actions/upload-artifact@v3
