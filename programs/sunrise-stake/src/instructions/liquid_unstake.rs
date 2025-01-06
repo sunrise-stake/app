@@ -99,7 +99,6 @@ pub struct LiquidUnstake<'info> {
     ///////////////////////////////////////////////////////
     ///  Blaze Stake Accounts
     /// //////////////////////////////////////////////////
-
     #[account(mut, token::authority = bsol_account_authority)]
     pub bsol_token_account: Account<'info, TokenAccount>,
     #[account(

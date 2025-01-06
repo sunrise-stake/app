@@ -12,7 +12,6 @@ use anchor_lang::{
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 ///   CPI Instructions
-
 ///   Deposit some stake into the pool.  The output is a "pool" token representing ownership
 ///   into the pool. Inputs are converted to the current ratio.
 ///
@@ -103,7 +102,7 @@ pub struct SplDepositStake<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-impl<'info> SplDepositStake<'info> {
+impl SplDepositStake<'_>  {
     fn check_stake_pool_program(&self) -> Result<()> {
         require_keys_eq!(*self.stake_pool_program.key, spl_stake_pool::ID);
         Ok(())
