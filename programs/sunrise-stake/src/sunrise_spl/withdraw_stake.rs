@@ -103,7 +103,7 @@ pub struct SplWithdrawStake<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-impl SplWithdrawStake<'_>  {
+impl SplWithdrawStake<'_> {
     fn check_stake_pool_program(&self) -> Result<()> {
         require_keys_eq!(*self.stake_pool_program.key, spl_stake_pool::ID);
         Ok(())
