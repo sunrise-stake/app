@@ -6,7 +6,6 @@ use anchor_lang::{prelude::*, solana_program::program::invoke};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 ///   CPI Instructions
-
 ///   Deposit SOL directly into the pool's reserve account. The output is a "pool" token
 ///   representing ownership into the pool. Inputs are converted to the current ratio.
 ///
@@ -77,7 +76,7 @@ pub struct SplDepositSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-impl<'info> SplDepositSol<'info> {
+impl SplDepositSol<'_> {
     fn check_stake_pool_program(&self) -> Result<()> {
         require_keys_eq!(*self.stake_pool_program.key, spl_stake_pool::ID);
         Ok(())
