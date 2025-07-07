@@ -51,8 +51,8 @@ jobs:
 
       - name: install solana
         if: steps.cache-solana.outputs.cache-hit != 'true'
-        run: |
-          sh -c "$(curl -sSfL https://release.solana.com/${{ env.solana_version }}/install)"
+        run: |        
+          packages/scripts/solana_install_wrapper.sh ${{ env.solana_version }} 
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           solana --version
 
