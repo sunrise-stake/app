@@ -215,10 +215,29 @@ export class SunriseClientWrapper {
 
   async unlockGSol(): Promise<string[]> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
-    return this.client
-      .unlockGSol()
-      .then(async (txes) => this.client.sendAndConfirmTransactions(txes))
-      .then(this.triggerUpdateAndReturn.bind(this));
+
+    const txes = await this.client.unlockGSol();
+    const results: string[] = [];
+    const errors: Error[] = [];
+
+    // Execute each transaction independently to ensure all are attempted
+    for (const tx of txes) {
+      try {
+        const signature = await this.client.sendAndConfirmTransaction(tx);
+        results.push(signature);
+      } catch (error) {
+        console.error("Failed to execute unlock transaction:", error);
+        errors.push(error as Error);
+      }
+    }
+
+    // If all transactions failed, throw the first error
+    if (results.length === 0 && errors.length > 0) {
+      throw errors[0];
+    }
+
+    // If at least one succeeded, trigger update and return results
+    return this.triggerUpdateAndReturn(results);
   }
 
   async updateLockAccount(): Promise<string[]> {
