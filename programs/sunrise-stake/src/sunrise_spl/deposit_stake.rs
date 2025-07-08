@@ -1,4 +1,4 @@
-use crate::{utils::{seeds, token as TokenUtils}, State};
+use crate::{utils::{seeds, token as TokenUtils}, SunriseState};
 use anchor_lang::{
     prelude::*,
     solana_program::{
@@ -37,7 +37,7 @@ pub struct SplDepositStake<'info> {
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
     #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
     #[account(

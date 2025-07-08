@@ -7,7 +7,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 use crate::marinade::accounts::State as MarinadeState;
 
 #[account]
-pub struct State {
+pub struct SunriseState {
     pub marinade_state: Pubkey,
 
     pub update_authority: Pubkey,
@@ -30,7 +30,7 @@ pub struct State {
     pub bsol_authority_bump: u8,
 }
 
-impl State {
+impl SunriseState {
     pub const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 1 + 1 + 32 + 8 + 8 + 1 + 8 /* DISCRIMINATOR */ ;
 
     pub fn set_values(
@@ -146,7 +146,7 @@ pub struct CreateMetadata<'info> {
     has_one = marinade_state,
     has_one = update_authority,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account()]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
@@ -189,7 +189,7 @@ pub struct ResizeState<'info> {
     realloc::payer = payer,
     realloc::zero = false,
     )]
-    pub state: Account<'info, State>,
+    pub state: Account<'info, SunriseState>,
 
     #[account(mut)]
     pub payer: Signer<'info>,

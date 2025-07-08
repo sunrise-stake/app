@@ -1,4 +1,4 @@
-use crate::state::State;
+use crate::state::SunriseState;
 use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::mint_to;
 use crate::utils::{marinade, marinade::amount_to_be_deposited_in_liq_pool};
@@ -11,7 +11,7 @@ use std::ops::Deref;
 #[derive(Accounts, Clone)]
 pub struct Deposit<'info> {
     #[account(mut,has_one = marinade_state)]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,

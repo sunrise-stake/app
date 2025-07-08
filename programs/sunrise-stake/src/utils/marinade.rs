@@ -2,7 +2,7 @@ use crate::instructions::{InitEpochReport, RecoverTickets, UpdateEpochReport};
 use crate::{
     utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
     ClaimUnstakeTicket, Deposit, DepositStakeAccount, EpochReportAccount, ExtractToTreasury,
-    LiquidUnstake, OrderUnstake, State, TriggerPoolRebalance,
+    LiquidUnstake, OrderUnstake, SunriseState, TriggerPoolRebalance,
 };
 use anchor_lang::{
     context::CpiContext,
@@ -28,7 +28,7 @@ use crate::marinade::{
 };
 
 pub struct GenericUnstakeProperties<'info> {
-    state: Box<Account<'info, State>>,
+    state: Box<Account<'info, SunriseState>>,
     marinade_state: Box<Account<'info, MarinadeState>>,
     msol_mint: Box<Account<'info, Mint>>,
     /// CHECK: Checked in marinade program
@@ -92,7 +92,7 @@ impl<'a> From<&ExtractToTreasury<'a>> for GenericUnstakeProperties<'a> {
 }
 
 pub struct OrderUnstakeProperties<'info> {
-    state: Box<Account<'info, State>>,
+    state: Box<Account<'info, SunriseState>>,
     marinade_state: Box<Account<'info, MarinadeState>>,
     msol_mint: Account<'info, Mint>,
     burn_msol_from: Account<'info, TokenAccount>,
@@ -303,7 +303,7 @@ pub fn claim_unstake_ticket(accounts: &ClaimUnstakeTicketProperties) -> Result<(
 }
 
 pub struct AddLiquidityProperties<'info> {
-    state: Box<Account<'info, State>>,
+    state: Box<Account<'info, SunriseState>>,
     marinade_state: Box<Account<'info, MarinadeState>>,
     liq_pool_mint: Box<Account<'info, Mint>>,
     /// CHECK: Checked in marinade program
@@ -722,7 +722,7 @@ fn total_liq_pool(
 /// The preferred liquidity pool balance is a proportion of the total issued gsol
 /// (after accounting for the deposit)
 pub fn preferred_liq_pool_balance(
-    state: &State,
+    state: &SunriseState,
     gsol_mint: &Account<'_, Mint>,
     lamports_being_staked: u64,
 ) -> Result<u64> {
@@ -742,7 +742,7 @@ pub fn preferred_liq_pool_balance(
 //      the total gsol supply (after removing the stake that is being removed)
 //      * the minimum liquidity pool proportion
 pub fn preferred_liq_pool_min_balance(
-    state: &State,
+    state: &SunriseState,
     gsol_mint: &Account<'_, Mint>,
     lamports_being_unstaked: u64,
 ) -> Result<u64> {
@@ -790,7 +790,7 @@ pub struct LiquidUnstakeAmounts {
     pub amount_to_order_delayed_unstake: u64,
 }
 pub struct PoolBalanceProperties<'info> {
-    state: Box<Account<'info, State>>,
+    state: Box<Account<'info, SunriseState>>,
     marinade_state: Box<Account<'info, MarinadeState>>,
     gsol_mint: Box<Account<'info, Mint>>,
     liq_pool_mint: Box<Account<'info, Mint>>,

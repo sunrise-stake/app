@@ -1,5 +1,5 @@
 use crate::error::ErrorCode;
-use crate::state::{EpochReportAccount, State};
+use crate::state::{EpochReportAccount, SunriseState};
 use crate::utils::marinade;
 use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT};
 use crate::utils::system;
@@ -20,7 +20,7 @@ pub struct TriggerPoolRebalance<'info> {
     has_one = marinade_state,
     has_one = gsol_mint,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,

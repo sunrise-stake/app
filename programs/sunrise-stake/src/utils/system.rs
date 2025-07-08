@@ -1,5 +1,5 @@
 use crate::utils::seeds::ORDER_UNSTAKE_TICKET_ACCOUNT;
-use crate::{State, TriggerPoolRebalance};
+use crate::{SunriseState, TriggerPoolRebalance};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::solana_program::system_instruction;
@@ -8,7 +8,7 @@ use crate::marinade::program::MarinadeFinance;
 pub const MARINADE_TICKET_ACCOUNT_SPACE: u64 = 32 + 32 + 8 + 8 + 8;
 
 pub struct CreateAccountProperties<'info> {
-    state: Box<Account<'info, State>>,
+    state: Box<Account<'info, SunriseState>>,
     payer: Signer<'info>,
     /// CHECK: PDA checked by anchor in the instruction
     new_account: AccountInfo<'info>,

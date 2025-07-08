@@ -1,4 +1,4 @@
-use crate::state::{EpochReportAccount, State, TicketAccountData};
+use crate::state::{EpochReportAccount, SunriseState, TicketAccountData};
 use crate::utils::marinade;
 use crate::utils::marinade::{CalculateExtractableYieldProperties, ClaimUnstakeTicketProperties};
 use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
@@ -21,7 +21,7 @@ pub struct RecoverTickets<'info> {
     has_one = blaze_state,
     has_one = gsol_mint,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,

@@ -1,4 +1,4 @@
-use crate::state::State;
+use crate::state::SunriseState;
 use crate::state::SunriseTicketAccount;
 use crate::utils::marinade;
 use crate::utils::marinade::{calc_lamports_from_msol_amount, calc_msol_from_lamports};
@@ -16,7 +16,7 @@ pub struct OrderUnstake<'info> {
     has_one = treasury,
     has_one = marinade_state,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account()]
     pub marinade_state: Box<Account<'info, MarinadeState>>,

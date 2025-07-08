@@ -1,4 +1,4 @@
-use crate::state::State;
+use crate::state::SunriseState;
 use crate::utils::marinade;
 use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::mint_to;
@@ -11,7 +11,7 @@ use crate::marinade::accounts::State as MarinadeState;
 #[derive(Accounts, Clone)]
 pub struct DepositStakeAccount<'info> {
     #[account(mut, has_one = marinade_state)]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,

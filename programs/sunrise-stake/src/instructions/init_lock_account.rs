@@ -1,4 +1,4 @@
-use crate::state::{LockAccount, State};
+use crate::state::{LockAccount, SunriseState};
 use crate::utils::seeds::{LOCK_ACCOUNT, LOCK_TOKEN_ACCOUNT};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -8,7 +8,7 @@ pub struct InitLockAccount<'info> {
     #[account(
     has_one = gsol_mint
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
     pub gsol_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]

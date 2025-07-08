@@ -1,4 +1,4 @@
-use crate::state::{State, SunriseTicketAccount};
+use crate::state::{SunriseState, SunriseTicketAccount};
 use crate::utils::marinade;
 use crate::utils::seeds::MSOL_ACCOUNT;
 use anchor_lang::prelude::*;
@@ -12,7 +12,7 @@ pub struct ClaimUnstakeTicket<'info> {
     #[account(
     has_one = marinade_state,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
     #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,
     #[account(mut)]

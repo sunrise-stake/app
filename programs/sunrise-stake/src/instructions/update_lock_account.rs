@@ -1,5 +1,5 @@
 use crate::error::ErrorCode;
-use crate::state::{EpochReportAccount, LockAccount, State};
+use crate::state::{EpochReportAccount, LockAccount, SunriseState};
 use crate::utils::seeds::{
     EPOCH_REPORT_ACCOUNT, IMPACT_NFT_MINT_ACCOUNT, IMPACT_NFT_MINT_AUTHORITY, LOCK_ACCOUNT,
     LOCK_TOKEN_ACCOUNT,
@@ -16,7 +16,7 @@ pub struct UpdateLockAccount<'info> {
     #[account(
     has_one = gsol_mint
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
     pub gsol_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]

@@ -1,6 +1,6 @@
 use crate::{
     error::ErrorCode,
-    state::{EpochReportAccount, State},
+    state::{EpochReportAccount, SunriseState},
     utils::marinade,
     utils::marinade::CalculateExtractableYieldProperties,
     utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT},
@@ -19,7 +19,7 @@ pub struct ExtractToTreasury<'info> {
     has_one = blaze_state,
     has_one = gsol_mint
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,

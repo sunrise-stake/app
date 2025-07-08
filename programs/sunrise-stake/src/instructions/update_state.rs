@@ -1,4 +1,4 @@
-use crate::state::{State, StateInput};
+use crate::state::{SunriseState, StateInput};
 use crate::utils::seeds::{BSOL_ACCOUNT, MSOL_ACCOUNT};
 use crate::utils::token::create_token_account;
 use anchor_lang::prelude::*;
@@ -12,7 +12,7 @@ pub struct UpdateState<'info> {
         mut,
         has_one = update_authority
     )]
-    pub state: Account<'info, State>,
+    pub state: Account<'info, SunriseState>,
 
     #[account(mut)]
     pub payer: Signer<'info>,

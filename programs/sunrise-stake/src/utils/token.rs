@@ -1,5 +1,5 @@
 use crate::utils::seeds::GSOL_MINT_AUTHORITY;
-use crate::State;
+use crate::SunriseState;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke;
 use anchor_lang::solana_program::system_instruction::create_account;
@@ -69,7 +69,7 @@ pub fn mint_to<'a>(
     mint_authority: &AccountInfo<'a>,
     recipient_token_account: &AccountInfo<'a>,
     token_program: &AccountInfo<'a>,
-    state: &Account<'a, State>,
+    state: &Account<'a, SunriseState>,
 ) -> Result<()> {
     let state_address = state.key();
     let seeds = &[
@@ -131,7 +131,7 @@ pub fn transfer_to_signed<'a>(
     recipient: &AccountInfo<'a>,
     recipient_token_account: &AccountInfo<'a>,
     token_program: &AccountInfo<'a>,
-    state: &Account<'a, State>,
+    state: &Account<'a, SunriseState>,
     seed: &[u8],
     authority_pda_bump: u8,
 ) -> Result<()> {

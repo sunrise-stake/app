@@ -1,4 +1,4 @@
-use crate::state::{EpochReportAccount, State};
+use crate::state::{EpochReportAccount, SunriseState};
 use crate::utils::marinade;
 use crate::utils::marinade::CalculateExtractableYieldProperties;
 use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
@@ -16,7 +16,7 @@ pub struct InitEpochReport<'info> {
     has_one = update_authority,
     has_one = treasury,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,

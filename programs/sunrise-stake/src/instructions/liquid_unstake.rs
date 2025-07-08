@@ -1,4 +1,4 @@
-use crate::state::State;
+use crate::state::SunriseState;
 use crate::utils::seeds::{BSOL_ACCOUNT, GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::burn;
 use crate::utils::{marinade, spl};
@@ -16,7 +16,7 @@ pub struct LiquidUnstake<'info> {
     has_one = marinade_state,
     has_one = gsol_mint,
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
 
     #[account(mut)]
     pub marinade_state: Box<Account<'info, MarinadeState>>,

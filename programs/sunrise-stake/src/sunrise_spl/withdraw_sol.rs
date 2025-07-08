@@ -1,6 +1,6 @@
 use crate::{
     utils::{self, spl},
-    LiquidUnstake, State,
+    LiquidUnstake, SunriseState,
 };
 use anchor_lang::{prelude::*, solana_program::program::invoke_signed};
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -33,7 +33,7 @@ pub struct SplWithdrawSol<'info> {
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
-    pub state: Box<Account<'info, State>>,
+    pub state: Box<Account<'info, SunriseState>>,
     #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
 
