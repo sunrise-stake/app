@@ -76,6 +76,7 @@ import { getStakePoolAccount, type StakePool } from "./decodeStakePool.js";
 import { type EpochReportAccount } from "./types/EpochReportAccount.js";
 import { LockClient, type LockAccountSummary } from "./lock.js";
 import BN from "bn.js";
+import { getPriorityFee } from "./helius.js";
 
 // export getStakePoolAccount
 export { getStakePoolAccount, type StakePool };
@@ -243,18 +244,12 @@ export class SunriseStakeClient {
     signers?: Signer[],
     opts?: ConfirmOptions
   ): Promise<string> {
-      // add priority fee
-      // const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
-      //     units: 300,
-      // });
-
-      const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
-          microLamports: 20000,
-      });
-
-      transaction.add(addPriorityFee);
-
-
+    if (
+      this.options.addPriorityFee !== undefined &&
+      this.options.addPriorityFee
+    ) {
+      await this.addPriorityFee(transaction);
+    }
     return this.provider
       .sendAndConfirm(transaction, signers, opts)
       .catch((e) => {
@@ -277,8 +272,21 @@ export class SunriseStakeClient {
     opts?: ConfirmOptions,
     withRefresh = false
   ): Promise<string[]> {
+    if (!this.config) {
+      throw new Error("init not called");
+    }
+
     const txesWithSigners = zip(transactions, signers, []);
     const txSigs: string[] = [];
+
+    if (
+      this.options.addPriorityFee !== undefined &&
+      this.options.addPriorityFee
+    ) {
+      for (const tx of transactions) {
+        await this.addPriorityFee(tx);
+      }
+    }
 
     this.log("Sending transactions: ", transactions.length);
     for (const [tx, signers] of txesWithSigners) {
@@ -311,6 +319,32 @@ export class SunriseStakeClient {
       authority,
       this.config.gsolMint
     );
+  }
+
+  private async addPriorityFee(tx: Transaction): Promise<Transaction> {
+    if (this.env.heliusUrl === undefined) {
+      throw new Error(
+        "Helius URL not set - cannot set priority fee. Either set heliusUrl in the environment or disable addPriorityFee in the options"
+      );
+    }
+    let priorityFee: number;
+    try {
+      priorityFee = await getPriorityFee(this.env.heliusUrl, tx);
+    } catch (e) {
+      console.error(
+        "Error getting priority fee from Helius - proceeding without priority fee",
+        e
+      );
+      return tx;
+    }
+
+    const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: priorityFee,
+    });
+
+    tx.instructions.push(priorityFeeInstruction);
+
+    return tx;
   }
 
   /**

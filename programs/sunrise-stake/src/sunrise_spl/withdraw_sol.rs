@@ -81,7 +81,7 @@ pub struct SplWithdrawSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-impl<'info> SplWithdrawSol<'info> {
+impl SplWithdrawSol<'_> {
     fn check_stake_pool_program(&self) -> Result<()> {
         require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
         Ok(())

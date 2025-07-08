@@ -110,6 +110,7 @@ export class SunriseClientWrapper {
     );
     const client = await SunriseStakeClient.get(provider, stage, {
       verbose: Boolean(process.env.REACT_APP_VERBOSE),
+      addPriorityFee: process.env.REACT_APP_ADD_PRIO_FEE === "true",
     });
 
     return new SunriseClientWrapper(

@@ -242,6 +242,7 @@ export interface Options {
   confirmOptions?: ConfirmOptions;
   verbose?: boolean;
   environmentOverrides?: Partial<EnvironmentConfig>;
+  addPriorityFee?: boolean;
 }
 
 /**

@@ -45,7 +45,7 @@ use crate::spl_stake_pool::cpi::withdraw_stake;
 ///  10. `[]` Sysvar clock account (required)
 ///  11. `[]` Pool token program id
 ///  12. `[]` Stake program id,
-///  userdata: amount of pool tokens to withdraw
+///      userdata: amount of pool tokens to withdraw
 
 #[derive(Accounts)]
 pub struct SplWithdrawStake<'info> {
@@ -105,7 +105,7 @@ pub struct SplWithdrawStake<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-impl<'info> SplWithdrawStake<'info> {
+impl SplWithdrawStake<'_> {
     fn check_stake_pool_program(&self) -> Result<()> {
         require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
         Ok(())
