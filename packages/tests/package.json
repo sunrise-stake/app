@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@solana/web3.js": "^1.73.2",
+    "@solana/web3.js": "^1.98.2",
     "@types/chai-as-promised": "^7.1.5",
     "bn.js": "^5.2.1",
     "chai-as-promised": "^7.1.1"

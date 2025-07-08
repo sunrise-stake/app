@@ -1,3 +1,4 @@
+#![allow(unexpected_cfgs)]
 #![allow(clippy::result_large_err)]
 mod sunrise_spl;
 mod utils;
@@ -161,8 +162,7 @@ pub mod sunrise_stake {
         name: String,
         symbol: String,
     ) -> Result<()> {
-        msg!("Update Metadata for gSol");
-        update_metadata_account(ctx.accounts, uri, name, symbol)
+        update_metadata_handler(ctx, uri, name, symbol)
     }
 
     pub fn init_epoch_report<'info>(
@@ -171,25 +171,4 @@ pub mod sunrise_stake {
     ) -> Result<()> {
         init_epoch_report_handler(ctx, extracted_yield)
     }
-}
-
-#[allow(dead_code)]
-pub fn check_mint_supply(state: &State, gsol_mint: &Account<Mint>) -> Result<()> {
-    require_keys_eq!(state.gsol_mint, gsol_mint.key());
-    let expected_total = state
-        .blaze_minted_gsol
-        .checked_add(state.marinade_minted_gsol)
-        .unwrap();
-    msg!("blaze_minted_gsol: {}", state.blaze_minted_gsol);
-    msg!("marinade_minted_gsol: {}", state.marinade_minted_gsol);
-    msg!("expected total: {}", expected_total);
-    msg!("actual supply: {}", gsol_mint.supply);
-
-    // Should be impossible but still
-    require_eq!(
-        expected_total,
-        gsol_mint.supply,
-        ErrorCode::UnexpectedMintSupply
-    );
-    Ok(())
 }

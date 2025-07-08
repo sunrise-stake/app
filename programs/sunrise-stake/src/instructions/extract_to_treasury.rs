@@ -7,8 +7,8 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
+use crate::marinade::program::MarinadeFinance;
+use crate::marinade::accounts::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]

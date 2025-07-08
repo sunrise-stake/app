@@ -3,8 +3,8 @@ use crate::utils::marinade;
 use crate::utils::seeds::MSOL_ACCOUNT;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{program::invoke_signed, system_instruction::transfer};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
+use crate::marinade::program::MarinadeFinance;
+use crate::marinade::accounts::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]

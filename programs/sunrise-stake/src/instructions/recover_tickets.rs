@@ -5,8 +5,8 @@ use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
 use crate::ErrorCode;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
+use crate::marinade::program::MarinadeFinance;
+use crate::marinade::accounts::State as MarinadeState;
 use std::ops::Deref;
 
 // TODO: RECOVERED_MARGIN is needed because, for some reason, the claim tickets have a couple of lamports less than they should,

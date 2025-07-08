@@ -7,10 +7,10 @@ use crate::utils::token::transfer_to;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::impact_nft_cpi::cpi::accounts::MintNft;
-use crate::impact_nft_cpi::cpi::mint_nft as cpi_mint_nft;
-use crate::impact_nft_cpi::program::ImpactNft;
-use crate::impact_nft_cpi::GlobalState as ImpactNftState;
+use crate::impact_nft::cpi::accounts::MintNft;
+use crate::impact_nft::cpi::mint_nft as cpi_mint_nft;
+use crate::impact_nft::program::ImpactNft;
+use crate::impact_nft::accounts::GlobalState as ImpactNftState;
 
 #[derive(Accounts, Clone)]
 #[instruction(lamports: u64)]
@@ -170,6 +170,8 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
             collection_mint: ctx.accounts.nft_collection_mint.to_account_info(),
             collection_metadata: ctx.accounts.nft_collection_metadata.to_account_info(),
             collection_master_edition: ctx.accounts.nft_collection_master_edition.to_account_info(),
+            // collection_authority_record is unused in the impact_nft program, so pass in a dummy here
+            collection_authority_record: ctx.accounts.system_program.to_account_info(),
             // anchor_gen does not allow optional accounts at the moment, so we have disabled fees
             // payer_token_account: ctx.accounts.nft_fee_payer_token_account.map(|a| a.to_account_info()),
             // recipient: ctx.accounts.nft_fee_recipient.to_account_info(),

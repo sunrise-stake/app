@@ -4,6 +4,7 @@ use crate::utils::marinade;
 use crate::utils::marinade::{calc_lamports_from_msol_amount, calc_msol_from_lamports};
 use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::burn;
+use crate::marinade::{accounts::State as MarinadeState, program::MarinadeFinance};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -61,7 +62,6 @@ pub struct OrderUnstake<'info> {
     /// Owner of the gSOL
     pub gsol_token_account_authority: Signer<'info>,
 
-    #[account(zero, rent_exempt = enforce)]
     /// CHECK: Checked in marinade program
     pub new_ticket_account: UncheckedAccount<'info>,
 

@@ -1,5 +1,5 @@
 use crate::state::CreateMetadata;
-use crate::utils::metaplex::update_metadata_account;
+use crate::utils::metaplex::{update_metadata_account, MetadataAccounts};
 use anchor_lang::prelude::*;
 
 // used once to create token metadata for gSOL
@@ -10,5 +10,15 @@ pub fn update_metadata_handler(
     symbol: String,
 ) -> Result<()> {
     msg!("Update Metadata for gSol");
-    update_metadata_account(ctx.accounts, uri, name, symbol)
+    let metadata_accounts = MetadataAccounts {
+        state: *ctx.accounts.state.clone(),
+        metadata: ctx.accounts.metadata.clone(),
+        gsol_mint: ctx.accounts.gsol_mint.to_account_info(),
+        gsol_mint_authority: ctx.accounts.gsol_mint_authority.to_account_info(),
+        update_authority: ctx.accounts.update_authority.to_account_info(),
+        token_metadata_program: ctx.accounts.token_metadata_program.clone(),
+        system_program: ctx.accounts.system_program.to_account_info(),
+        rent: ctx.accounts.rent.to_account_info(),
+    };
+    update_metadata_account(&metadata_accounts, uri, name, symbol)
 }

@@ -4,7 +4,7 @@ use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::marinade::State as MarinadeState;
+use crate::marinade::accounts::State as MarinadeState;
 
 #[account]
 pub struct State {
@@ -180,12 +180,12 @@ pub struct CreateMetadata<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(size: usize)]
+#[instruction(size: u64)]
 pub struct ResizeState<'info> {
     #[account(
     mut,
     has_one = update_authority,
-    realloc = size,
+    realloc = size as usize,
     realloc::payer = payer,
     realloc::zero = false,
     )]

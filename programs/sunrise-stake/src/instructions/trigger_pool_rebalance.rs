@@ -5,8 +5,8 @@ use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT, ORDER_UNSTAKE_TICK
 use crate::utils::system;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
+use crate::marinade::program::MarinadeFinance;
+use crate::marinade::accounts::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]

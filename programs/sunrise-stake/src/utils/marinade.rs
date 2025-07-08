@@ -10,7 +10,8 @@ use anchor_lang::{
     solana_program::{borsh::try_from_slice_unchecked, stake::state::StakeState},
 };
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::{
+use crate::marinade::{
+    accounts::State as MarinadeState,
     cpi::{
         accounts::{
             AddLiquidity as MarinadeAddLiquidity, Claim as MarinadeClaim,
@@ -24,7 +25,6 @@ use marinade_cpi::{
         remove_liquidity as marinade_remove_liquidity,
     },
     program::MarinadeFinance,
-    State as MarinadeState,
 };
 
 pub struct GenericUnstakeProperties<'info> {

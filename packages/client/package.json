@@ -24,7 +24,7 @@
     "@metaplex-foundation/js": "^0.18.3",
     "@project-serum/borsh": "^0.2.5",
     "@solana/spl-token": "^0.4.9",
-    "@solana/web3.js": "^2.0.0-rc.1",
+    "@solana/web3.js": "^1.98.2",
     "@sunrisestake/impact-nft-client": "0.0.5-module.4",
     "@sunrisestake/marinade-ts-sdk": "^4.0.4-alpha.18",
     "bn.js": "^5.1.2"

@@ -4,7 +4,7 @@ use crate::utils::marinade::CalculateExtractableYieldProperties;
 use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
-use marinade_cpi::State as MarinadeState;
+use crate::marinade::accounts::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]

@@ -76,7 +76,7 @@ pub struct SplDepositSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-impl SplDepositSol<'_> {
+impl<'info> SplDepositSol<'info> {
     fn check_stake_pool_program(&self) -> Result<()> {
         require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
         Ok(())
@@ -89,7 +89,7 @@ impl SplDepositSol<'_> {
         let state_key = self.state.to_account_info().key;
         let seeds = [state_key.as_ref(), seeds::BSOL_ACCOUNT, &[bump]];
 
-        let deposit_sol_accounts: DepositSol = self.into();
+        let deposit_sol_accounts: DepositSol = (self as &SplDepositSol<'info>).into();
         let cpi_ctx: CpiContext<'_, '_, '_, 'info, DepositSol> = CpiContext::new(
             self.stake_pool_program.clone(),
             deposit_sol_accounts

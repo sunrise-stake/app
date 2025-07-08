@@ -5,8 +5,8 @@ use crate::utils::token::mint_to;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
+use crate::marinade::program::MarinadeFinance;
+use crate::marinade::accounts::State as MarinadeState;
 
 #[derive(Accounts, Clone)]
 pub struct DepositStakeAccount<'info> {

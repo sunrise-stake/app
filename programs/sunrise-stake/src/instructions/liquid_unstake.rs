@@ -5,8 +5,8 @@ use crate::utils::{marinade, spl};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
+use crate::marinade::program::MarinadeFinance;
+use crate::marinade::accounts::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -225,7 +225,24 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
             blaze_withdraw_amount,
             bsol_value
         );
-        let mut accounts: crate::SplWithdrawSol = ctx.accounts.deref().into();
+        let mut accounts = crate::SplWithdrawSol {
+            state: ctx.accounts.state.clone(),
+            gsol_mint: ctx.accounts.gsol_mint.clone(),
+            user: ctx.accounts.gsol_token_account_authority.clone(),
+            user_gsol_token_account: *ctx.accounts.gsol_token_account.clone(),
+            bsol_token_account: ctx.accounts.bsol_token_account.clone(),
+            bsol_account_authority: ctx.accounts.bsol_account_authority.clone(),
+            stake_pool: ctx.accounts.blaze_stake_pool.clone(),
+            stake_pool_withdraw_authority: ctx.accounts.stake_pool_withdraw_authority.clone(),
+            reserve_stake_account: ctx.accounts.reserve_stake_account.clone(),
+            manager_fee_account: ctx.accounts.manager_fee_account.clone(),
+            stake_pool_token_mint: ctx.accounts.bsol_mint.clone(),
+            sysvar_clock: ctx.accounts.clock.to_account_info(),
+            sysvar_stake_history: ctx.accounts.sysvar_stake_history.clone(),
+            stake_pool_program: ctx.accounts.stake_pool_program.clone(),
+            native_stake_program: ctx.accounts.native_stake_program.clone(),
+            token_program: ctx.accounts.token_program.clone(),
+        };
         accounts.withdraw_sol(blaze_withdraw_amount)?;
     }
 

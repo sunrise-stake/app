@@ -1,4 +1,4 @@
-use crate::{spl_stake_pool, utils::{seeds, token as TokenUtils}, State};
+use crate::{utils::{seeds, token as TokenUtils}, State};
 use anchor_lang::{
     prelude::*,
     solana_program::{
@@ -104,7 +104,7 @@ pub struct SplDepositStake<'info> {
 
 impl SplDepositStake<'_> {
     fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, spl_stake_pool::ID);
+        require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
         Ok(())
     }
 

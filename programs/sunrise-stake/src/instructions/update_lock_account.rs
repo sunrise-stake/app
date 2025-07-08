@@ -6,10 +6,10 @@ use crate::utils::seeds::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::impact_nft_cpi::cpi::accounts::UpdateNft;
-use crate::impact_nft_cpi::cpi::update_nft as cpi_update_nft;
-use crate::impact_nft_cpi::program::ImpactNft;
-use crate::impact_nft_cpi::GlobalState as ImpactNftState;
+use crate::impact_nft::cpi::accounts::UpdateNft;
+use crate::impact_nft::cpi::update_nft as cpi_update_nft;
+use crate::impact_nft::program::ImpactNft;
+use crate::impact_nft::accounts::GlobalState as ImpactNftState;
 
 #[derive(Accounts, Clone)]
 pub struct UpdateLockAccount<'info> {
@@ -138,6 +138,8 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
         payer: ctx.accounts.authority.to_account_info(),
         token_metadata_program: ctx.accounts.token_metadata_program.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
+        // collection_authority_record is unused in the impact_nft program, so pass in a dummy here
+        collection_authority_record: ctx.accounts.token_program.to_account_info(),
     };
     let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(pda_signer);

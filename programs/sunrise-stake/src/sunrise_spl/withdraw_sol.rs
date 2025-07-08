@@ -81,7 +81,7 @@ pub struct SplWithdrawSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-impl SplWithdrawSol<'_> {
+impl<'info> SplWithdrawSol<'info> {
     fn check_stake_pool_program(&self) -> Result<()> {
         require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
         Ok(())
@@ -97,7 +97,7 @@ impl SplWithdrawSol<'_> {
         let stake_pool = spl::deserialize_spl_stake_pool(&self.stake_pool)?;
         let pool_tokens = spl::calc_bsol_from_lamports(&stake_pool, lamports)?;
 
-        let withdraw_sol_accounts: WithdrawSol = self.into();
+        let withdraw_sol_accounts: WithdrawSol = (self as &SplWithdrawSol<'info>).into();
         let cpi_ctx: CpiContext<'_, '_, '_, 'info, WithdrawSol> = CpiContext::new(
             self.stake_pool_program.clone(),
             withdraw_sol_accounts
