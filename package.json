@@ -27,14 +27,14 @@
         "@solana/web3.js": "^1.98.2"
     },
     "devDependencies": {
-        "@coral-xyz/anchor-cli": "^0.31.1",
+        "@coral-xyz/anchor-cli": "0.31.1",
         "@types/bn.js": "^5.1.0",
-        "@types/chai": "^4.3.0",
-        "@types/mocha": "^9.0.0",
+        "@types/chai": "^5.2.2",
+        "@types/mocha": "^10.0.10",
         "@typescript-eslint/eslint-plugin": "^5.50.0",
         "@typescript-eslint/parser": "^5.50.0",
         "bs58": "^6.0.0",
-        "chai": "^4.3.4",
+        "chai": "^5.2.0",
         "cross-env": "^7.0.3",
         "eslint": "^8.33.0",
         "eslint-config-prettier": "^8.6.0",
@@ -46,10 +46,10 @@
         "eslint-plugin-promise": "6.1.1",
         "eslint-plugin-react": "^7.32.2",
         "lerna": "^6.4.1",
-        "mocha": "^10.2.0",
+        "mocha": "^11.7.1",
         "prettier": "^2.7.1",
-        "ts-node": "^10.9.1",
-        "tsx": "^3.12.3",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.20.3",
         "typescript": "*"
     },
     "name": "app"

@@ -44,7 +44,8 @@ const App: FC = () => {
       <ConnectionProvider
         endpoint={endpoint}
         config={{
-          fetch: cachedRPCFetch,
+          // cast to any here to avoid type mismatch between node-fetch (used in @solana/web3.js) and native browser
+          fetch: cachedRPCFetch as any,
           commitment: "confirmed",
         }}
       >

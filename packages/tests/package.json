@@ -4,9 +4,9 @@
   "private": true,
   "dependencies": {
     "@solana/web3.js": "^1.98.2",
-    "@types/chai-as-promised": "^7.1.5",
+    "@types/chai-as-promised": "^8.0.2",
     "bn.js": "^5.2.1",
-    "chai-as-promised": "^7.1.1"
+    "chai-as-promised": "^8.0.1"
   },
   "scripts": {
     "build": "echo \"No build\"",

@@ -1,9 +1,6 @@
 import {
   type PublicKey,
   StakeProgram,
-  SystemProgram,
-  SYSVAR_CLOCK_PUBKEY,
-  SYSVAR_RENT_PUBKEY,
   SYSVAR_STAKE_HISTORY_PUBKEY,
   type Transaction,
   type TransactionInstruction,
@@ -11,7 +8,6 @@ import {
 import {
   findBSolTokenAccountAuthority,
   findEpochReportAccount,
-  findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   findOrderUnstakeTicketAccount,
   getValidatorIndex,
@@ -25,7 +21,6 @@ import {
 import { type Program, utils } from "@coral-xyz/anchor";
 import { type BlazeState } from "./types/Solblaze.js";
 import { type SunriseStake } from "./types/sunrise_stake.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
 import { STAKE_POOL_PROGRAM_ID } from "./constants.js";
 import { type EpochReportAccount } from "./types/EpochReportAccount.js";
@@ -36,29 +31,25 @@ import { type EpochReportAccount } from "./types/EpochReportAccount.js";
 export const deposit = async (
   config: SunriseStakeConfig,
   program: Program<SunriseStake>,
-  marinade: Marinade,
   marinadeState: MarinadeState,
   stateAddress: PublicKey,
   staker: PublicKey,
   recipientGsolTokenAccount: PublicKey,
   lamports: BN
 ): Promise<Transaction> => {
-  const sunriseStakeState = await program.account.state.fetch(stateAddress);
-  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
-  const [gsolMintAuthority] = findGSolMintAuthority(config);
-  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
-  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
-    {
-      mint: marinadeState.mSolMintAddress,
-      owner: msolTokenAccountAuthority,
-    }
+  const sunriseStakeState = await program.account.sunriseState.fetch(
+    stateAddress
   );
+  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
+  const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+    mint: marinadeState.mSolMintAddress,
+    owner: msolTokenAccountAuthority,
+  });
 
-  const liqPoolAssociatedTokenAccountAddress =
-    await utils.token.associatedAddress({
-      mint: marinadeState.lpMint.address,
-      owner: msolTokenAccountAuthority,
-    });
+  const liqPoolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+    mint: marinadeState.lpMint.address,
+    owner: msolTokenAccountAuthority,
+  });
 
   type Accounts = Parameters<
     ReturnType<typeof program.methods.deposit>["accounts"]
@@ -66,9 +57,7 @@ export const deposit = async (
 
   const accounts: Accounts = {
     state: stateAddress,
-    marinadeState: marinadeState.marinadeStateAddress,
     gsolMint: sunriseStakeState.gsolMint,
-    gsolMintAuthority,
     msolMint: marinadeState.mSolMint.address,
     liqPoolMint: marinadeState.lpMint.address,
     liqPoolSolLegPda: await marinadeState.solLeg(),
@@ -81,10 +70,6 @@ export const deposit = async (
     mintLiqPoolTo: liqPoolAssociatedTokenAccountAddress,
     mintGsolTo: recipientGsolTokenAccount,
     msolMintAuthority: await marinadeState.mSolMintAuthority(),
-    msolTokenAccountAuthority,
-    systemProgram: SystemProgram.programId,
-    tokenProgram: TOKEN_PROGRAM_ID,
-    marinadeProgram,
   };
 
   return program.methods.deposit(lamports).accounts(accounts).transaction();
@@ -101,16 +86,14 @@ export const depositStakeAccount = async (
 ): Promise<Transaction> => {
   const stateAddress = config.stateAddress;
 
-  const sunriseStakeState = await program.account.state.fetch(stateAddress);
-  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
-  const [gsolMintAuthority] = findGSolMintAuthority(config);
-  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
-  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
-    {
-      mint: marinadeState.mSolMintAddress,
-      owner: msolTokenAccountAuthority,
-    }
+  const sunriseStakeState = await program.account.sunriseState.fetch(
+    stateAddress
   );
+  const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
+  const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+    mint: marinadeState.mSolMintAddress,
+    owner: msolTokenAccountAuthority,
+  });
 
   type Accounts = Parameters<
     ReturnType<typeof program.methods.depositStakeAccount>["accounts"]
@@ -129,9 +112,7 @@ export const depositStakeAccount = async (
   const stakeSystem = marinadeState.state.stakeSystem;
   const accounts: Accounts = {
     state: stateAddress,
-    marinadeState: marinadeState.marinadeStateAddress,
     gsolMint: sunriseStakeState.gsolMint,
-    gsolMintAuthority,
     validatorList: validatorSystem.validatorList.account,
     stakeList: stakeSystem.stakeList.account,
     stakeAccount: stakeAccountAddress,
@@ -141,13 +122,7 @@ export const depositStakeAccount = async (
     mintMsolTo: msolAssociatedTokenAccountAddress,
     mintGsolTo: stakerGsolTokenAccount,
     msolMintAuthority: await marinadeState.mSolMintAuthority(),
-    msolTokenAccountAuthority,
-    clock: SYSVAR_CLOCK_PUBKEY,
-    rent: SYSVAR_RENT_PUBKEY,
     stakeProgram: StakeProgram.programId,
-    systemProgram: SystemProgram.programId,
-    tokenProgram: TOKEN_PROGRAM_ID,
-    marinadeProgram,
   };
   const validatorIndex = await getValidatorIndex(marinadeState, voterAddress);
   return program.methods
@@ -180,7 +155,6 @@ export const getEpochReportAccount = async (
 export const liquidUnstake = async (
   config: SunriseStakeConfig,
   blaze: BlazeState,
-  marinade: Marinade,
   marinadeState: MarinadeState,
   program: Program<SunriseStake>,
   stateAddress: PublicKey,
@@ -188,26 +162,20 @@ export const liquidUnstake = async (
   stakerGsolTokenAccount: PublicKey,
   lamports: BN
 ): Promise<Transaction> => {
-  const sunriseStakeState = await program.account.state.fetch(stateAddress);
-  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
-  const [gsolMintAuthority] = findGSolMintAuthority(config);
   const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
-  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
-    {
-      mint: marinadeState.mSolMintAddress,
-      owner: msolTokenAccountAuthority,
-    }
-  );
+  const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+    mint: marinadeState.mSolMintAddress,
+    owner: msolTokenAccountAuthority,
+  });
   // use the same token authority PDA for the msol token account
   // and the liquidity pool token account for convenience
-  const liqPoolAssociatedTokenAccountAddress =
-    await utils.token.associatedAddress({
-      mint: marinadeState.lpMint.address,
-      owner: msolTokenAccountAuthority,
-    });
+  const liqPoolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+    mint: marinadeState.lpMint.address,
+    owner: msolTokenAccountAuthority,
+  });
 
   const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(config)[0];
-  const bsolAssociatedTokenAddress = await utils.token.associatedAddress({
+  const bsolAssociatedTokenAddress = utils.token.associatedAddress({
     mint: blaze.bsolMint,
     owner: bsolTokenAccountAuthority,
   });
@@ -218,26 +186,17 @@ export const liquidUnstake = async (
 
   const accounts: Accounts = {
     state: stateAddress,
-    marinadeState: marinadeState.marinadeStateAddress,
     msolMint: marinadeState.mSolMint.address,
     liqPoolMint: marinadeState.lpMint.address,
-    gsolMint: sunriseStakeState.gsolMint,
-    gsolMintAuthority,
     liqPoolSolLegPda: await marinadeState.solLeg(),
     liqPoolMsolLeg: marinadeState.mSolLeg,
     liqPoolMsolLegAuthority: await marinadeState.mSolLegAuthority(),
     treasuryMsolAccount: marinadeState.treasuryMsolAccount,
     getMsolFrom: msolAssociatedTokenAccountAddress,
-    getMsolFromAuthority: msolTokenAccountAuthority,
     getLiqPoolTokenFrom: liqPoolAssociatedTokenAccountAddress,
     gsolTokenAccount: stakerGsolTokenAccount,
     gsolTokenAccountAuthority: staker,
-    systemProgram: SystemProgram.programId,
-    tokenProgram: TOKEN_PROGRAM_ID,
-    rent: SYSVAR_RENT_PUBKEY,
-    marinadeProgram,
     bsolTokenAccount: bsolAssociatedTokenAddress,
-    bsolAccountAuthority: bsolTokenAccountAuthority,
     blazeStakePool: blaze.pool,
     stakePoolWithdrawAuthority: blaze.withdrawAuthority,
     reserveStakeAccount: blaze.reserveAccount,
@@ -246,7 +205,6 @@ export const liquidUnstake = async (
     sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
     stakePoolProgram: STAKE_POOL_PROGRAM_ID,
     nativeStakeProgram: StakeProgram.programId,
-    clock: SYSVAR_CLOCK_PUBKEY,
   };
 
   return program.methods
@@ -262,26 +220,20 @@ export interface TriggerRebalanceResult {
 }
 export const triggerRebalance = async (
   config: SunriseStakeConfig,
-  marinade: Marinade,
   marinadeState: MarinadeState,
   program: Program<SunriseStake>,
   stateAddress: PublicKey,
   payer: PublicKey
 ): Promise<TriggerRebalanceResult> => {
-  const sunriseStakeState = await program.account.state.fetch(stateAddress);
-  const marinadeProgram = marinade.marinadeFinanceProgram.programAddress;
   const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
-  const msolAssociatedTokenAccountAddress = await utils.token.associatedAddress(
-    {
-      mint: marinadeState.mSolMintAddress,
-      owner: msolTokenAccountAuthority,
-    }
-  );
-  const liqPoolAssociatedTokenAccountAddress =
-    await utils.token.associatedAddress({
-      mint: marinadeState.lpMint.address,
-      owner: msolTokenAccountAuthority,
-    });
+  const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+    mint: marinadeState.mSolMintAddress,
+    owner: msolTokenAccountAuthority,
+  });
+  const liqPoolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+    mint: marinadeState.lpMint.address,
+    owner: msolTokenAccountAuthority,
+  });
 
   const epochInfo = await program.provider.connection.getEpochInfo();
   const { account: epochReportAccount, address: epochReportAccountAddress } =
@@ -313,8 +265,6 @@ export const triggerRebalance = async (
   const accounts: Accounts = {
     state: stateAddress,
     payer,
-    marinadeState: marinadeState.marinadeStateAddress,
-    gsolMint: sunriseStakeState.gsolMint,
     msolMint: marinadeState.mSolMint.address,
     liqPoolMint: marinadeState.lpMint.address,
     liqPoolSolLegPda: await marinadeState.solLeg(),
@@ -325,14 +275,6 @@ export const triggerRebalance = async (
     reservePda: await marinadeState.reserveAddress(),
     treasuryMsolAccount: marinadeState.treasuryMsolAccount,
     getMsolFrom: msolAssociatedTokenAccountAddress,
-    getMsolFromAuthority: msolTokenAccountAuthority,
-    orderUnstakeTicketAccount,
-    epochReportAccount: epochReportAccountAddress,
-    systemProgram: SystemProgram.programId,
-    tokenProgram: TOKEN_PROGRAM_ID,
-    clock: SYSVAR_CLOCK_PUBKEY,
-    rent: SYSVAR_RENT_PUBKEY,
-    marinadeProgram,
   };
 
   const instruction = await program.methods

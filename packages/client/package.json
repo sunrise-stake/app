@@ -20,7 +20,7 @@
     "dist"
   ],
   "dependencies": {
-    "@coral-xyz/anchor": "^0.30.1",
+    "@coral-xyz/anchor": "^0.31.1",
     "@metaplex-foundation/js": "^0.18.3",
     "@project-serum/borsh": "^0.2.5",
     "@solana/spl-token": "^0.4.9",

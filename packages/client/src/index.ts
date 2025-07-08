@@ -1,28 +1,24 @@
-import { IDL, type SunriseStake } from "./types/sunrise_stake.js";
-import * as anchor from "@coral-xyz/anchor";
+import { type SunriseStake } from "./types/sunrise_stake.js";
+import idl from "./types/sunrise_stake.json";
 import { type AnchorProvider, Program, utils } from "@coral-xyz/anchor";
 import {
-    ComputeBudgetProgram,
-    type ConfirmOptions,
-    Keypair,
-    PublicKey,
-    type Signer,
-    SystemProgram,
-    SYSVAR_CLOCK_PUBKEY,
-    Transaction,
-    type TransactionInstruction,
+  ComputeBudgetProgram,
+  type ConfirmOptions,
+  Keypair,
+  PublicKey,
+  type Signer,
+  Transaction,
+  type TransactionInstruction,
 } from "@solana/web3.js";
 import {
   confirm,
   findAllTickets,
   findBSolTokenAccountAuthority,
-  findEpochReportAccount,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
   logKeys,
   marinadeTargetReached,
   type Options,
-  PROGRAM_ID,
   proportionalBN,
   setUpAnchor,
   type SunriseStakeConfig,
@@ -123,7 +119,7 @@ export class SunriseStakeClient {
     env: EnvironmentConfig,
     readonly options: Options = {}
   ) {
-    this.program = new Program<SunriseStake>(IDL, PROGRAM_ID, provider);
+    this.program = new Program<SunriseStake>(idl as SunriseStake, provider);
     this.staker = this.provider.publicKey;
     this.env = {
       ...env,
@@ -143,7 +139,7 @@ export class SunriseStakeClient {
   }
 
   private async init(): Promise<void> {
-    const sunriseStakeState = await this.program.account.state.fetch(
+    const sunriseStakeState = await this.program.account.sunriseState.fetch(
       this.env.state
     );
 
@@ -191,11 +187,11 @@ export class SunriseStakeClient {
     });
     this.marinade = new Marinade(marinadeConfig);
     this.marinadeState = await this.marinade.getMarinadeState();
-    this.msolTokenAccount = await utils.token.associatedAddress({
+    this.msolTokenAccount = utils.token.associatedAddress({
       mint: this.marinadeState.mSolMintAddress,
       owner: this.msolTokenAccountAuthority,
     });
-    this.liqPoolTokenAccount = await utils.token.associatedAddress({
+    this.liqPoolTokenAccount = utils.token.associatedAddress({
       mint: this.marinadeState.lpMint.address,
       owner: this.msolTokenAccountAuthority,
     });
@@ -221,7 +217,7 @@ export class SunriseStakeClient {
       depositAuthority,
     };
 
-    this.bsolTokenAccount = await utils.token.associatedAddress({
+    this.bsolTokenAccount = utils.token.associatedAddress({
       mint: stakePoolInfo.poolMint,
       owner: this.bsolTokenAccountAuthority,
     });
@@ -388,7 +384,7 @@ export class SunriseStakeClient {
 
     const recipientAuthority = recipient ?? this.staker;
     const recipientGsolTokenAccountAddress = recipient
-      ? await utils.token.associatedAddress({
+      ? utils.token.associatedAddress({
           mint: this.config.gsolMint,
           owner: recipientAuthority,
         })
@@ -411,7 +407,6 @@ export class SunriseStakeClient {
     const depositTx = await deposit(
       this.config,
       this.program,
-      this.marinade,
       this.marinadeState,
       this.config.stateAddress,
       this.provider.publicKey,
@@ -439,7 +434,7 @@ export class SunriseStakeClient {
 
     const recipientAuthority = recipient ?? this.staker;
     const recipientGsolTokenAccountAddress = recipient
-      ? await utils.token.associatedAddress({
+      ? utils.token.associatedAddress({
           mint: this.config.gsolMint,
           owner: recipientAuthority,
         })
@@ -521,7 +516,6 @@ export class SunriseStakeClient {
   public async unstake(lamports: BN): Promise<Transaction> {
     if (
       !this.marinadeState ||
-      !this.marinade ||
       !this.config ||
       !this.msolTokenAccount ||
       !this.stakerGSolTokenAccount ||
@@ -532,7 +526,6 @@ export class SunriseStakeClient {
     const transaction = await liquidUnstake(
       this.config,
       this.blazeState,
-      this.marinade,
       this.marinadeState,
       this.program,
       this.env.state,
@@ -561,16 +554,17 @@ export class SunriseStakeClient {
       !this.msolTokenAccount ||
       !this.bsolTokenAccount ||
       !this.stakerGSolTokenAccount ||
-      !this.blazeState
+      !this.blazeState ||
+      !this.liqPoolTokenAccount
     )
       throw new Error("init not called");
 
-    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
-
     // check the most recent epoch report account
     // if it is not for the current epoch, then we may need to recover tickets
-    const { address: epochReportAccountAddress, account: epochReport } =
-      await getEpochReportAccount(this.config, this.program);
+    const { account: epochReport } = await getEpochReportAccount(
+      this.config,
+      this.program
+    );
     const currentEpoch = await this.program.provider.connection.getEpochInfo();
 
     if (!epochReport) {
@@ -617,9 +611,6 @@ export class SunriseStakeClient {
     const accounts: Accounts = {
       state: this.config.stateAddress,
       payer: this.staker,
-      marinadeState: this.marinadeState.marinadeStateAddress,
-      blazeState: this.blazeState.pool,
-      gsolMint: this.config.gsolMint,
       msolMint: this.marinadeState.mSolMint.address,
       bsolMint: this.blazeState.bsolMint,
       liqPoolMint: this.marinadeState.lpMint.address,
@@ -631,14 +622,7 @@ export class SunriseStakeClient {
       reservePda: await this.marinadeState.reserveAddress(),
       treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
       getMsolFrom: this.msolTokenAccount,
-      getMsolFromAuthority: this.msolTokenAccountAuthority,
       getBsolFrom: this.bsolTokenAccount,
-      getBsolFromAuthority: this.bsolTokenAccountAuthority,
-      epochReportAccount: epochReportAccountAddress,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      clock: SYSVAR_CLOCK_PUBKEY,
-      marinadeProgram,
     };
 
     return this.program.methods
@@ -663,16 +647,17 @@ export class SunriseStakeClient {
       !this.msolTokenAccount ||
       !this.bsolTokenAccount ||
       !this.stakerGSolTokenAccount ||
-      !this.blazeState
+      !this.blazeState ||
+      !this.liqPoolTokenAccount
     )
       throw new Error("init not called");
 
-    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
-
     // check the most recent epoch report account
     // if it is not for the current epoch, then we may need to recover tickets
-    const { address: epochReportAccountAddress, account: epochReport } =
-      await getEpochReportAccount(this.config, this.program);
+    const { account: epochReport } = await getEpochReportAccount(
+      this.config,
+      this.program
+    );
 
     if (!epochReport) {
       // no epoch report account found at all - something went wrong
@@ -686,9 +671,6 @@ export class SunriseStakeClient {
     const accounts: Accounts = {
       state: this.config.stateAddress,
       payer: this.staker,
-      marinadeState: this.marinadeState.marinadeStateAddress,
-      blazeState: this.blazeState.pool,
-      gsolMint: this.config.gsolMint,
       msolMint: this.marinadeState.mSolMint.address,
       bsolMint: this.blazeState.bsolMint,
       liqPoolMint: this.marinadeState.lpMint.address,
@@ -699,14 +681,7 @@ export class SunriseStakeClient {
       liqPoolTokenAccount: this.liqPoolTokenAccount,
       treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
       getMsolFrom: this.msolTokenAccount,
-      getMsolFromAuthority: this.msolTokenAccountAuthority,
       getBsolFrom: this.bsolTokenAccount,
-      getBsolFromAuthority: this.bsolTokenAccountAuthority,
-      epochReportAccount: epochReportAccountAddress,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      clock: SYSVAR_CLOCK_PUBKEY,
-      marinadeProgram,
     };
 
     await this.program.methods
@@ -740,7 +715,6 @@ export class SunriseStakeClient {
 
     const { instruction: rebalanceInstruction } = await triggerRebalance(
       this.config,
-      this.marinade,
       this.marinadeState,
       this.program,
       this.env.state,
@@ -893,7 +867,6 @@ export class SunriseStakeClient {
       throw new Error("init not called");
 
     const reservePda = await this.marinadeState.reserveAddress();
-    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.claimUnstakeTicket>["accounts"]
@@ -901,15 +874,9 @@ export class SunriseStakeClient {
 
     const accounts: Accounts = {
       state: this.env.state,
-      marinadeState: this.marinadeState.marinadeStateAddress,
       reservePda,
-      marinadeTicketAccount: ticketAccount.marinadeTicketAccount,
       sunriseTicketAccount: ticketAccount.address,
-      msolAuthority: this.msolTokenAccountAuthority,
       transferSolTo: this.staker,
-      systemProgram: SystemProgram.programId,
-      clock: SYSVAR_CLOCK_PUBKEY,
-      marinadeProgram,
     };
 
     const transaction = await this.program.methods
@@ -991,7 +958,8 @@ export class SunriseStakeClient {
       !this.config ||
       !this.msolTokenAccount ||
       !this.msolTokenAccountAuthority ||
-      !this.liqPoolTokenAccount
+      !this.liqPoolTokenAccount ||
+      !this.bsolTokenAccount
     ) {
       throw new Error("init not called");
     }
@@ -1002,14 +970,9 @@ export class SunriseStakeClient {
       ReturnType<typeof this.program.methods.initEpochReport>["accounts"]
     >[0];
 
-    const [epochReportAccountAddress] = findEpochReportAccount(this.config);
-
     const accounts: Accounts = {
       state: this.env.state,
-      marinadeState: this.marinadeState.marinadeStateAddress,
-      blazeState: this.blazeState.pool,
       msolMint: this.marinadeState.mSolMintAddress,
-      gsolMint: this.config.gsolMint,
       bsolMint: this.blazeState.bsolMint,
       liqPoolMint: this.marinadeState.lpMint.address,
       liqPoolSolLegPda,
@@ -1017,12 +980,7 @@ export class SunriseStakeClient {
       liqPoolTokenAccount: this.liqPoolTokenAccount,
       treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
       getMsolFrom: this.msolTokenAccount,
-      getMsolFromAuthority: this.msolTokenAccountAuthority,
       getBsolFrom: this.bsolTokenAccount,
-      getBsolFromAuthority: this.bsolTokenAccountAuthority,
-      epochReportAccount: epochReportAccountAddress,
-      treasury: this.config.treasury,
-      systemProgram: SystemProgram.programId,
     };
 
     return this.program.methods
@@ -1063,12 +1021,11 @@ export class SunriseStakeClient {
       !this.config ||
       !this.msolTokenAccount ||
       !this.msolTokenAccountAuthority ||
-      !this.liqPoolTokenAccount
+      !this.liqPoolTokenAccount ||
+      !this.bsolTokenAccount
     ) {
       throw new Error("init not called");
     }
-
-    const marinadeProgram = this.marinade.marinadeFinanceProgram.programAddress;
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.extractToTreasury>["accounts"]
@@ -1076,14 +1033,9 @@ export class SunriseStakeClient {
 
     const liqPoolSolLegPda = await this.marinadeState.solLeg();
 
-    const [epochReportAccount] = findEpochReportAccount(this.config);
-
     const accounts: Accounts = {
       state: this.env.state,
-      marinadeState: this.marinadeState.marinadeStateAddress,
-      blazeState: this.blazeState.pool,
       msolMint: this.marinadeState.mSolMintAddress,
-      gsolMint: this.config.gsolMint,
       bsolMint: this.blazeState.bsolMint,
       liqPoolMint: this.marinadeState.lpMint.address,
       liqPoolSolLegPda,
@@ -1091,14 +1043,7 @@ export class SunriseStakeClient {
       liqPoolTokenAccount: this.liqPoolTokenAccount,
       treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
       getMsolFrom: this.msolTokenAccount,
-      getMsolFromAuthority: this.msolTokenAccountAuthority,
       getBsolFrom: this.bsolTokenAccount,
-      getBsolFromAuthority: this.bsolTokenAccountAuthority,
-      epochReportAccount,
-      treasury: this.config.treasury,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      marinadeProgram,
     };
 
     return this.program.methods
@@ -1466,22 +1411,20 @@ export class SunriseStakeClient {
 
     const [msolAuthority, msolAuthorityBump] =
       findMSolTokenAccountAuthority(config);
-    const msolAssociatedTokenAccountAddress =
-      await utils.token.associatedAddress({
-        mint: marinadeState.mSolMintAddress,
-        owner: msolAuthority,
-      });
+    const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: marinadeState.mSolMintAddress,
+      owner: msolAuthority,
+    });
     // use the same token authority PDA for the msol token account
     // and the liquidity pool token account for convenience
-    const liqPoolAssociatedTokenAccountAddress =
-      await utils.token.associatedAddress({
-        mint: marinadeState.lpMint.address,
-        owner: msolAuthority,
-      });
+    const liqPoolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: marinadeState.lpMint.address,
+      owner: msolAuthority,
+    });
 
     const [bsolAuthority, bsolAuthorityBump] =
       findBSolTokenAccountAuthority(config);
-    const bsolTokenAccountAddress = await utils.token.associatedAddress({
+    const bsolTokenAccountAddress = utils.token.associatedAddress({
       mint: this.env.blaze.bsolMint,
       owner: bsolAuthority,
     });
@@ -1496,16 +1439,10 @@ export class SunriseStakeClient {
       mint: gsolMint,
       msolMint: marinadeState.mSolMintAddress,
       bsolMint: this.env.blaze.bsolMint,
-      msolTokenAccountAuthority: msolAuthority,
       msolTokenAccount: msolAssociatedTokenAccountAddress,
       liqPoolMint: marinadeState.lpMint.address,
       liqPoolTokenAccount: liqPoolAssociatedTokenAccountAddress,
-      bsolTokenAccountAuthority: bsolAuthority,
       bsolTokenAccount: bsolTokenAccountAddress,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
     };
 
     const parameters = {
@@ -1666,11 +1603,10 @@ export class SunriseStakeClient {
     const msolTokenAccountAuthority = findMSolTokenAccountAuthority(
       this.config
     )[0];
-    const msolAssociatedTokenAccountAddress =
-      await utils.token.associatedAddress({
-        mint: this.marinadeState.mSolMintAddress,
-        owner: msolTokenAccountAuthority,
-      });
+    const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: this.marinadeState.mSolMintAddress,
+      owner: msolTokenAccountAuthority,
+    });
     const msolLamportsBalancePromise =
       this.provider.connection.getTokenAccountBalance(
         msolAssociatedTokenAccountAddress
@@ -1679,11 +1615,10 @@ export class SunriseStakeClient {
     const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(
       this.config
     )[0];
-    const bsolAssociatedTokenAccountAddress =
-      await utils.token.associatedAddress({
-        mint: this.env.blaze.bsolMint,
-        owner: bsolTokenAccountAuthority,
-      });
+    const bsolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: this.env.blaze.bsolMint,
+      owner: bsolTokenAccountAuthority,
+    });
     const bsolLamportsBalancePromise =
       this.provider.connection.getTokenAccountBalance(
         bsolAssociatedTokenAccountAddress
@@ -1691,11 +1626,10 @@ export class SunriseStakeClient {
 
     // use the same token authority PDA for the msol token account
     // and the liquidity pool token account for convenience
-    const liqPoolAssociatedTokenAccountAddress =
-      await utils.token.associatedAddress({
-        mint: this.marinadeState.lpMint.address,
-        owner: msolTokenAccountAuthority,
-      });
+    const liqPoolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: this.marinadeState.lpMint.address,
+      owner: msolTokenAccountAuthority,
+    });
 
     const liqPoolBalancePromise =
       this.provider.connection.getTokenAccountBalance(
@@ -1771,7 +1705,6 @@ export class SunriseStakeClient {
 
     const lockTx = await this.lockClient.lockGSol(
       this.stakerGSolTokenAccount,
-      this.env.impactNFT,
       lamports
     );
     transactions.push(lockTx);
@@ -1847,7 +1780,6 @@ export class SunriseStakeClient {
 
     const lockTx = await this.lockClient.addLockedGSol(
       this.stakerGSolTokenAccount,
-      this.env.impactNFT,
       lamports
     );
     transactions.push(lockTx);

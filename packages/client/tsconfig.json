@@ -12,7 +12,8 @@
     "mapRoot": "./dist",
     "types": ["node"],
     "declaration": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
   "exclude": ["../../node_modules", "dist"]

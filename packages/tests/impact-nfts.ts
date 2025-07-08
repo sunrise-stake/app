@@ -1,7 +1,8 @@
 import { Keypair, LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
 import { SunriseStakeClient, Environment } from "../client/src/index.js";
 import { burnGSol, waitForNextEpoch } from "./util.js";
-import chai, { expect } from "chai";
+import { expect } from "chai";
+import * as chai from 'chai';
 import chaiAsPromised from "chai-as-promised";
 import { depositLamports, lockLamports } from "./constants.js";
 import { findImpactNFTMintAuthority } from "../client/src/util.js";

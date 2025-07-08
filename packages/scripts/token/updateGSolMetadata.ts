@@ -16,7 +16,7 @@ console.log("Updating gSol metadata");
   const [gsolMintAuthority] = findGSolMintAuthority(client.config!);
   console.log("gsol mint auth", gsolMintAuthority);
 
-  const sunriseStakeState = await client.program.account.state.fetch(
+  const sunriseStakeState = await client.program.account.sunriseState.fetch(
     client.stateAddress
   );
 

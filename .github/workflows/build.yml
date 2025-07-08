@@ -4,7 +4,7 @@ on:
   pull_request:
 
 env:
-  solana_version: v1.14.17
+  solana_version: v2.3.0
   VERBOSE: 1
 
 jobs:
@@ -51,8 +51,8 @@ jobs:
 
       - name: install solana
         if: steps.cache-solana.outputs.cache-hit != 'true'
-        run: |        
-          packages/scripts/solana_install_wrapper.sh ${{ env.solana_version }} 
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/${{ env.solana_version }}/install)" 
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           solana --version
 

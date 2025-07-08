@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import {
   SunriseStakeClient,
   type TicketAccount,
@@ -27,7 +27,8 @@ import {
   initializeStakeAccount,
   impactNFTLevels,
 } from "./util.js";
-import chai from "chai";
+import { expect } from "chai";
+import * as chai from 'chai';
 import chaiAsPromised from "chai-as-promised";
 import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
 import {
@@ -47,7 +48,6 @@ import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 chai.use(chaiAsPromised);
 
-const { expect } = chai;
 describe("sunrise-stake", () => {
   let client: SunriseStakeClient;
   let updateAuthority: Keypair;
@@ -122,8 +122,6 @@ describe("sunrise-stake", () => {
       .accounts({
         state: client.env.state,
         payer: client.provider.publicKey,
-        updateAuthority: updateAuthority.publicKey,
-        systemProgram: SystemProgram.programId,
       })
       .signers([updateAuthority])
       .rpc();

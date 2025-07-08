@@ -1,17 +1,17 @@
 [workspace]
 types = "packages/client/src/types"
 
-[programs.localnet.marinade]
-address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
-idl = "programs/sunrise-stake/idls/marinade.json"
-
-[programs.localnet.spl_stake_pool]
-address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
-idl = "programs/sunrise-stake/idls/spl_stake_pool.json"
-
-[programs.localnet.impact_nft]
-address = "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
-idl = "programs/sunrise-stake/idls/impact_nft.json"
+#[programs.localnet.marinade]
+#address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+#idl = "programs/sunrise-stake/idls/marinade.json"
+#
+#[programs.localnet.spl_stake_pool]
+#address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
+#idl = "programs/sunrise-stake/idls/spl_stake_pool.json"
+#
+#[programs.localnet.impact_nft]
+#address = "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
+#idl = "programs/sunrise-stake/idls/impact_nft.json"
 
 [features]
 seeds = false
@@ -29,8 +29,8 @@ url = "https://api.apr.dev"
 cluster = "localnet"
 wallet = "packages/tests/fixtures/id.json"
 
-#[test]
-#startup_wait = 60000
+[test]
+startup_wait = 20000
 
 [scripts]
 test = "yarn test:anchor"
@@ -53,6 +53,7 @@ program = "packages/tests/fixtures/mpl_token_metadata.so"
 
 [test.validator]
 slots_per_epoch = "32"
+gossip_port = 8892
 
 [[test.validator.account]]
 address = "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
