@@ -139,7 +139,7 @@ pub fn update_lock_account_handler(ctx: Context<UpdateLockAccount>) -> Result<()
         token_metadata_program: ctx.accounts.token_metadata_program.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
         // collection_authority_record is unused in the impact_nft program, so pass in a dummy here
-        collection_authority_record: ctx.accounts.token_program.to_account_info(),
+//         collection_authority_record: ctx.accounts.token_program.to_account_info(),
     };
     let cpi_program = ctx.accounts.impact_nft_program.to_account_info();
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts).with_signer(pda_signer);

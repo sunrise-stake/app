@@ -119,17 +119,17 @@ impl<'a> From<LiquidUnstake<'a>> for WithdrawSol<'a> {
         Self {
             stake_pool: props.blaze_stake_pool,
             withdraw_authority: props.stake_pool_withdraw_authority.clone(),
-            transfer_authority: props.bsol_account_authority,
-            burn_pool_tokens: props.bsol_token_account.to_account_info(),  // TODO ???
+            transfer_authority: props.bsol_account_authority.clone(),
+            burn_pool_tokens: props.bsol_token_account.to_account_info(),
             reserve_stake_account: props.reserve_stake_account,
-            withdraw_account: props.bsol_token_account.to_account_info(),
+            withdraw_account: props.gsol_token_account_authority.to_account_info(),
             fee_token_account: props.manager_fee_account.to_account_info(),
             pool_token_mint: props.bsol_mint,
-            sol_withdraw_authority: props.stake_pool_withdraw_authority.clone(),
             sysvar_clock: props.clock.to_account_info(),
             sysvar_stake_history: props.sysvar_stake_history,
             stake_program: props.native_stake_program,
             token_program: props.token_program.to_account_info(),
+            sol_withdraw_authority: props.bsol_account_authority,
         }
     }
 }
@@ -145,17 +145,17 @@ impl<'a> From<SplWithdrawSol<'a>> for WithdrawSol<'a> {
         Self {
             stake_pool: props.stake_pool,
             withdraw_authority: props.stake_pool_withdraw_authority.clone(),
-            transfer_authority: props.bsol_account_authority,
-            burn_pool_tokens: props.bsol_token_account.to_account_info(),  // TODO ???
+            transfer_authority: props.bsol_account_authority.clone(),
+            burn_pool_tokens: props.bsol_token_account.to_account_info(),
             reserve_stake_account: props.reserve_stake_account,
-            withdraw_account: props.bsol_token_account.to_account_info(),
+            withdraw_account: props.user.to_account_info(),
             fee_token_account: props.manager_fee_account.to_account_info(),
             pool_token_mint: props.stake_pool_token_mint,
-            sol_withdraw_authority: props.stake_pool_withdraw_authority.clone(),
             sysvar_clock: props.sysvar_clock.to_account_info(),
             sysvar_stake_history: props.sysvar_stake_history,
             stake_program: props.native_stake_program,
             token_program: props.token_program.to_account_info(),
+            sol_withdraw_authority: props.bsol_account_authority,
         }
     }
 }

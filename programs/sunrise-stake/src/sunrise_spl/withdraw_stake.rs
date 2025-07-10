@@ -137,7 +137,7 @@ impl SplWithdrawStake<'_> {
                 stake_pool_withdraw_authority: self.stake_pool_withdraw_authority.clone(),
                 validator_account: self.stake_account_to_split.clone(),
                 uninitialized_stake_account: self.user_new_stake_account.clone(),
-                user_account: self.bsol_token_account.to_account_info(),
+                user_account: self.user.to_account_info(),
                 user_transfer_authority: self.bsol_account_authority.to_account_info(),
                 user_account_with_pool_tokens_to_burn_from: self.bsol_token_account.to_account_info(),
                 account_to_receive_pool_fee_tokens: self.manager_fee_account.clone(),

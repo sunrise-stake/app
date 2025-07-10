@@ -111,7 +111,7 @@ pub struct TriggerPoolRebalance<'info> {
 pub fn trigger_pool_rebalance_handler<'info>(
     ctx: Context<'_, '_, '_, 'info, TriggerPoolRebalance<'info>>,
     _epoch: u64,
-    index: u64,
+    order_unstake_ticket_index: u64,
     order_unstake_ticket_account_bump: u8,
 ) -> Result<()> {
     msg!(
@@ -134,7 +134,7 @@ pub fn trigger_pool_rebalance_handler<'info>(
         system::create_order_unstake_ticket_account(
             &create_ticket_props,
             order_unstake_ticket_account_bump,
-            index,
+            order_unstake_ticket_index,
         )?;
 
         msg!(

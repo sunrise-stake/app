@@ -171,7 +171,7 @@ pub fn lock_gsol_handler(ctx: Context<LockGSol>, lamports: u64) -> Result<()> {
             collection_metadata: ctx.accounts.nft_collection_metadata.to_account_info(),
             collection_master_edition: ctx.accounts.nft_collection_master_edition.to_account_info(),
             // collection_authority_record is unused in the impact_nft program, so pass in a dummy here
-            collection_authority_record: ctx.accounts.system_program.to_account_info(),
+//             collection_authority_record: ctx.accounts.system_program.to_account_info(),
             // anchor_gen does not allow optional accounts at the moment, so we have disabled fees
             // payer_token_account: ctx.accounts.nft_fee_payer_token_account.map(|a| a.to_account_info()),
             // recipient: ctx.accounts.nft_fee_recipient.to_account_info(),

@@ -21,7 +21,7 @@ use crate::sunrise_spl::SplWithdrawSol;
 ///   9. `[]` Token program id
 ///  10. `[s]` (Optional) Stake pool sol deposit authority.
 
-#[derive(Accounts)]
+#[derive(Accounts, Clone)]
 pub struct SplDepositSol<'info> {
     #[account(
         mut,
@@ -121,24 +121,26 @@ impl<'a> From<SplDepositSol<'a>> for DepositSol<'a> {
         Self {
             // The SPL stake pool being deposited into
             stake_pool: props.stake_pool,
-            // The PDA able to withdraw from the stake pool into the sunrise pool
+            // The PDA able to withdraw from the stake pool
             stake_pool_withdraw_authority: props.stake_pool_withdraw_authority.clone(),
             // The account for SOL not yet staked against validators (where the SOL goes)
             reserve_stake_account: props.reserve_stake_account,
-            // The account that fees are paid into
-            fee_account: props.manager_fee_account.to_account_info(),
-            // The mint account of the pool token e.g. bSOL
-            pool_token_mint: props.stake_pool_token_mint,
-            // The sender of SOL (the Sunrise user)
+            // The account providing the lamports to be deposited (maps to 'depositer' in IDL)
             depositer: props.depositor.to_account_info(),
-            // Not sure if this is different to the above TODO
-            deposit_authority: props.depositor.to_account_info(),  // TODO ???
-            // The recipient of the pool tokens
-            user_account:  props.bsol_token_account.to_account_info(),  // TODO ???
-            // The account that referral fees are paid into
-            referral_fee_account: props.manager_fee_account.to_account_info(),  // TODO ???
+            // Account to receive pool tokens (maps to 'userAccount' in IDL)
+            user_account: props.bsol_token_account.to_account_info(),
+            // Manager fee account (maps to 'feeAccount' in IDL)
+            fee_account: props.manager_fee_account.to_account_info(),
+            // Referrer pool tokens account (maps to 'referralFeeAccount' in IDL)
+            referral_fee_account: props.manager_fee_account.to_account_info(),
+            // Pool mint account (maps to 'poolTokenMint' in IDL)
+            pool_token_mint: props.stake_pool_token_mint,
+            // System program
             system_program: props.system_program.to_account_info(),
+            // Token program (maps to 'tokenProgramId' in IDL)
             token_program_id: props.token_program.to_account_info(),
+            // Deposit authority - the PDA that signs the transaction
+            deposit_authority: props.bsol_account_authority.clone(),
         }
     }
 }

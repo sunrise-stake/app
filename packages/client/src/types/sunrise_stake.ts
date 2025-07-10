@@ -2885,7 +2885,7 @@ export type SunriseStake = {
           "type": "u64"
         },
         {
-          "name": "index",
+          "name": "orderUnstakeTicketIndex",
           "type": "u64"
         },
         {

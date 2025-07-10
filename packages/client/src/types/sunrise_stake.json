@@ -2879,7 +2879,7 @@
           "type": "u64"
         },
         {
-          "name": "index",
+          "name": "order_unstake_ticket_index",
           "type": "u64"
         },
         {
