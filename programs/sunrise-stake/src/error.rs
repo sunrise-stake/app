@@ -42,4 +42,6 @@ pub enum ErrorCode {
     LockAccountAlreadyUpdated,
     #[msg("The lock account was locked this epoch - wait at least one epoch before unlocking")]
     CannotUnlockUntilNextEpoch,
+    #[msg("Invalid calculation result")]
+    InvalidCalculation,
 }

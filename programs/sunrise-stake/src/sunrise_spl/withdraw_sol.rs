@@ -1,11 +1,9 @@
 use crate::{
     utils::{self, spl},
-    LiquidUnstake, SunriseState,
+    SunriseState,
 };
-use anchor_lang::{prelude::*, solana_program::program::invoke_signed};
+use anchor_lang::{prelude::*, solana_program::{program::invoke_signed, instruction::{Instruction, AccountMeta}}};
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::spl_stake_pool::cpi::accounts::{WithdrawSol, WithdrawStake};
-use crate::spl_stake_pool::cpi::{withdraw_sol, withdraw_stake};
 
 ///   CPI Instructions:
 ///
@@ -81,9 +79,11 @@ pub struct SplWithdrawSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+const SPL_STAKE_POOL_ID: Pubkey = anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+
 impl<'info> SplWithdrawSol<'info> {
     fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
+        require_keys_eq!(*self.stake_pool_program.key, SPL_STAKE_POOL_ID);
         Ok(())
     }
 
@@ -97,14 +97,51 @@ impl<'info> SplWithdrawSol<'info> {
         let stake_pool = spl::deserialize_spl_stake_pool(&self.stake_pool)?;
         let pool_tokens = spl::calc_bsol_from_lamports(&stake_pool, lamports)?;
 
-        let withdraw_sol_accounts: WithdrawSol = (self as &SplWithdrawSol<'info>).into();
-        let cpi_ctx: CpiContext<'_, '_, '_, 'info, WithdrawSol> = CpiContext::new(
-            self.stake_pool_program.clone(),
-            withdraw_sol_accounts
-        );
-        withdraw_sol(
-            cpi_ctx.with_signer(&[&seeds]),
-            pool_tokens
+        // Build instruction data with discriminator 15 for withdrawSol
+        let mut data = vec![15u8];
+        data.extend_from_slice(&pool_tokens.to_le_bytes());
+        data.extend_from_slice(&lamports.to_le_bytes()); // min_lamports
+
+        // Build accounts list
+        let accounts = vec![
+            AccountMeta::new(*self.stake_pool.key, false),
+            AccountMeta::new_readonly(*self.stake_pool_withdraw_authority.key, false),
+            AccountMeta::new_readonly(*self.bsol_account_authority.key, true), // transfer authority
+            AccountMeta::new(self.bsol_token_account.key(), false), // burn pool tokens
+            AccountMeta::new(*self.reserve_stake_account.key, false),
+            AccountMeta::new(*self.user.key, false), // withdraw account
+            AccountMeta::new(*self.manager_fee_account.key, false), // fee token account
+            AccountMeta::new(*self.stake_pool_token_mint.key, false), // pool token mint
+            AccountMeta::new_readonly(*self.sysvar_clock.key, false),
+            AccountMeta::new_readonly(*self.sysvar_stake_history.key, false),
+            AccountMeta::new_readonly(*self.native_stake_program.key, false),
+            AccountMeta::new_readonly(self.token_program.key(), false),
+            AccountMeta::new_readonly(*self.bsol_account_authority.key, true), // sol withdraw authority
+        ];
+
+        let instruction = Instruction {
+            program_id: SPL_STAKE_POOL_ID,
+            accounts,
+            data,
+        };
+
+        invoke_signed(
+            &instruction,
+            &[
+                self.stake_pool.clone(),
+                self.stake_pool_withdraw_authority.clone(),
+                self.bsol_account_authority.clone(),
+                self.bsol_token_account.to_account_info(),
+                self.reserve_stake_account.clone(),
+                self.user.to_account_info(),
+                self.manager_fee_account.clone(),
+                self.stake_pool_token_mint.clone(),
+                self.sysvar_clock.clone(),
+                self.sysvar_stake_history.clone(),
+                self.native_stake_program.clone(),
+                self.token_program.to_account_info(),
+            ],
+            &[&seeds],
         )?;
 
         let state = &mut self.state;
@@ -114,54 +151,3 @@ impl<'info> SplWithdrawSol<'info> {
     }
 }
 
-impl<'a> From<LiquidUnstake<'a>> for WithdrawSol<'a> {
-    fn from(props: LiquidUnstake<'a>) -> Self {
-        Self {
-            stake_pool: props.blaze_stake_pool,
-            withdraw_authority: props.stake_pool_withdraw_authority.clone(),
-            transfer_authority: props.bsol_account_authority.clone(),
-            burn_pool_tokens: props.bsol_token_account.to_account_info(),
-            reserve_stake_account: props.reserve_stake_account,
-            withdraw_account: props.gsol_token_account_authority.to_account_info(),
-            fee_token_account: props.manager_fee_account.to_account_info(),
-            pool_token_mint: props.bsol_mint,
-            sysvar_clock: props.clock.to_account_info(),
-            sysvar_stake_history: props.sysvar_stake_history,
-            stake_program: props.native_stake_program,
-            token_program: props.token_program.to_account_info(),
-            sol_withdraw_authority: props.bsol_account_authority,
-        }
-    }
-}
-
-impl<'a> From<&LiquidUnstake<'a>> for WithdrawSol<'a> {
-    fn from(accounts: &LiquidUnstake<'a>) -> Self {
-        accounts.to_owned().into()
-    }
-}
-
-impl<'a> From<SplWithdrawSol<'a>> for WithdrawSol<'a> {
-    fn from(props: SplWithdrawSol<'a>) -> Self {
-        Self {
-            stake_pool: props.stake_pool,
-            withdraw_authority: props.stake_pool_withdraw_authority.clone(),
-            transfer_authority: props.bsol_account_authority.clone(),
-            burn_pool_tokens: props.bsol_token_account.to_account_info(),
-            reserve_stake_account: props.reserve_stake_account,
-            withdraw_account: props.user.to_account_info(),
-            fee_token_account: props.manager_fee_account.to_account_info(),
-            pool_token_mint: props.stake_pool_token_mint,
-            sysvar_clock: props.sysvar_clock.to_account_info(),
-            sysvar_stake_history: props.sysvar_stake_history,
-            stake_program: props.native_stake_program,
-            token_program: props.token_program.to_account_info(),
-            sol_withdraw_authority: props.bsol_account_authority,
-        }
-    }
-}
-
-impl<'a> From<&SplWithdrawSol<'a>> for WithdrawSol<'a> {
-    fn from(accounts: &SplWithdrawSol<'a>) -> Self {
-        accounts.to_owned().into()
-    }
-}

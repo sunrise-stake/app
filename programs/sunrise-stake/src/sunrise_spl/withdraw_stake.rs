@@ -1,15 +1,12 @@
 use crate::{
-    utils::{calc, seeds, token as TokenUtils},
+    utils::{calc, seeds, token as TokenUtils, spl::StakePool},
     SunriseState,
 };
 use anchor_lang::{
     prelude::*,
-    solana_program::{borsh::try_from_slice_unchecked, program::invoke_signed},
+    solana_program::{borsh::try_from_slice_unchecked, program::invoke_signed, instruction::{Instruction, AccountMeta}},
 };
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::spl_stake_pool::accounts::StakePool;
-use crate::spl_stake_pool::cpi::accounts::WithdrawStake;
-use crate::spl_stake_pool::cpi::withdraw_stake;
 
 ///   CPI Instructions:
 ///
@@ -105,9 +102,11 @@ pub struct SplWithdrawStake<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+const SPL_STAKE_POOL_ID: Pubkey = anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+
 impl SplWithdrawStake<'_> {
     fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
+        require_keys_eq!(*self.stake_pool_program.key, SPL_STAKE_POOL_ID);
         Ok(())
     }
 
@@ -129,27 +128,51 @@ impl SplWithdrawStake<'_> {
 
         let pool_tokens = self.calculate_bsol_from_lamports(lamports)?;
 
-        let cpi_ctx = CpiContext::new(
-            self.stake_pool_program.clone(),
-            WithdrawStake {
-                stake_pool: self.stake_pool.clone(),
-                validator_stake_list: self.validator_stake_list.clone(),
-                stake_pool_withdraw_authority: self.stake_pool_withdraw_authority.clone(),
-                validator_account: self.stake_account_to_split.clone(),
-                uninitialized_stake_account: self.user_new_stake_account.clone(),
-                user_account: self.user.to_account_info(),
-                user_transfer_authority: self.bsol_account_authority.to_account_info(),
-                user_account_with_pool_tokens_to_burn_from: self.bsol_token_account.to_account_info(),
-                account_to_receive_pool_fee_tokens: self.manager_fee_account.clone(),
-                pool_token_mint_account: self.stake_pool_token_mint.clone(),
-                sysvar_clock_account: self.sysvar_clock.clone(),
-                pool_token_program_id: self.token_program.to_account_info(),
-                stake_program_id: self.native_stake_program.to_account_info()
-            }
-        );
-        withdraw_stake(
-            cpi_ctx.with_signer(&[&seeds]),
-            pool_tokens
+        // Build instruction data with discriminator 12 for withdrawStake
+        let mut data = vec![12u8];
+        data.extend_from_slice(&pool_tokens.to_le_bytes());
+
+        // Build accounts list
+        let accounts = vec![
+            AccountMeta::new(*self.stake_pool.key, false),
+            AccountMeta::new(*self.validator_stake_list.key, false),
+            AccountMeta::new_readonly(*self.stake_pool_withdraw_authority.key, false),
+            AccountMeta::new(*self.stake_account_to_split.key, false),
+            AccountMeta::new(*self.user_new_stake_account.key, false),
+            AccountMeta::new_readonly(*self.user.key, false),
+            AccountMeta::new_readonly(*self.bsol_account_authority.key, true),
+            AccountMeta::new(self.bsol_token_account.key(), false),
+            AccountMeta::new(*self.manager_fee_account.key, false),
+            AccountMeta::new(*self.stake_pool_token_mint.key, false),
+            AccountMeta::new_readonly(*self.sysvar_clock.key, false),
+            AccountMeta::new_readonly(self.token_program.key(), false),
+            AccountMeta::new_readonly(*self.native_stake_program.key, false),
+        ];
+
+        let instruction = Instruction {
+            program_id: SPL_STAKE_POOL_ID,
+            accounts,
+            data,
+        };
+
+        invoke_signed(
+            &instruction,
+            &[
+                self.stake_pool.clone(),
+                self.validator_stake_list.clone(),
+                self.stake_pool_withdraw_authority.clone(),
+                self.stake_account_to_split.clone(),
+                self.user_new_stake_account.clone(),
+                self.user.to_account_info(),
+                self.bsol_account_authority.clone(),
+                self.bsol_token_account.to_account_info(),
+                self.manager_fee_account.clone(),
+                self.stake_pool_token_mint.clone(),
+                self.sysvar_clock.clone(),
+                self.token_program.to_account_info(),
+                self.native_stake_program.clone(),
+            ],
+            &[&seeds],
         )?;
 
 

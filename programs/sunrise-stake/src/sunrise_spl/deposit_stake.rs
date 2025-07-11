@@ -2,14 +2,11 @@ use crate::{utils::{seeds, token as TokenUtils}, SunriseState};
 use anchor_lang::{
     prelude::*,
     solana_program::{
-        instruction::Instruction, program::invoke,
+        instruction::{Instruction, AccountMeta}, program::{invoke, invoke_signed}, borsh1
     },
 };
-use anchor_lang::solana_program::{borsh0_10, borsh1};
 use anchor_lang::solana_program::stake::state::StakeStateV2;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::spl_stake_pool::cpi::accounts::{DepositStake, WithdrawStake};
-use crate::spl_stake_pool::cpi::{deposit_stake, withdraw_stake};
 
 ///   CPI Instructions
 ///   Deposit some stake into the pool.  The output is a "pool" token representing ownership
@@ -102,9 +99,11 @@ pub struct SplDepositStake<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+const SPL_STAKE_POOL_ID: Pubkey = anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+
 impl SplDepositStake<'_> {
     fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
+        require_keys_eq!(*self.stake_pool_program.key, SPL_STAKE_POOL_ID);
         Ok(())
     }
 
@@ -134,36 +133,80 @@ impl SplDepositStake<'_> {
             None => return Err(crate::ErrorCode::NotDelegated.into()),
         };
 
+        // Get the bSOL balance before deposit
+        let bsol_balance_before = self.bsol_token_account.amount;
+
         let bump = self.state.bsol_authority_bump;
         let state_key = self.state.to_account_info().key;
         let seeds = [state_key.as_ref(), seeds::BSOL_ACCOUNT, &[bump]];
 
-        let cpi_ctx = CpiContext::new(
-            self.stake_pool_program.clone(),
-            DepositStake {
-                stake_pool: self.stake_pool.clone(),
-                validator_stake_list: self.validator_list.clone(),
-                stake_pool_deposit_authority: self.stake_pool_deposit_authority.clone(),
-                stake_pool_withdraw_authority: self.stake_pool_withdraw_authority.clone(),
-                stake_account: self.stake_account.to_account_info(),
-                validator_stake_account: self.validator_stake_account.to_account_info(),
-                reserve_stake_account: self.reserve_stake_account.to_account_info(),
-                user_account: self.bsol_token_account.to_account_info(),
-                pool_tokens_amount: self.bsol_token_account.to_account_info(),
-                pool_fees_amount: self.manager_fee_account.to_account_info(),
-                pool_token_mint_account: self.stake_pool_token_mint.clone(),
-                sysvar_clock_account: self.sysvar_clock.clone(),
-                sysvar_stake_history_account: self.sysvar_stake_history.to_account_info(),
-                pool_token_program_id: self.token_program.to_account_info(),
-                stake_program_id: self.native_stake_program.to_account_info()
-            }
-        );
-        deposit_stake(
-            cpi_ctx.with_signer(&[&seeds]),
+        // Build instruction data with discriminator 11 for depositStake
+        let data = vec![11u8];
+
+        // Build accounts list
+        let accounts = vec![
+            AccountMeta::new(*self.stake_pool.key, false),
+            AccountMeta::new(*self.validator_list.key, false),
+            AccountMeta::new_readonly(*self.stake_pool_deposit_authority.key, true),
+            AccountMeta::new_readonly(*self.stake_pool_withdraw_authority.key, false),
+            AccountMeta::new(*self.stake_account.key, false),
+            AccountMeta::new(*self.validator_stake_account.key, false),
+            AccountMeta::new(*self.reserve_stake_account.key, false),
+            AccountMeta::new(self.bsol_token_account.key(), false),
+            AccountMeta::new(self.bsol_token_account.key(), false), // pool tokens amount
+            AccountMeta::new(*self.manager_fee_account.key, false), // pool fees amount
+            AccountMeta::new(*self.stake_pool_token_mint.key, false),
+            AccountMeta::new_readonly(*self.sysvar_clock.key, false),
+            AccountMeta::new_readonly(*self.sysvar_stake_history.key, false),
+            AccountMeta::new_readonly(self.token_program.key(), false),
+            AccountMeta::new_readonly(*self.native_stake_program.key, false),
+        ];
+
+        let instruction = Instruction {
+            program_id: SPL_STAKE_POOL_ID,
+            accounts,
+            data,
+        };
+
+        invoke_signed(
+            &instruction,
+            &[
+                self.stake_pool.clone(),
+                self.validator_list.clone(),
+                self.stake_pool_deposit_authority.clone(),
+                self.stake_pool_withdraw_authority.clone(),
+                self.stake_account.clone(),
+                self.validator_stake_account.clone(),
+                self.reserve_stake_account.clone(),
+                self.bsol_token_account.to_account_info(),
+                self.manager_fee_account.clone(),
+                self.stake_pool_token_mint.clone(),
+                self.sysvar_clock.clone(),
+                self.sysvar_stake_history.clone(),
+                self.token_program.to_account_info(),
+                self.native_stake_program.clone(),
+            ],
+            &[&seeds],
         )?;
 
+        // Reload the bSOL token account to get the updated balance
+        self.bsol_token_account.reload()?;
+        
+        // Calculate actual bSOL received after fees
+        let bsol_balance_after = self.bsol_token_account.amount;
+        let actual_bsol_received = bsol_balance_after
+            .checked_sub(bsol_balance_before)
+            .ok_or(crate::ErrorCode::InvalidCalculation)?;
+
+        // Deserialize the stake pool to get the exchange rate
+        let stake_pool = crate::utils::spl::deserialize_spl_stake_pool(&self.stake_pool)?;
+        
+        // Convert bSOL tokens to their SOL value
+        let sol_value = crate::utils::spl::calc_lamports_from_bsol_amount(&stake_pool, actual_bsol_received)?;
+
+        // Mint gSOL based on the SOL value of bSOL received
         TokenUtils::mint_to(
-            stake_amount,
+            sol_value,
             &self.gsol_mint.to_account_info(),
             &self.gsol_mint_authority.to_account_info(),
             &self.depositor_gsol_token_account.to_account_info(),
@@ -172,7 +215,7 @@ impl SplDepositStake<'_> {
         )?;
 
         let state = &mut self.state;
-        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(stake_amount).unwrap();
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(sol_value).unwrap();
 
         Ok(())
     }

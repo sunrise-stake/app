@@ -3929,6 +3929,11 @@ export type SunriseStake = {
       "code": 6019,
       "name": "cannotUnlockUntilNextEpoch",
       "msg": "The lock account was locked this epoch - wait at least one epoch before unlocking"
+    },
+    {
+      "code": 6020,
+      "name": "invalidCalculation",
+      "msg": "Invalid calculation result"
     }
   ],
   "types": [

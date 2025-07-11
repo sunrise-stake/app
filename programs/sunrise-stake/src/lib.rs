@@ -20,7 +20,6 @@ use instructions::*;
 
 declare_id!("sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6");
 declare_program!(impact_nft);
-declare_program!(spl_stake_pool);
 declare_program!(marinade);
 
 #[program]

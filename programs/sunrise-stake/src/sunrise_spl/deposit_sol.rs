@@ -1,9 +1,6 @@
-use crate::{utils, utils::{seeds, token as TokenUtils}, SunriseState};
-use anchor_lang::{prelude::*, solana_program::program::invoke};
+use crate::{utils::{seeds, token as TokenUtils}, SunriseState};
+use anchor_lang::{prelude::*, solana_program::{program::invoke_signed, instruction::{Instruction, AccountMeta}}};
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::spl_stake_pool::cpi::accounts::{DepositSol, WithdrawSol};
-use crate::spl_stake_pool::cpi::{deposit_sol, withdraw_sol};
-use crate::sunrise_spl::SplWithdrawSol;
 
 ///   CPI Instructions
 ///   Deposit SOL directly into the pool's reserve account. The output is a "pool" token
@@ -51,7 +48,7 @@ pub struct SplDepositSol<'info> {
         seeds = [state.key().as_ref(), seeds::BSOL_ACCOUNT],
         bump = state.bsol_authority_bump
     )]
-    /// CHECK:
+    /// CHECK: Checked by CPI to Spl Stake Program
     pub bsol_account_authority: AccountInfo<'info>,
 
     #[account(mut)]
@@ -76,31 +73,84 @@ pub struct SplDepositSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+const SPL_STAKE_POOL_ID: Pubkey = anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+
 impl<'info> SplDepositSol<'info> {
     fn check_stake_pool_program(&self) -> Result<()> {
-        require_keys_eq!(*self.stake_pool_program.key, crate::spl_stake_pool::ID);
+        require_keys_eq!(*self.stake_pool_program.key, SPL_STAKE_POOL_ID);
         Ok(())
     }
 
     pub fn deposit_sol(&mut self, amount: u64) -> Result<()> {
         self.check_stake_pool_program()?;
 
+        // Get the bSOL balance before deposit
+        let bsol_balance_before = self.bsol_token_account.amount;
+
+        // Build instruction data with discriminator 14 for depositSol
+        let mut data = vec![14u8];
+        data.extend_from_slice(&amount.to_le_bytes());
+
+        // Build accounts list
+        let accounts = vec![
+            AccountMeta::new(*self.stake_pool.key, false),
+            AccountMeta::new_readonly(*self.stake_pool_withdraw_authority.key, false),
+            AccountMeta::new(*self.reserve_stake_account.key, false),
+            AccountMeta::new(*self.depositor.key, true),
+            AccountMeta::new(self.bsol_token_account.key(), false),
+            AccountMeta::new(*self.manager_fee_account.key, false),
+            AccountMeta::new(*self.manager_fee_account.key, false), // referral fee account
+            AccountMeta::new(*self.stake_pool_token_mint.key, false),
+            AccountMeta::new_readonly(self.system_program.key(), false),
+            AccountMeta::new_readonly(self.token_program.key(), false),
+            // AccountMeta::new_readonly(*self.bsol_account_authority.key, true), // sol deposit authority
+        ];
+
+        let instruction = Instruction {
+            program_id: SPL_STAKE_POOL_ID,
+            accounts,
+            data,
+        };
+
         let bump = self.state.bsol_authority_bump;
         let state_key = self.state.to_account_info().key;
         let seeds = [state_key.as_ref(), seeds::BSOL_ACCOUNT, &[bump]];
 
-        let deposit_sol_accounts: DepositSol = (self as &SplDepositSol<'info>).into();
-        let cpi_ctx: CpiContext<'_, '_, '_, 'info, DepositSol> = CpiContext::new(
-            self.stake_pool_program.clone(),
-            deposit_sol_accounts
-        );
-        deposit_sol(
-            cpi_ctx.with_signer(&[&seeds]),
-            amount
+        invoke_signed(
+            &instruction,
+            &[
+                self.stake_pool.clone(),
+                self.stake_pool_withdraw_authority.clone(),
+                self.reserve_stake_account.clone(),
+                self.depositor.to_account_info(),
+                self.bsol_token_account.to_account_info(),
+                self.manager_fee_account.clone(),
+                self.stake_pool_token_mint.clone(),
+                self.system_program.to_account_info(),
+                self.token_program.to_account_info(),
+                // self.bsol_account_authority.clone(),
+            ],
+            &[&seeds],
         )?;
 
+        // Reload the bSOL token account to get the updated balance
+        self.bsol_token_account.reload()?;
+        
+        // Calculate actual bSOL received after fees
+        let bsol_balance_after = self.bsol_token_account.amount;
+        let actual_bsol_received = bsol_balance_after
+            .checked_sub(bsol_balance_before)
+            .ok_or(crate::ErrorCode::InvalidCalculation)?;
+
+        // Deserialize the stake pool to get the exchange rate
+        let stake_pool = crate::utils::spl::deserialize_spl_stake_pool(&self.stake_pool)?;
+        
+        // Convert bSOL tokens to their SOL value
+        let sol_value = crate::utils::spl::calc_lamports_from_bsol_amount(&stake_pool, actual_bsol_received)?;
+
+        // Mint gSOL based on the SOL value of bSOL received
         TokenUtils::mint_to(
-            amount,
+            sol_value,
             &self.gsol_mint.to_account_info(),
             &self.gsol_mint_authority,
             &self.depositor_gsol_token_account.to_account_info(),
@@ -109,44 +159,9 @@ impl<'info> SplDepositSol<'info> {
         )?;
 
         let state = &mut self.state;
-        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(amount).unwrap();
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_add(sol_value).unwrap();
 
         Ok(())
     }
 }
 
-
-impl<'a> From<SplDepositSol<'a>> for DepositSol<'a> {
-    fn from(props: SplDepositSol<'a>) -> Self {
-        Self {
-            // The SPL stake pool being deposited into
-            stake_pool: props.stake_pool,
-            // The PDA able to withdraw from the stake pool
-            stake_pool_withdraw_authority: props.stake_pool_withdraw_authority.clone(),
-            // The account for SOL not yet staked against validators (where the SOL goes)
-            reserve_stake_account: props.reserve_stake_account,
-            // The account providing the lamports to be deposited (maps to 'depositer' in IDL)
-            depositer: props.depositor.to_account_info(),
-            // Account to receive pool tokens (maps to 'userAccount' in IDL)
-            user_account: props.bsol_token_account.to_account_info(),
-            // Manager fee account (maps to 'feeAccount' in IDL)
-            fee_account: props.manager_fee_account.to_account_info(),
-            // Referrer pool tokens account (maps to 'referralFeeAccount' in IDL)
-            referral_fee_account: props.manager_fee_account.to_account_info(),
-            // Pool mint account (maps to 'poolTokenMint' in IDL)
-            pool_token_mint: props.stake_pool_token_mint,
-            // System program
-            system_program: props.system_program.to_account_info(),
-            // Token program (maps to 'tokenProgramId' in IDL)
-            token_program_id: props.token_program.to_account_info(),
-            // Deposit authority - the PDA that signs the transaction
-            deposit_authority: props.bsol_account_authority.clone(),
-        }
-    }
-}
-
-impl<'a> From<&SplDepositSol<'a>> for DepositSol<'a> {
-    fn from(accounts: &SplDepositSol<'a>) -> Self {
-        accounts.to_owned().into()
-    }
-}
