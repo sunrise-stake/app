@@ -1,11 +1,11 @@
 use crate::error::ErrorCode;
+use crate::marinade::program::MarinadeFinance;
 use crate::state::{EpochReportAccount, State};
 use crate::utils::marinade;
 use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT};
 use crate::utils::system;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::marinade::program::MarinadeFinance;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -131,10 +131,8 @@ pub fn trigger_pool_rebalance_handler<'info>(
 
         // Calculate the actual lamports that will be received when claiming the ticket
         // This accounts for any rounding that occurs during the mSOL <-> SOL conversions
-        let actual_lamports_to_receive = marinade::calc_lamports_from_msol_amount(
-            &marinade_state,
-            msol_lamports,
-        )?;
+        let actual_lamports_to_receive =
+            marinade::calc_lamports_from_msol_amount(&marinade_state, msol_lamports)?;
 
         // TODO move to just using init
         msg!("Creating order unstake ticket account");

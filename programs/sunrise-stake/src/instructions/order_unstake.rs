@@ -1,10 +1,10 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::state::State;
 use crate::state::SunriseTicketAccount;
 use crate::utils::marinade;
 use crate::utils::marinade::{calc_lamports_from_msol_amount, calc_msol_from_lamports};
 use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::burn;
-use crate::marinade::program::MarinadeFinance;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -84,8 +84,7 @@ pub fn order_unstake_handler(ctx: Context<OrderUnstake>, lamports: u64) -> Resul
     let marinade_state = marinade::deserialize_marinade_state(&ctx.accounts.marinade_state)?;
     let msol_lamports = calc_msol_from_lamports(&marinade_state, lamports)?;
 
-    let lamports_converted =
-        calc_lamports_from_msol_amount(&marinade_state, msol_lamports)?;
+    let lamports_converted = calc_lamports_from_msol_amount(&marinade_state, msol_lamports)?;
 
     msg!(
         "Ordering unstake of {} MSOL (in lamports {}, out lamports {})",

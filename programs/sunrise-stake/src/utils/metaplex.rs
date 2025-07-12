@@ -3,7 +3,10 @@ use crate::utils::seeds::GSOL_MINT_AUTHORITY;
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
 use anchor_spl::metadata::mpl_token_metadata::types::DataV2;
-use anchor_spl::metadata::{create_metadata_accounts_v3, update_metadata_accounts_v2, CreateMetadataAccountsV3, UpdateMetadataAccountsV2};
+use anchor_spl::metadata::{
+    create_metadata_accounts_v3, update_metadata_accounts_v2, CreateMetadataAccountsV3,
+    UpdateMetadataAccountsV2,
+};
 
 pub struct MetadataAccounts<'a> {
     pub state: Account<'a, State>,
@@ -20,7 +23,7 @@ pub fn create_metadata_account(
     accounts: &MetadataAccounts,
     uri: String,
     name: String,
-    symbol: String
+    symbol: String,
 ) -> Result<()> {
     let state_address = accounts.state.key();
     let seeds = &[
@@ -39,7 +42,7 @@ pub fn create_metadata_account(
             update_authority: accounts.update_authority.clone(),
             system_program: accounts.system_program.clone(),
             rent: accounts.rent.clone(),
-        }
+        },
     );
     create_metadata_accounts_v3(
         cpi_ctx.with_signer(&[seeds]),
@@ -64,7 +67,7 @@ pub fn update_metadata_account(
     accounts: &MetadataAccounts,
     uri: String,
     name: String,
-    symbol: String
+    symbol: String,
 ) -> Result<()> {
     let state_address = accounts.state.key();
     let seeds = &[
@@ -78,7 +81,7 @@ pub fn update_metadata_account(
         UpdateMetadataAccountsV2 {
             metadata: accounts.metadata.clone(),
             update_authority: accounts.update_authority.clone(),
-        }
+        },
     );
     update_metadata_accounts_v2(
         cpi_ctx.with_signer(&[seeds]),

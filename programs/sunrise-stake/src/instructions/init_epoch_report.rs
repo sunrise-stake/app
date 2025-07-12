@@ -24,7 +24,7 @@ pub struct InitEpochReport<'info> {
 
     /// CHECK: Validated in handler using deserialize_marinade_state()
     /// We use UncheckedAccount here instead of the typed MarinadeState account because:
-    /// 1. The on-chain Marinade account has discriminator for "account:State" 
+    /// 1. The on-chain Marinade account has discriminator for "account:State"
     /// 2. But Anchor's declare_program! generates type "MarinadeState" expecting "account:MarinadeState"
     /// 3. This would cause AccountDiscriminatorMismatch errors with typed accounts
     /// See utils/marinade.rs::deserialize_marinade_state() for full explanation

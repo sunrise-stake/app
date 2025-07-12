@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import {Keypair, LAMPORTS_PER_SOL, SystemProgram} from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import {
   SunriseStakeClient,
   type TicketAccount,
@@ -29,7 +29,7 @@ import {
   impactNFTLevels,
 } from "./util.js";
 import { expect } from "chai";
-import * as chai from 'chai';
+import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MarinadeConfig, Marinade } from "@marinade.finance/marinade-ts-sdk";
 import {
@@ -231,7 +231,7 @@ describe("sunrise-stake", () => {
     const depositFee = await getBlazeSolDepositFee(client);
 
     const expectedBSol = Math.floor(
-      blazeDepositLamports.toNumber() * (1 - depositFee) / bsolPrice
+      (blazeDepositLamports.toNumber() * (1 - depositFee)) / bsolPrice
     );
 
     await client.sendAndConfirmTransaction(
@@ -239,12 +239,12 @@ describe("sunrise-stake", () => {
     );
 
     await expectBSolTokenBalance(client, expectedBSol, 50);
-    
+
     // Calculate expected gSOL based on the SOL value after fees
     const solValueAfterFees = Math.floor(
       blazeDepositLamports.toNumber() * (1 - depositFee)
     );
-    
+
     await expectStakerGSolTokenBalance(
       client,
       depositLamports.toNumber() + solValueAfterFees,
@@ -604,11 +604,7 @@ describe("sunrise-stake", () => {
     // TODO fix
     const reportedYieldLessFee = reportedYield.muln(997).divn(1000);
     // Allow 1 lamport tolerance for rounding
-    expectAmount(
-      reportedYieldLessFee,
-      details.extractableYield,
-      1
-    );
+    expectAmount(reportedYieldLessFee, details.extractableYield, 1);
   });
 
   it("cannot extract yield while the epoch report is still pointing to the previous epoch", async () => {
@@ -889,7 +885,7 @@ describe("sunrise-stake", () => {
     const recipient = Keypair.generate();
     const lamportsToSend = new BN(100_000);
     const depositFee = await getBlazeSolDepositFee(client);
-    
+
     await client.sendAndConfirmTransaction(
       await client.depositToBlaze(lamportsToSend, recipient.publicKey)
     );
@@ -902,14 +898,12 @@ describe("sunrise-stake", () => {
       recipientTokenAccountAddress
     );
     log("Recipient's gSOL balance", gsolBalance.value.uiAmount);
-    
+
     // Account for Blaze deposit fee
-    const expectedGSol = Math.floor(lamportsToSend.toNumber() * (1 - depositFee));
-    // Allow 1 lamport tolerance for rounding
-    expectAmount(
-      new BN(gsolBalance.value.amount),
-      expectedGSol,
-      1
+    const expectedGSol = Math.floor(
+      lamportsToSend.toNumber() * (1 - depositFee)
     );
+    // Allow 1 lamport tolerance for rounding
+    expectAmount(new BN(gsolBalance.value.amount), expectedGSol, 1);
   });
 });

@@ -38,7 +38,7 @@ export const expectStakerGSolTokenBalance = async (
     client.stakerGSolTokenAccount!
   );
   log("Staker's gSOL balance", gsolBalance.value.uiAmount);
-  
+
   if (tolerance > 0) {
     expectAmount(new BN(gsolBalance.value.amount), amount, tolerance);
   } else {
@@ -53,7 +53,7 @@ export const expectAmount = (
 ) => {
   const actualAmountBN = new BN(actualAmount);
   const expectedAmountBN = new BN(expectedAmount);
-  
+
   // Handle negative numbers by using absolute difference
   const diff = actualAmountBN.sub(expectedAmountBN).abs();
   const toleranceBN = new BN(tolerance);

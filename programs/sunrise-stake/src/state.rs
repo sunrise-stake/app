@@ -6,7 +6,7 @@ use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 /// The main state account for the Sunrise Stake program
-/// 
+///
 /// IMPORTANT: This struct MUST remain named "State" and not be renamed.
 /// The account discriminator is derived from the struct name, and renaming it would
 /// change the discriminator from the current value, breaking compatibility with

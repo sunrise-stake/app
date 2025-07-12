@@ -1,10 +1,14 @@
 use crate::{
-    utils::{calc, seeds, token as TokenUtils, spl::StakePool},
+    utils::{calc, seeds, spl::StakePool, token as TokenUtils},
     State,
 };
 use anchor_lang::{
     prelude::*,
-    solana_program::{borsh::try_from_slice_unchecked, program::invoke_signed, instruction::{Instruction, AccountMeta}},
+    solana_program::{
+        borsh::try_from_slice_unchecked,
+        instruction::{AccountMeta, Instruction},
+        program::invoke_signed,
+    },
 };
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
@@ -102,7 +106,8 @@ pub struct SplWithdrawStake<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-const SPL_STAKE_POOL_ID: Pubkey = anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+const SPL_STAKE_POOL_ID: Pubkey =
+    anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
 
 impl SplWithdrawStake<'_> {
     fn check_stake_pool_program(&self) -> Result<()> {
@@ -174,7 +179,6 @@ impl SplWithdrawStake<'_> {
             ],
             &[&seeds],
         )?;
-
 
         // Fees may apply so we might be burning more than the user expects
 

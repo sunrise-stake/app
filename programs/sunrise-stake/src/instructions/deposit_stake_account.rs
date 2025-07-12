@@ -1,3 +1,4 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::state::State;
 use crate::utils::marinade;
 use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
@@ -5,7 +6,6 @@ use crate::utils::token::mint_to;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::marinade::program::MarinadeFinance;
 
 #[derive(Accounts, Clone)]
 pub struct DepositStakeAccount<'info> {

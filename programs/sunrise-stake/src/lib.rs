@@ -53,7 +53,12 @@ pub mod sunrise_stake {
         order_unstake_ticket_index: u64,
         order_unstake_ticket_account_bump: u8,
     ) -> Result<()> {
-        trigger_pool_rebalance_handler(ctx, epoch, order_unstake_ticket_index, order_unstake_ticket_account_bump)
+        trigger_pool_rebalance_handler(
+            ctx,
+            epoch,
+            order_unstake_ticket_index,
+            order_unstake_ticket_account_bump,
+        )
     }
 
     pub fn recover_tickets<'info>(

@@ -2,7 +2,13 @@ use crate::{
     utils::{self, spl},
     State,
 };
-use anchor_lang::{prelude::*, solana_program::{program::invoke_signed, instruction::{Instruction, AccountMeta}}};
+use anchor_lang::{
+    prelude::*,
+    solana_program::{
+        instruction::{AccountMeta, Instruction},
+        program::invoke_signed,
+    },
+};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 ///   CPI Instructions:
@@ -79,7 +85,8 @@ pub struct SplWithdrawSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-const SPL_STAKE_POOL_ID: Pubkey = anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+const SPL_STAKE_POOL_ID: Pubkey =
+    anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
 
 impl<'info> SplWithdrawSol<'info> {
     fn check_stake_pool_program(&self) -> Result<()> {
@@ -107,7 +114,7 @@ impl<'info> SplWithdrawSol<'info> {
             AccountMeta::new(*self.stake_pool.key, false),
             AccountMeta::new_readonly(*self.stake_pool_withdraw_authority.key, false),
             AccountMeta::new_readonly(*self.bsol_account_authority.key, true), // transfer authority
-            AccountMeta::new(self.bsol_token_account.key(), false), // burn pool tokens
+            AccountMeta::new(self.bsol_token_account.key(), false),            // burn pool tokens
             AccountMeta::new(*self.reserve_stake_account.key, false),
             AccountMeta::new(*self.user.key, false), // withdraw account
             AccountMeta::new(*self.manager_fee_account.key, false), // fee token account
@@ -150,4 +157,3 @@ impl<'info> SplWithdrawSol<'info> {
         Ok(())
     }
 }
-

@@ -1,15 +1,4 @@
 use crate::instructions::{InitEpochReport, RecoverTickets, UpdateEpochReport};
-use crate::{
-    utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
-    ClaimUnstakeTicket, Deposit, DepositStakeAccount, EpochReportAccount, ExtractToTreasury,
-    LiquidUnstake, OrderUnstake, State, TriggerPoolRebalance, ErrorCode,
-};
-use anchor_lang::{
-    context::CpiContext,
-    prelude::*,
-    solana_program::{borsh::try_from_slice_unchecked, stake::state::StakeState},
-};
-use anchor_spl::token::{Mint, Token, TokenAccount};
 use crate::marinade::{
     accounts::MarinadeState,
     cpi::{
@@ -27,29 +16,40 @@ use crate::marinade::{
     program::MarinadeFinance,
     ID as MARINADE_PROGRAM_ID,
 };
+use crate::{
+    utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
+    ClaimUnstakeTicket, Deposit, DepositStakeAccount, EpochReportAccount, ErrorCode,
+    ExtractToTreasury, LiquidUnstake, OrderUnstake, State, TriggerPoolRebalance,
+};
+use anchor_lang::{
+    context::CpiContext,
+    prelude::*,
+    solana_program::{borsh::try_from_slice_unchecked, stake::state::StakeState},
+};
+use anchor_spl::token::{Mint, Token, TokenAccount};
 
 /// Deserialize MarinadeState from an UncheckedAccount with custom discriminator checking
-/// 
+///
 /// # Background
-/// 
+///
 /// The Marinade program originally named their state account "State". When we import their
 /// IDL via `declare_program!`, Anchor generates a type called "MarinadeState" to avoid
 /// naming conflicts with our own "State" account.
-/// 
+///
 /// However, the on-chain Marinade accounts still have the discriminator for "account:State"
 /// which is [216, 146, 107, 94, 104, 75, 182, 177] (first 8 bytes of SHA256("account:State")).
 /// The generated code expects the discriminator for "account:MarinadeState" which would be different.
-/// 
+///
 /// # Solution
-/// 
+///
 /// We use `UncheckedAccount` for all marinade_state fields in our instruction accounts and
 /// manually deserialize with the correct discriminator check. This allows us to:
 /// 1. Keep our own State account named "State" (important for backward compatibility)
 /// 2. Work with the existing on-chain Marinade accounts without errors
 /// 3. Avoid complex post-processing of IDLs or wrapper types
-/// 
+///
 /// # Note
-/// 
+///
 /// This approach is necessary as long as:
 /// - Marinade's on-chain account remains named "State"
 /// - We need to maintain our own "State" account name for backward compatibility
@@ -59,20 +59,20 @@ pub fn deserialize_marinade_state(account: &UncheckedAccount) -> Result<Marinade
     if account.owner != &MARINADE_PROGRAM_ID {
         return Err(ErrorCode::InvalidProgramAccount.into());
     }
-    
+
     // Check discriminator
     let data = account.try_borrow_data()?;
     const MARINADE_STATE_DISCRIMINATOR: [u8; 8] = [216, 146, 107, 94, 104, 75, 182, 177];
-    
+
     if data.len() < MARINADE_STATE_DISCRIMINATOR.len() {
         return Err(ErrorCode::AccountDiscriminatorNotFound.into());
     }
-    
+
     let given_disc = &data[..8];
     if given_disc != MARINADE_STATE_DISCRIMINATOR {
         return Err(ErrorCode::AccountDiscriminatorMismatch.into());
     }
-    
+
     // Skip discriminator and deserialize
     let mut data_slice = &data[8..];
     MarinadeState::deserialize(&mut data_slice)

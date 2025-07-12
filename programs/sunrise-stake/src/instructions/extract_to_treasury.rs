@@ -1,3 +1,4 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::{
     error::ErrorCode,
     state::{EpochReportAccount, State},
@@ -7,7 +8,6 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::marinade::program::MarinadeFinance;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]

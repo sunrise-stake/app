@@ -1,10 +1,10 @@
+use crate::marinade::accounts::TicketAccountData as MarinadeTicketAccount;
+use crate::marinade::program::MarinadeFinance;
 use crate::state::{State, SunriseTicketAccount};
 use crate::utils::marinade;
 use crate::utils::seeds::MSOL_ACCOUNT;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{program::invoke_signed, system_instruction::transfer};
-use crate::marinade::program::MarinadeFinance;
-use crate::marinade::accounts::TicketAccountData as MarinadeTicketAccount;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]

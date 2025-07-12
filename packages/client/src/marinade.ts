@@ -256,7 +256,7 @@ export const triggerRebalance = async (
 
   type Accounts = Parameters<
     ReturnType<typeof program.methods.triggerPoolRebalance>["accounts"]
-  >[0] & { orderUnstakeTicketAccount : PublicKey };
+  >[0] & { orderUnstakeTicketAccount: PublicKey };
 
   const accounts: Accounts = {
     state: stateAddress,

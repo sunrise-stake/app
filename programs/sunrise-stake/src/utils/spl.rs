@@ -106,7 +106,10 @@ pub fn calc_bsol_from_lamports(stake_pool: &StakePool, lamports: u64) -> Result<
 
 /// Calculate stake withdrawal fee in pool tokens
 #[inline]
-pub fn calc_pool_tokens_stake_withdrawal_fee(stake_pool: &StakePool, pool_tokens: u64) -> Option<u64> {
+pub fn calc_pool_tokens_stake_withdrawal_fee(
+    stake_pool: &StakePool,
+    pool_tokens: u64,
+) -> Option<u64> {
     // Create a Fee struct from the stake_withdrawal_fee fields
     let fee = Fee {
         denominator: stake_pool.stake_withdrawal_fee.denominator,

@@ -1,5 +1,14 @@
-use crate::{utils::{seeds, token as TokenUtils}, State};
-use anchor_lang::{prelude::*, solana_program::{program::invoke_signed, instruction::{Instruction, AccountMeta}}};
+use crate::{
+    utils::{seeds, token as TokenUtils},
+    State,
+};
+use anchor_lang::{
+    prelude::*,
+    solana_program::{
+        instruction::{AccountMeta, Instruction},
+        program::invoke_signed,
+    },
+};
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 ///   CPI Instructions
@@ -73,7 +82,8 @@ pub struct SplDepositSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-const SPL_STAKE_POOL_ID: Pubkey = anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+const SPL_STAKE_POOL_ID: Pubkey =
+    anchor_lang::solana_program::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
 
 impl<'info> SplDepositSol<'info> {
     fn check_stake_pool_program(&self) -> Result<()> {
@@ -135,7 +145,7 @@ impl<'info> SplDepositSol<'info> {
 
         // Reload the bSOL token account to get the updated balance
         self.bsol_token_account.reload()?;
-        
+
         // Calculate actual bSOL received after fees
         let bsol_balance_after = self.bsol_token_account.amount;
         let actual_bsol_received = bsol_balance_after
@@ -144,9 +154,10 @@ impl<'info> SplDepositSol<'info> {
 
         // Deserialize the stake pool to get the exchange rate
         let stake_pool = crate::utils::spl::deserialize_spl_stake_pool(&self.stake_pool)?;
-        
+
         // Convert bSOL tokens to their SOL value
-        let sol_value = crate::utils::spl::calc_lamports_from_bsol_amount(&stake_pool, actual_bsol_received)?;
+        let sol_value =
+            crate::utils::spl::calc_lamports_from_bsol_amount(&stake_pool, actual_bsol_received)?;
 
         // Mint gSOL based on the SOL value of bSOL received
         TokenUtils::mint_to(
@@ -164,4 +175,3 @@ impl<'info> SplDepositSol<'info> {
         Ok(())
     }
 }
-

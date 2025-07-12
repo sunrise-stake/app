@@ -1,3 +1,4 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::state::State;
 use crate::utils::seeds::{BSOL_ACCOUNT, GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::burn;
@@ -5,7 +6,6 @@ use crate::utils::{marinade, spl};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::marinade::program::MarinadeFinance;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -202,10 +202,8 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
     );
 
     if marinade_withdraw_amount > 0 {
-        let msol_value = marinade::calc_msol_from_lamports(
-            &marinade_state,
-            marinade_withdraw_amount,
-        )?;
+        let msol_value =
+            marinade::calc_msol_from_lamports(&marinade_state, marinade_withdraw_amount)?;
 
         msg!(
             "Unstaking {} lamports({} msol) from marinade",
