@@ -1,4 +1,4 @@
-use crate::state::SunriseState;
+use crate::state::State;
 use crate::utils::seeds::GSOL_MINT_AUTHORITY;
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
@@ -6,7 +6,7 @@ use anchor_spl::metadata::mpl_token_metadata::types::DataV2;
 use anchor_spl::metadata::{create_metadata_accounts_v3, update_metadata_accounts_v2, CreateMetadataAccountsV3, UpdateMetadataAccountsV2};
 
 pub struct MetadataAccounts<'a> {
-    pub state: Account<'a, SunriseState>,
+    pub state: Account<'a, State>,
     pub metadata: AccountInfo<'a>,
     pub gsol_mint: AccountInfo<'a>,
     pub gsol_mint_authority: AccountInfo<'a>,

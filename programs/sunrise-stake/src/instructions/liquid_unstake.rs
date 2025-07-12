@@ -1,4 +1,4 @@
-use crate::state::SunriseState;
+use crate::state::State;
 use crate::utils::seeds::{BSOL_ACCOUNT, GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::burn;
 use crate::utils::{marinade, spl};
@@ -6,7 +6,6 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use crate::marinade::program::MarinadeFinance;
-use crate::marinade::accounts::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -16,10 +15,11 @@ pub struct LiquidUnstake<'info> {
     has_one = marinade_state,
     has_one = gsol_mint,
     )]
-    pub state: Box<Account<'info, SunriseState>>,
+    pub state: Box<Account<'info, State>>,
 
+    /// CHECK: Validated in handler
     #[account(mut)]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     #[account(mut)]
     pub msol_mint: Box<Account<'info, Mint>>,
@@ -143,8 +143,9 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
         )?;
     }
 
+    let marinade_state = marinade::deserialize_marinade_state(&ctx.accounts.marinade_state)?;
     let msol_account_valuation = marinade::calc_lamports_from_msol_amount(
-        ctx.accounts.marinade_state.as_ref(),
+        &marinade_state,
         ctx.accounts.get_msol_from.amount,
     )?;
     msg!("msol account valuation: {}", msol_account_valuation);
@@ -202,7 +203,7 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
 
     if marinade_withdraw_amount > 0 {
         let msol_value = marinade::calc_msol_from_lamports(
-            ctx.accounts.marinade_state.as_ref(),
+            &marinade_state,
             marinade_withdraw_amount,
         )?;
 

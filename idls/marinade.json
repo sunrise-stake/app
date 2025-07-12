@@ -28,7 +28,8 @@
       }
     },
     {
-      "name": "State",
+      "name": "MarinadeState",
+      "discriminator": [216,146,107,94,104,75,182,177],
       "type": {
         "fields": [
           {

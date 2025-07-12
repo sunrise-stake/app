@@ -139,7 +139,7 @@ export class SunriseStakeClient {
   }
 
   private async init(): Promise<void> {
-    const sunriseStakeState = await this.program.account.sunriseState.fetch(
+    const sunriseStakeState = await this.program.account.state.fetch(
       this.env.state
     );
 
@@ -720,7 +720,7 @@ export class SunriseStakeClient {
         new Transaction().add(recoverInstruction)
       );
       txHashes.push(recoverTxHash);
-      
+
       // Refresh client state after recovering tickets to ensure we have the updated epoch report
       await this.refresh();
     }
@@ -982,10 +982,11 @@ export class SunriseStakeClient {
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.initEpochReport>["accounts"]
-    >[0];
+    >[0] & { marinadeState: PublicKey };
 
     const accounts: Accounts = {
       state: this.env.state,
+      marinadeState: this.marinadeState.marinadeStateAddress,
       msolMint: this.marinadeState.mSolMintAddress,
       bsolMint: this.blazeState.bsolMint,
       liqPoolMint: this.marinadeState.lpMint.address,

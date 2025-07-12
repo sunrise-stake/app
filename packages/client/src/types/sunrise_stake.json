@@ -3784,19 +3784,6 @@
       ]
     },
     {
-      "name": "SunriseState",
-      "discriminator": [
-        249,
-        155,
-        247,
-        203,
-        96,
-        190,
-        25,
-        101
-      ]
-    },
-    {
       "name": "SunriseTicketAccount",
       "discriminator": [
         199,
@@ -3923,6 +3910,26 @@
       "code": 6019,
       "name": "CannotUnlockUntilNextEpoch",
       "msg": "The lock account was locked this epoch - wait at least one epoch before unlocking"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidCalculation",
+      "msg": "Invalid calculation result"
+    },
+    {
+      "code": 6021,
+      "name": "AccountDiscriminatorNotFound",
+      "msg": "Account discriminator not found"
+    },
+    {
+      "code": 6022,
+      "name": "AccountDiscriminatorMismatch",
+      "msg": "Account discriminator did not match"
+    },
+    {
+      "code": 6023,
+      "name": "AccountDidNotDeserialize",
+      "msg": "Account did not deserialize"
     }
   ],
   "types": [
@@ -3976,34 +3983,6 @@
           {
             "name": "bump",
             "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Fee",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "basis_points",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "FeeCents",
-      "docs": [
-        "FeeCents, same as Fee but / 1_000_000 instead of 10_000",
-        "1 FeeCent = 0.0001%, 10_000 FeeCent = 1%, 1_000_000 FeeCent = 100%"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bp_cents",
-            "type": "u32"
           }
         ]
       }
@@ -4091,102 +4070,6 @@
       }
     },
     {
-      "name": "LiqPool",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "lp_mint",
-            "type": "pubkey"
-          },
-          {
-            "name": "lp_mint_authority_bump_seed",
-            "type": "u8"
-          },
-          {
-            "name": "sol_leg_bump_seed",
-            "type": "u8"
-          },
-          {
-            "name": "msol_leg_authority_bump_seed",
-            "type": "u8"
-          },
-          {
-            "name": "msol_leg",
-            "type": "pubkey"
-          },
-          {
-            "name": "lp_liquidity_target",
-            "type": "u64"
-          },
-          {
-            "name": "lp_max_fee",
-            "type": {
-              "defined": {
-                "name": "Fee"
-              }
-            }
-          },
-          {
-            "name": "lp_min_fee",
-            "type": {
-              "defined": {
-                "name": "Fee"
-              }
-            }
-          },
-          {
-            "name": "treasury_cut",
-            "type": {
-              "defined": {
-                "name": "Fee"
-              }
-            }
-          },
-          {
-            "name": "lp_supply",
-            "type": "u64"
-          },
-          {
-            "name": "lent_from_sol_leg",
-            "type": "u64"
-          },
-          {
-            "name": "liquidity_sol_cap",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "List",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "account",
-            "type": "pubkey"
-          },
-          {
-            "name": "item_size",
-            "type": "u32"
-          },
-          {
-            "name": "count",
-            "type": "u32"
-          },
-          {
-            "name": "reserved1",
-            "type": "pubkey"
-          },
-          {
-            "name": "reserved2",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
       "name": "LockAccount",
       "type": {
         "kind": "struct",
@@ -4231,247 +4114,7 @@
       }
     },
     {
-      "name": "StakeSystem",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "stake_list",
-            "type": {
-              "defined": {
-                "name": "List"
-              }
-            }
-          },
-          {
-            "name": "delayed_unstake_cooling_down",
-            "type": "u64"
-          },
-          {
-            "name": "stake_deposit_bump_seed",
-            "type": "u8"
-          },
-          {
-            "name": "stake_withdraw_bump_seed",
-            "type": "u8"
-          },
-          {
-            "name": "slots_for_stake_delta",
-            "type": "u64"
-          },
-          {
-            "name": "last_stake_delta_epoch",
-            "type": "u64"
-          },
-          {
-            "name": "min_stake",
-            "type": "u64"
-          },
-          {
-            "name": "extra_stake_delta_runs",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
       "name": "State",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "msol_mint",
-            "type": "pubkey"
-          },
-          {
-            "name": "admin_authority",
-            "type": "pubkey"
-          },
-          {
-            "name": "operational_sol_account",
-            "type": "pubkey"
-          },
-          {
-            "name": "treasury_msol_account",
-            "type": "pubkey"
-          },
-          {
-            "name": "reserve_bump_seed",
-            "type": "u8"
-          },
-          {
-            "name": "msol_mint_authority_bump_seed",
-            "type": "u8"
-          },
-          {
-            "name": "rent_exempt_for_token_acc",
-            "type": "u64"
-          },
-          {
-            "name": "reward_fee",
-            "type": {
-              "defined": {
-                "name": "Fee"
-              }
-            }
-          },
-          {
-            "name": "stake_system",
-            "type": {
-              "defined": {
-                "name": "StakeSystem"
-              }
-            }
-          },
-          {
-            "name": "validator_system",
-            "type": {
-              "defined": {
-                "name": "ValidatorSystem"
-              }
-            }
-          },
-          {
-            "name": "liq_pool",
-            "type": {
-              "defined": {
-                "name": "LiqPool"
-              }
-            }
-          },
-          {
-            "name": "available_reserve_balance",
-            "type": "u64"
-          },
-          {
-            "name": "msol_supply",
-            "type": "u64"
-          },
-          {
-            "name": "msol_price",
-            "type": "u64"
-          },
-          {
-            "name": "circulating_ticket_count",
-            "type": "u64"
-          },
-          {
-            "name": "circulating_ticket_balance",
-            "type": "u64"
-          },
-          {
-            "name": "lent_from_reserve",
-            "type": "u64"
-          },
-          {
-            "name": "min_deposit",
-            "type": "u64"
-          },
-          {
-            "name": "min_withdraw",
-            "type": "u64"
-          },
-          {
-            "name": "staking_sol_cap",
-            "type": "u64"
-          },
-          {
-            "name": "emergency_cooling_down",
-            "type": "u64"
-          },
-          {
-            "name": "pause_authority",
-            "type": "pubkey"
-          },
-          {
-            "name": "paused",
-            "type": "bool"
-          },
-          {
-            "name": "delayed_unstake_fee",
-            "type": {
-              "defined": {
-                "name": "FeeCents"
-              }
-            }
-          },
-          {
-            "name": "withdraw_stake_account_fee",
-            "type": {
-              "defined": {
-                "name": "FeeCents"
-              }
-            }
-          },
-          {
-            "name": "withdraw_stake_account_enabled",
-            "type": "bool"
-          },
-          {
-            "name": "last_stake_move_epoch",
-            "type": "u64"
-          },
-          {
-            "name": "stake_moved",
-            "type": "u64"
-          },
-          {
-            "name": "max_stake_moved_per_epoch",
-            "type": {
-              "defined": {
-                "name": "Fee"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "StateInput",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "marinade_state",
-            "type": "pubkey"
-          },
-          {
-            "name": "blaze_state",
-            "type": "pubkey"
-          },
-          {
-            "name": "update_authority",
-            "type": "pubkey"
-          },
-          {
-            "name": "treasury",
-            "type": "pubkey"
-          },
-          {
-            "name": "gsol_mint_authority_bump",
-            "type": "u8"
-          },
-          {
-            "name": "msol_authority_bump",
-            "type": "u8"
-          },
-          {
-            "name": "bsol_authority_bump",
-            "type": "u8"
-          },
-          {
-            "name": "liq_pool_proportion",
-            "type": "u8"
-          },
-          {
-            "name": "liq_pool_min_proportion",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "SunriseState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -4536,6 +4179,50 @@
       }
     },
     {
+      "name": "StateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "marinade_state",
+            "type": "pubkey"
+          },
+          {
+            "name": "blaze_state",
+            "type": "pubkey"
+          },
+          {
+            "name": "update_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "gsol_mint_authority_bump",
+            "type": "u8"
+          },
+          {
+            "name": "msol_authority_bump",
+            "type": "u8"
+          },
+          {
+            "name": "bsol_authority_bump",
+            "type": "u8"
+          },
+          {
+            "name": "liq_pool_proportion",
+            "type": "u8"
+          },
+          {
+            "name": "liq_pool_min_proportion",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "SunriseTicketAccount",
       "docs": [
         "Maps a marinade ticket account to a GSOL token holder"
@@ -4578,38 +4265,6 @@
           {
             "name": "created_epoch",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "ValidatorSystem",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "validator_list",
-            "type": {
-              "defined": {
-                "name": "List"
-              }
-            }
-          },
-          {
-            "name": "manager_authority",
-            "type": "pubkey"
-          },
-          {
-            "name": "total_validator_score",
-            "type": "u32"
-          },
-          {
-            "name": "total_active_balance",
-            "type": "u64"
-          },
-          {
-            "name": "auto_add_validator_enabled",
-            "type": "u8"
           }
         ]
       }

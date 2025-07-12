@@ -4,10 +4,16 @@ use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use crate::marinade::accounts::State as MarinadeState;
 
+/// The main state account for the Sunrise Stake program
+/// 
+/// IMPORTANT: This struct MUST remain named "State" and not be renamed.
+/// The account discriminator is derived from the struct name, and renaming it would
+/// change the discriminator from the current value, breaking compatibility with
+/// all existing on-chain accounts. The discriminator is the first 8 bytes of
+/// SHA256("account:State") and is checked by Anchor when deserializing accounts.
 #[account]
-pub struct SunriseState {
+pub struct State {
     pub marinade_state: Pubkey,
 
     pub update_authority: Pubkey,
@@ -30,7 +36,7 @@ pub struct SunriseState {
     pub bsol_authority_bump: u8,
 }
 
-impl SunriseState {
+impl State {
     pub const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 1 + 1 + 32 + 8 + 8 + 1 + 8 /* DISCRIMINATOR */ ;
 
     pub fn set_values(
@@ -146,10 +152,11 @@ pub struct CreateMetadata<'info> {
     has_one = marinade_state,
     has_one = update_authority,
     )]
-    pub state: Box<Account<'info, SunriseState>>,
+    pub state: Box<Account<'info, State>>,
 
+    /// CHECK: Validated in handler
     #[account()]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     #[account(
     mut,
@@ -189,7 +196,7 @@ pub struct ResizeState<'info> {
     realloc::payer = payer,
     realloc::zero = false,
     )]
-    pub state: Account<'info, SunriseState>,
+    pub state: Account<'info, State>,
 
     #[account(mut)]
     pub payer: Signer<'info>,

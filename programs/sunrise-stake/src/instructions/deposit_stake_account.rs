@@ -1,4 +1,4 @@
-use crate::state::SunriseState;
+use crate::state::State;
 use crate::utils::marinade;
 use crate::utils::seeds::{GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::mint_to;
@@ -6,15 +6,15 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use crate::marinade::program::MarinadeFinance;
-use crate::marinade::accounts::State as MarinadeState;
 
 #[derive(Accounts, Clone)]
 pub struct DepositStakeAccount<'info> {
     #[account(mut, has_one = marinade_state)]
-    pub state: Box<Account<'info, SunriseState>>,
+    pub state: Box<Account<'info, State>>,
 
+    /// CHECK: Validated in handler
     #[account(mut)]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     #[account(
         mut,

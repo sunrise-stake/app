@@ -1,12 +1,11 @@
 use crate::error::ErrorCode;
-use crate::state::{EpochReportAccount, SunriseState};
+use crate::state::{EpochReportAccount, State};
 use crate::utils::marinade;
 use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT, ORDER_UNSTAKE_TICKET_ACCOUNT};
 use crate::utils::system;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use crate::marinade::program::MarinadeFinance;
-use crate::marinade::accounts::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -20,10 +19,11 @@ pub struct TriggerPoolRebalance<'info> {
     has_one = marinade_state,
     has_one = gsol_mint,
     )]
-    pub state: Box<Account<'info, SunriseState>>,
+    pub state: Box<Account<'info, State>>,
 
+    /// CHECK: Validated in handler
     #[account(mut)]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -123,15 +123,16 @@ pub fn trigger_pool_rebalance_handler<'info>(
     let amounts = marinade::calculate_pool_balance_amounts(&calculate_pool_balance_props, 0)?;
 
     if amounts.amount_to_order_delayed_unstake > 0 {
+        let marinade_state = marinade::deserialize_marinade_state(&ctx.accounts.marinade_state)?;
         let msol_lamports = marinade::calc_msol_from_lamports(
-            ctx.accounts.marinade_state.as_ref(),
+            &marinade_state,
             amounts.amount_to_order_delayed_unstake,
         )?;
 
         // Calculate the actual lamports that will be received when claiming the ticket
         // This accounts for any rounding that occurs during the mSOL <-> SOL conversions
         let actual_lamports_to_receive = marinade::calc_lamports_from_msol_amount(
-            ctx.accounts.marinade_state.as_ref(),
+            &marinade_state,
             msol_lamports,
         )?;
 

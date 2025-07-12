@@ -44,4 +44,10 @@ pub enum ErrorCode {
     CannotUnlockUntilNextEpoch,
     #[msg("Invalid calculation result")]
     InvalidCalculation,
+    #[msg("Account discriminator not found")]
+    AccountDiscriminatorNotFound,
+    #[msg("Account discriminator did not match")]
+    AccountDiscriminatorMismatch,
+    #[msg("Account did not deserialize")]
+    AccountDidNotDeserialize,
 }

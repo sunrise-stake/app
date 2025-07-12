@@ -1,4 +1,4 @@
-use crate::state::{SunriseState, StateInput};
+use crate::state::{State, StateInput};
 use crate::utils::seeds::{BSOL_ACCOUNT, GSOL_MINT_AUTHORITY, MSOL_ACCOUNT};
 use crate::utils::token::{create_mint, create_token_account};
 use anchor_lang::prelude::*;
@@ -8,8 +8,8 @@ use anchor_spl::token::{Mint, Token};
 #[derive(Accounts)]
 #[instruction(state_in: StateInput)]
 pub struct RegisterState<'info> {
-    #[account(init, space = SunriseState::SPACE, payer = payer)]
-    pub state: Account<'info, SunriseState>,
+    #[account(init, space = State::SPACE, payer = payer)]
+    pub state: Account<'info, State>,
 
     #[account(mut)]
     pub payer: Signer<'info>,

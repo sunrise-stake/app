@@ -3790,19 +3790,6 @@ export type SunriseStake = {
       ]
     },
     {
-      "name": "sunriseState",
-      "discriminator": [
-        249,
-        155,
-        247,
-        203,
-        96,
-        190,
-        25,
-        101
-      ]
-    },
-    {
       "name": "sunriseTicketAccount",
       "discriminator": [
         199,
@@ -3934,6 +3921,21 @@ export type SunriseStake = {
       "code": 6020,
       "name": "invalidCalculation",
       "msg": "Invalid calculation result"
+    },
+    {
+      "code": 6021,
+      "name": "accountDiscriminatorNotFound",
+      "msg": "Account discriminator not found"
+    },
+    {
+      "code": 6022,
+      "name": "accountDiscriminatorMismatch",
+      "msg": "Account discriminator did not match"
+    },
+    {
+      "code": 6023,
+      "name": "accountDidNotDeserialize",
+      "msg": "Account did not deserialize"
     }
   ],
   "types": [
@@ -3987,34 +3989,6 @@ export type SunriseStake = {
           {
             "name": "bump",
             "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "fee",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "basisPoints",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "feeCents",
-      "docs": [
-        "FeeCents, same as Fee but / 1_000_000 instead of 10_000",
-        "1 FeeCent = 0.0001%, 10_000 FeeCent = 1%, 1_000_000 FeeCent = 100%"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bpCents",
-            "type": "u32"
           }
         ]
       }
@@ -4102,102 +4076,6 @@ export type SunriseStake = {
       }
     },
     {
-      "name": "liqPool",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "lpMint",
-            "type": "pubkey"
-          },
-          {
-            "name": "lpMintAuthorityBumpSeed",
-            "type": "u8"
-          },
-          {
-            "name": "solLegBumpSeed",
-            "type": "u8"
-          },
-          {
-            "name": "msolLegAuthorityBumpSeed",
-            "type": "u8"
-          },
-          {
-            "name": "msolLeg",
-            "type": "pubkey"
-          },
-          {
-            "name": "lpLiquidityTarget",
-            "type": "u64"
-          },
-          {
-            "name": "lpMaxFee",
-            "type": {
-              "defined": {
-                "name": "fee"
-              }
-            }
-          },
-          {
-            "name": "lpMinFee",
-            "type": {
-              "defined": {
-                "name": "fee"
-              }
-            }
-          },
-          {
-            "name": "treasuryCut",
-            "type": {
-              "defined": {
-                "name": "fee"
-              }
-            }
-          },
-          {
-            "name": "lpSupply",
-            "type": "u64"
-          },
-          {
-            "name": "lentFromSolLeg",
-            "type": "u64"
-          },
-          {
-            "name": "liquiditySolCap",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "list",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "account",
-            "type": "pubkey"
-          },
-          {
-            "name": "itemSize",
-            "type": "u32"
-          },
-          {
-            "name": "count",
-            "type": "u32"
-          },
-          {
-            "name": "reserved1",
-            "type": "pubkey"
-          },
-          {
-            "name": "reserved2",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
       "name": "lockAccount",
       "type": {
         "kind": "struct",
@@ -4242,247 +4120,7 @@ export type SunriseStake = {
       }
     },
     {
-      "name": "stakeSystem",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "stakeList",
-            "type": {
-              "defined": {
-                "name": "list"
-              }
-            }
-          },
-          {
-            "name": "delayedUnstakeCoolingDown",
-            "type": "u64"
-          },
-          {
-            "name": "stakeDepositBumpSeed",
-            "type": "u8"
-          },
-          {
-            "name": "stakeWithdrawBumpSeed",
-            "type": "u8"
-          },
-          {
-            "name": "slotsForStakeDelta",
-            "type": "u64"
-          },
-          {
-            "name": "lastStakeDeltaEpoch",
-            "type": "u64"
-          },
-          {
-            "name": "minStake",
-            "type": "u64"
-          },
-          {
-            "name": "extraStakeDeltaRuns",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
       "name": "state",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "msolMint",
-            "type": "pubkey"
-          },
-          {
-            "name": "adminAuthority",
-            "type": "pubkey"
-          },
-          {
-            "name": "operationalSolAccount",
-            "type": "pubkey"
-          },
-          {
-            "name": "treasuryMsolAccount",
-            "type": "pubkey"
-          },
-          {
-            "name": "reserveBumpSeed",
-            "type": "u8"
-          },
-          {
-            "name": "msolMintAuthorityBumpSeed",
-            "type": "u8"
-          },
-          {
-            "name": "rentExemptForTokenAcc",
-            "type": "u64"
-          },
-          {
-            "name": "rewardFee",
-            "type": {
-              "defined": {
-                "name": "fee"
-              }
-            }
-          },
-          {
-            "name": "stakeSystem",
-            "type": {
-              "defined": {
-                "name": "stakeSystem"
-              }
-            }
-          },
-          {
-            "name": "validatorSystem",
-            "type": {
-              "defined": {
-                "name": "validatorSystem"
-              }
-            }
-          },
-          {
-            "name": "liqPool",
-            "type": {
-              "defined": {
-                "name": "liqPool"
-              }
-            }
-          },
-          {
-            "name": "availableReserveBalance",
-            "type": "u64"
-          },
-          {
-            "name": "msolSupply",
-            "type": "u64"
-          },
-          {
-            "name": "msolPrice",
-            "type": "u64"
-          },
-          {
-            "name": "circulatingTicketCount",
-            "type": "u64"
-          },
-          {
-            "name": "circulatingTicketBalance",
-            "type": "u64"
-          },
-          {
-            "name": "lentFromReserve",
-            "type": "u64"
-          },
-          {
-            "name": "minDeposit",
-            "type": "u64"
-          },
-          {
-            "name": "minWithdraw",
-            "type": "u64"
-          },
-          {
-            "name": "stakingSolCap",
-            "type": "u64"
-          },
-          {
-            "name": "emergencyCoolingDown",
-            "type": "u64"
-          },
-          {
-            "name": "pauseAuthority",
-            "type": "pubkey"
-          },
-          {
-            "name": "paused",
-            "type": "bool"
-          },
-          {
-            "name": "delayedUnstakeFee",
-            "type": {
-              "defined": {
-                "name": "feeCents"
-              }
-            }
-          },
-          {
-            "name": "withdrawStakeAccountFee",
-            "type": {
-              "defined": {
-                "name": "feeCents"
-              }
-            }
-          },
-          {
-            "name": "withdrawStakeAccountEnabled",
-            "type": "bool"
-          },
-          {
-            "name": "lastStakeMoveEpoch",
-            "type": "u64"
-          },
-          {
-            "name": "stakeMoved",
-            "type": "u64"
-          },
-          {
-            "name": "maxStakeMovedPerEpoch",
-            "type": {
-              "defined": {
-                "name": "fee"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "stateInput",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "marinadeState",
-            "type": "pubkey"
-          },
-          {
-            "name": "blazeState",
-            "type": "pubkey"
-          },
-          {
-            "name": "updateAuthority",
-            "type": "pubkey"
-          },
-          {
-            "name": "treasury",
-            "type": "pubkey"
-          },
-          {
-            "name": "gsolMintAuthorityBump",
-            "type": "u8"
-          },
-          {
-            "name": "msolAuthorityBump",
-            "type": "u8"
-          },
-          {
-            "name": "bsolAuthorityBump",
-            "type": "u8"
-          },
-          {
-            "name": "liqPoolProportion",
-            "type": "u8"
-          },
-          {
-            "name": "liqPoolMinProportion",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "sunriseState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -4547,6 +4185,50 @@ export type SunriseStake = {
       }
     },
     {
+      "name": "stateInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "marinadeState",
+            "type": "pubkey"
+          },
+          {
+            "name": "blazeState",
+            "type": "pubkey"
+          },
+          {
+            "name": "updateAuthority",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "gsolMintAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "msolAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "bsolAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "liqPoolProportion",
+            "type": "u8"
+          },
+          {
+            "name": "liqPoolMinProportion",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "sunriseTicketAccount",
       "docs": [
         "Maps a marinade ticket account to a GSOL token holder"
@@ -4589,38 +4271,6 @@ export type SunriseStake = {
           {
             "name": "createdEpoch",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "validatorSystem",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "validatorList",
-            "type": {
-              "defined": {
-                "name": "list"
-              }
-            }
-          },
-          {
-            "name": "managerAuthority",
-            "type": "pubkey"
-          },
-          {
-            "name": "totalValidatorScore",
-            "type": "u32"
-          },
-          {
-            "name": "totalActiveBalance",
-            "type": "u64"
-          },
-          {
-            "name": "autoAddValidatorEnabled",
-            "type": "u8"
           }
         ]
       }

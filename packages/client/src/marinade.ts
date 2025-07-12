@@ -37,9 +37,7 @@ export const deposit = async (
   recipientGsolTokenAccount: PublicKey,
   lamports: BN
 ): Promise<Transaction> => {
-  const sunriseStakeState = await program.account.sunriseState.fetch(
-    stateAddress
-  );
+  const sunriseStakeState = await program.account.state.fetch(stateAddress);
   const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
   const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
     mint: marinadeState.mSolMintAddress,
@@ -86,9 +84,7 @@ export const depositStakeAccount = async (
 ): Promise<Transaction> => {
   const stateAddress = config.stateAddress;
 
-  const sunriseStakeState = await program.account.sunriseState.fetch(
-    stateAddress
-  );
+  const sunriseStakeState = await program.account.state.fetch(stateAddress);
   const msolTokenAccountAuthority = findMSolTokenAccountAuthority(config)[0];
   const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
     mint: marinadeState.mSolMintAddress,
@@ -235,7 +231,6 @@ export const triggerRebalance = async (
     owner: msolTokenAccountAuthority,
   });
 
-  const epochInfo = await program.provider.connection.getEpochInfo();
   const { account: epochReportAccount, address: epochReportAccountAddress } =
     await getEpochReportAccount(config, program);
 
@@ -251,7 +246,7 @@ export const triggerRebalance = async (
 
   // TODO incrementing on the client side like this will cause clashes in future, we need to replace it
   const index = epochReportAccount.tickets.toNumber() ?? 0;
-  
+
   const [orderUnstakeTicketAccount, orderUnstakeTicketAccountBump] =
     findOrderUnstakeTicketAccount(
       config,
@@ -261,9 +256,9 @@ export const triggerRebalance = async (
 
   type Accounts = Parameters<
     ReturnType<typeof program.methods.triggerPoolRebalance>["accounts"]
-  >[0];
+  >[0] & { orderUnstakeTicketAccount : PublicKey };
 
-  const accounts = {
+  const accounts: Accounts = {
     state: stateAddress,
     payer,
     msolMint: marinadeState.mSolMint.address,

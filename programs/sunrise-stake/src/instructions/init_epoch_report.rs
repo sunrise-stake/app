@@ -1,10 +1,9 @@
-use crate::state::{EpochReportAccount, SunriseState};
+use crate::state::{EpochReportAccount, State};
 use crate::utils::marinade;
 use crate::utils::marinade::CalculateExtractableYieldProperties;
 use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
-use crate::marinade::accounts::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -16,14 +15,20 @@ pub struct InitEpochReport<'info> {
     has_one = update_authority,
     has_one = treasury,
     )]
-    pub state: Box<Account<'info, SunriseState>>,
+    pub state: Box<Account<'info, State>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,
 
     pub update_authority: Signer<'info>,
 
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    /// CHECK: Validated in handler using deserialize_marinade_state()
+    /// We use UncheckedAccount here instead of the typed MarinadeState account because:
+    /// 1. The on-chain Marinade account has discriminator for "account:State" 
+    /// 2. But Anchor's declare_program! generates type "MarinadeState" expecting "account:MarinadeState"
+    /// 3. This would cause AccountDiscriminatorMismatch errors with typed accounts
+    /// See utils/marinade.rs::deserialize_marinade_state() for full explanation
+    pub marinade_state: UncheckedAccount<'info>,
 
     /// CHECK: Must match state
     pub blaze_state: UncheckedAccount<'info>,

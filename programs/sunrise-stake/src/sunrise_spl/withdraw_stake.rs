@@ -1,6 +1,6 @@
 use crate::{
     utils::{calc, seeds, token as TokenUtils, spl::StakePool},
-    SunriseState,
+    State,
 };
 use anchor_lang::{
     prelude::*,
@@ -51,7 +51,7 @@ pub struct SplWithdrawStake<'info> {
         has_one = gsol_mint,
         constraint = state.blaze_state == *stake_pool.key
     )]
-    pub state: Box<Account<'info, SunriseState>>,
+    pub state: Box<Account<'info, State>>,
     #[account(mut)]
     pub gsol_mint: Box<Account<'info, Mint>>,
 

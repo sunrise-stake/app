@@ -1,5 +1,5 @@
 use crate::error::ErrorCode;
-use crate::state::{EpochReportAccount, LockAccount, SunriseState};
+use crate::state::{EpochReportAccount, LockAccount, State};
 use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, LOCK_ACCOUNT, LOCK_TOKEN_ACCOUNT};
 use crate::utils::token::transfer_to_signed;
 use anchor_lang::prelude::*;
@@ -10,7 +10,7 @@ pub struct UnlockGSol<'info> {
     #[account(
         has_one = gsol_mint
     )]
-    pub state: Box<Account<'info, SunriseState>>,
+    pub state: Box<Account<'info, State>>,
     pub gsol_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
