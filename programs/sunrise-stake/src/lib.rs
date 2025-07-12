@@ -3,10 +3,8 @@
 mod sunrise_spl;
 mod utils;
 
-use crate::utils::metaplex::update_metadata_account;
 use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
 use sunrise_spl::*;
 
 pub mod state;

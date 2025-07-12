@@ -128,6 +128,13 @@ pub fn trigger_pool_rebalance_handler<'info>(
             amounts.amount_to_order_delayed_unstake,
         )?;
 
+        // Calculate the actual lamports that will be received when claiming the ticket
+        // This accounts for any rounding that occurs during the mSOL <-> SOL conversions
+        let actual_lamports_to_receive = marinade::calc_lamports_from_msol_amount(
+            ctx.accounts.marinade_state.as_ref(),
+            msol_lamports,
+        )?;
+
         // TODO move to just using init
         msg!("Creating order unstake ticket account");
         let create_ticket_props = ctx.accounts.deref().into();
@@ -138,16 +145,18 @@ pub fn trigger_pool_rebalance_handler<'info>(
         )?;
 
         msg!(
-            "Ordering a delayed unstake of {} msol lamports",
-            msol_lamports
+            "Ordering a delayed unstake of {} msol lamports (will receive {} lamports)",
+            msol_lamports,
+            actual_lamports_to_receive
         );
         let order_unstake_props = ctx.accounts.deref().into();
         marinade::order_unstake(&order_unstake_props, msol_lamports)?;
 
         // updating the internal record of delayed unstakes ordered.
+        // Use the actual lamports that will be received, not the requested amount
         ctx.accounts
             .epoch_report_account
-            .add_ticket(amounts.amount_to_order_delayed_unstake, &ctx.accounts.clock)?;
+            .add_ticket(actual_lamports_to_receive, &ctx.accounts.clock)?;
         ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
     }
 

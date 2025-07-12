@@ -251,10 +251,11 @@ export const triggerRebalance = async (
 
   // TODO incrementing on the client side like this will cause clashes in future, we need to replace it
   const index = epochReportAccount.tickets.toNumber() ?? 0;
+  
   const [orderUnstakeTicketAccount, orderUnstakeTicketAccountBump] =
     findOrderUnstakeTicketAccount(
       config,
-      BigInt(epochInfo.epoch),
+      BigInt(epochReportAccount.epoch.toNumber()),
       BigInt(index)
     );
 
@@ -262,7 +263,7 @@ export const triggerRebalance = async (
     ReturnType<typeof program.methods.triggerPoolRebalance>["accounts"]
   >[0];
 
-  const accounts: Accounts = {
+  const accounts = {
     state: stateAddress,
     payer,
     msolMint: marinadeState.mSolMint.address,
@@ -275,11 +276,15 @@ export const triggerRebalance = async (
     reservePda: await marinadeState.reserveAddress(),
     treasuryMsolAccount: marinadeState.treasuryMsolAccount,
     getMsolFrom: msolAssociatedTokenAccountAddress,
+    // the seeds (epoch and index) that are used to derive the orderUnstakeTicketAccount
+    // are passed into the seed using big-endian encoding.
+    // anchor does not use this encoding, so we have to pass it in manually
+    orderUnstakeTicketAccount,
   };
 
   const instruction = await program.methods
     .triggerPoolRebalance(
-      new BN(epochInfo.epoch),
+      new BN(epochReportAccount.epoch.toNumber()),
       new BN(index),
       orderUnstakeTicketAccountBump
     )

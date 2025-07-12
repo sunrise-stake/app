@@ -97,10 +97,10 @@ impl<'info> SplWithdrawSol<'info> {
         let stake_pool = spl::deserialize_spl_stake_pool(&self.stake_pool)?;
         let pool_tokens = spl::calc_bsol_from_lamports(&stake_pool, lamports)?;
 
-        // Build instruction data with discriminator 15 for withdrawSol
-        let mut data = vec![15u8];
+        // Build instruction data with discriminator 16 for withdrawSol
+        // WithdrawSol only takes pool_tokens amount as parameter
+        let mut data = vec![16u8];
         data.extend_from_slice(&pool_tokens.to_le_bytes());
-        data.extend_from_slice(&lamports.to_le_bytes()); // min_lamports
 
         // Build accounts list
         let accounts = vec![

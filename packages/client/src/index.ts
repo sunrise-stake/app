@@ -701,7 +701,7 @@ export class SunriseStakeClient {
    * Rebalancing moves a proportion of the stake pool into the liquidity pool, using a delayed unstake.
    * This must then be redeemed in the next epoch by making a recover-tickets call.
    */
-  public async triggerRebalance(): Promise<string> {
+  public async triggerRebalance(): Promise<string[]> {
     if (
       !this.marinadeState ||
       !this.marinade ||
@@ -711,8 +711,21 @@ export class SunriseStakeClient {
     )
       throw new Error("init not called");
 
-    const recoverInstruction = await this.recoverTickets();
+    const txHashes: string[] = [];
 
+    // Execute recoverTickets first if needed
+    const recoverInstruction = await this.recoverTickets();
+    if (recoverInstruction) {
+      const recoverTxHash = await this.sendAndConfirmTransaction(
+        new Transaction().add(recoverInstruction)
+      );
+      txHashes.push(recoverTxHash);
+      
+      // Refresh client state after recovering tickets to ensure we have the updated epoch report
+      await this.refresh();
+    }
+
+    // Now trigger rebalance - this will fetch fresh epoch report data
     const { instruction: rebalanceInstruction } = await triggerRebalance(
       this.config,
       this.marinadeState,
@@ -721,11 +734,12 @@ export class SunriseStakeClient {
       this.provider.publicKey
     );
 
-    const instructions = [recoverInstruction, rebalanceInstruction].filter(
-      Boolean
-    ) as TransactionInstruction[];
-    const transaction = new Transaction().add(...instructions);
-    return this.sendAndConfirmTransaction(transaction, []);
+    const rebalanceTxHash = await this.sendAndConfirmTransaction(
+      new Transaction().add(rebalanceInstruction)
+    );
+    txHashes.push(rebalanceTxHash);
+
+    return txHashes;
   }
 
   /**
