@@ -113,7 +113,6 @@ impl SplDepositStake<'_> {
         Ok(())
     }
 
-
     pub fn deposit_stake(&mut self) -> Result<()> {
         self.check_stake_pool_program()?;
 
