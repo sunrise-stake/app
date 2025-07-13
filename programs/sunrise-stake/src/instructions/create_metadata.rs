@@ -14,7 +14,6 @@ pub fn create_metadata_handler(
         state: *ctx.accounts.state.clone(),
         metadata: ctx.accounts.metadata.clone(),
         gsol_mint: ctx.accounts.gsol_mint.to_account_info(),
-        gsol_mint_authority: ctx.accounts.gsol_mint_authority.to_account_info(),
         update_authority: ctx.accounts.update_authority.to_account_info(),
         token_metadata_program: ctx.accounts.token_metadata_program.clone(),
         system_program: ctx.accounts.system_program.to_account_info(),

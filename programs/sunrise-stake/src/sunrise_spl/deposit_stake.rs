@@ -8,7 +8,7 @@ use anchor_lang::{
     solana_program::{
         borsh1,
         instruction::{AccountMeta, Instruction},
-        program::{invoke, invoke_signed},
+        program::invoke_signed,
     },
 };
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -113,28 +113,13 @@ impl SplDepositStake<'_> {
         Ok(())
     }
 
-    fn authorize_stake_pool(&self, instructions: &[Instruction]) -> Result<()> {
-        let authorize_staker_ix = &instructions[0];
-        let authorize_withdrawer_ix = &instructions[1];
-
-        let accounts = [
-            self.native_stake_program.clone(),
-            self.stake_account.clone(),
-            self.sysvar_clock.clone(),
-            self.stake_account_depositor.to_account_info(),
-        ];
-
-        invoke(authorize_staker_ix, &accounts)?;
-        invoke(authorize_withdrawer_ix, &accounts)?;
-        Ok(())
-    }
 
     pub fn deposit_stake(&mut self) -> Result<()> {
         self.check_stake_pool_program()?;
 
         let stake_account_info =
             borsh1::try_from_slice_unchecked::<StakeStateV2>(&self.stake_account.data.borrow())?;
-        let stake_amount = match stake_account_info.delegation() {
+        let _stake_amount = match stake_account_info.delegation() {
             Some(delegation) => delegation.stake,
             None => return Err(crate::ErrorCode::NotDelegated.into()),
         };

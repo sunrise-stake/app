@@ -1,5 +1,6 @@
 #![allow(unexpected_cfgs)]
 #![allow(clippy::result_large_err)]
+#![allow(deprecated)]
 mod sunrise_spl;
 mod utils;
 

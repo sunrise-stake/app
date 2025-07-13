@@ -12,7 +12,6 @@ pub struct MetadataAccounts<'a> {
     pub state: Account<'a, State>,
     pub metadata: AccountInfo<'a>,
     pub gsol_mint: AccountInfo<'a>,
-    pub gsol_mint_authority: AccountInfo<'a>,
     pub update_authority: AccountInfo<'a>,
     pub token_metadata_program: AccountInfo<'a>,
     pub system_program: AccountInfo<'a>,
