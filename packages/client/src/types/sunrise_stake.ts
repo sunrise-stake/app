@@ -3011,34 +3011,6 @@ export type SunriseStake = {
           }
         },
         {
-          "name": "epochReportAccount",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "state"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  112,
-                  111,
-                  99,
-                  104,
-                  95,
-                  114,
-                  101,
-                  112,
-                  111,
-                  114,
-                  116
-                ]
-              }
-            ]
-          }
-        },
-        {
           "name": "clock",
           "address": "SysvarC1ock11111111111111111111111111111111"
         },

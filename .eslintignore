@@ -6,3 +6,4 @@ tailwind.config.js
 postcss.config.js
 **/types/sunrise_stake.ts
 dist
+*.yml

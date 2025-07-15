@@ -300,7 +300,9 @@ export class SunriseStakeClient {
         if (stopOnFirstFailure) {
           throw error;
         } else {
-          this.log(`Transaction failed, continuing: ${messageFromError(error)}`);
+          this.log(
+            `Transaction failed, continuing: ${messageFromError(error)}`
+          );
           errors.push(error as Error);
         }
       }
@@ -1834,7 +1836,10 @@ export class SunriseStakeClient {
       // we want to be tolerant of errors here, since the lock account update may fail, eg
       // due to issues with the impact nft (one example is the nft being burned)
       // This should not prevent the unlock from happening
-      console.warn("An error occurred during lock account update. Continuing with unlock:", error);
+      console.warn(
+        "An error occurred during lock account update. Continuing with unlock:",
+        error
+      );
     }
 
     // updateLockAccount returns an array of transactions.

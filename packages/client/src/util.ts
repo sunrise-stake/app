@@ -47,9 +47,6 @@ export const messageFromError = (error: unknown): string => {
   if (typeof error === "string") {
     return error;
   }
-  if (error && typeof error === "object" && "toString" in error) {
-    return error.toString();
-  }
   return "Unknown error";
 };
 

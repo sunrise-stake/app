@@ -13,6 +13,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import BN from 'bn.js';
 
 // LockAccount structure offsets (after 8-byte discriminator)
 const DISCRIMINATOR_SIZE = 8;
@@ -43,17 +44,18 @@ function main() {
   const startEpoch = BigInt(startEpochStr);
   const updatedToEpoch = BigInt(updatedToEpochStr);
 
-  // Validate epochs
-  if (startEpoch < 0n || updatedToEpoch < 0n) {
-    console.error('Error: Epochs must be non-negative');
-    process.exit(1);
-  }
-
   // Read the lock account file
   let accountData: any;
   try {
     const fileContent = fs.readFileSync(filePath, 'utf8');
-    accountData = JSON.parse(fileContent);
+    // Parse with reviver to convert numbers to BN
+    accountData = JSON.parse(fileContent, (key, value) => {
+      // Convert numbers to BN to preserve precision
+      if (typeof value === 'number' && Number.isInteger(value)) {
+        return new BN("" + value);
+      }
+      return value;
+    });
   } catch (error) {
     console.error(`Error reading file: ${error}`);
     process.exit(1);
@@ -89,7 +91,13 @@ function main() {
   };
 
   // Output the modified JSON to stdout
-  console.log(JSON.stringify(modifiedAccountData, null, 2));
+  console.log(JSON.stringify(modifiedAccountData, (key, value) => {
+    // Convert BN back to decimal string for JSON output
+    if (BN.isBN(value)) {
+      return value.toString(10); // Force decimal representation
+    }
+    return value;
+  }, 2));
 }
 
 main();

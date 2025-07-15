@@ -1,6 +1,6 @@
 use crate::error::ErrorCode;
-use crate::state::{EpochReportAccount, LockAccount, State};
-use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, LOCK_ACCOUNT, LOCK_TOKEN_ACCOUNT};
+use crate::state::{LockAccount, State};
+use crate::utils::seeds::{LOCK_ACCOUNT, LOCK_TOKEN_ACCOUNT};
 use crate::utils::token::transfer_to_signed;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -43,13 +43,6 @@ pub struct UnlockGSol<'info> {
     token::authority = lock_account,
     )]
     pub lock_gsol_account: Box<Account<'info, TokenAccount>>,
-
-    #[account(
-    seeds = [state.key().as_ref(), EPOCH_REPORT_ACCOUNT],
-    bump,
-    constraint = epoch_report_account.epoch == clock.epoch @ ErrorCode::InvalidEpochReportAccount
-    )]
-    pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 
     pub clock: Sysvar<'info, Clock>,
     pub system_program: Program<'info, System>,

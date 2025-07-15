@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test:anchor": "mocha -p ./tsconfig.json --no-parallel -t 1000000 ./*.ts",
-    "lint": "eslint -c .eslintrc.yml --ext .ts,.tsx .",
+    "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx .",
     "build": "echo 'No build required for test package'"
   },
   "dependencies": {
@@ -22,7 +22,7 @@
     "@types/chai": "^5.0.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.0.0",
-    "eslint": "^9.15.0",
+    "eslint": "^8.33.0",
     "mocha": "^10.8.2",
     "ts-mocha": "^10.0.0",
     "typescript": "^5.7.2"
