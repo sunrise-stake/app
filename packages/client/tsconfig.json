@@ -2,9 +2,9 @@
   "compilerOptions": {
     "lib": ["es2021", "dom"],
     "module": "ESNext",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "bundler",
     "outDir": "./dist",
-    "target": "es6",
+    "target": "es2020",
     "esModuleInterop": true,
     "strict": true,
     "sourceMap": true,

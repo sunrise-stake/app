@@ -28,6 +28,7 @@ import {
   findImpactNFTMintAuthority,
   getImpactNFT,
   zip,
+  messageFromError,
 } from "./util.js";
 import {
   Marinade,
@@ -261,19 +262,23 @@ export class SunriseStakeClient {
    * @param signers
    * @param opts
    * @param withRefresh Refresh the client's internal state after sending the transactions (default: false)
+   * @param stopOnFirstFailure If true, stops processing on first failure. If false, continues with remaining transactions (default: true)
+   * @returns Object containing signatures array and errors array. When stopOnFirstFailure is true, throws on first error instead of populating errors array.
    */
   public async sendAndConfirmTransactions(
     transactions: Transaction[],
     signers: Signer[][] = [],
     opts?: ConfirmOptions,
-    withRefresh = false
-  ): Promise<string[]> {
+    withRefresh = false,
+    stopOnFirstFailure = true
+  ): Promise<{ signatures: string[]; errors: Error[] }> {
     if (!this.config) {
       throw new Error("init not called");
     }
 
     const txesWithSigners = zip(transactions, signers, []);
-    const txSigs: string[] = [];
+    const signatures: string[] = [];
+    const errors: Error[] = [];
 
     if (
       this.options.addPriorityFee !== undefined &&
@@ -286,16 +291,26 @@ export class SunriseStakeClient {
 
     this.log("Sending transactions: ", transactions.length);
     for (const [tx, signers] of txesWithSigners) {
-      const txSig = await this.sendAndConfirmTransaction(tx, signers, opts);
-      this.log("Transaction sent: ", txSig);
-      txSigs.push(txSig);
+      try {
+        const txSig = await this.sendAndConfirmTransaction(tx, signers, opts);
+        this.log("Transaction sent: ", txSig);
+        signatures.push(txSig);
+        errors.push(null as any); // No error for this transaction
+      } catch (error) {
+        if (stopOnFirstFailure) {
+          throw error;
+        } else {
+          this.log(`Transaction failed, continuing: ${messageFromError(error)}`);
+          errors.push(error as Error);
+        }
+      }
     }
 
     if (withRefresh) {
       await this.refresh();
     }
 
-    return txSigs;
+    return { signatures, errors };
   }
 
   /**
@@ -1809,8 +1824,18 @@ export class SunriseStakeClient {
     if (!this.lockClient) throw new Error("init not called");
     if (!this.stakerGSolTokenAccount) throw new Error("No stake found");
 
+    const transactions: Transaction[] = [];
+
     // Update a lock account if it has not been updated this epoch
-    const transactions = await this.updateLockAccount();
+    try {
+      const updateLockAccountTxes = await this.updateLockAccount();
+      transactions.push(...updateLockAccountTxes);
+    } catch (error) {
+      // we want to be tolerant of errors here, since the lock account update may fail, eg
+      // due to issues with the impact nft (one example is the nft being burned)
+      // This should not prevent the unlock from happening
+      console.warn("An error occurred during lock account update. Continuing with unlock:", error);
+    }
 
     // updateLockAccount returns an array of transactions.
     // Theoretically, the unlock transaction could be combined with the update transaction

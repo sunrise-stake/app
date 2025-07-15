@@ -869,6 +869,14 @@ export type SunriseStake = {
         },
         {
           "name": "marinadeState",
+          "docs": [
+            "We use UncheckedAccount here instead of the typed MarinadeState account because:",
+            "1. The on-chain Marinade account has discriminator for \"account:State\"",
+            "2. But Anchor's declare_program! generates type \"MarinadeState\" expecting \"account:MarinadeState\"",
+            "3. This would cause AccountDiscriminatorMismatch errors with typed accounts",
+            "",
+            "See utils/marinade.rs::deserialize_marinade_state() for full explanation"
+          ],
           "relations": [
             "state"
           ]
@@ -4121,6 +4129,15 @@ export type SunriseStake = {
     },
     {
       "name": "state",
+      "docs": [
+        "The main state account for the Sunrise Stake program",
+        "",
+        "IMPORTANT: This struct MUST remain named \"State\" and not be renamed.",
+        "The account discriminator is derived from the struct name, and renaming it would",
+        "change the discriminator from the current value, breaking compatibility with",
+        "all existing on-chain accounts. The discriminator is the first 8 bytes of",
+        "SHA256(\"account:State\") and is checked by Anchor when deserializing accounts."
+      ],
       "type": {
         "kind": "struct",
         "fields": [

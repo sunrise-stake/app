@@ -1,0 +1,14 @@
+{
+  "pubkey": "AU8mPNxSx85XRikG1ehrfpY5bHF7BHFHCEgx5Bgxx6CR",
+  "account": {
+    "lamports": 1030080,
+    "data": [
+      "BgAAAAAAAAAAAQAAAAAAAAAAAAA=",
+      "base64"
+    ],
+    "owner": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
+    "executable": false,
+    "rentEpoch": 18446744073709551615,
+    "space": 20
+  }
+}

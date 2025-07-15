@@ -24,7 +24,6 @@ pub struct UnlockGSol<'info> {
     seeds = [state.key().as_ref(), LOCK_ACCOUNT, authority.key().as_ref()],
     bump = lock_account.bump,
     constraint = lock_account.start_epoch.is_some() @ ErrorCode::LockAccountNotLocked,
-    constraint = lock_account.updated_to_epoch.unwrap() == clock.epoch @ ErrorCode::LockAccountNotUpdated,
     constraint = lock_account.updated_to_epoch.unwrap() > lock_account.start_epoch.unwrap() @ ErrorCode::CannotUnlockUntilNextEpoch
     )]
     pub lock_account: Box<Account<'info, LockAccount>>,

@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "build": "rimraf dist; tsc --module es2015 --target es5 --outDir dist/esm; tsc --module commonjs --target es5 --outDir dist/cjs && yarn typedoc",
+    "build": "rimraf dist; tsc -p tsconfig.esm.json; tsc -p tsconfig.cjs.json && yarn typedoc",
     "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx src"
   },
   "files": [
@@ -32,6 +32,7 @@
   "devDependencies": {
     "rimraf": "^5.0.1",
     "tsup": "^6.6.3",
-    "typedoc": "^0.24.8"
+    "typedoc": "^0.24.8",
+    "typescript": "^5.3.0"
   }
 }
