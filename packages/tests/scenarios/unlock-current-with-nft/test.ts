@@ -1,6 +1,6 @@
 import { Keypair } from "@solana/web3.js";
-import { SunriseStakeClient, NETWORK_FEE } from "@sunrisestake/client";
-import { expectAmount, log } from "../tests/util.js";
+import { SunriseStakeClient } from "@sunrisestake/client";
+import { expectAmount, log } from "../../util.js";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import * as anchor from "@coral-xyz/anchor";
 import bs58 from "bs58";
@@ -12,10 +12,11 @@ import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 dotenv.config();
 
-describe("scenario1-unlock-without-nft", () => {
+describe("unlock-current-with-nft", () => {
   let client: SunriseStakeClient;
   let clientsInitialLockedGSolBalance: number;
   let clientsInitialUnlockedGSolBalance: number;
+  let initialUpdatedToEpoch: number;
 
   before(async () => {
     // Load the private key from environment variable
@@ -47,29 +48,49 @@ describe("scenario1-unlock-without-nft", () => {
 
     log("Client initialized for user:", client.provider.publicKey.toBase58());
 
+    const details = await client.details();
     log("Fetching locked gSOL balance...");
     clientsInitialLockedGSolBalance =
-      (await client.details()).lockDetails?.amountLocked.toNumber() ?? 0;
+      details.lockDetails?.amountLocked.toNumber() ?? 0;
     clientsInitialUnlockedGSolBalance = new BN(
       (await client.balance()).gsolBalance.amount
     ).toNumber();
+    
+    initialUpdatedToEpoch = details.lockDetails?.updatedToEpoch.toNumber() ?? 0;
 
     log("Initial locked gSOL balance:", clientsInitialLockedGSolBalance);
     log("Initial unlocked gSOL balance:", clientsInitialUnlockedGSolBalance);
+    log("Initial updatedToEpoch:", initialUpdatedToEpoch);
+    log("Current epoch:", details.currentEpoch.epoch);
+    
+    // Verify that the lock account is already up to date
+    if (initialUpdatedToEpoch < details.currentEpoch.epoch) {
+      throw new Error("Lock account needs update. This scenario requires a current lock account.");
+    }
   });
 
-  it("can unlock gSOL", async () => {
-    log("Attempting to unlock gSOL...");
-
+  it("skips update and unlocks directly when lock account is current", async () => {
+    log("Attempting to unlock gSOL (already current)...");
+    
+    // When the lock account is already up to date, unlockGSol should skip the update
+    // and proceed directly to unlock
+    
+    const transactions = await client.unlockGSol();
+    log("Number of transactions:", transactions.length);
+    
+    // We expect only 1 transaction (unlock) since no update is needed
+    chai.expect(transactions.length).to.equal(1);
+    
+    // Send the unlock transaction
     await client.sendAndConfirmTransactions(
-      await client.unlockGSol(),
+      transactions,
       undefined,
       undefined,
       true,
-      false // stopOnFirstFailure = false to allow unlock to proceed even if recoverTickets fails
+      true
     );
-
-    // assert the new gsol balance is equal to the sum of initial locked and unlocked gsol balances
+    
+    // Assert the new gsol balance is equal to the sum of initial locked and unlocked gsol balances
     const newGSolBalance = new BN(
       (await client.balance()).gsolBalance.amount
     ).toNumber();
@@ -82,34 +103,10 @@ describe("scenario1-unlock-without-nft", () => {
       newGSolBalance,
       clientsInitialLockedGSolBalance + clientsInitialUnlockedGSolBalance
     );
-  });
-
-  it("can unstake gSOL", async () => {
-    // ensure the user, after unlocking their gSOL, can unstake it
-    log("Getting users's current SOL balance");
-    const solBalance = await client.provider.connection.getBalance(
-      client.provider.publicKey
-    );
-    console.log("SOL Balance:", solBalance);
-
-    // now we have unlocked, we should be able to unstake all the gSOL
-    const amountToUnstake =
-      clientsInitialLockedGSolBalance + clientsInitialUnlockedGSolBalance;
-
-    log("Attempting to unstake gSOL...");
-    await client.sendAndConfirmTransaction(
-      await client.unstake(new BN(amountToUnstake))
-    );
-
-    log("Getting user's SOL balance after unstaking");
-    const newSolBalance = await client.provider.connection.getBalance(
-      client.provider.publicKey
-    );
-    console.log("New SOL Balance:", newSolBalance);
-
-    const expectedSolBalance = solBalance + amountToUnstake - NETWORK_FEE;
-    console.log("Expected SOL Balance after unstaking:", expectedSolBalance);
-
-    expectAmount(newSolBalance, expectedSolBalance, 1);
+    
+    // Verify the lock account is now unlocked
+    const postDetails = await client.details();
+    const finalLockDetails = postDetails.lockDetails;
+    chai.expect(finalLockDetails).to.be.null;
   });
 });

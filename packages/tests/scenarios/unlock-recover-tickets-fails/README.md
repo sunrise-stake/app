@@ -23,9 +23,10 @@ Each scenario test is completely isolated from the main test suite:
 
 ## Available Scenarios
 
-### scenario1-unlock-without-nft
-Tests the unlock functionality when a user has locked gSOL but doesn't own an impact NFT.
-Uses real mainnet state to ensure realistic testing conditions.
+### scenario1-unlock-recover-tickets-fails
+Tests the unlock functionality when the recoverTickets transaction fails (e.g., due to missing or invalid ticket accounts).
+This scenario ensures that unlock can still proceed even when the epoch report update fails.
+Uses real mainnet state with `stopOnFirstFailure = false` to allow unlock to continue despite the recoverTickets failure.
 
 ## Adding New Scenarios
 
