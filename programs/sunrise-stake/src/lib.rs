@@ -113,6 +113,12 @@ pub mod sunrise_stake {
         update_lock_account_handler(ctx)
     }
 
+    pub fn update_lock_account_without_nft<'info>(
+        ctx: Context<'_, '_, '_, 'info, UpdateLockAccountWithoutNft<'info>>,
+    ) -> Result<()> {
+        update_lock_account_without_nft_handler(ctx)
+    }
+
     pub fn lock_gsol<'info>(
         ctx: Context<'_, '_, '_, 'info, LockGSol<'info>>,
         lamports: u64,

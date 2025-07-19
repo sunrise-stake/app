@@ -3476,6 +3476,135 @@ export type SunriseStake = {
       "args": []
     },
     {
+      "name": "updateLockAccountWithoutNft",
+      "discriminator": [
+        81,
+        50,
+        114,
+        195,
+        240,
+        232,
+        143,
+        45
+      ],
+      "accounts": [
+        {
+          "name": "state"
+        },
+        {
+          "name": "gsolMint",
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lockAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  111,
+                  99,
+                  107,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lockGsolAccount",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  111,
+                  99,
+                  107,
+                  95,
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "epochReportAccount",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104,
+                  95,
+                  114,
+                  101,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "updateMetadata",
       "discriminator": [
         170,

@@ -17,6 +17,7 @@ mod update_epoch_report;
 mod update_lock_account;
 mod update_metadata;
 mod update_state;
+mod update_lock_account_without_nft;
 
 pub use add_locked_gsol::*;
 pub use claim_unstake_ticket::*;
@@ -35,5 +36,6 @@ pub use trigger_pool_rebalance::*;
 pub use unlock_gsol::*;
 pub use update_epoch_report::*;
 pub use update_lock_account::*;
+pub use update_lock_account_without_nft::*;
 pub use update_metadata::*;
 pub use update_state::*;
