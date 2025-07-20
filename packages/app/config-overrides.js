@@ -45,6 +45,7 @@ module.exports = function (config) {
         tls: false,
         tty: false,
         url: false,
+        vm: require.resolve("vm-browserify"),
         zlib: require.resolve('browserify-zlib'),
       }
     },
