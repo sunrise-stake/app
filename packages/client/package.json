@@ -32,7 +32,7 @@
   "devDependencies": {
     "rimraf": "^5.0.1",
     "tsup": "^6.6.3",
-    "typedoc": "^0.24.8",
+    "typedoc": "^0.28.7",
     "typescript": "^5.3.0"
   }
 }
