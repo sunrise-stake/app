@@ -106,31 +106,31 @@ filename = "../../fixtures/scenarios/marinade_state.json"
 address = "Aj8WR7ZGEpa8pFhRWAmcBtDxMxGnoUkQDe3Z9KncNFHL"
 filename = "../../fixtures/scenarios/offset_tiers.json"
 
-# User accounts from unlock transaction
+# User accounts from unlock transaction (broken metadata user)
 [[test.validator.account]]
-address = "2cf1JBUkBKsWgV9UyzUizZ6XUC3ksFinmKfzepz8Zt8F"  # User wallet
-filename = "../../fixtures/scenarios/user_wallet.json"
+address = "2cf1JBUkBKsWgV9UyzUizZ6XUC3ksFinmKfzepz8Zt8F"  # Broken metadata user wallet
+filename = "../../fixtures/scenarios/broken_metadata_user_wallet.json"
 
 [[test.validator.account]]
-address = "9xhVTV98UUcLX9kLTMuoohM8bqNCsZANrMWQmkD9ENNu"  # User's gSOL token account
-filename = "../../fixtures/scenarios/user_gsol_token_account.json"
+address = "9xhVTV98UUcLX9kLTMuoohM8bqNCsZANrMWQmkD9ENNu"  # Broken metadata user's gSOL token account
+filename = "../../fixtures/scenarios/broken_metadata_user_gsol_token_account.json"
 
 [[test.validator.account]]
-address = "9vTh47b4EERksHqALDtr2Psd6GfXk8LtEXXyDaat5iR"  # User's lock token account (locked gSOL)
-filename = "../../fixtures/scenarios/user_lock_token_account.json"
+address = "9vTh47b4EERksHqALDtr2Psd6GfXk8LtEXXyDaat5iR"  # Broken metadata user's lock token account (locked gSOL)
+filename = "../../fixtures/scenarios/broken_metadata_user_lock_token_account.json"
 
 [[test.validator.account]]
-address = "6A6kNxRdN7xj1YYECPQmmJ5iHjWtdiK21LCpvUd3HVyc"  # User's lock account PDA (MODIFIED: start_epoch=0, updated_to_epoch=1 for test compatibility)
-filename = "../../fixtures/scenarios/user_lock_account.json"
+address = "6A6kNxRdN7xj1YYECPQmmJ5iHjWtdiK21LCpvUd3HVyc"  # Broken metadata user's lock account PDA
+filename = "../../fixtures/scenarios/broken_metadata_user_lock_account.json"
 
-# Impact NFT accounts
+# Impact NFT accounts (broken metadata user)
 [[test.validator.account]]
-address = "27CTW8NkU2YHAavDRuF43iBKUhXLGv1XMhDyhZrxw3jX"  # offset_metadata
-filename = "../../fixtures/scenarios/offset_metadata.json"
+address = "27CTW8NkU2YHAavDRuF43iBKUhXLGv1XMhDyhZrxw3jX"  # offset_metadata (broken metadata user)
+filename = "../../fixtures/scenarios/broken_metadata_offset_metadata.json"
 
 [[test.validator.account]]
-address = "FxLQos1kyk4JW6rAGs8CPoP9eWXUuZTnHspQSfTFBELs"  # nft_token_account
-filename = "../../fixtures/scenarios/nft_holder_token_account.json"
+address = "FxLQos1kyk4JW6rAGs8CPoP9eWXUuZTnHspQSfTFBELs"  # nft_token_account (broken metadata user)
+filename = "../../fixtures/scenarios/broken_metadata_nft_holder_token_account.json"
 
 [[test.validator.account]]
 address = "9QXDinR3EaKJnoqEBvnYVdTen2GVcaxmX3AR2PUbH5qJ"  # nft_0_collection_metadata
@@ -141,16 +141,16 @@ address = "AU8mPNxSx85XRikG1ehrfpY5bHF7BHFHCEgx5Bgxx6CR"  # nft_master_edition (
 filename = "../../fixtures/scenarios/nft_master_edition.json"
 
 [[test.validator.account]]
-address = "GGQGfW9zJbCiXkA65fYeocV4VckP2ngrC1ViwhNLutkS"  # broken_metadata_nft
-filename = "../../fixtures/scenarios/broken_metadata_nft.json"
+address = "GGQGfW9zJbCiXkA65fYeocV4VckP2ngrC1ViwhNLutkS"  # nft_broken_metadata
+filename = "../../fixtures/scenarios/nft_broken_metadata.json"
 
 [[test.validator.account]]
 address = "5QWkXn9fqJCeUVgLRVEc8CvN81mZDXWMa2prqmJthKk6"  # nft_0_collection_master_edition
 filename = "../../fixtures/scenarios/nft_0_collection_master_edition.json"
 
 [[test.validator.account]]
-address = "Bz3aDGXTumhYWhHJFJQmKzqrYZwxc6vBMBwMa1xq6d8k"  # nft_mint
-filename = "../../fixtures/scenarios/nft_mint.json"
+address = "Bz3aDGXTumhYWhHJFJQmKzqrYZwxc6vBMBwMa1xq6d8k"  # nft_mint (broken metadata user)
+filename = "../../fixtures/scenarios/broken_metadata_nft_mint.json"
 
 [[test.validator.account]]
 address = "66dcpKcdX8cBeLXTqQiomjS9xsrTkKyTUzX7ADro6rvn"  # nft_0_collection_mint

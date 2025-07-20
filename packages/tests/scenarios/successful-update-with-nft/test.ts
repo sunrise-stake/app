@@ -79,10 +79,20 @@ describe("successful-update-with-nft", () => {
     
     // Get the transaction array - should include recoverTickets, updateLockAccount, and unlock
     const transactions = await client.unlockGSol();
-    log("Number of transactions:", transactions.length);
-    
-    // We expect at least 2 transactions (update + unlock), possibly 3 if recoverTickets is needed
-    chai.expect(transactions.length).to.be.at.least(2);
+
+    // We expect at least 2 transactions (update + unlock)
+    chai.expect(transactions.length).to.equal(2);
+
+    console.log("Transaction instruction keys:");
+    transactions.forEach((tx, index) => {
+      console.log(`Transaction ${index + 1} keys:`);
+      tx.instructions.forEach((ix, ixIndex) => {
+        console.log(`  Instruction ${ixIndex + 1} keys:`);
+        ix.keys.forEach((key, keyIndex) => {
+          console.log(`    Key ${keyIndex + 1}: ${key.pubkey.toBase58()}`);
+        });
+      });
+    });
     
     // Send all transactions - all should succeed
     await client.sendAndConfirmTransactions(

@@ -106,60 +106,76 @@ filename = "../../fixtures/scenarios/marinade_state.json"
 address = "Aj8WR7ZGEpa8pFhRWAmcBtDxMxGnoUkQDe3Z9KncNFHL"
 filename = "../../fixtures/scenarios/offset_tiers.json"
 
-# User accounts from unlock transaction
+# User accounts from Solscan transaction
 [[test.validator.account]]
-address = "2cf1JBUkBKsWgV9UyzUizZ6XUC3ksFinmKfzepz8Zt8F"  # User wallet
-filename = "../../fixtures/scenarios/user_wallet.json"
+address = "FxPhFpvMWYXaMC9FEQyrGfQaJaxLiJvVEYvqQdEh9jaY"  # User wallet (successful update user)
+filename = "../../fixtures/scenarios/user_wallet_successful_update.json"
 
 [[test.validator.account]]
-address = "9xhVTV98UUcLX9kLTMuoohM8bqNCsZANrMWQmkD9ENNu"  # User's gSOL token account
-filename = "../../fixtures/scenarios/user_gsol_token_account.json"
+address = "Frz7mfGY1Yx8H7KVf6QgXJN9nFLVVwRvMhdzNpYoWPSH"  # User's gSOL token account
+filename = "../../fixtures/scenarios/user_gsol_token_account_successful_update.json"
 
 [[test.validator.account]]
-address = "9vTh47b4EERksHqALDtr2Psd6GfXk8LtEXXyDaat5iR"  # User's lock token account (locked gSOL)
-filename = "../../fixtures/scenarios/user_lock_token_account.json"
+address = "9xQkNLFGJDhYR3mANogVuC5KHEKDftsaFgoqCLnoN3in"  # User's lock token account (locked gSOL)
+filename = "../../fixtures/scenarios/user_lock_token_account_successful_update.json"
 
 [[test.validator.account]]
-address = "6A6kNxRdN7xj1YYECPQmmJ5iHjWtdiK21LCpvUd3HVyc"  # User's lock account PDA (needs update: updated_to_epoch should be < current epoch)
-filename = "../../fixtures/scenarios/user_lock_account.json"
+address = "JAzzrBEt7j3pBd6BzkyvdNEHDC8hh4eXSrsxynz5bLX"  # User's lock account PDA
+filename = "../../fixtures/scenarios/user_lock_account_successful_update.json"
+
+[[test.validator.account]]
+address = "25TY1jQLpjcx7izQfAmMzJ5YXW6Uv1PJqMn1U2fH5Pn9"  # User's NFT token account
+filename = "../../fixtures/scenarios/user_nft_token_account_successful_update.json"
 
 # Impact NFT accounts
 [[test.validator.account]]
-address = "27CTW8NkU2YHAavDRuF43iBKUhXLGv1XMhDyhZrxw3jX"  # NFT mint account
-filename = "../../fixtures/scenarios/nft_mint.json"
+address = "27CTW8NkU2YHAavDRuF43iBKUhXLGv1XMhDyhZrxw3jX"  # offset_metadata
+filename = "../../fixtures/scenarios/offset_metadata.json"
 
 [[test.validator.account]]
-address = "FxLQos1kyk4JW6rAGs8CPoP9eWXUuZTnHspQSfTFBELs"  # NFT holder token account
+address = "FxLQos1kyk4JW6rAGs8CPoP9eWXUuZTnHspQSfTFBELs"  # nft_token_account
 filename = "../../fixtures/scenarios/nft_holder_token_account.json"
 
 [[test.validator.account]]
-address = "9QXDinR3EaKJnoqEBvnYVdTen2GVcaxmX3AR2PUbH5qJ"  # NFT metadata account
-filename = "../../fixtures/scenarios/nft_metadata.json"
+address = "9QXDinR3EaKJnoqEBvnYVdTen2GVcaxmX3AR2PUbH5qJ"  # nft_1_collection_metadata
+filename = "../../fixtures/scenarios/nft_1_collection_metadata.json"
 
 [[test.validator.account]]
-address = "AU8mPNxSx85XRikG1ehrfpY5bHF7BHFHCEgx5Bgxx6CR"  # NFT master edition
+address = "AU8mPNxSx85XRikG1ehrfpY5bHF7BHFHCEgx5Bgxx6CR"  # nft_master_edition (unused in update_lock_account)
 filename = "../../fixtures/scenarios/nft_master_edition.json"
 
 [[test.validator.account]]
-address = "GGQGfW9zJbCiXkA65fYeocV4VckP2ngrC1ViwhNLutkS"  # NFT collection metadata
-filename = "../../fixtures/scenarios/nft_collection_metadata.json"
+address = "GGQGfW9zJbCiXkA65fYeocV4VckP2ngrC1ViwhNLutkS"  # broken_metadata_nft
+filename = "../../fixtures/scenarios/broken_metadata_nft.json"
 
 [[test.validator.account]]
-address = "5QWkXn9fqJCeUVgLRVEc8CvN81mZDXWMa2prqmJthKk6"  # NFT collection master edition
-filename = "../../fixtures/scenarios/nft_collection_master_edition.json"
+address = "5QWkXn9fqJCeUVgLRVEc8CvN81mZDXWMa2prqmJthKk6"  # nft_1_collection_master_edition
+filename = "../../fixtures/scenarios/nft_1_collection_master_edition.json"
 
 [[test.validator.account]]
-address = "Bz3aDGXTumhYWhHJFJQmKzqrYZwxc6vBMBwMa1xq6d8k"  # NFT collection mint
-filename = "../../fixtures/scenarios/nft_collection_mint.json"
+address = "Bz3aDGXTumhYWhHJFJQmKzqrYZwxc6vBMBwMa1xq6d8k"  # nft_mint
+filename = "../../fixtures/scenarios/nft_mint.json"
 
 [[test.validator.account]]
-address = "66dcpKcdX8cBeLXTqQiomjS9xsrTkKyTUzX7ADro6rvn"  # NFT new collection mint
-filename = "../../fixtures/scenarios/nft_new_collection_mint.json"
+address = "66dcpKcdX8cBeLXTqQiomjS9xsrTkKyTUzX7ADro6rvn"  # nft_1_collection_mint
+filename = "../../fixtures/scenarios/nft_1_collection_mint.json"
+
+[[test.validator.account]]
+address = "G9So1EmtQDVuUexpJtXVkgvqWKNRM5vByJZKY6vnw6PJ"  # nft_2_collection_mint
+filename = "../../fixtures/scenarios/nft_2_collection_mint.json"
+
+[[test.validator.account]]
+address = "9m3SkHXB1UeTPmemAUVkp1PaMyhFt26jELktvx7rCuLN"  # nft_2_collection_metadata
+filename = "../../fixtures/scenarios/nft_2_collection_metadata.json"
+
+[[test.validator.account]]
+address = "EsdcZ5H42yJfMX9XUsrsKi2gsdxpxJoTqpEZsacX81vH"  # nft_2_collection_master_edition
+filename = "../../fixtures/scenarios/nft_2_collection_master_edition.json"
 
 # Additional sunrise accounts
 [[test.validator.account]]
 address = "A9bNHVY3XReubhkuo2dkJnb9QS8qJJB72EafHAFDHE1A"  # Epoch report account
-filename = "../../fixtures/scenarios/epoch_report_account.json"
+filename = "../../fixtures/scenarios/epoch1/epoch_report_account.json"
 
 
 # Marinade liquidity pool accounts needed for recoverTickets

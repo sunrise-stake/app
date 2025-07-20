@@ -1,7 +1,7 @@
 import {
   type SunriseStakeClient,
   getStakePoolAccount,
-} from "../client/src/index.js";
+} from "@sunrisestake/client";
 import {
   Keypair,
   type PublicKey,

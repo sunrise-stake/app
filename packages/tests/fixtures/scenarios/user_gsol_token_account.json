@@ -1,14 +1,14 @@
 {
-  "pubkey": "9xhVTV98UUcLX9kLTMuoohM8bqNCsZANrMWQmkD9ENNu",
+  "pubkey": "poLisWXnNRwC6oBu1vHiuKQzFjGL4XDSu4g9qjz9qVk",
   "account": {
-    "lamports": 2039280,
+    "lamports": 3952520861,
     "data": [
-      "CjcVdST1eo+VkNu1grvek6noFXndSAqAtiujRJzOUv0X/fzdjsTEBN69b3R9PbEGuyE4dxsrMEc8yAslaKeIIABaYgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "AQAAAJvUnbP6eNZA25sncukIzUscGjXLMbIIWfZLyB5xYkjoHvpWuqLlfwAIAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
       "base64"
     ],
     "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
     "executable": false,
     "rentEpoch": 18446744073709551615,
-    "space": 165
+    "space": 82
   }
 }
