@@ -60,7 +60,7 @@ describe("unlock-recover-tickets-fails", () => {
 
   it("can unlock gSOL even when recoverTickets fails", async () => {
     log("Attempting to unlock gSOL...");
-    
+
     // This test uses mainnet state where recoverTickets is expected to fail
     // (e.g., due to missing ticket accounts). The unlock should still proceed
     // because stopOnFirstFailure is set to false.

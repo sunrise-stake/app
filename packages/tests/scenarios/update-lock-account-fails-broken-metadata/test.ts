@@ -60,7 +60,7 @@ describe("update-lock-account-fails-broken-metadata", () => {
 
   it("can unlock gSOL even when updateLockAccount fails due to broken metadata", async () => {
     log("Attempting to unlock gSOL with broken NFT metadata...");
-    
+
     // This test uses a user with broken NFT metadata where updateLockAccount is expected to fail.
     // The unlock should still proceed because stopOnFirstFailure is set to false.
     const transactions = await client.unlockGSol();

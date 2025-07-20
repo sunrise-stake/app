@@ -55,32 +55,34 @@ describe("update-nft-fallback", () => {
     clientsInitialUnlockedGSolBalance = new BN(
       (await client.balance()).gsolBalance.amount
     ).toNumber();
-    
+
     initialUpdatedToEpoch = details.lockDetails?.updatedToEpoch.toNumber() ?? 0;
 
     log("Initial locked gSOL balance:", clientsInitialLockedGSolBalance);
     log("Initial unlocked gSOL balance:", clientsInitialUnlockedGSolBalance);
     log("Initial updatedToEpoch:", initialUpdatedToEpoch);
     log("Current epoch:", details.currentEpoch.epoch);
-    
+
     // Verify that the lock account needs updating
     if (initialUpdatedToEpoch >= details.currentEpoch.epoch) {
-      throw new Error("Lock account is already up to date. This scenario requires an outdated lock account.");
+      throw new Error(
+        "Lock account is already up to date. This scenario requires an outdated lock account."
+      );
     }
   });
 
   it("falls back to updateLockAccountWithoutNft when NFT update fails", async () => {
     log("Attempting to unlock gSOL with NFT fallback...");
-    
+
     // This test assumes the NFT account is invalid (burned/transferred)
     // The updateLockAccount should catch the error and fall back to updateLockAccountWithoutNft
-    
+
     const transactions = await client.unlockGSol();
     log("Number of transactions:", transactions.length);
-    
+
     // We expect at least 2 transactions (update + unlock)
     chai.expect(transactions.length).to.be.at.least(2);
-    
+
     // Send all transactions - should succeed despite NFT issue
     await client.sendAndConfirmTransactions(
       transactions,
@@ -89,16 +91,17 @@ describe("update-nft-fallback", () => {
       true,
       true // stopOnFirstFailure = true, but fallback should handle NFT error
     );
-    
+
     // Verify the lock account was updated (even without NFT)
     const postDetails = await client.details();
-    const newUpdatedToEpoch = postDetails.lockDetails?.updatedToEpoch.toNumber() ?? 0;
+    const newUpdatedToEpoch =
+      postDetails.lockDetails?.updatedToEpoch.toNumber() ?? 0;
     log("New updatedToEpoch:", newUpdatedToEpoch);
     log("Current epoch:", postDetails.currentEpoch.epoch);
-    
+
     // The lock account should now be updated to the current epoch
     chai.expect(newUpdatedToEpoch).to.equal(postDetails.currentEpoch.epoch);
-    
+
     // Assert the new gsol balance is equal to the sum of initial locked and unlocked gsol balances
     const newGSolBalance = new BN(
       (await client.balance()).gsolBalance.amount
@@ -112,7 +115,7 @@ describe("update-nft-fallback", () => {
       newGSolBalance,
       clientsInitialLockedGSolBalance + clientsInitialUnlockedGSolBalance
     );
-    
+
     // Verify the lock account is now unlocked
     const finalLockDetails = postDetails.lockDetails;
     chai.expect(finalLockDetails).to.be.null;

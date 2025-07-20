@@ -1,9 +1,6 @@
 use crate::error::ErrorCode;
 use crate::state::{EpochReportAccount, LockAccount, State};
-use crate::utils::seeds::{
-    EPOCH_REPORT_ACCOUNT, LOCK_ACCOUNT,
-    LOCK_TOKEN_ACCOUNT,
-};
+use crate::utils::seeds::{EPOCH_REPORT_ACCOUNT, LOCK_ACCOUNT, LOCK_TOKEN_ACCOUNT};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
 
@@ -47,7 +44,9 @@ pub struct UpdateLockAccountWithoutNft<'info> {
     pub epoch_report_account: Box<Account<'info, EpochReportAccount>>,
 }
 
-pub fn update_lock_account_without_nft_handler(ctx: Context<UpdateLockAccountWithoutNft>) -> Result<()> {
+pub fn update_lock_account_without_nft_handler(
+    ctx: Context<UpdateLockAccountWithoutNft>,
+) -> Result<()> {
     ctx.accounts.lock_account.updated_to_epoch = Some(Clock::get().unwrap().epoch);
 
     ctx.accounts.lock_account.calculate_and_add_yield_accrued(

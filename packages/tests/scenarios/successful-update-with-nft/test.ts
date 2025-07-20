@@ -52,31 +52,33 @@ describe("successful-update-with-nft", () => {
     clientsInitialUnlockedGSolBalance = new BN(
       (await client.balance()).gsolBalance.amount
     ).toNumber();
-    
+
     initialUpdatedToEpoch = details.lockDetails?.updatedToEpoch.toNumber() ?? 0;
 
     log("Initial locked gSOL balance:", clientsInitialLockedGSolBalance);
     log("Initial unlocked gSOL balance:", clientsInitialUnlockedGSolBalance);
     log("Initial updatedToEpoch:", initialUpdatedToEpoch);
     log("Current epoch:", details.currentEpoch.epoch);
-    
+
     // Wait for next epoch to ensure the lock account is behind the current epoch
     log("Waiting for epoch 2 to ensure lock account is outdated...");
     await waitForNextEpoch(client);
     await waitForNextEpoch(client);
-    
+
     // Verify that the lock account now needs updating
     const currentEpochAfterWait = (await client.details()).currentEpoch.epoch;
     log("Current epoch after wait:", currentEpochAfterWait);
-    
+
     if (initialUpdatedToEpoch >= currentEpochAfterWait) {
-      throw new Error("Lock account is already up to date. This scenario requires an outdated lock account.");
+      throw new Error(
+        "Lock account is already up to date. This scenario requires an outdated lock account."
+      );
     }
   });
 
   it("can successfully update lock account with NFT and unlock gSOL", async () => {
     log("Attempting to unlock gSOL with successful update...");
-    
+
     // Get the transaction array - should include recoverTickets, updateLockAccount, and unlock
     const transactions = await client.unlockGSol();
 
@@ -93,7 +95,7 @@ describe("successful-update-with-nft", () => {
         });
       });
     });
-    
+
     // Send all transactions - all should succeed
     await client.sendAndConfirmTransactions(
       transactions,
@@ -102,16 +104,17 @@ describe("successful-update-with-nft", () => {
       true,
       true // stopOnFirstFailure = true, all transactions should succeed
     );
-    
+
     // Verify the lock account was updated
     const postDetails = await client.details();
-    const newUpdatedToEpoch = postDetails.lockDetails?.updatedToEpoch.toNumber() ?? 0;
+    const newUpdatedToEpoch =
+      postDetails.lockDetails?.updatedToEpoch.toNumber() ?? 0;
     log("New updatedToEpoch:", newUpdatedToEpoch);
     log("Current epoch:", postDetails.currentEpoch.epoch);
-    
+
     // The lock account should now be updated to the current epoch
     chai.expect(newUpdatedToEpoch).to.equal(postDetails.currentEpoch.epoch);
-    
+
     // Assert the new gsol balance is equal to the sum of initial locked and unlocked gsol balances
     const newGSolBalance = new BN(
       (await client.balance()).gsolBalance.amount
@@ -125,7 +128,7 @@ describe("successful-update-with-nft", () => {
       newGSolBalance,
       clientsInitialLockedGSolBalance + clientsInitialUnlockedGSolBalance
     );
-    
+
     // Verify the lock account is now unlocked
     const finalLockDetails = postDetails.lockDetails;
     chai.expect(finalLockDetails).to.be.null;

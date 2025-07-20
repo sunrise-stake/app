@@ -163,30 +163,30 @@ export class LockClient {
       throw new Error(
         "LockClient not initialized or impact nft state disabled"
       );
-      const nftMintAuthority = findImpactNFTMintAuthority(this.config)[0];
-      const nftMint = findImpactNFTMint(this.config, this.authority)[0];
+    const nftMintAuthority = findImpactNFTMintAuthority(this.config)[0];
+    const nftMint = findImpactNFTMint(this.config, this.authority)[0];
 
-      const impactNftAccounts = await this.impactNFTClient.getMintNftAccounts(
-        nftMint,
-        this.authority // holder
-      );
+    const impactNftAccounts = await this.impactNFTClient.getMintNftAccounts(
+      nftMint,
+      this.authority // holder
+    );
 
-      return {
-        impactNftProgram: impactNftAccounts.program,
-        tokenMetadataProgram: impactNftAccounts.tokenMetadataProgram,
-        impactNftState: this.config.impactNFTStateAddress,
-        nftMint,
-        nftMintAuthority,
-        nftTokenAuthority: impactNftAccounts.tokenAuthority,
-        nftMetadata: impactNftAccounts.metadata,
-        nftHolderTokenAccount: impactNftAccounts.userTokenAccount,
-        nftMasterEdition: impactNftAccounts.masterEdition,
-        offsetMetadata: impactNftAccounts.offsetMetadata,
-        offsetTiers: impactNftAccounts.offsetTiers,
-        nftCollectionMint: impactNftAccounts.collectionMint,
-        nftCollectionMetadata: impactNftAccounts.collectionMetadata,
-        nftCollectionMasterEdition: impactNftAccounts.collectionMasterEdition,
-      };
+    return {
+      impactNftProgram: impactNftAccounts.program,
+      tokenMetadataProgram: impactNftAccounts.tokenMetadataProgram,
+      impactNftState: this.config.impactNFTStateAddress,
+      nftMint,
+      nftMintAuthority,
+      nftTokenAuthority: impactNftAccounts.tokenAuthority,
+      nftMetadata: impactNftAccounts.metadata,
+      nftHolderTokenAccount: impactNftAccounts.userTokenAccount,
+      nftMasterEdition: impactNftAccounts.masterEdition,
+      offsetMetadata: impactNftAccounts.offsetMetadata,
+      offsetTiers: impactNftAccounts.offsetTiers,
+      nftCollectionMint: impactNftAccounts.collectionMint,
+      nftCollectionMetadata: impactNftAccounts.collectionMetadata,
+      nftCollectionMasterEdition: impactNftAccounts.collectionMasterEdition,
+    };
   }
 
   public async lockGSol(
@@ -274,16 +274,23 @@ export class LockClient {
         new BN(offset)
       );
 
-      return this.updateLockAccountWithNft(allImpactNFTAccounts, updateAccounts);
+      return await this.updateLockAccountWithNft(
+        allImpactNFTAccounts,
+        updateAccounts
+      );
     } catch (error) {
-      console.warn("Error retrieving NFT accounts - NFT likely moved or burned")
-      return this.updateLockAccountWithoutNft()
+      console.warn(
+        "Error retrieving NFT accounts - NFT likely moved or burned"
+      );
+      return this.updateLockAccountWithoutNft();
     }
   }
 
   private async updateLockAccountWithNft(
     allImpactNFTAccounts: ImpactNFTAccounts,
-    updateNftAccounts: Awaited<ReturnType<typeof ImpactNftClient.prototype.getUpdateNftAccounts>>,
+    updateNftAccounts: Awaited<
+      ReturnType<typeof ImpactNftClient.prototype.getUpdateNftAccounts>
+    >
   ): Promise<Transaction> {
     if (!this.impactNFTClient) throw new Error("LockClient not initialized");
     const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
@@ -304,7 +311,6 @@ export class LockClient {
       this.impactNFTClient.getMetadataAddress(newCollectionMint);
     const newCollectionMasterEdition =
       this.impactNFTClient.getMasterEditionAddress(newCollectionMint);
-
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.updateLockAccount>["accounts"]
@@ -330,7 +336,7 @@ export class LockClient {
       // nftNewCollectionMasterEdition: updateAccounts.newCollectionMasterEdition,
       nftNewCollectionMint: newCollectionMint,
       nftNewCollectionMetadata: newCollectionMetadata,
-      nftNewCollectionMasterEdition: newCollectionMasterEdition
+      nftNewCollectionMasterEdition: newCollectionMasterEdition,
     };
 
     return this.program.methods
@@ -346,7 +352,9 @@ export class LockClient {
     });
 
     type Accounts = Parameters<
-      ReturnType<typeof this.program.methods.updateLockAccountWithoutNft>["accounts"]
+      ReturnType<
+        typeof this.program.methods.updateLockAccountWithoutNft
+      >["accounts"]
     >[0];
 
     const accounts: Accounts = {
