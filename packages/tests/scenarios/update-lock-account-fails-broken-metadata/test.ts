@@ -64,24 +64,14 @@ describe("update-lock-account-fails-broken-metadata", () => {
     // This test uses a user with broken NFT metadata where updateLockAccount is expected to fail.
     // The unlock should still proceed because stopOnFirstFailure is set to false.
     const transactions = await client.unlockGSol();
-    log("Number of transactions:", transactions.length);
-    
-    const results = await client.sendAndConfirmTransactions(
+
+    await client.sendAndConfirmTransactions(
       transactions,
       undefined,
       undefined,
       true,
       false // stopOnFirstFailure = false to allow unlock to proceed even if updateLockAccount fails
     );
-    
-    // Log the results to see what happened
-    results.forEach((result, index) => {
-      if (result.error) {
-        log(`Transaction ${index} failed with error:`, result.error);
-      } else {
-        log(`Transaction ${index} succeeded with signature:`, result.signature);
-      }
-    });
 
     // assert the new gsol balance is equal to the sum of initial locked and unlocked gsol balances
     const newGSolBalance = new BN(
