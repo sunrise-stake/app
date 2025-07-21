@@ -6,7 +6,7 @@
     "@brokerloop/ttlcache": "^3.2.3",
     "@headlessui/react": "^1.7.12",
     "@heroicons/react": "^2.0.13",
-    "@metaplex-foundation/js": "^0.18.3",
+    "@metaplex-foundation/js": "^0.20.1",
     "@popperjs/core": "^2.11.6",
     "@solana/pay": "^0.2.5",
     "@solana/spl-token": "^0.4.9",

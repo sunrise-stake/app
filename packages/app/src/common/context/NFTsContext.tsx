@@ -47,7 +47,7 @@ const nftFilter = (query: NFTQuery) => (nft: UnloadedNFT) => {
   } else if (query.updateAuthority) {
     return nft.updateAuthorityAddress.equals(query.updateAuthority);
   } else if (query.collection) {
-    return nft.collection?.address.equals(query.collection);
+    return nft.collection?.address.equals(query.collection) ?? false;
   } else {
     return false;
   }
@@ -193,7 +193,8 @@ interface NFTsContextValue {
 const NFTsContext = createContext<NFTsContextValue>({
   nfts: [],
   refresh: async () => {},
-  loadNFTMetadata: async (nft: UnloadedNFT) => Promise.resolve(nft),
+  loadNFTMetadata: async (nft: UnloadedNFT) =>
+    Promise.resolve(nft as GenericNFT),
 });
 
 /**
@@ -233,7 +234,7 @@ export const NFTsProvider: FC<{ children: ReactNode }> = ({ children }) => {
    * @param nft
    */
   const loadNFTMetadata = async (nft: UnloadedNFT): Promise<GenericNFT> => {
-    if (nft.jsonLoaded) return nft;
+    if (nft.jsonLoaded) return nft as GenericNFT;
 
     const nftClient = Metaplex.make(connection).nfts();
     const loadedNFT = await nftClient.load({
