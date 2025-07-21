@@ -1,7 +1,7 @@
 {
   "installCommand": "yarn install --network-concurrency 2",
   "buildCommand": "yarn build",
-  "outputDirectory": "packages/app/build",
+  "outputDirectory": "packages/app/dist",
   "headers": [
     {
       "source": "/actions.json",
