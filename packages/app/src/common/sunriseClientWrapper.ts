@@ -24,7 +24,7 @@ const isDepositIx = (ix: TransactionInstruction): boolean =>
   ix.programId.equals(PROGRAM_ID);
 
 const stage =
-  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
+  (import.meta.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
 
 const addReferrer = (): ((tx: Transaction) => Transaction) => {
@@ -109,8 +109,8 @@ export class SunriseClientWrapper {
       {}
     );
     const client = await SunriseStakeClient.get(provider, stage, {
-      verbose: Boolean(process.env.REACT_APP_VERBOSE),
-      addPriorityFee: process.env.REACT_APP_ADD_PRIO_FEE === "true",
+      verbose: Boolean(import.meta.env.REACT_APP_VERBOSE),
+      addPriorityFee: import.meta.env.REACT_APP_ADD_PRIO_FEE === "true",
     });
 
     return new SunriseClientWrapper(

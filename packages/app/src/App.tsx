@@ -21,14 +21,14 @@ import { Routes } from "./Routes";
 import { NFTsProvider } from "./common/context/NFTsContext";
 import { cachedRPCFetch } from "./api/cachedRPCFetch";
 
-require("./solana-wallet-adapter.css");
+import "./solana-wallet-adapter.css";
 
 const App: FC = () => {
   const network =
-    process.env.REACT_APP_SOLANA_NETWORK !== null
-      ? (process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork)
+    import.meta.env.REACT_APP_SOLANA_NETWORK !== null
+      ? (import.meta.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork)
       : WalletAdapterNetwork.Devnet;
-  const endpoint = process.env.REACT_APP_RPC_URL ?? clusterApiUrl(network);
+  const endpoint = import.meta.env.REACT_APP_RPC_URL ?? clusterApiUrl(network);
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),

@@ -1,10 +1,5 @@
 import { type PublicKey } from "@solana/web3.js";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
-import {
-  type Profile as CivicProfile,
-  CivicProfile as CivicSDK,
-} from "@civic/profile";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { toShortBase58 } from "../utils";
 
 export interface Profile {
@@ -23,35 +18,12 @@ const truncatedAddress = (
 };
 
 export const useProfile = (address?: PublicKey): Profile => {
-  const { connection } = useConnection();
   const { publicKey: connectedWallet } = useWallet();
-  const [profile, setProfile] = useState<Profile>({
-    address: address?.toBase58() ?? "",
-    name: truncatedAddress(address) ?? "",
-    image: DEFAULT_IMAGE_URL,
-  });
-  const [civicProfile, setCivicProfile] = useState<CivicProfile>();
-
   const profileAddress = address ?? connectedWallet;
 
-  useEffect(() => {
-    if (!profileAddress) return;
-    CivicSDK.get(profileAddress.toBase58(), {
-      solana: {
-        connection,
-      },
-    })
-      .then(setCivicProfile)
-      .catch(console.error);
-  }, [profileAddress]);
-
-  useEffect(() => {
-    setProfile({
-      address: profileAddress?.toBase58() ?? "",
-      name: civicProfile?.name?.value ?? truncatedAddress(profileAddress) ?? "",
-      image: civicProfile?.image?.url ?? DEFAULT_IMAGE_URL,
-    });
-  }, [civicProfile]);
-
-  return profile;
+  return {
+    address: profileAddress?.toBase58() ?? "",
+    name: truncatedAddress(profileAddress) ?? "",
+    image: DEFAULT_IMAGE_URL,
+  };
 };

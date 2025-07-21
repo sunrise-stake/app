@@ -6,7 +6,7 @@ import {
 } from "./types";
 import { PublicKey } from "@solana/web3.js";
 
-const GET_NEIGHBOURS_URL = process.env.REACT_APP_GET_NEIGHBOURS_URL ?? "";
+const GET_NEIGHBOURS_URL = import.meta.env.REACT_APP_GET_NEIGHBOURS_URL ?? "";
 
 const fromRawNeighbourEntry = (
   rawEntry: RawNeighbourEntry
