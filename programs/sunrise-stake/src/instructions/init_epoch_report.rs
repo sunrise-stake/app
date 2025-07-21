@@ -4,7 +4,6 @@ use crate::utils::marinade::CalculateExtractableYieldProperties;
 use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
-use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -23,7 +22,14 @@ pub struct InitEpochReport<'info> {
 
     pub update_authority: Signer<'info>,
 
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    /// CHECK: Validated in handler using deserialize_marinade_state()
+    /// We use UncheckedAccount here instead of the typed MarinadeState account because:
+    /// 1. The on-chain Marinade account has discriminator for "account:State"
+    /// 2. But Anchor's declare_program! generates type "MarinadeState" expecting "account:MarinadeState"
+    /// 3. This would cause AccountDiscriminatorMismatch errors with typed accounts
+    ///
+    /// See utils/marinade.rs::deserialize_marinade_state() for full explanation
+    pub marinade_state: UncheckedAccount<'info>,
 
     /// CHECK: Must match state
     pub blaze_state: UncheckedAccount<'info>,
@@ -104,7 +110,7 @@ pub fn init_epoch_report_handler<'info>(
     ctx.accounts.epoch_report_account.tickets = 0;
     ctx.accounts.epoch_report_account.total_ordered_lamports = 0;
     ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
-    ctx.accounts.epoch_report_account.bump = *ctx.bumps.get("epoch_report_account").unwrap();
+    ctx.accounts.epoch_report_account.bump = ctx.bumps.epoch_report_account;
 
     let calculate_yield_accounts: CalculateExtractableYieldProperties = ctx.accounts.deref().into();
     let extractable_yield = marinade::calculate_extractable_yield(&calculate_yield_accounts)?;

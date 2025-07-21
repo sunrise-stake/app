@@ -1,11 +1,11 @@
+#![allow(unexpected_cfgs)]
 #![allow(clippy::result_large_err)]
+#![allow(deprecated)]
 mod sunrise_spl;
 mod utils;
 
-use crate::utils::metaplex::update_metadata_account;
 use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
 use sunrise_spl::*;
 
 pub mod state;
@@ -18,6 +18,8 @@ pub mod instructions;
 use instructions::*;
 
 declare_id!("sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6");
+declare_program!(impact_nft);
+declare_program!(marinade);
 
 #[program]
 pub mod sunrise_stake {
@@ -49,10 +51,15 @@ pub mod sunrise_stake {
     pub fn trigger_pool_rebalance<'info>(
         ctx: Context<'_, '_, '_, 'info, TriggerPoolRebalance<'info>>,
         epoch: u64,
-        index: u64,
+        order_unstake_ticket_index: u64,
         order_unstake_ticket_account_bump: u8,
     ) -> Result<()> {
-        trigger_pool_rebalance_handler(ctx, epoch, index, order_unstake_ticket_account_bump)
+        trigger_pool_rebalance_handler(
+            ctx,
+            epoch,
+            order_unstake_ticket_index,
+            order_unstake_ticket_account_bump,
+        )
     }
 
     pub fn recover_tickets<'info>(
@@ -104,6 +111,12 @@ pub mod sunrise_stake {
         ctx: Context<'_, '_, '_, 'info, UpdateLockAccount<'info>>,
     ) -> Result<()> {
         update_lock_account_handler(ctx)
+    }
+
+    pub fn update_lock_account_without_nft<'info>(
+        ctx: Context<'_, '_, '_, 'info, UpdateLockAccountWithoutNft<'info>>,
+    ) -> Result<()> {
+        update_lock_account_without_nft_handler(ctx)
     }
 
     pub fn lock_gsol<'info>(
@@ -158,8 +171,7 @@ pub mod sunrise_stake {
         name: String,
         symbol: String,
     ) -> Result<()> {
-        msg!("Update Metadata for gSol");
-        update_metadata_account(ctx.accounts, uri, name, symbol)
+        update_metadata_handler(ctx, uri, name, symbol)
     }
 
     pub fn init_epoch_report<'info>(
@@ -168,25 +180,4 @@ pub mod sunrise_stake {
     ) -> Result<()> {
         init_epoch_report_handler(ctx, extracted_yield)
     }
-}
-
-#[allow(dead_code)]
-pub fn check_mint_supply(state: &State, gsol_mint: &Account<Mint>) -> Result<()> {
-    require_keys_eq!(state.gsol_mint, gsol_mint.key());
-    let expected_total = state
-        .blaze_minted_gsol
-        .checked_add(state.marinade_minted_gsol)
-        .unwrap();
-    msg!("blaze_minted_gsol: {}", state.blaze_minted_gsol);
-    msg!("marinade_minted_gsol: {}", state.marinade_minted_gsol);
-    msg!("expected total: {}", expected_total);
-    msg!("actual supply: {}", gsol_mint.supply);
-
-    // Should be impossible but still
-    require_eq!(
-        expected_total,
-        gsol_mint.supply,
-        ErrorCode::UnexpectedMintSupply
-    );
-    Ok(())
 }

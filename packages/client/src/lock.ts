@@ -1,5 +1,4 @@
 import {
-  findEpochReportAccount,
   findImpactNFTMint,
   findImpactNFTMintAuthority,
   findLockAccount,
@@ -11,26 +10,19 @@ import {
 import {
   ComputeBudgetProgram,
   type PublicKey,
-  SystemProgram,
-  SYSVAR_CLOCK_PUBKEY,
   type Transaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
 import { type LockAccount } from "./types/LockAccount.js";
-import * as anchor from "@coral-xyz/anchor";
 import {
   type AccountNamespace,
   type AnchorProvider,
   type Program,
 } from "@coral-xyz/anchor";
 import { type SunriseStake } from "./types/sunrise_stake.js";
-import {
-  type Account as TokenAccount,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+import { type Account as TokenAccount } from "@solana/spl-token";
 import BN from "bn.js";
 import { ImpactNftClient, type Level } from "@sunrisestake/impact-nft-client";
-import { type EnvironmentConfig } from "./constants.js";
 import { getEpochReportAccount } from "./marinade.js";
 
 export interface LockAccountSummary {
@@ -199,11 +191,9 @@ export class LockClient {
 
   public async lockGSol(
     sourceGSolTokenAccount: PublicKey,
-    impactNFTConfig: EnvironmentConfig["impactNFT"],
     lamports: BN
   ): Promise<Transaction> {
     if (!this.impactNFTClient) throw new Error("LockClient not initialized");
-    const [epochReportAccount] = findEpochReportAccount(this.config);
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.lockGsol>["accounts"]
@@ -223,11 +213,6 @@ export class LockClient {
         .accounts({
           state: this.config.stateAddress,
           authority: this.authority,
-          gsolMint: this.config.gsolMint,
-          lockAccount: this.lockAccountAddress,
-          lockGsolAccount: this.lockTokenAccountAddress,
-          systemProgram: SystemProgram.programId,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         })
         .instruction();
 
@@ -236,16 +221,9 @@ export class LockClient {
     const allImpactNFTAccounts = await this.getImpactNFTAccounts();
     const accounts: Accounts = {
       state: this.config.stateAddress,
-      gsolMint: this.config.gsolMint,
       authority: this.authority,
       sourceGsolAccount: sourceGSolTokenAccount,
-      lockGsolAccount: this.lockTokenAccountAddress,
       lockAccount: this.lockAccountAddress,
-      epochReportAccount,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      clock: SYSVAR_CLOCK_PUBKEY,
       ...allImpactNFTAccounts,
     };
 
@@ -285,17 +263,39 @@ export class LockClient {
 
   public async updateLockAccount(): Promise<Transaction> {
     if (!this.impactNFTClient) throw new Error("LockClient not initialized");
-    const [epochReportAccount] = findEpochReportAccount(this.config);
 
+    const allImpactNFTAccounts = await this.getImpactNFTAccounts();
+
+    const offset = await this.calculateUpdatedYieldAccrued();
+
+    try {
+      const updateAccounts = await this.impactNFTClient.getUpdateNftAccounts(
+        allImpactNFTAccounts.nftMint,
+        new BN(offset)
+      );
+
+      return await this.updateLockAccountWithNft(
+        allImpactNFTAccounts,
+        updateAccounts
+      );
+    } catch (error) {
+      console.warn(
+        "Error retrieving NFT accounts - NFT likely moved or burned"
+      );
+      return this.updateLockAccountWithoutNft();
+    }
+  }
+
+  private async updateLockAccountWithNft(
+    allImpactNFTAccounts: ImpactNFTAccounts,
+    updateNftAccounts: Awaited<
+      ReturnType<typeof ImpactNftClient.prototype.getUpdateNftAccounts>
+    >
+  ): Promise<Transaction> {
+    if (!this.impactNFTClient) throw new Error("LockClient not initialized");
     const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
       units: 300000,
     });
-
-    type Accounts = Parameters<
-      ReturnType<typeof this.program.methods.updateLockAccount>["accounts"]
-    >[0];
-
-    const allImpactNFTAccounts = await this.getImpactNFTAccounts();
 
     const offset = await this.calculateUpdatedYieldAccrued();
 
@@ -312,34 +312,25 @@ export class LockClient {
     const newCollectionMasterEdition =
       this.impactNFTClient.getMasterEditionAddress(newCollectionMint);
 
-    const updateAccounts = await this.impactNFTClient.getUpdateNftAccounts(
-      allImpactNFTAccounts.nftMint,
-      new BN(offset)
-    );
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.updateLockAccount>["accounts"]
+    >[0];
 
     const accounts: Accounts = {
       state: this.config.stateAddress,
-      gsolMint: this.config.gsolMint,
       authority: this.authority,
-      lockGsolAccount: this.lockTokenAccountAddress,
-      lockAccount: this.lockAccountAddress,
-      epochReportAccount,
-      impactNftProgram: allImpactNFTAccounts.impactNftProgram,
       impactNftState: allImpactNFTAccounts.impactNftState,
-      tokenProgram: TOKEN_PROGRAM_ID,
       tokenMetadataProgram: allImpactNFTAccounts.tokenMetadataProgram,
       // FIXME(redundant): Remove from here and the impactNft program.
       // It's neither used nor checked in the updateNFT instruction.
       nftTokenAccount: allImpactNFTAccounts.nftHolderTokenAccount,
-      nftMint: allImpactNFTAccounts.nftMint,
-      nftMintAuthority: allImpactNFTAccounts.nftMintAuthority,
       nftTokenAuthority: allImpactNFTAccounts.nftTokenAuthority,
       nftMetadata: allImpactNFTAccounts.nftMetadata,
       offsetMetadata: allImpactNFTAccounts.offsetMetadata,
       offsetTiers: allImpactNFTAccounts.offsetTiers,
-      nftCollectionMint: updateAccounts.collectionMint,
-      nftCollectionMetadata: updateAccounts.collectionMetadata,
-      nftCollectionMasterEdition: updateAccounts.collectionMasterEdition,
+      nftCollectionMint: updateNftAccounts.collectionMint,
+      nftCollectionMetadata: updateNftAccounts.collectionMetadata,
+      nftCollectionMasterEdition: updateNftAccounts.collectionMasterEdition,
       // nftNewCollectionMint: updateAccounts.newCollectionMint,
       // nftNewCollectionMetadata: updateAccounts.newCollectionMetadata,
       // nftNewCollectionMasterEdition: updateAccounts.newCollectionMasterEdition,
@@ -355,13 +346,34 @@ export class LockClient {
       .transaction();
   }
 
+  private async updateLockAccountWithoutNft(): Promise<Transaction> {
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 300000,
+    });
+
+    type Accounts = Parameters<
+      ReturnType<
+        typeof this.program.methods.updateLockAccountWithoutNft
+      >["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.config.stateAddress,
+      authority: this.authority,
+    };
+
+    return this.program.methods
+      .updateLockAccountWithoutNft()
+      .accounts(accounts)
+      .preInstructions([modifyComputeUnits])
+      .transaction();
+  }
+
   public async addLockedGSol(
     sourceGSolTokenAccount: PublicKey,
-    impactNFTConfig: EnvironmentConfig["impactNFT"],
     lamports: BN
   ): Promise<Transaction> {
     if (!this.impactNFTClient) throw new Error("LockClient not initialized");
-    const [epochReportAccount] = findEpochReportAccount(this.config);
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.lockGsol>["accounts"]
@@ -377,16 +389,9 @@ export class LockClient {
     const allImpactNFTAccounts = await this.getImpactNFTAccounts();
     const accounts: Accounts = {
       state: this.config.stateAddress,
-      gsolMint: this.config.gsolMint,
       authority: this.authority,
       sourceGsolAccount: sourceGSolTokenAccount,
-      lockGsolAccount: this.lockTokenAccountAddress,
       lockAccount: this.lockAccountAddress,
-      epochReportAccount,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      clock: SYSVAR_CLOCK_PUBKEY,
       ...allImpactNFTAccounts,
     };
 
@@ -400,24 +405,14 @@ export class LockClient {
   public async unlockGSol(
     targetGSolTokenAccount: PublicKey
   ): Promise<Transaction> {
-    const [epochReportAccount] = findEpochReportAccount(this.config);
-
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.unlockGsol>["accounts"]
     >[0];
 
     const accounts: Accounts = {
       state: this.config.stateAddress,
-      gsolMint: this.config.gsolMint,
       authority: this.authority,
       targetGsolAccount: targetGSolTokenAccount,
-      lockGsolAccount: this.lockTokenAccountAddress,
-      lockAccount: this.lockAccountAddress,
-      epochReportAccount,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-      clock: SYSVAR_CLOCK_PUBKEY,
     };
 
     return this.program.methods.unlockGsol().accounts(accounts).transaction();

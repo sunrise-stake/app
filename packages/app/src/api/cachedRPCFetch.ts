@@ -25,7 +25,10 @@ const requestToKey = (url: RequestInfo | URL, options: RequestInit): string => {
   return `${JSON.stringify(url)}${JSON.stringify(parsedBody)}`;
 };
 
-export const cachedRPCFetch: typeof fetch = async (url, options) => {
+export const cachedRPCFetch = async (
+  url: RequestInfo,
+  options: RequestInit | undefined
+): Promise<Response> => {
   if (options && cacheableRequest(options)) {
     const cacheKey = requestToKey(url, options);
     const cachedResponse = cache.get(cacheKey);

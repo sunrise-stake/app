@@ -1,0 +1,168 @@
+@startuml unlock-flow
+!theme cerulean
+title gSOL Unlock Control Flow
+
+start
+
+:User clicks "Unlock gSOL" button;
+
+if (canBeUnlocked()?) then (yes)
+  note right
+    Checks:
+    - lockDetails exists
+    - startEpoch < currentEpoch - 1
+  end note
+else (no)
+  :Show error:\n"Come back later\nLocked gSOL can be unlocked\nafter one full epoch";
+  stop
+endif
+
+:Call client.unlockGSol();
+
+partition "Step 1: Update Lock Account" {
+  :Try to update lock account;
+  
+  if (Lock account needs update?) then (yes)
+    :Call updateLockAccount();
+    note right
+      packages/client/src/lock.ts:264
+    end note
+    
+    if (Impact NFT client initialized?) then (yes)
+      :Get Impact NFT accounts;
+      note right
+        Line 267: getImpactNFTAccounts()
+        Will throw if NFT client not initialized
+      end note
+      
+      :Calculate updated yield accrued;
+      note right
+        Line 269: calculateUpdatedYieldAccrued()
+      end note
+      
+      #pink:Try to get update NFT accounts;
+      note right
+        Line 272: getUpdateNftAccounts()
+        This is in a try-catch block
+      end note
+      
+      if (Update NFT accounts retrieved successfully?) then (yes)
+        :Call updateLockAccountWithNft();
+        note right
+          Line 277: Success path
+        end note
+        
+        :Execute updateLockAccount instruction;
+        note right
+          On-chain actions:
+          - Update lock_account.updated_to_epoch
+          - Calculate and add yield accrued
+          - CPI to Impact NFT program
+          - Update NFT metadata with yield
+        end note
+      else (no)
+        :Log warning: "NFT likely moved or burned";
+        note right
+          Line 279: Error caught
+        end note
+        
+        :Call updateLockAccountWithoutNft();
+        note right
+          Line 280: Fallback to non-NFT update
+        end note
+        
+        :Execute updateLockAccountWithoutNft instruction;
+        note right
+          On-chain actions:
+          - Update lock_account.updated_to_epoch
+          - Calculate and add yield accrued
+          - No NFT update
+        end note
+      endif
+      
+      :Add update transaction to array;
+    else (no)
+      #red:Throw error: "LockClient not initialized";
+      note right
+        Line 265: This error will be caught
+        by the try-catch in unlockGSol()
+      end note
+    endif
+  else (no)
+    :Skip update\n(already current);
+  endif
+  
+  if (Update error occurred?) then (yes)
+    :Log warning and continue;
+    note right
+      packages/client/src/index.ts:1837-1843
+      Error caught but unlock continues
+    end note
+  else (no)
+  endif
+}
+
+partition "Step 2: Unlock gSOL" {
+  :Build unlock transaction;
+  note right
+    Required accounts:
+    - state
+    - gsol_mint
+    - authority (signer)
+    - lock_account
+    - target_gsol_account
+    - lock_gsol_account
+  end note
+  
+  :Execute unlockGsol instruction;
+  
+  if (Validation passes?) then (yes)
+    note right
+      Validates:
+      - lock_account.start_epoch is Some
+      - updated_to_epoch > start_epoch
+      - authority owns lock_account
+    end note
+    
+    :Get locked amount from lock_gsol_account;
+    
+    :Transfer all gSOL to target account;
+    note right
+      Uses PDA signing with
+      lock_account as authority
+    end note
+    
+    :Set lock_account.start_epoch = None;
+    note right
+      This marks the account
+      as fully unlocked
+    end note
+    
+    :Add unlock transaction to array;
+  else (no)
+    :Transaction fails;
+    :Return error;
+    stop
+  endif
+}
+
+:Return transaction array;
+
+:Send transactions to wallet;
+
+if (User approves?) then (yes)
+  :Submit to Solana network;
+  
+  if (Transactions succeed?) then (yes)
+    :Show success notification;
+    :Update UI state;
+  else (no)
+    :Show error notification;
+  endif
+else (no)
+  :Transaction cancelled;
+endif
+
+stop
+
+@enduml

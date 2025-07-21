@@ -1,7 +1,7 @@
 import {
   type SunriseStakeClient,
   getStakePoolAccount,
-} from "../client/src/index.js";
+} from "@sunrisestake/client";
 import {
   Keypair,
   type PublicKey,
@@ -31,13 +31,19 @@ export const burnGSol = async (amount: BN, client: SunriseStakeClient) => {
 
 export const expectStakerGSolTokenBalance = async (
   client: SunriseStakeClient,
-  amount: number | BN
+  amount: number | BN,
+  tolerance = 0
 ) => {
   const gsolBalance = await client.provider.connection.getTokenAccountBalance(
     client.stakerGSolTokenAccount!
   );
   log("Staker's gSOL balance", gsolBalance.value.uiAmount);
-  expect(gsolBalance.value.amount).to.equal(new BN(amount).toString());
+
+  if (tolerance > 0) {
+    expectAmount(new BN(gsolBalance.value.amount), amount, tolerance);
+  } else {
+    expect(gsolBalance.value.amount).to.equal(new BN(amount).toString());
+  }
 };
 
 export const expectAmount = (
@@ -46,20 +52,24 @@ export const expectAmount = (
   tolerance = 0
 ) => {
   const actualAmountBN = new BN(actualAmount);
-  const minExpected = new BN(expectedAmount).subn(tolerance);
-  const maxExpected = new BN(expectedAmount).addn(tolerance);
+  const expectedAmountBN = new BN(expectedAmount);
+
+  // Handle negative numbers by using absolute difference
+  const diff = actualAmountBN.sub(expectedAmountBN).abs();
+  const toleranceBN = new BN(tolerance);
 
   log(
     "Expecting",
     actualAmountBN.toString(),
-    "to be at least",
-    new BN(minExpected).toString(),
-    "and at most",
-    new BN(maxExpected).toString()
+    "to be within",
+    toleranceBN.toString(),
+    "of",
+    expectedAmountBN.toString(),
+    "(difference:",
+    diff.toString() + ")"
   );
 
-  expect(actualAmountBN.gte(minExpected)).to.be.true;
-  expect(actualAmountBN.lte(maxExpected)).to.be.true;
+  expect(diff.lte(toleranceBN)).to.be.true;
 };
 
 // LP Price = ( sol leg + msol leg * msol price ) / lp supply

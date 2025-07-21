@@ -10,3 +10,4 @@ yarn-error.log*
 
 test-ledger
 dist/
+.env

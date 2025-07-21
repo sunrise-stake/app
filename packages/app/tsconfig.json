@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
-    "paths": {
-      "react": ["node_modules/@types/react"]
-    },
-    "target": "es5",
+    "target": "ESNext",
     "lib": [
       "dom",
       "dom.iterable",
@@ -17,14 +14,16 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["vite/client", "node"]
   },
   "include": [
-    "src"
+    "src",
+    "vite.config.ts"
   ]
 }

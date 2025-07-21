@@ -10,7 +10,7 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { Keypair } from "@solana/web3.js";
 
 const stage =
-  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
+  (import.meta.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
 
 export const useYieldController = (): BuyAndBurnState | undefined => {

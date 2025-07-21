@@ -1,3 +1,4 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::state::{EpochReportAccount, State};
 use crate::utils::marinade;
 use crate::utils::marinade::CalculateExtractableYieldProperties;
@@ -5,8 +6,6 @@ use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
 use crate::ErrorCode;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -21,7 +20,8 @@ pub struct UpdateEpochReport<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    /// CHECK: Validated in handler
+    pub marinade_state: UncheckedAccount<'info>,
 
     /// CHECK: Must match state
     pub blaze_state: UncheckedAccount<'info>,

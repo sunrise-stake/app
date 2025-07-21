@@ -2,9 +2,9 @@
   "compilerOptions": {
     "lib": ["es2021", "dom"],
     "module": "ESNext",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "bundler",
     "outDir": "./dist",
-    "target": "es6",
+    "target": "es2020",
     "esModuleInterop": true,
     "strict": true,
     "sourceMap": true,
@@ -12,7 +12,8 @@
     "mapRoot": "./dist",
     "types": ["node"],
     "declaration": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
   "exclude": ["../../node_modules", "dist"]
