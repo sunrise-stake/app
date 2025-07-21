@@ -193,8 +193,7 @@ interface NFTsContextValue {
 const NFTsContext = createContext<NFTsContextValue>({
   nfts: [],
   refresh: async () => {},
-  loadNFTMetadata: async (nft: UnloadedNFT) =>
-    Promise.resolve(nft as GenericNFT),
+  loadNFTMetadata: async (nft: UnloadedNFT) => Promise.resolve(nft),
 });
 
 /**
@@ -234,7 +233,7 @@ export const NFTsProvider: FC<{ children: ReactNode }> = ({ children }) => {
    * @param nft
    */
   const loadNFTMetadata = async (nft: UnloadedNFT): Promise<GenericNFT> => {
-    if (nft.jsonLoaded) return nft as GenericNFT;
+    if (nft.jsonLoaded) return nft;
 
     const nftClient = Metaplex.make(connection).nfts();
     const loadedNFT = await nftClient.load({
