@@ -234,14 +234,27 @@ export const NFTsProvider: FC<{ children: ReactNode }> = ({ children }) => {
    * @param nft
    */
   const loadNFTMetadata = async (nft: UnloadedNFT): Promise<GenericNFT> => {
-    if (nft.jsonLoaded) return nft as GenericNFT;
+    console.log(
+      "[NFTsContext] Loading NFT metadata for",
+      nft.address.toBase58()
+    );
+    if (nft.jsonLoaded) {
+      console.log("[NFTsContext] NFT metadata already loaded", nft);
+      return nft as GenericNFT;
+    }
 
+    console.log("[NFTsContext] Loading NFT metadata from Metaplex", nft);
     const nftClient = Metaplex.make(connection).nfts();
     const loadedNFT = await nftClient.load({
       metadata: nft as Metadata,
       loadJsonMetadata: true,
     });
+    console.log(
+      "[NFTsContext] Loaded NFT metadata",
+      loadedNFT.address.toBase58()
+    );
     setNfts((nfts) => replaceInArray(nfts, nft, loadedNFT));
+    console.log("[NFTsContext] Updated NFT cache", loadedNFT);
     return loadedNFT;
   };
 
