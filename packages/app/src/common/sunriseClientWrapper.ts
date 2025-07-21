@@ -24,7 +24,7 @@ const isDepositIx = (ix: TransactionInstruction): boolean =>
   ix.programId.equals(PROGRAM_ID);
 
 const stage =
-  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
+  (import.meta.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
 
 const addReferrer = (): ((tx: Transaction) => Transaction) => {
@@ -109,8 +109,8 @@ export class SunriseClientWrapper {
       {}
     );
     const client = await SunriseStakeClient.get(provider, stage, {
-      verbose: Boolean(process.env.REACT_APP_VERBOSE),
-      addPriorityFee: process.env.REACT_APP_ADD_PRIO_FEE === "true",
+      verbose: Boolean(import.meta.env.REACT_APP_VERBOSE),
+      addPriorityFee: import.meta.env.REACT_APP_ADD_PRIO_FEE === "true",
     });
 
     return new SunriseClientWrapper(
@@ -210,15 +210,32 @@ export class SunriseClientWrapper {
       .then(async (txes) =>
         this.client.sendAndConfirmTransactions(txes, undefined, undefined, true)
       )
+      .then(({ signatures }) => signatures)
       .then(this.triggerUpdateAndReturn.bind(this));
   }
 
   async unlockGSol(): Promise<string[]> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
-    return this.client
+
+    const { signatures, errors } = await this.client
       .unlockGSol()
-      .then(async (txes) => this.client.sendAndConfirmTransactions(txes))
-      .then(this.triggerUpdateAndReturn.bind(this));
+      .then(async (txes) =>
+        this.client.sendAndConfirmTransactions(
+          txes,
+          undefined,
+          undefined,
+          true,
+          false
+        )
+      );
+
+    // If all transactions failed, throw the first error
+    if (signatures.length === 0 && errors.length > 0) {
+      throw errors[0];
+    }
+
+    // If at least one succeeded, trigger update and return results
+    return this.triggerUpdateAndReturn(signatures);
   }
 
   async updateLockAccount(): Promise<string[]> {
@@ -227,7 +244,8 @@ export class SunriseClientWrapper {
       .updateLockAccount()
       .then(async (txes) =>
         this.client.sendAndConfirmTransactions(txes, undefined, undefined, true)
-      );
+      )
+      .then(({ signatures }) => signatures);
   }
 
   internal(): SunriseStakeClient {

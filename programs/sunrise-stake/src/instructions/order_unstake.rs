@@ -1,3 +1,4 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::state::State;
 use crate::state::SunriseTicketAccount;
 use crate::utils::marinade;
@@ -7,8 +8,6 @@ use crate::utils::token::burn;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -19,8 +18,9 @@ pub struct OrderUnstake<'info> {
     )]
     pub state: Box<Account<'info, State>>,
 
+    /// CHECK: Validated in handler
     #[account()]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     #[account(mut)]
     pub msol_mint: Account<'info, Mint>,
@@ -63,7 +63,6 @@ pub struct OrderUnstake<'info> {
     /// Owner of the gSOL
     pub gsol_token_account_authority: Signer<'info>,
 
-    #[account(zero, rent_exempt = enforce)]
     /// CHECK: Checked in marinade program
     pub new_ticket_account: UncheckedAccount<'info>,
 
@@ -82,10 +81,10 @@ pub struct OrderUnstake<'info> {
 }
 
 pub fn order_unstake_handler(ctx: Context<OrderUnstake>, lamports: u64) -> Result<()> {
-    let msol_lamports = calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), lamports)?;
+    let marinade_state = marinade::deserialize_marinade_state(&ctx.accounts.marinade_state)?;
+    let msol_lamports = calc_msol_from_lamports(&marinade_state, lamports)?;
 
-    let lamports_converted =
-        calc_lamports_from_msol_amount(ctx.accounts.marinade_state.as_ref(), msol_lamports)?;
+    let lamports_converted = calc_lamports_from_msol_amount(&marinade_state, msol_lamports)?;
 
     msg!(
         "Ordering unstake of {} MSOL (in lamports {}, out lamports {})",

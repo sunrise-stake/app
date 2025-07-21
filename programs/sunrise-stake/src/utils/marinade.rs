@@ -1,16 +1,6 @@
 use crate::instructions::{InitEpochReport, RecoverTickets, UpdateEpochReport};
-use crate::{
-    utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
-    ClaimUnstakeTicket, Deposit, DepositStakeAccount, EpochReportAccount, ExtractToTreasury,
-    LiquidUnstake, OrderUnstake, State, TriggerPoolRebalance,
-};
-use anchor_lang::{
-    context::CpiContext,
-    prelude::*,
-    solana_program::{borsh::try_from_slice_unchecked, stake::state::StakeState},
-};
-use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::{
+use crate::marinade::{
+    accounts::MarinadeState,
     cpi::{
         accounts::{
             AddLiquidity as MarinadeAddLiquidity, Claim as MarinadeClaim,
@@ -24,12 +14,74 @@ use marinade_cpi::{
         remove_liquidity as marinade_remove_liquidity,
     },
     program::MarinadeFinance,
-    State as MarinadeState,
+    ID as MARINADE_PROGRAM_ID,
 };
+use crate::{
+    utils::{calc::proportional, seeds::MSOL_ACCOUNT, spl},
+    ClaimUnstakeTicket, Deposit, DepositStakeAccount, EpochReportAccount, ErrorCode,
+    ExtractToTreasury, LiquidUnstake, OrderUnstake, State, TriggerPoolRebalance,
+};
+use anchor_lang::{
+    context::CpiContext,
+    prelude::*,
+    solana_program::{borsh::try_from_slice_unchecked, stake::state::StakeState},
+};
+use anchor_spl::token::{Mint, Token, TokenAccount};
+
+/// Deserialize MarinadeState from an UncheckedAccount with custom discriminator checking
+///
+/// # Background
+///
+/// The Marinade program originally named their state account "State". When we import their
+/// IDL via `declare_program!`, Anchor generates a type called "MarinadeState" to avoid
+/// naming conflicts with our own "State" account.
+///
+/// However, the on-chain Marinade accounts still have the discriminator for "account:State"
+/// which is [216, 146, 107, 94, 104, 75, 182, 177] (first 8 bytes of SHA256("account:State")).
+/// The generated code expects the discriminator for "account:MarinadeState" which would be different.
+///
+/// # Solution
+///
+/// We use `UncheckedAccount` for all marinade_state fields in our instruction accounts and
+/// manually deserialize with the correct discriminator check. This allows us to:
+/// 1. Keep our own State account named "State" (important for backward compatibility)
+/// 2. Work with the existing on-chain Marinade accounts without errors
+/// 3. Avoid complex post-processing of IDLs or wrapper types
+///
+/// # Note
+///
+/// This approach is necessary as long as:
+/// - Marinade's on-chain account remains named "State"
+/// - We need to maintain our own "State" account name for backward compatibility
+/// - Anchor's `declare_program!` continues to rename conflicting account names
+pub fn deserialize_marinade_state(account: &UncheckedAccount) -> Result<MarinadeState> {
+    // Check owner
+    if account.owner != &MARINADE_PROGRAM_ID {
+        return Err(ErrorCode::InvalidProgramAccount.into());
+    }
+
+    // Check discriminator
+    let data = account.try_borrow_data()?;
+    const MARINADE_STATE_DISCRIMINATOR: [u8; 8] = [216, 146, 107, 94, 104, 75, 182, 177];
+
+    if data.len() < MARINADE_STATE_DISCRIMINATOR.len() {
+        return Err(ErrorCode::AccountDiscriminatorNotFound.into());
+    }
+
+    let given_disc = &data[..8];
+    if given_disc != MARINADE_STATE_DISCRIMINATOR {
+        return Err(ErrorCode::AccountDiscriminatorMismatch.into());
+    }
+
+    // Skip discriminator and deserialize
+    let mut data_slice = &data[8..];
+    MarinadeState::deserialize(&mut data_slice)
+        .map_err(|_| ErrorCode::AccountDidNotDeserialize.into())
+}
 
 pub struct GenericUnstakeProperties<'info> {
     state: Box<Account<'info, State>>,
-    marinade_state: Box<Account<'info, MarinadeState>>,
+    marinade_state: UncheckedAccount<'info>,
     msol_mint: Box<Account<'info, Mint>>,
     /// CHECK: Checked in marinade program
     liq_pool_sol_leg_pda: UncheckedAccount<'info>,
@@ -93,7 +145,7 @@ impl<'a> From<&ExtractToTreasury<'a>> for GenericUnstakeProperties<'a> {
 
 pub struct OrderUnstakeProperties<'info> {
     state: Box<Account<'info, State>>,
-    marinade_state: Box<Account<'info, MarinadeState>>,
+    marinade_state: UncheckedAccount<'info>,
     msol_mint: Account<'info, Mint>,
     burn_msol_from: Account<'info, TokenAccount>,
     burn_msol_authority: SystemAccount<'info>,
@@ -150,7 +202,7 @@ impl<'a> From<&TriggerPoolRebalance<'a>> for OrderUnstakeProperties<'a> {
 }
 
 pub struct ClaimUnstakeTicketProperties<'info> {
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
     /// CHECK: Checked in the marinade program
     pub reserve_pda: AccountInfo<'info>,
     /// CHECK: Checked in the marinade program
@@ -304,7 +356,7 @@ pub fn claim_unstake_ticket(accounts: &ClaimUnstakeTicketProperties) -> Result<(
 
 pub struct AddLiquidityProperties<'info> {
     state: Box<Account<'info, State>>,
-    marinade_state: Box<Account<'info, MarinadeState>>,
+    marinade_state: UncheckedAccount<'info>,
     liq_pool_mint: Box<Account<'info, Mint>>,
     /// CHECK: Checked in marinade program
     liq_pool_mint_authority: UncheckedAccount<'info>,
@@ -470,7 +522,7 @@ pub fn calc_lamports_from_msol_amount(
 }
 
 pub struct CalculateExtractableYieldProperties<'info> {
-    marinade_state: Box<Account<'info, MarinadeState>>,
+    marinade_state: UncheckedAccount<'info>,
     blaze_state: UncheckedAccount<'info>,
     gsol_mint: Box<Account<'info, Mint>>,
     liq_pool_mint: Box<Account<'info, Mint>>,
@@ -565,18 +617,19 @@ impl<'a> From<&UpdateEpochReport<'a>> for CalculateExtractableYieldProperties<'a
 /// that are not matched by gsol
 pub fn calculate_extractable_yield(accounts: &CalculateExtractableYieldProperties) -> Result<u64> {
     let blaze_stake_pool = spl::deserialize_spl_stake_pool(&accounts.blaze_state)?;
+    let marinade_state = deserialize_marinade_state(&accounts.marinade_state)?;
 
     let liquidity_pool_balance = current_liq_pool_balance(
-        &accounts.marinade_state,
+        &marinade_state,
         &accounts.liq_pool_mint,
         &accounts.liq_pool_token_account,
         &accounts.liq_pool_sol_leg_pda,
         &accounts.liq_pool_msol_leg,
     )?;
     // Calculate the sol value of all msol + lp tokens held by this sunrise instance
-    let lp_value = liquidity_pool_balance.sol_value(&accounts.marinade_state);
+    let lp_value = liquidity_pool_balance.sol_value(&marinade_state);
     let msol_value =
-        calc_lamports_from_msol_amount(&accounts.marinade_state, accounts.get_msol_from.amount)?;
+        calc_lamports_from_msol_amount(&marinade_state, accounts.get_msol_from.amount)?;
     let bsol_value =
         spl::calc_lamports_from_bsol_amount(&blaze_stake_pool, accounts.get_bsol_from.amount)?;
     let total_staked_value = lp_value
@@ -758,8 +811,9 @@ pub fn preferred_liq_pool_min_balance(
 }
 
 pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> Result<u64> {
+    let marinade_state = deserialize_marinade_state(&accounts.marinade_state)?;
     let liq_pool_balance = current_liq_pool_balance(
-        &accounts.marinade_state,
+        &marinade_state,
         &accounts.liq_pool_mint,
         &accounts.mint_liq_pool_to,
         &accounts.liq_pool_sol_leg_pda,
@@ -771,7 +825,7 @@ pub fn amount_to_be_deposited_in_liq_pool(accounts: &Deposit, lamports: u64) -> 
     // if the preferred balance is less than the actual current balance, then we don't need to deposit
     // any more. Return 0.
     // This can happen if the value of the liquidity pool rises, via yield accrued through fees.
-    let liq_pool_value = liq_pool_balance.sol_value(&accounts.marinade_state);
+    let liq_pool_value = liq_pool_balance.sol_value(&marinade_state);
     let missing_balance = preferred_balance.saturating_sub(liq_pool_value);
     let amount_to_be_deposited = lamports.min(missing_balance);
     msg!(
@@ -791,7 +845,7 @@ pub struct LiquidUnstakeAmounts {
 }
 pub struct PoolBalanceProperties<'info> {
     state: Box<Account<'info, State>>,
-    marinade_state: Box<Account<'info, MarinadeState>>,
+    marinade_state: UncheckedAccount<'info>,
     gsol_mint: Box<Account<'info, Mint>>,
     liq_pool_mint: Box<Account<'info, Mint>>,
     /// CHECK: Checked in marinade program
@@ -865,8 +919,9 @@ pub fn calculate_pool_balance_amounts(
     requested_withdrawal_lamports: u64,
 ) -> Result<Box<LiquidUnstakeAmounts>> {
     // The current balance of the liquidity pool
+    let marinade_state = deserialize_marinade_state(&accounts.marinade_state)?;
     let liq_pool_balance = current_liq_pool_balance(
-        &accounts.marinade_state,
+        &marinade_state,
         &accounts.liq_pool_mint,
         &accounts.liq_pool_token_account,
         &accounts.liq_pool_sol_leg_pda,
@@ -909,7 +964,7 @@ pub fn calculate_pool_balance_amounts(
     // This amount should be ordered for delayed unstake to rebalance the liquidity pool to its preferred minimum
     let amount_to_order_delayed_unstake = preferred_min_liq_pool_after_unstake
         // checked_sub is appropriate, we use unwrap_or(0) to avoid a panic
-        .checked_sub(actual_pool_balance_after_unstake.sol_value(&accounts.marinade_state))
+        .checked_sub(actual_pool_balance_after_unstake.sol_value(&marinade_state))
         // the msol withdrawn from the liquidity pool will be sent into the msol pot, so should be discounted here
         .and_then(|pool_balance_shortfall_after_unstake| {
             pool_balance_shortfall_after_unstake.checked_sub(amount_to_withdraw_from_liq_pool.msol)

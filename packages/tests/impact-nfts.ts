@@ -1,7 +1,8 @@
 import { Keypair, LAMPORTS_PER_SOL, type PublicKey } from "@solana/web3.js";
 import { SunriseStakeClient, Environment } from "../client/src/index.js";
 import { burnGSol, waitForNextEpoch } from "./util.js";
-import chai, { expect } from "chai";
+import { expect } from "chai";
+import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { depositLamports, lockLamports } from "./constants.js";
 import { findImpactNFTMintAuthority } from "../client/src/util.js";
@@ -47,9 +48,13 @@ describe("Impact NFTs", () => {
       }
     );
 
+    console.log("Sunrise State registered");
+
     await initialClient.sendAndConfirmTransaction(
       await initialClient.deposit(depositLamports)
     );
+
+    console.log("Deposit complete");
 
     impactNftMintAuthority = findImpactNFTMintAuthority(
       initialClient.config!
@@ -58,6 +63,8 @@ describe("Impact NFTs", () => {
       impactNftMintAuthority,
       LEVELS
     );
+
+    console.log("Impact NFT state registered");
 
     // Create levels and collections: TODO
     const collections = await Promise.all(
@@ -69,6 +76,8 @@ describe("Impact NFTs", () => {
       )
     );
 
+    console.log("Impact NFT collections minted");
+
     const levelsWithOffsetAndCollections = levels.map((level, i) => ({
       ...level,
       // parse the offset string into a BN
@@ -76,6 +85,8 @@ describe("Impact NFTs", () => {
       collectionMint: collections[i].publicKey,
     }));
     await impactNftClient.registerOffsetTiers(levelsWithOffsetAndCollections);
+
+    console.log("Impact NFT offset tiers registered");
 
     // now that we have the impact nft state address, we can create the real client
     client = await SunriseStakeClient.get(
@@ -90,6 +101,8 @@ describe("Impact NFTs", () => {
         },
       }
     );
+
+    console.log("Setup complete");
   });
 
   it("can mint an impact nft when locking gSOL", async () => {

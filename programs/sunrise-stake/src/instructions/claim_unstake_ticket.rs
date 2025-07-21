@@ -1,10 +1,10 @@
+use crate::marinade::accounts::TicketAccountData as MarinadeTicketAccount;
+use crate::marinade::program::MarinadeFinance;
 use crate::state::{State, SunriseTicketAccount};
 use crate::utils::marinade;
 use crate::utils::seeds::MSOL_ACCOUNT;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{program::invoke_signed, system_instruction::transfer};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::{State as MarinadeState, TicketAccountData as MarinadeTicketAccount};
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -13,8 +13,9 @@ pub struct ClaimUnstakeTicket<'info> {
     has_one = marinade_state,
     )]
     pub state: Box<Account<'info, State>>,
+    /// CHECK: Validated in handler
     #[account(mut)]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
     #[account(mut)]
     /// CHECK: Checked in marinade program
     pub reserve_pda: UncheckedAccount<'info>,

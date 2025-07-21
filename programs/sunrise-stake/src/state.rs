@@ -4,8 +4,14 @@ use anchor_lang::prelude::borsh::BorshDeserialize;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::State as MarinadeState;
 
+/// The main state account for the Sunrise Stake program
+///
+/// IMPORTANT: This struct MUST remain named "State" and not be renamed.
+/// The account discriminator is derived from the struct name, and renaming it would
+/// change the discriminator from the current value, breaking compatibility with
+/// all existing on-chain accounts. The discriminator is the first 8 bytes of
+/// SHA256("account:State") and is checked by Anchor when deserializing accounts.
 #[account]
 pub struct State {
     pub marinade_state: Pubkey,
@@ -148,8 +154,9 @@ pub struct CreateMetadata<'info> {
     )]
     pub state: Box<Account<'info, State>>,
 
+    /// CHECK: Validated in handler
     #[account()]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     #[account(
     mut,
@@ -180,12 +187,12 @@ pub struct CreateMetadata<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(size: usize)]
+#[instruction(size: u64)]
 pub struct ResizeState<'info> {
     #[account(
     mut,
     has_one = update_authority,
-    realloc = size,
+    realloc = size as usize,
     realloc::payer = payer,
     realloc::zero = false,
     )]

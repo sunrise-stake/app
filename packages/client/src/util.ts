@@ -40,6 +40,16 @@ export const toSol = (lamports: BN, precision = MAX_NUM_PRECISION): number =>
   lamports.div(new BN(10).pow(new BN(precision))).toNumber() /
   (LAMPORTS_PER_SOL / 10 ** precision);
 
+export const messageFromError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return "Unknown error";
+};
+
 export const enum ProgramDerivedAddressSeed {
   G_SOL_MINT_AUTHORITY = "gsol_mint_authority",
   M_SOL_ACCOUNT = "msol_account",

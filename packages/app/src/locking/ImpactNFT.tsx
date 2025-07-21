@@ -7,6 +7,8 @@ export const ImpactNFT: FC<{ details: ImpactNFTDetails }> = ({ details }) => {
   const { nfts } = useNFTs({ mintAddress: details.mint });
   const nft = nfts?.[0];
 
+  console.log("[NFTsContext] Loaded NFT", nft);
+
   return (
     <a
       href={`https://solana.fm/address/${details.mint.toBase58()}`}

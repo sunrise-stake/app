@@ -15,6 +15,7 @@ mod trigger_pool_rebalance;
 mod unlock_gsol;
 mod update_epoch_report;
 mod update_lock_account;
+mod update_lock_account_without_nft;
 mod update_metadata;
 mod update_state;
 
@@ -35,5 +36,6 @@ pub use trigger_pool_rebalance::*;
 pub use unlock_gsol::*;
 pub use update_epoch_report::*;
 pub use update_lock_account::*;
+pub use update_lock_account_without_nft::*;
 pub use update_metadata::*;
 pub use update_state::*;

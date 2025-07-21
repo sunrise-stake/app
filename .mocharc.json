@@ -1,6 +1,6 @@
 {
   "spec": "packages/tests/**/*.ts",
-  "loader": "tsx",
+  "node-option": ["import=tsx"],
   "timeout": 1000000,
   "parallel": false
 }

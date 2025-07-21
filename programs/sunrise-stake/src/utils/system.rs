@@ -1,9 +1,9 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::utils::seeds::ORDER_UNSTAKE_TICKET_ACCOUNT;
 use crate::{State, TriggerPoolRebalance};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::solana_program::system_instruction;
-use marinade_cpi::program::MarinadeFinance;
 
 pub const MARINADE_TICKET_ACCOUNT_SPACE: u64 = 32 + 32 + 8 + 8 + 8;
 

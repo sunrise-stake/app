@@ -2,7 +2,8 @@
     "workspaces": [
         "packages/client",
         "packages/tests",
-        "packages/app"
+        "packages/app",
+        "packages/tests/scenarios/*"
     ],
     "private": true,
     "scripts": {
@@ -11,6 +12,8 @@
         "lint": "yarn workspaces run lint",
         "test": "anchor test",
         "test:anchor": "yarn mocha -p ./tsconfig.json --no-parallel -t 1000000 packages/tests/**/*.ts",
+        "test:scenario": "cd packages/tests/scenarios && ./run-all.sh",
+        "test:scenario:single": "cd packages/tests/scenarios/$SCENARIO && anchor test",
         "program:build": "anchor build",
         "program:deploy": "solana program deploy target/deploy/sunrise_stake.so --program-id sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6",
         "build": "yarn workspaces run build",
@@ -23,18 +26,18 @@
         "rebalance:mainnet": "cross-env REACT_APP_SOLANA_NETWORK=mainnet-beta bun packages/scripts/rebalance.ts"
     },
     "dependencies": {
-        "@coral-xyz/anchor": "^0.26.0",
-        "@solana/web3.js": "^1.73.2"
+        "@coral-xyz/anchor": "^0.31.1",
+        "@solana/web3.js": "^1.98.2"
     },
     "devDependencies": {
-        "@coral-xyz/anchor-cli": "^0.26.0",
+        "@coral-xyz/anchor-cli": "0.31.1",
         "@types/bn.js": "^5.1.0",
-        "@types/chai": "^4.3.0",
-        "@types/mocha": "^9.0.0",
+        "@types/chai": "^5.2.2",
+        "@types/mocha": "^10.0.10",
         "@typescript-eslint/eslint-plugin": "^5.50.0",
         "@typescript-eslint/parser": "^5.50.0",
         "bs58": "^6.0.0",
-        "chai": "^4.3.4",
+        "chai": "^5.2.0",
         "cross-env": "^7.0.3",
         "eslint": "^8.33.0",
         "eslint-config-prettier": "^8.6.0",
@@ -46,11 +49,12 @@
         "eslint-plugin-promise": "6.1.1",
         "eslint-plugin-react": "^7.32.2",
         "lerna": "^6.4.1",
-        "mocha": "^10.2.0",
+        "mocha": "^11.7.1",
         "prettier": "^2.7.1",
-        "ts-node": "^10.9.1",
-        "tsx": "^3.12.3",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.20.3",
         "typescript": "*"
     },
-    "name": "app"
+    "name": "app",
+    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

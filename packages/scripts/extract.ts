@@ -9,8 +9,6 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
   const client = await SunriseStakeClient.get(
       provider, process.env.REACT_APP_SOLANA_NETWORK as WalletAdapterNetwork|| 'devnet');
 
-  console.log(await client.details());
-
   const txSig = await client.extractYield();
 
   console.log("Extract tx sig: ", txSig);

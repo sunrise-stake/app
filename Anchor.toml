@@ -4,8 +4,12 @@ types = "packages/client/src/types"
 [features]
 seeds = false
 skip-lint = false
+
 [programs.localnet]
 sunrise_stake = "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
+
+[toolchain]
+anchor_version = "0.31.1"
 
 [registry]
 url = "https://api.apr.dev"
@@ -14,8 +18,8 @@ url = "https://api.apr.dev"
 cluster = "localnet"
 wallet = "packages/tests/fixtures/id.json"
 
-#[test]
-#startup_wait = 60000
+[test]
+startup_wait = 20000
 
 [scripts]
 test = "yarn test:anchor"
@@ -38,6 +42,7 @@ program = "packages/tests/fixtures/mpl_token_metadata.so"
 
 [test.validator]
 slots_per_epoch = "32"
+gossip_port = 8892
 
 [[test.validator.account]]
 address = "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
@@ -88,3 +93,52 @@ filename = "packages/tests/fixtures/blaze/reserve_account.json"
 [[test.validator.account]]
 address = "Dpo148tVGewDPyh2FkGV18gouWctbdX2fHJopJGe9xv1"
 filename = "packages/tests/fixtures/blaze/fees_depot.json"
+#
+## Scenario1 fixtures - mainnet accounts
+#[[test.validator.account]]
+#address = "gso1xA56hacfgTHTF4F7wN5r4jbnJsKh99vR595uybA"
+#filename = "packages/tests/fixtures/scenario1/gsol_mint.json"
+#
+#[[test.validator.account]]
+#address = "43m66crxGfXSJpmx5wXRoFuHubhHA1GCvtHgmHW6cM1P"
+#filename = "packages/tests/fixtures/scenario1/sunrise_state.json"
+#
+#[[test.validator.account]]
+#address = "6HQrvpMJFqMj35JqMReyhnUrRXNucAAB6FywdDu7xPKA"
+#filename = "packages/tests/fixtures/scenario1/treasury.json"
+#
+#[[test.validator.account]]
+#address = "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
+#filename = "packages/tests/fixtures/scenario1/sunrise_program.json"
+#
+#[[test.validator.account]]
+#address = "6vRu2voMXGeMzAL12epHKKQrAv3v6EVoipNdh9u9s5L3"
+#filename = "packages/tests/fixtures/scenario1/msol_token_account.json"
+#
+#[[test.validator.account]]
+#address = "HoaRQ3dcYmK2oqXT7JzzecJjJd5NXhiiqC2J4r4NjxUu"
+#filename = "packages/tests/fixtures/scenario1/msol_token_account_authority.json"
+#
+#[[test.validator.account]]
+#address = "98Xjwb82p87eLrrQb9u74YZmLMcT81ecpUhAeM8KyNDw"
+#filename = "packages/tests/fixtures/scenario1/staker_gsol_token_account.json"
+#
+#[[test.validator.account]]
+#address = "48V9nmW9awiR9BmihdGhUL3ZpYJ8MCgGeUoSWbtqjicv"
+#filename = "packages/tests/fixtures/scenario1/staker_account.json"
+#
+#[[test.validator.account]]
+#address = "stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"
+#filename = "packages/tests/fixtures/scenario1/blaze_stake_pool.json"
+#
+#[[test.validator.account]]
+#address = "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"
+#filename = "packages/tests/fixtures/scenario1/bsol_mint.json"
+#
+#[[test.validator.account]]
+#address = "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
+#filename = "packages/tests/fixtures/scenario1/lp_mint.json"
+#
+#[[test.validator.account]]
+#address = "6RzCneyeEqnjiWxrzqfBwHDEpTrbcSkBFFUrtMZnNjpc"
+#filename = "packages/tests/fixtures/scenario1/impact_nft_state.json"

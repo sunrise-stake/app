@@ -1,3 +1,4 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::state::{EpochReportAccount, State, TicketAccountData};
 use crate::utils::marinade;
 use crate::utils::marinade::{CalculateExtractableYieldProperties, ClaimUnstakeTicketProperties};
@@ -5,8 +6,6 @@ use crate::utils::seeds::{BSOL_ACCOUNT, EPOCH_REPORT_ACCOUNT, MSOL_ACCOUNT};
 use crate::ErrorCode;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
 
 // TODO: RECOVERED_MARGIN is needed because, for some reason, the claim tickets have a couple of lamports less than they should,
@@ -26,8 +25,9 @@ pub struct RecoverTickets<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
+    /// CHECK: Validated in handler
     #[account(mut)]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     /// CHECK: Must match state
     pub blaze_state: UncheckedAccount<'info>,
@@ -189,7 +189,6 @@ pub fn recover_tickets_handler<'info>(
             ctx.accounts.liq_pool_token_account.reload()?;
             ctx.accounts.get_msol_from.reload()?;
             ctx.accounts.get_bsol_from.reload()?;
-            ctx.accounts.marinade_state.reload()?;
 
             // all tickets are recovered. Now we update the epoch report account to the current epoch
             ctx.accounts.epoch_report_account.epoch = ctx.accounts.clock.epoch;

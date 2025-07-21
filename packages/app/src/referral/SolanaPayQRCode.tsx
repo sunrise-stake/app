@@ -14,7 +14,7 @@ interface SolanaPayQRCodeProps {
 const FIXED_AMOUNT = 0.1 * LAMPORTS_PER_SOL;
 
 const network =
-  (process.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
+  (import.meta.env.REACT_APP_SOLANA_NETWORK as keyof typeof Environment) ??
   WalletAdapterNetwork.Devnet;
 
 const SOLANA_PAY_API = "https://scan.sunrisestake.com/api/transaction";

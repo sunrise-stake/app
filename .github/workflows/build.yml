@@ -4,7 +4,8 @@ on:
   pull_request:
 
 env:
-  solana_version: v1.14.17
+  solana_version: v2.3.0
+  node_version: '22.17'
   VERBOSE: 1
 
 jobs:
@@ -24,7 +25,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.14'
+          node-version: ${{ env.node_version }}
 
       - name: Cache node dependencies
         uses: actions/cache@v3
@@ -51,8 +52,8 @@ jobs:
 
       - name: install solana
         if: steps.cache-solana.outputs.cache-hit != 'true'
-        run: |        
-          packages/scripts/solana_install_wrapper.sh ${{ env.solana_version }} 
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/${{ env.solana_version }}/install)" 
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           solana --version
 
@@ -62,6 +63,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
       - name: Cache rust
         uses: Swatinem/rust-cache@v2
       - name: Run fmt
@@ -74,10 +79,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node ${{ env.node_version }}
         uses: actions/setup-node@v3
         with:
-          node-version: '18.14'
+          node-version: ${{ env.node_version }}
 
       - name: Cache node dependencies
         uses: actions/cache@v3
@@ -100,10 +105,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node ${{ matrix.node }}
+      - name: Use Node ${{ env.node_version }}
         uses: actions/setup-node@v3
         with:
-          node-version: '18.14'
+          node-version: ${{ env.node_version }}
 
       - name: Cache node dependencies
         uses: actions/cache@v3
@@ -136,7 +141,7 @@ jobs:
           ls node_modules/.bin
           yarn test
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: program-logs

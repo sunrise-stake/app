@@ -1,3 +1,4 @@
+use crate::marinade::program::MarinadeFinance;
 use crate::{
     error::ErrorCode,
     state::{EpochReportAccount, State},
@@ -7,8 +8,6 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use marinade_cpi::program::MarinadeFinance;
-use marinade_cpi::State as MarinadeState;
 use std::ops::Deref;
 
 #[derive(Accounts, Clone)]
@@ -24,8 +23,9 @@ pub struct ExtractToTreasury<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
+    /// CHECK: Validated in handler
     #[account(mut)]
-    pub marinade_state: Box<Account<'info, MarinadeState>>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     /// CHECK: Must match state
     pub blaze_state: UncheckedAccount<'info>,
@@ -114,8 +114,9 @@ pub fn extract_to_treasury_handler(ctx: Context<ExtractToTreasury>) -> Result<()
         .add_extracted_yield(extractable_yield);
     ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
 
+    let marinade_state = marinade::deserialize_marinade_state(&ctx.accounts.marinade_state)?;
     let extractable_yield_msol =
-        marinade::calc_msol_from_lamports(ctx.accounts.marinade_state.as_ref(), extractable_yield)?;
+        marinade::calc_msol_from_lamports(&marinade_state, extractable_yield)?;
 
     // TODO later change to use "slow unstake" rather than incur liq pool fees
 
