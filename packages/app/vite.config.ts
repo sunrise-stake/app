@@ -19,12 +19,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'solana-wallets': [
-            '@solana/wallet-adapter-base',
-            '@solana/wallet-adapter-react',
-            '@solana/wallet-adapter-react-ui',
-            '@solana/wallet-adapter-wallets',
-          ],
           '@solana-web3': ['@solana/web3.js'],
         },
       },
