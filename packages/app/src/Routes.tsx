@@ -6,17 +6,18 @@ import {
   useRef,
   useState,
 } from "react";
-import { ForestApp } from "./forest/ForestApp";
-import { GrowApp } from "./grow/GrowApp";
-import { HubApp } from "./hub/HubApp";
-import { LockingApp } from "./locking/LockingApp";
-import { ReferralApp } from "./referral/ReferralApp";
-import { StakingApp } from "./staking/StakingApp";
+// import { ForestApp } from "./forest/ForestApp";
+// import { GrowApp } from "./grow/GrowApp";
+// import { HubApp } from "./hub/HubApp";
+// import { LockingApp } from "./locking/LockingApp";
+// import { ReferralApp } from "./referral/ReferralApp";
+// import { StakingApp } from "./staking/StakingApp";
 import { useLocation } from "react-router-dom";
 import { Layout } from "./common/partials/Layout";
 import { debounce } from "./common/utils";
 import { useHelp } from "./common/context/HelpContext";
-import { LinkWithQuery } from "./common/components/LinkWithQuery";
+// import { LinkWithQuery } from "./common/components/LinkWithQuery";
+import { YieldApp } from "./yield/YieldApp";
 
 export enum AppRoute {
   Connect = "/connect", // not a route at present TODO fix
@@ -26,6 +27,7 @@ export enum AppRoute {
   Lock = "/lock",
   Referral = "/referral",
   Stake = "/stake",
+  Yield = "/yield",
 }
 
 export const Routes: FC = () => {
@@ -38,6 +40,7 @@ export const Routes: FC = () => {
     referral: useRef<null | HTMLDivElement>(null),
     lost: useRef<null | HTMLDivElement>(null),
     staking: useRef<null | HTMLDivElement>(null),
+    yield: useRef<null | HTMLDivElement>(null),
   };
   const [currentRouteApp, setCurrentRouteApp] =
     useState<null | MutableRefObject<null | HTMLDivElement>>(null);
@@ -121,6 +124,16 @@ export const Routes: FC = () => {
             },
           },
           {
+            path: AppRoute.Yield,
+            onMatch: () => {
+              appRefs.yield.current?.scrollIntoView({
+                behavior: "smooth",
+              });
+              setCurrentRouteApp(appRefs.yield);
+              setCurrentHelpRoute(AppRoute.Yield);
+            },
+          },
+          {
             path: "/*",
             onMatch: () => {
               appRefs.lost.current?.scrollIntoView({
@@ -131,7 +144,13 @@ export const Routes: FC = () => {
           },
         ]}
       />
-      <div className="AppGrid">
+      <YieldApp
+        id="yield-app"
+        className="App"
+        ref={appRefs.yield}
+        active={currentRouteApp === appRefs.yield}
+      />
+      {/* <div className="AppGrid">
         <ForestApp
           id="forest-app"
           className="App ForestApp"
@@ -162,6 +181,7 @@ export const Routes: FC = () => {
           ref={appRefs.staking}
           active={currentRouteApp === appRefs.staking}
         />
+
         <div
           id="lost-app"
           className="App LostApp flex flex-col min-h-screen justify-center items-center"
@@ -177,7 +197,7 @@ export const Routes: FC = () => {
             Back home
           </LinkWithQuery>
         </div>
-      </div>
+      </div> */}
     </Layout>
   );
 };
