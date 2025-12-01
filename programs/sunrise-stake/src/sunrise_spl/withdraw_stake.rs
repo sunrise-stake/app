@@ -1,11 +1,10 @@
 use crate::{
-    utils::{calc, seeds, spl::StakePool, token as TokenUtils},
+    utils::{seeds, spl, token as TokenUtils},
     State,
 };
 use anchor_lang::{
     prelude::*,
     solana_program::{
-        borsh::try_from_slice_unchecked,
         instruction::{AccountMeta, Instruction},
         program::invoke_signed,
     },
@@ -116,11 +115,8 @@ impl SplWithdrawStake<'_> {
     }
 
     fn calculate_bsol_from_lamports(&self, lamports: u64) -> Result<u64> {
-        let stake_pool = try_from_slice_unchecked::<StakePool>(&self.stake_pool.data.borrow())?;
-        let token_supply = stake_pool.pool_token_supply;
-        let total_lamports = stake_pool.total_lamports;
-
-        let bsol = calc::proportional(lamports, token_supply, total_lamports)?;
+        let stake_pool = spl::deserialize_spl_stake_pool(&self.stake_pool)?;
+        let bsol = spl::calc_bsol_from_lamports(&stake_pool, lamports)?;
         Ok(bsol)
     }
 

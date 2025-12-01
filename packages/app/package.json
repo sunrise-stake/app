@@ -87,7 +87,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@marinade.finance/marinade-ts-sdk": "^4.0.4",
-    "@types/node": "^24.0.15",
+    "@types/node": "^22.16.5",
     "@vitejs/plugin-react": "^4.7.0",
     "patch-package": "^8.0.0",
     "postinstall-postinstall": "^2.1.0",

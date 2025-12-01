@@ -9,6 +9,8 @@ import {
   type Signer,
   Transaction,
   type TransactionInstruction,
+  StakeProgram,
+  Authorized,
 } from "@solana/web3.js";
 import {
   confirm,
@@ -970,11 +972,91 @@ export class SunriseStakeClient {
       newStakeAccount,
       this.provider.publicKey,
       this.stakerGSolTokenAccount,
-      amount
+      amount,
+      this.provider.connection
     );
 
     const transaction = new Transaction().add(withdrawStakeIx);
     return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+  /**
+   * Creates a new uninitialized stake account
+   * @param stakeAccount The keypair for the new stake account
+   * @param lamports The amount of lamports to fund the account with (default: rent exemption amount)
+   * @private
+   */
+  private async createStakeAccount(
+    stakeAccount: Keypair,
+    lamports?: number
+  ): Promise<Transaction> {
+    // Get minimum balance for rent exemption (200 bytes for stake account)
+    const rentExemption = await this.provider.connection.getMinimumBalanceForRentExemption(
+      StakeProgram.space
+    );
+    
+    const transaction = StakeProgram.createAccount({
+      fromPubkey: this.provider.publicKey,
+      stakePubkey: stakeAccount.publicKey,
+      authorized: new Authorized(
+        this.provider.publicKey,
+        this.provider.publicKey
+      ),
+      lamports: lamports ?? rentExemption,
+    });
+    return transaction;
+  }
+
+  /**
+   * Withdraw the given amount of gSOL into a new stake account.
+   * This function creates a new stake account and withdraws the equivalent SOL from Blaze.
+   * @param amount The amount of gSOL (in lamports) to withdraw
+   * @returns An object containing the transaction signature and the new stake account public key
+   */
+  public async withdrawStake(amount: BN): Promise<{
+    signature: string;
+    stakeAccount: PublicKey;
+  }> {
+    if (
+      !this.blazeState ||
+      !this.config ||
+      !this.stakerGSolTokenAccount ||
+      !this.bsolTokenAccount
+    )
+      throw new Error("init not called");
+
+    // Generate a new stake account keypair
+    const stakeAccount = Keypair.generate();
+
+    // Create the stake account creation transaction
+    const createStakeAccountTx = await this.createStakeAccount(stakeAccount);
+
+    // Get the withdraw stake instruction
+    const withdrawStakeIx = await blazeWithdrawStake(
+      this.config,
+      this.program,
+      this.blazeState,
+      stakeAccount.publicKey,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      amount,
+      this.provider.connection
+    );
+
+    // Combine both instructions in a single transaction
+    const transaction = new Transaction()
+      .add(...createStakeAccountTx.instructions)
+      .add(withdrawStakeIx);
+
+    // Send the transaction with the stake account as a signer
+    const signature = await this.sendAndConfirmTransaction(transaction, [
+      stakeAccount,
+    ]);
+
+    return {
+      signature,
+      stakeAccount: stakeAccount.publicKey,
+    };
   }
 
   /**

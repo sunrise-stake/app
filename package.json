@@ -11,7 +11,7 @@
         "program:dylint": "cargo dylint --all --workspace",
         "lint": "yarn workspaces run lint",
         "test": "anchor test",
-        "test:anchor": "yarn mocha -p ./tsconfig.json --no-parallel -t 1000000 packages/tests/**/*.ts",
+        "test:anchor": "yarn mocha -p ./tsconfig.json --no-parallel -t 1000000 packages/tests/*.ts",
         "test:scenario": "cd packages/tests/scenarios && ./run-all.sh",
         "test:scenario:single": "cd packages/tests/scenarios/$SCENARIO && anchor test",
         "program:build": "anchor build",
