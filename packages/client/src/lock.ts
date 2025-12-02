@@ -83,7 +83,7 @@ export class LockClient {
       ReturnType<AccountNamespace<SunriseStake>["lockAccount"]["fetchNullable"]>
     >
   ): LockAccount | null {
-    if (!rawLockAccount) return null;
+    if (rawLockAccount == null) return null;
     return {
       address: this.lockAccountAddress,
       authority: this.authority,
@@ -111,12 +111,13 @@ export class LockClient {
     );
 
     // Allow for no impact nft state (e.g. in tests, to avoid circular dependencies)
-    const impactNftClientPromise = this.config.impactNFTStateAddress
-      ? ImpactNftClient.get(
-          this.program.provider as AnchorProvider,
-          this.config.impactNFTStateAddress
-        )
-      : Promise.resolve(null);
+    const impactNftClientPromise =
+      this.config.impactNFTStateAddress != null
+        ? ImpactNftClient.get(
+            this.program.provider as AnchorProvider,
+            this.config.impactNFTStateAddress
+          )
+        : Promise.resolve(null);
 
     const [lockTokenAccount, lockAccount, impactNFTClient] = await Promise.all([
       lockTokenAccountPromise,
@@ -127,9 +128,8 @@ export class LockClient {
     this.lockTokenAccount = lockTokenAccount;
     this.lockAccount = this.toLockAccount(lockAccount);
     this.impactNFTClient = impactNFTClient;
-    this.impactNFTDetails = this.impactNFTClient
-      ? this.impactNFTClient.details()
-      : null;
+    this.impactNFTDetails =
+      this.impactNFTClient != null ? this.impactNFTClient.details() : null;
   }
 
   public static async build(
@@ -152,14 +152,17 @@ export class LockClient {
       lockTokenAccountAddress
     );
 
-    if (!tokenAccount) {
+    if (tokenAccount == null) {
       return null;
     }
     return new BN(tokenAccount.amount.toString(10));
   }
 
   public async getImpactNFTAccounts(): Promise<ImpactNFTAccounts> {
-    if (!this.impactNFTClient || !this.config.impactNFTStateAddress)
+    if (
+      this.impactNFTClient == null ||
+      this.config.impactNFTStateAddress == null
+    )
       throw new Error(
         "LockClient not initialized or impact nft state disabled"
       );
@@ -193,7 +196,8 @@ export class LockClient {
     sourceGSolTokenAccount: PublicKey,
     lamports: BN
   ): Promise<Transaction> {
-    if (!this.impactNFTClient) throw new Error("LockClient not initialized");
+    if (this.impactNFTClient == null)
+      throw new Error("LockClient not initialized");
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.lockGsol>["accounts"]
@@ -207,7 +211,7 @@ export class LockClient {
     preInstructions.push(modifyComputeUnits);
 
     // the user has never locked before - they need a lock account and a lock token account
-    if (!this.lockAccount) {
+    if (this.lockAccount == null) {
       const initLockAccount = await this.program.methods
         .initLockAccount()
         .accounts({
@@ -239,9 +243,9 @@ export class LockClient {
    * if they have one.
    */
   public getCurrentLevel(): Level | null {
-    if (!this.lockAccount) return null; // no lock account yet
+    if (this.lockAccount == null) return null; // no lock account yet
 
-    if (!this.impactNFTClient || !this.impactNFTDetails)
+    if (this.impactNFTClient == null || this.impactNFTDetails == null)
       throw new Error("LockClient not initialized");
 
     return this.impactNFTClient.getLevelForOffset(
@@ -252,8 +256,9 @@ export class LockClient {
   // Return the amount of yield that needs to be accrued (in lamports) to reach the next level
   // Or null if the user is already at the max level, or if impact nfts are disabled
   public getYieldToNextLevel(currentLevel?: number): BN | null {
-    if (!this.impactNFTClient || !this.impactNFTDetails) return null; // impact nfts are disabled
-    if (!this.lockAccount) return this.impactNFTDetails.levels[0].offset; // should be 0 for the first level
+    if (this.impactNFTClient == null || this.impactNFTDetails == null)
+      return null; // impact nfts are disabled
+    if (this.lockAccount == null) return this.impactNFTDetails.levels[0].offset; // should be 0 for the first level
 
     return this.impactNFTClient.getAmountToNextOffset(
       this.lockAccount.yieldAccruedByOwner,
@@ -262,7 +267,8 @@ export class LockClient {
   }
 
   public async updateLockAccount(): Promise<Transaction> {
-    if (!this.impactNFTClient) throw new Error("LockClient not initialized");
+    if (this.impactNFTClient == null)
+      throw new Error("LockClient not initialized");
 
     const allImpactNFTAccounts = await this.getImpactNFTAccounts();
 
@@ -292,7 +298,8 @@ export class LockClient {
       ReturnType<typeof ImpactNftClient.prototype.getUpdateNftAccounts>
     >
   ): Promise<Transaction> {
-    if (!this.impactNFTClient) throw new Error("LockClient not initialized");
+    if (this.impactNFTClient == null)
+      throw new Error("LockClient not initialized");
     const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
       units: 300000,
     });
@@ -373,7 +380,8 @@ export class LockClient {
     sourceGSolTokenAccount: PublicKey,
     lamports: BN
   ): Promise<Transaction> {
-    if (!this.impactNFTClient) throw new Error("LockClient not initialized");
+    if (this.impactNFTClient == null)
+      throw new Error("LockClient not initialized");
 
     type Accounts = Parameters<
       ReturnType<typeof this.program.methods.lockGsol>["accounts"]
@@ -419,14 +427,15 @@ export class LockClient {
   }
 
   public async getUpdateCollectionForOffset(offset: BN): Promise<PublicKey> {
-    if (!this.impactNFTClient) throw new Error("LockClient not initialized");
+    if (this.impactNFTClient == null)
+      throw new Error("LockClient not initialized");
 
     const level = this.impactNFTClient.getLevelForOffset(offset);
 
     // This can only happen if the lowest level has an offset > 0,
     // which in our case, is invalid (you get an NFT at level 0 as soon as you lock, at which point your
     // offset is 0)
-    if (!level) {
+    if (level == null) {
       throw new Error(`No level found for offset ${offset.toString()}`);
     }
 
@@ -437,8 +446,8 @@ export class LockClient {
    * Given a lock account, calculate the amount of yield accrued since the last update.
    */
   public async calculateUpdatedYieldAccrued(): Promise<BN> {
-    if (!this.lockAccount) throw new Error("User has no lock account");
-    if (!this.lockTokenAccount)
+    if (this.lockAccount == null) throw new Error("User has no lock account");
+    if (this.lockTokenAccount == null)
       throw new Error("User has no lock token account");
 
     const epochReportAccount = await getEpochReportAccount(

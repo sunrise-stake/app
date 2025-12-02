@@ -8,7 +8,7 @@ import {
   NETWORK_FEE,
   Environment,
   findImpactNFTMintAuthority,
-} from "../client/src/index.js";
+} from "@sunrisestake/client";
 import {
   burnGSol,
   expectAmount,
@@ -208,7 +208,7 @@ describe("sunrise-stake", () => {
     // since this is the first deposit, 10% will go into the liquidity pool
     // so the sunrise liquidity pool token balance should go up,
     // and the sunrise msol balance should be at 90% of the value of the deposit
-    const lpPrice = await getLPPrice(client); // TODO should this be inverse price?
+    const lpPrice = await getLPPrice(client);
     const expectedMsol = Math.floor(
       (depositLamports.toNumber() * 0.9) / client.marinadeState!.mSolPrice
     );
@@ -647,10 +647,6 @@ describe("sunrise-stake", () => {
     // expected yield * locked proportion
     const expectedLockedYield = expectedYield.toNumber() * lockedProportion;
 
-    console.log("locked proportion", lockedProportion);
-    console.log("expected yield", expectedYield.toString());
-    console.log("expected locked yield", expectedLockedYield);
-
     expectAmount(lockAccount!.yieldAccruedByOwner, expectedLockedYield, 50);
   });
 
@@ -905,5 +901,45 @@ describe("sunrise-stake", () => {
     );
     // Allow 1 lamport tolerance for rounding
     expectAmount(new BN(gsolBalance.value.amount), expectedGSol, 1);
+  });
+
+  it.skip("can withdraw gSOL directly to a stake account", async () => {
+    // Skip this test for now - it requires validator stake accounts to be created in the test environment
+    // The SPL stake pool's withdraw_stake instruction only works with validator stake accounts, not reserve accounts
+    const withdrawStakeAmount = new BN(5 * LAMPORTS_PER_SOL);
+
+    // Get initial balances
+    const gsolBalanceBefore =
+      await client.provider.connection.getTokenAccountBalance(
+        client.stakerGSolTokenAccount!
+      );
+
+    // Withdraw to a new stake account
+    const result = await client.withdrawStake(withdrawStakeAmount);
+
+    log("Withdraw stake transaction:", result.signature);
+    log("New stake account:", result.stakeAccount.toBase58());
+
+    // Verify the stake account was created
+    const stakeAccountInfo = await client.provider.connection.getAccountInfo(
+      result.stakeAccount
+    );
+    expect(stakeAccountInfo).to.not.be.null;
+
+    // Verify gSOL was burned
+    const gsolBalanceAfter =
+      await client.provider.connection.getTokenAccountBalance(
+        client.stakerGSolTokenAccount!
+      );
+    expectAmount(
+      new BN(gsolBalanceBefore.value.amount).sub(withdrawStakeAmount),
+      new BN(gsolBalanceAfter.value.amount),
+      0
+    );
+
+    // The stake account should be owned by the stake program
+    expect(stakeAccountInfo!.owner.toBase58()).to.equal(
+      "Stake11111111111111111111111111111111111111"
+    );
   });
 });
