@@ -100,7 +100,7 @@ export const depositStakeAccount = async (
     stakeAccountAddress
   );
   const voterAddress = stakeAccountInfo.voterAddress;
-  if (!voterAddress) {
+  if (voterAddress == null) {
     throw new Error("The stake account must be delegated");
   }
 
@@ -236,7 +236,8 @@ export const triggerRebalance = async (
 
   // If the epoch report account has not yet been created, then the upgrade_authority has to create it
   // with the initEpochReport instruction
-  if (!epochReportAccount) throw new Error("No epoch report account found");
+  if (epochReportAccount == null)
+    throw new Error("No epoch report account found");
 
   // If the epoch report account has not yet been incremented to the current epoch,
   // then we may need to recover tickets from the previous epoch first

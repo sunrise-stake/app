@@ -909,9 +909,10 @@ describe("sunrise-stake", () => {
     const withdrawStakeAmount = new BN(5 * LAMPORTS_PER_SOL);
 
     // Get initial balances
-    const gsolBalanceBefore = await client.provider.connection.getTokenAccountBalance(
-      client.stakerGSolTokenAccount!
-    );
+    const gsolBalanceBefore =
+      await client.provider.connection.getTokenAccountBalance(
+        client.stakerGSolTokenAccount!
+      );
 
     // Withdraw to a new stake account
     const result = await client.withdrawStake(withdrawStakeAmount);
@@ -926,9 +927,10 @@ describe("sunrise-stake", () => {
     expect(stakeAccountInfo).to.not.be.null;
 
     // Verify gSOL was burned
-    const gsolBalanceAfter = await client.provider.connection.getTokenAccountBalance(
-      client.stakerGSolTokenAccount!
-    );
+    const gsolBalanceAfter =
+      await client.provider.connection.getTokenAccountBalance(
+        client.stakerGSolTokenAccount!
+      );
     expectAmount(
       new BN(gsolBalanceBefore.value.amount).sub(withdrawStakeAmount),
       new BN(gsolBalanceAfter.value.amount),

@@ -20,7 +20,7 @@ import {
   Provider,
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
-import { type StakePool, getStakePoolAccount } from "./decodeStakePool.js";
+import { getStakePoolAccount } from "./decodeStakePool.js";
 import { struct, u8, u32, u64, publicKey, vec } from "@project-serum/borsh";
 
 export const blazeDeposit = async (
@@ -89,7 +89,7 @@ export const blazeDepositStake = async (
     stakeAccount
   );
   const validatorAccount = stakeAccountInfo.voterAddress;
-  if (!validatorAccount) {
+  if (validatorAccount == null) {
     throw new Error(`Invalid validator account`);
   }
 
@@ -194,19 +194,25 @@ export const getWithdrawStakeAccount = async (
 ): Promise<PublicKey> => {
   // First, check if there's a preferred withdraw validator
   const stakePool = await getStakePoolAccount(connection, blaze.pool);
-  
-  if (stakePool.preferredWithdrawValidatorVoteAddress) {
+
+  if (stakePool.preferredWithdrawValidatorVoteAddress != null) {
     // Find the validator stake account for the preferred validator
-    const validatorListAccount = await connection.getAccountInfo(blaze.validatorList);
-    if (!validatorListAccount) {
+    const validatorListAccount = await connection.getAccountInfo(
+      blaze.validatorList
+    );
+    if (validatorListAccount == null) {
       throw new Error("Validator list account not found");
     }
-    
+
     const validatorList = ValidatorListLayout.decode(validatorListAccount.data);
-    
+
     // Find the preferred validator's entry
     for (const validator of validatorList.validators) {
-      if (validator.voteAccountAddress.equals(stakePool.preferredWithdrawValidatorVoteAddress)) {
+      if (
+        validator.voteAccountAddress.equals(
+          stakePool.preferredWithdrawValidatorVoteAddress
+        )
+      ) {
         // Calculate validator stake account address
         // Note: seed order is important - it should be: "stake", pool, vote_account
         const [validatorStakeAccount] = PublicKey.findProgramAddressSync(
@@ -218,56 +224,64 @@ export const getWithdrawStakeAccount = async (
           STAKE_POOL_PROGRAM_ID
         );
         // Verify the account exists and is a stake account
-        const accountInfo = await connection.getAccountInfo(validatorStakeAccount);
-        if (!accountInfo || !accountInfo.owner.equals(StakeProgram.programId)) {
+        const accountInfo = await connection.getAccountInfo(
+          validatorStakeAccount
+        );
+        if (!accountInfo?.owner.equals(StakeProgram.programId)) {
           continue;
         }
-        
+
         return validatorStakeAccount;
       }
     }
   }
-  
+
   // If no preferred validator or it wasn't found, find any validator with sufficient balance
-  const validatorListAccount = await connection.getAccountInfo(blaze.validatorList);
-  if (!validatorListAccount) {
+  const validatorListAccount = await connection.getAccountInfo(
+    blaze.validatorList
+  );
+  if (validatorListAccount == null) {
     throw new Error("Validator list account not found");
   }
-  
+
   const validatorList = ValidatorListLayout.decode(validatorListAccount.data);
-  
+
   // Find the first active validator with balance
   for (const validator of validatorList.validators) {
     // Check if validator has active stake (status doesn't seem to be a simple 1 for active)
     // Let's check for non-zero activeStakeLamports instead
     const activeStakeAmount = validator.activeStakeLamports;
-    
+
     // Check if validator has sufficient balance (more than minimum delegation)
     const minimumDelegation = new BN(1_000_000); // 0.001 SOL as minimum
     if (activeStakeAmount.gt(minimumDelegation)) {
-        // Calculate validator stake account address
-        // Note: seed order is important - it should be: "stake", pool, vote_account
-        const [validatorStakeAccount] = PublicKey.findProgramAddressSync(
-          [
-            Buffer.from("stake"),
-            blaze.pool.toBuffer(),
-            validator.voteAccountAddress.toBuffer(),
-          ],
-          STAKE_POOL_PROGRAM_ID
-        );
-        // Verify the account exists and is a stake account
-        const accountInfo = await connection.getAccountInfo(validatorStakeAccount);
-        if (!accountInfo || !accountInfo.owner.equals(StakeProgram.programId)) {
-          continue;
-        }
-        
-        return validatorStakeAccount;
+      // Calculate validator stake account address
+      // Note: seed order is important - it should be: "stake", pool, vote_account
+      const [validatorStakeAccount] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("stake"),
+          blaze.pool.toBuffer(),
+          validator.voteAccountAddress.toBuffer(),
+        ],
+        STAKE_POOL_PROGRAM_ID
+      );
+      // Verify the account exists and is a stake account
+      const accountInfo = await connection.getAccountInfo(
+        validatorStakeAccount
+      );
+      if (!accountInfo?.owner.equals(StakeProgram.programId)) {
+        continue;
+      }
+
+      return validatorStakeAccount;
     }
   }
-  
+
   // If no suitable validator found, throw error
   // Note: SPL stake pool's withdraw_stake only works with validator stake accounts, not reserve accounts
-  throw new Error("No suitable validator stake account found for withdrawal. The stake pool may not have active validators yet.");
+  throw new Error(
+    "No suitable validator stake account found for withdrawal. The stake pool may not have active validators yet."
+  );
 };
 
 export const blazeWithdrawStake = async (

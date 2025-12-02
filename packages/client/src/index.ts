@@ -274,7 +274,7 @@ export class SunriseStakeClient {
     withRefresh = false,
     stopOnFirstFailure = true
   ): Promise<{ signatures: string[]; errors: Error[] }> {
-    if (!this.config) {
+    if (this.config == null) {
       throw new Error("init not called");
     }
 
@@ -326,7 +326,8 @@ export class SunriseStakeClient {
     account = this.stakerGSolTokenAccount,
     authority = this.staker
   ): TransactionInstruction {
-    if (!account || !this.config) throw new Error("init not called");
+    if (account == null || this.config == null)
+      throw new Error("init not called");
 
     return createAssociatedTokenAccountIdempotentInstruction(
       this.provider.publicKey,
@@ -394,20 +395,21 @@ export class SunriseStakeClient {
     recipient?: PublicKey
   ): Promise<Transaction> {
     if (
-      !this.marinadeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.stakerGSolTokenAccount
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null
     )
       throw new Error("init not called");
 
     const recipientAuthority = recipient ?? this.staker;
-    const recipientGsolTokenAccountAddress = recipient
-      ? utils.token.associatedAddress({
-          mint: this.config.gsolMint,
-          owner: recipientAuthority,
-        })
-      : this.stakerGSolTokenAccount;
+    const recipientGsolTokenAccountAddress =
+      recipient != null
+        ? utils.token.associatedAddress({
+            mint: this.config.gsolMint,
+            owner: recipientAuthority,
+          })
+        : this.stakerGSolTokenAccount;
 
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
       recipientGsolTokenAccountAddress
@@ -415,7 +417,7 @@ export class SunriseStakeClient {
 
     const transaction = new Transaction();
 
-    if (!gsolTokenAccount) {
+    if (gsolTokenAccount == null) {
       const createUserTokenAccount = this.createGSolTokenAccountIx(
         recipientGsolTokenAccountAddress,
         recipient
@@ -448,23 +450,28 @@ export class SunriseStakeClient {
     lamports: BN,
     recipient?: PublicKey
   ): Promise<Transaction> {
-    if (!this.config || !this.stakerGSolTokenAccount || !this.blazeState)
+    if (
+      this.config == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.blazeState == null
+    )
       throw new Error("init not called");
 
     const recipientAuthority = recipient ?? this.staker;
-    const recipientGsolTokenAccountAddress = recipient
-      ? utils.token.associatedAddress({
-          mint: this.config.gsolMint,
-          owner: recipientAuthority,
-        })
-      : this.stakerGSolTokenAccount;
+    const recipientGsolTokenAccountAddress =
+      recipient != null
+        ? utils.token.associatedAddress({
+            mint: this.config.gsolMint,
+            owner: recipientAuthority,
+          })
+        : this.stakerGSolTokenAccount;
     const gsolTokenAccount = await this.provider.connection.getAccountInfo(
       recipientGsolTokenAccountAddress
     );
 
     const transaction = new Transaction();
 
-    if (!gsolTokenAccount) {
+    if (gsolTokenAccount == null) {
       const createUserTokenAccount = this.createGSolTokenAccountIx(
         recipientGsolTokenAccountAddress,
         recipient
@@ -494,10 +501,10 @@ export class SunriseStakeClient {
     stakeAccountAddress: PublicKey
   ): Promise<string> {
     if (
-      !this.marinadeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.stakerGSolTokenAccount
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null
     )
       throw new Error("init not called");
 
@@ -507,7 +514,7 @@ export class SunriseStakeClient {
       this.stakerGSolTokenAccount
     );
 
-    if (!gSolTokenAccount) {
+    if (gSolTokenAccount == null) {
       const createUserTokenAccount = this.createGSolTokenAccountIx();
       transaction.add(createUserTokenAccount);
     }
@@ -534,11 +541,11 @@ export class SunriseStakeClient {
    */
   public async unstake(lamports: BN): Promise<Transaction> {
     if (
-      !this.marinadeState ||
-      !this.config ||
-      !this.msolTokenAccount ||
-      !this.stakerGSolTokenAccount ||
-      !this.blazeState
+      this.marinadeState == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.blazeState == null
     )
       throw new Error("init not called");
 
@@ -567,14 +574,14 @@ export class SunriseStakeClient {
    */
   async recoverTickets(): Promise<TransactionInstruction | null> {
     if (
-      !this.marinadeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.msolTokenAccount ||
-      !this.bsolTokenAccount ||
-      !this.stakerGSolTokenAccount ||
-      !this.blazeState ||
-      !this.liqPoolTokenAccount
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.bsolTokenAccount == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.blazeState == null ||
+      this.liqPoolTokenAccount == null
     )
       throw new Error("init not called");
 
@@ -586,7 +593,7 @@ export class SunriseStakeClient {
     );
     const currentEpoch = await this.program.provider.connection.getEpochInfo();
 
-    if (!epochReport) {
+    if (epochReport == null) {
       // no epoch report account found at all - something went wrong
       throw new Error("No epoch report account found during recoverTickets");
     }
@@ -660,14 +667,14 @@ export class SunriseStakeClient {
    */
   async updateEpochReport(): Promise<void> {
     if (
-      !this.marinadeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.msolTokenAccount ||
-      !this.bsolTokenAccount ||
-      !this.stakerGSolTokenAccount ||
-      !this.blazeState ||
-      !this.liqPoolTokenAccount
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.bsolTokenAccount == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.blazeState == null ||
+      this.liqPoolTokenAccount == null
     )
       throw new Error("init not called");
 
@@ -678,7 +685,7 @@ export class SunriseStakeClient {
       this.program
     );
 
-    if (!epochReport) {
+    if (epochReport == null) {
       // no epoch report account found at all - something went wrong
       throw new Error("No epoch report account found during recoverTickets");
     }
@@ -722,11 +729,11 @@ export class SunriseStakeClient {
    */
   public async triggerRebalance(): Promise<string[]> {
     if (
-      !this.marinadeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.msolTokenAccount ||
-      !this.stakerGSolTokenAccount
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.stakerGSolTokenAccount == null
     )
       throw new Error("init not called");
 
@@ -734,7 +741,7 @@ export class SunriseStakeClient {
 
     // Execute recoverTickets first if needed
     const recoverInstruction = await this.recoverTickets();
-    if (recoverInstruction) {
+    if (recoverInstruction != null) {
       const recoverTxHash = await this.sendAndConfirmTransaction(
         new Transaction().add(recoverInstruction)
       );
@@ -828,10 +835,10 @@ export class SunriseStakeClient {
    */
   public async orderUnstake(lamports: BN): Promise<[Transaction, Keypair[]]> {
     if (
-      !this.marinadeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.msolTokenAccount
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null
     )
       throw new Error("init not called");
 
@@ -851,7 +858,7 @@ export class SunriseStakeClient {
       sunriseTicketAccount.marinadeTicketAccount
     );
 
-    if (!marinadeTicketAccount)
+    if (marinadeTicketAccount == null)
       throw new Error(
         `Marinade ticket with address ${sunriseTicketAccount.marinadeTicketAccount.toString()} not found`
       );
@@ -867,7 +874,7 @@ export class SunriseStakeClient {
    * Find all delayed-unstake tickets for the current user
    */
   public async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
-    if (!this.marinade) throw new Error("init not called");
+    if (this.marinade == null) throw new Error("init not called");
 
     const beneficiary = this.provider.publicKey;
 
@@ -896,7 +903,7 @@ export class SunriseStakeClient {
   public async claimUnstakeTicket(
     ticketAccount: TicketAccount
   ): Promise<Transaction> {
-    if (!this.marinade || !this.marinadeState)
+    if (this.marinade == null || this.marinadeState == null)
       throw new Error("init not called");
 
     const reservePda = await this.marinadeState.reserveAddress();
@@ -928,10 +935,10 @@ export class SunriseStakeClient {
    */
   public async withdrawFromBlaze(amount: BN): Promise<string> {
     if (
-      !this.blazeState ||
-      !this.config ||
-      !this.stakerGSolTokenAccount ||
-      !this.bsolTokenAccount
+      this.blazeState == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.bsolTokenAccount == null
     )
       throw new Error("init not called");
 
@@ -958,10 +965,10 @@ export class SunriseStakeClient {
     amount: BN
   ): Promise<string> {
     if (
-      !this.blazeState ||
-      !this.config ||
-      !this.stakerGSolTokenAccount ||
-      !this.bsolTokenAccount
+      this.blazeState == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.bsolTokenAccount == null
     )
       throw new Error("init not called");
 
@@ -991,10 +998,11 @@ export class SunriseStakeClient {
     lamports?: number
   ): Promise<Transaction> {
     // Get minimum balance for rent exemption (200 bytes for stake account)
-    const rentExemption = await this.provider.connection.getMinimumBalanceForRentExemption(
-      StakeProgram.space
-    );
-    
+    const rentExemption =
+      await this.provider.connection.getMinimumBalanceForRentExemption(
+        StakeProgram.space
+      );
+
     const transaction = StakeProgram.createAccount({
       fromPubkey: this.provider.publicKey,
       stakePubkey: stakeAccount.publicKey,
@@ -1018,10 +1026,10 @@ export class SunriseStakeClient {
     stakeAccount: PublicKey;
   }> {
     if (
-      !this.blazeState ||
-      !this.config ||
-      !this.stakerGSolTokenAccount ||
-      !this.bsolTokenAccount
+      this.blazeState == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.bsolTokenAccount == null
     )
       throw new Error("init not called");
 
@@ -1065,14 +1073,14 @@ export class SunriseStakeClient {
    */
   public async initEpochReport(): Promise<string> {
     if (
-      !this.marinadeState ||
-      !this.blazeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.msolTokenAccount ||
-      !this.msolTokenAccountAuthority ||
-      !this.liqPoolTokenAccount ||
-      !this.bsolTokenAccount
+      this.marinadeState == null ||
+      this.blazeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.liqPoolTokenAccount == null ||
+      this.bsolTokenAccount == null
     ) {
       throw new Error("init not called");
     }
@@ -1109,14 +1117,14 @@ export class SunriseStakeClient {
    * and is updated regularly
    */
   public async getEpochReport(): Promise<EpochReportAccount> {
-    if (!this.config) {
+    if (this.config == null) {
       throw new Error("init not called");
     }
 
     const { account } = await getEpochReportAccount(this.config, this.program);
 
     // The update authority must create the epoch report account for this sunrise state instance
-    if (!account) throw new Error("Epoch report account not found");
+    if (account == null) throw new Error("Epoch report account not found");
 
     return account;
   }
@@ -1129,14 +1137,14 @@ export class SunriseStakeClient {
    */
   public async extractYieldIx(): Promise<TransactionInstruction> {
     if (
-      !this.marinadeState ||
-      !this.blazeState ||
-      !this.marinade ||
-      !this.config ||
-      !this.msolTokenAccount ||
-      !this.msolTokenAccountAuthority ||
-      !this.liqPoolTokenAccount ||
-      !this.bsolTokenAccount
+      this.marinadeState == null ||
+      this.blazeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.liqPoolTokenAccount == null ||
+      this.bsolTokenAccount == null
     ) {
       throw new Error("init not called");
     }
@@ -1288,10 +1296,10 @@ export class SunriseStakeClient {
    */
   public async details(): Promise<Details> {
     if (
-      !this.marinadeState ||
-      !this.stakerGSolTokenAccount ||
-      !this.msolTokenAccount ||
-      !this.config
+      this.marinadeState == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.msolTokenAccount == null ||
+      this.config == null
     )
       throw new Error("init not called");
 
@@ -1401,10 +1409,10 @@ export class SunriseStakeClient {
     };
 
     const lockDetails: Details["lockDetails"] =
-      lockAccountDetails.lockAccount &&
-      lockAccountDetails.tokenAccount &&
-      lockAccountDetails.lockAccount.startEpoch &&
-      lockAccountDetails.lockAccount.updatedToEpoch
+      lockAccountDetails.lockAccount != null &&
+      lockAccountDetails.tokenAccount != null &&
+      lockAccountDetails.lockAccount.startEpoch != null &&
+      lockAccountDetails.lockAccount.updatedToEpoch != null
         ? {
             lockAccount: lockAccountDetails.lockAccountAddress,
             lockTokenAccount: lockAccountDetails.tokenAccountAddress,
@@ -1418,14 +1426,15 @@ export class SunriseStakeClient {
           }
         : undefined;
 
-    const nftSummary = this.config.impactNFTStateAddress
-      ? {
-          stateAddress: this.config.impactNFTStateAddress,
-          mintAuthority: findImpactNFTMintAuthority(this.config)[0],
-          mint: impactNFT.mint,
-          tokenAccount: impactNFT.tokenAccount,
-        }
-      : undefined;
+    const nftSummary =
+      this.config.impactNFTStateAddress != null
+        ? {
+            stateAddress: this.config.impactNFTStateAddress,
+            mintAuthority: findImpactNFTMintAuthority(this.config)[0],
+            mint: impactNFT.mint,
+            tokenAccount: impactNFT.tokenAccount,
+          }
+        : undefined;
     const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
       ? nftSummary
       : undefined;
@@ -1581,7 +1590,7 @@ export class SunriseStakeClient {
     epochReport,
     bpDetails,
   }: Omit<Details, "extractableYield">): BN {
-    if (!this.marinadeState || !this.msolTokenAccount)
+    if (this.marinadeState == null || this.msolTokenAccount == null)
       throw new Error("init not called");
 
     // deposited in Stake Pool
@@ -1672,7 +1681,7 @@ export class SunriseStakeClient {
     newliqPoolProportion?: number;
     newliqPoolMinProportion?: number;
   }): Promise<void> {
-    if (!this.config) throw new Error("init not called");
+    if (this.config == null) throw new Error("init not called");
 
     const { accounts, parameters } = await this.getRegisterStateAccounts(
       newTreasury ?? this.config.treasury,
@@ -1698,7 +1707,11 @@ export class SunriseStakeClient {
    * Get the user's current balance, and the current gsol supply
    */
   public async balance(): Promise<Balance> {
-    if (!this.marinadeState || !this.stakerGSolTokenAccount || !this.config)
+    if (
+      this.marinadeState == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.config == null
+    )
       throw new Error("init not called");
     const gsolBalancePromise = this.provider.connection
       .getTokenAccountBalance(this.stakerGSolTokenAccount)
@@ -1794,11 +1807,11 @@ export class SunriseStakeClient {
    */
   public async lockGSol(lamports: BN): Promise<Transaction[]> {
     if (
-      !this.stakerGSolTokenAccount ||
-      !this.config ||
-      !this.marinade ||
-      !this.marinadeState ||
-      !this.lockClient
+      this.stakerGSolTokenAccount == null ||
+      this.config == null ||
+      this.marinade == null ||
+      this.marinadeState == null ||
+      this.lockClient == null
     )
       throw new Error("init not called");
 
@@ -1813,7 +1826,7 @@ export class SunriseStakeClient {
 
     const recoverInstruction = await this.recoverTickets();
 
-    if (recoverInstruction) {
+    if (recoverInstruction != null) {
       transactions.push(new Transaction().add(recoverInstruction));
     }
 
@@ -1831,7 +1844,8 @@ export class SunriseStakeClient {
    * locked gSOL.
    */
   public async updateLockAccount(): Promise<Transaction[]> {
-    if (!this.config || !this.lockClient) throw new Error("init not called");
+    if (this.config == null || this.lockClient == null)
+      throw new Error("init not called");
 
     // Before updating a lock account, the epoch report account must be updated to the current epoch,
     // via a recoverTickets instruction.
@@ -1849,7 +1863,7 @@ export class SunriseStakeClient {
     // this will also update the epoch report to the current epoch if not already updated
     const recoverInstruction = await this.recoverTickets();
 
-    if (recoverInstruction) {
+    if (recoverInstruction != null) {
       await this.sendAndConfirmTransaction(
         new Transaction().add(recoverInstruction)
       );
@@ -1857,8 +1871,8 @@ export class SunriseStakeClient {
 
     const { lockAccount } = await this.getLockAccount();
 
-    if (!lockAccount) throw new Error("lock account not found");
-    if (!lockAccount.startEpoch || !lockAccount.updatedToEpoch)
+    if (lockAccount == null) throw new Error("lock account not found");
+    if (lockAccount.startEpoch == null || lockAccount.updatedToEpoch == null)
       throw new Error("lock account has not been locked?");
 
     // only update if the lock account has not been updated this epoch
@@ -1876,11 +1890,11 @@ export class SunriseStakeClient {
    */
   public async addLockedGSol(lamports: BN): Promise<Transaction[]> {
     if (
-      !this.stakerGSolTokenAccount ||
-      !this.config ||
-      !this.marinade ||
-      !this.marinadeState ||
-      !this.lockClient
+      this.stakerGSolTokenAccount == null ||
+      this.config == null ||
+      this.marinade == null ||
+      this.marinadeState == null ||
+      this.lockClient == null
     )
       throw new Error("init not called");
 
@@ -1888,7 +1902,7 @@ export class SunriseStakeClient {
 
     const recoverInstruction = await this.recoverTickets();
 
-    if (recoverInstruction) {
+    if (recoverInstruction != null) {
       transactions.push(new Transaction().add(recoverInstruction));
     }
 
@@ -1905,8 +1919,8 @@ export class SunriseStakeClient {
    * Unlock a user's gSOL so that it can be unstaked
    */
   public async unlockGSol(): Promise<Transaction[]> {
-    if (!this.lockClient) throw new Error("init not called");
-    if (!this.stakerGSolTokenAccount) throw new Error("No stake found");
+    if (this.lockClient == null) throw new Error("init not called");
+    if (this.stakerGSolTokenAccount == null) throw new Error("No stake found");
 
     const transactions: Transaction[] = [];
 
@@ -1944,13 +1958,14 @@ export class SunriseStakeClient {
   public async getLockAccount(
     withRefresh = false
   ): Promise<LockAccountSummary> {
-    if (!this.lockClient) throw new Error("init not called");
+    if (this.lockClient == null) throw new Error("init not called");
 
     if (withRefresh) await this.lockClient.refresh();
 
-    const updatedYieldAccrued = this.lockClient.lockAccount
-      ? await this.lockClient.calculateUpdatedYieldAccrued()
-      : null;
+    const updatedYieldAccrued =
+      this.lockClient.lockAccount != null
+        ? await this.lockClient.calculateUpdatedYieldAccrued()
+        : null;
 
     const currentLevel = this.lockClient.getCurrentLevel();
 
