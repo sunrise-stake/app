@@ -50,22 +50,53 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
       if (address && details) {
         try {
           // Create a simple tree representation without MongoDB calls
-          const balance = details.balances.gsolBalance.amount || 0;
-          const hasBalance = balance > 0;
+          const gsolBalance = Number(details.balances.gsolBalance.amount) || 0;
+          // lockDetails.amountLocked is in BN (lamports), convert to SOL
+          const lockedBalance = details.lockDetails?.amountLocked
+            ? Number(details.lockDetails.amountLocked.toString()) / 1e9
+            : 0;
+          const totalBalance = gsolBalance + lockedBalance;
+
+          // Calculate level based on balance thresholds
+          // Level 0: 0 gSOL
+          // Level 1: 0.001 - 1 gSOL
+          // Level 2: 1 - 10 gSOL
+          // Level 3: 10 - 50 gSOL
+          // Level 4: 50 - 100 gSOL
+          // Level 5: 100 - 500 gSOL
+          // Level 6: 500 - 1000 gSOL
+          // Level 7: 1000 - 5000 gSOL
+          // Level 8: 5000+ gSOL
+          let level = 0;
+          if (totalBalance > 0) {
+            if (totalBalance < 1) level = 1;
+            else if (totalBalance < 10) level = 2;
+            else if (totalBalance < 50) level = 3;
+            else if (totalBalance < 100) level = 4;
+            else if (totalBalance < 500) level = 5;
+            else if (totalBalance < 1000) level = 6;
+            else if (totalBalance < 5000) level = 7;
+            else level = 8;
+          }
+
+          // Calculate species and instance from address for visual variety
+          const addressBytes = address.toBuffer();
+          const instance = addressBytes[31] % 3; // Assuming 3 tree variations per species
+          const species = (addressBytes[30] % 3) + 1; // Assuming 3 species (1-3)
 
           const minimalTree: TreeComponent = {
             address,
             translate: { x: 0, y: 0, z: 0 },
             metadata: {
               type: {
-                level: hasBalance ? 1 : 0,
-                species: 1,
-                instance: 0,
+                level,
+                species,
+                instance,
                 translucent: false,
               },
               node: {
                 address,
-                balance: Number(balance),
+                balance: totalBalance,
                 startDate: new Date(),
                 mostRecentTransfer: new Date(),
                 children: [],
