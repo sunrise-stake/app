@@ -36,7 +36,7 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   const { connection } = useConnection();
   const [service, setService] = useState<ForestService | undefined>();
   const [neighbours] = useState<TreeComponent[]>([]);
-  const [myTree] = useState<TreeComponent>();
+  const [myTree, setMyTree] = useState<TreeComponent>();
 
   const address: PublicKey | null = useMemo(
     () => safeParsePublicKeyFromUrl() ?? wallet.publicKey,
@@ -46,8 +46,43 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   const loadTree = useCallback(
     (reload = false) => {
       // Forest feature disabled - no neighbor retrieval
+      // Create a minimal tree object based on wallet connection status
+      if (address && details) {
+        try {
+          // Create a simple tree representation without MongoDB calls
+          const balance = details.balances.gsolBalance.amount || 0;
+          const hasBalance = balance > 0;
+          
+          const minimalTree: TreeComponent = {
+            address,
+            translate: { x: 0, y: 0, z: 0 },
+            metadata: {
+              type: {
+                level: hasBalance ? 1 : 0,
+                species: 1,
+                instance: 0,
+                translucent: false,
+              },
+              node: {
+                address,
+                balance: Number(balance),
+                startDate: new Date(),
+                mostRecentTransfer: new Date(),
+                children: [],
+                parents: []
+              },
+              layer: 0,
+            }
+          };
+          
+          setMyTree(minimalTree);
+        } catch (error) {
+          console.error('Error creating minimal tree:', error);
+          // Don't set tree on error to avoid breaking the UI
+        }
+      }
     },
-    [service, address]
+    [address, details]
   );
 
   // reload tree when details change. doesn't matter what changed.

@@ -67,7 +67,10 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setLoading
       )
         .then(updateClient)
-        .catch(console.error);
+        .catch((error) => {
+          console.error("Failed to initialize SunriseClient for wallet:", error);
+          setLoading(false);
+        });
     } else if (addressFromUrl !== null) {
       // we have an address in the url, but no wallet
       // this is a readonly client
@@ -85,7 +88,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
       )
         .then(updateClient)
         .catch((e) => {
-          console.error(e);
+          console.error("Failed to initialize readonly client:", e);
         });
     } else {
       // just get the details from the chain - no client available yet
@@ -106,7 +109,9 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
           return client.getDetails();
         })
         .then(initDetails)
-        .catch(console.error);
+        .catch((error) => {
+          console.error("Failed to get initial details:", error);
+        });
     }
   }, [wallet?.publicKey, location.state?.address]);
 
