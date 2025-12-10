@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import {
-  IoChevronBackOutline,
+  // IoChevronBackOutline,
   IoChevronDownOutline,
   IoChevronForwardOutline,
 } from "react-icons/io5";
@@ -154,6 +154,7 @@ const _HubApp: ForwardRefRenderFunction<
       />
       <div className={showHub ? "block" : "hidden"}>
         <div className="flex">
+          {/* Forest navigation disabled
           <LinkWithQuery
             to="/forest"
             className={clx(
@@ -168,7 +169,7 @@ const _HubApp: ForwardRefRenderFunction<
               />
               <span>Forest</span>
             </div>
-          </LinkWithQuery>
+          </LinkWithQuery> */}
           {myTree && (
             <DynamicTree
               details={myTree}
@@ -227,6 +228,7 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
+            {/* Forest navigation disabled
             <LinkWithQuery to="/forest" className="flex items-center">
               <div className="flex items-center nowrap text-2xl">
                 <IoChevronBackOutline
@@ -235,7 +237,7 @@ const _HubApp: ForwardRefRenderFunction<
                 />
                 <span>Forest</span>
               </div>
-            </LinkWithQuery>
+            </LinkWithQuery> */}
             <LinkWithQuery to="/grow" className="flex items-center">
               <div className="flex items-center nowrap text-2xl relative">
                 <span>Grow</span>

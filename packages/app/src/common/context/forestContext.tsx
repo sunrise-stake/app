@@ -9,7 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { forestToComponents, type TreeComponent } from "../../forest/utils";
+import { type TreeComponent } from "../../forest/utils";
 import { ForestService, MAX_FOREST_DEPTH } from "../../api/forest";
 import { useSunriseStake } from "./sunriseStakeContext";
 import { type PublicKey } from "@solana/web3.js";
@@ -35,8 +35,8 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
   const wallet = useWallet();
   const { connection } = useConnection();
   const [service, setService] = useState<ForestService | undefined>();
-  const [neighbours, setNeighbours] = useState<TreeComponent[]>([]);
-  const [myTree, setMyTree] = useState<TreeComponent>();
+  const [neighbours] = useState<TreeComponent[]>([]);
+  const [myTree] = useState<TreeComponent>();
 
   const address: PublicKey | null = useMemo(
     () => safeParsePublicKeyFromUrl() ?? wallet.publicKey,
@@ -45,14 +45,7 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
 
   const loadTree = useCallback(
     (reload = false) => {
-      void (async () => {
-        if (service && address) {
-          const parentTree = await service.getForest(address, depth);
-          const components = forestToComponents(parentTree);
-          setMyTree(components[0]);
-          setNeighbours(components.slice(1));
-        }
-      })();
+      // Forest feature disabled - no neighbor retrieval
     },
     [service, address]
   );

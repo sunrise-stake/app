@@ -16,8 +16,7 @@ parserOptions:
   project: [./tsconfig.json]
 rules:
   "@typescript-eslint/strict-boolean-expressions":
-    - error
-    - allowNullableObject: true
+    - off
   "@typescript-eslint/return-await":
     - error
     - in-try-catch

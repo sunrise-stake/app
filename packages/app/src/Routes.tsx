@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { ForestApp } from "./forest/ForestApp";
+// import { ForestApp } from "./forest/ForestApp";
 import { GrowApp } from "./grow/GrowApp";
 import { HubApp } from "./hub/HubApp";
 import { LockingApp } from "./locking/LockingApp";
@@ -70,6 +70,7 @@ export const Routes: FC = () => {
               setCurrentHelpRoute(AppRoute.Hub);
             },
           },
+          /* Forest route disabled
           {
             path: AppRoute.Forest,
             onMatch: () => {
@@ -79,7 +80,7 @@ export const Routes: FC = () => {
               setCurrentRouteApp(appRefs.forest);
               setCurrentHelpRoute(AppRoute.Forest);
             },
-          },
+          }, */
           {
             path: AppRoute.Grow,
             onMatch: () => {
@@ -132,11 +133,12 @@ export const Routes: FC = () => {
         ]}
       />
       <div className="AppGrid">
+        {/* Forest app disabled
         <ForestApp
           id="forest-app"
           className="App ForestApp"
           ref={appRefs.forest}
-        />
+        /> */}
         <GrowApp
           id="grow-app"
           className="App GrowApp"

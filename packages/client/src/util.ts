@@ -330,7 +330,7 @@ export const getVoterAddress = async (
   // program: Program<SunriseStake>,
 ): Promise<PublicKey> => {
   const info = await getStakeAccountInfo(stakeAccount, provider);
-  if (!info.voterAddress) {
+  if (info.voterAddress == null) {
     throw new Error(`Stake account must be delegated`);
   }
   return info.voterAddress;

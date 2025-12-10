@@ -93,7 +93,7 @@ export async function getStakePoolAccount(
 ): Promise<StakePool> {
   const account = await connection.getAccountInfo(stakePoolAddress);
 
-  if (!account) {
+  if (account == null) {
     throw new Error("Invalid stake pool account");
   }
 
