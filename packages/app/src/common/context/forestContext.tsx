@@ -52,7 +52,7 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
           // Create a simple tree representation without MongoDB calls
           const balance = details.balances.gsolBalance.amount || 0;
           const hasBalance = balance > 0;
-          
+
           const minimalTree: TreeComponent = {
             address,
             translate: { x: 0, y: 0, z: 0 },
@@ -69,15 +69,15 @@ const ForestProvider: FC<{ children: ReactNode; depth?: number }> = ({
                 startDate: new Date(),
                 mostRecentTransfer: new Date(),
                 children: [],
-                parents: []
+                parents: [],
               },
               layer: 0,
-            }
+            },
           };
-          
+
           setMyTree(minimalTree);
         } catch (error) {
-          console.error('Error creating minimal tree:', error);
+          console.error("Error creating minimal tree:", error);
           // Don't set tree on error to avoid breaking the UI
         }
       }

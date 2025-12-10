@@ -68,7 +68,10 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
       )
         .then(updateClient)
         .catch((error) => {
-          console.error("Failed to initialize SunriseClient for wallet:", error);
+          console.error(
+            "Failed to initialize SunriseClient for wallet:",
+            error
+          );
           setLoading(false);
         });
     } else if (addressFromUrl !== null) {
