@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import {
-  // IoChevronBackOutline,
+  IoChevronBackOutline,
   IoChevronDownOutline,
   IoChevronForwardOutline,
 } from "react-icons/io5";
@@ -154,12 +154,11 @@ const _HubApp: ForwardRefRenderFunction<
       />
       <div className={showHub ? "block" : "hidden"}>
         <div className="flex">
-          {/* Forest navigation disabled
-          <LinkWithQuery
-            to="/forest"
+          {/* Forest navigation - hidden but maintains layout */}
+          <div
             className={clx(
-              "hidden md:flex  flex-col justify-center transition-opacity ease-in duration-500",
-              showHubNav ? "opacity-100" : "opacity-0"
+              "hidden md:flex  flex-col justify-center transition-opacity ease-in duration-500 opacity-0 pointer-events-none",
+              showHubNav ? "opacity-0" : "opacity-0"
             )}
           >
             <div className="flex items-center nowrap text-2xl">
@@ -169,7 +168,7 @@ const _HubApp: ForwardRefRenderFunction<
               />
               <span>Forest</span>
             </div>
-          </LinkWithQuery> */}
+          </div>
           {myTree && (
             <DynamicTree
               details={myTree}
@@ -228,8 +227,8 @@ const _HubApp: ForwardRefRenderFunction<
               showHubNav ? "opacity-100" : "opacity-0"
             )}
           >
-            {/* Forest navigation disabled
-            <LinkWithQuery to="/forest" className="flex items-center">
+            {/* Forest navigation - hidden but maintains layout */}
+            <div className="flex items-center opacity-0 pointer-events-none">
               <div className="flex items-center nowrap text-2xl">
                 <IoChevronBackOutline
                   className="inline"
@@ -237,7 +236,7 @@ const _HubApp: ForwardRefRenderFunction<
                 />
                 <span>Forest</span>
               </div>
-            </LinkWithQuery> */}
+            </div>
             <LinkWithQuery to="/grow" className="flex items-center">
               <div className="flex items-center nowrap text-2xl relative">
                 <span>Grow</span>
