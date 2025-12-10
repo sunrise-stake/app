@@ -2,6 +2,7 @@ export * from "./AmountInput";
 export * from "./Button";
 export * from "./CarbonRecovered";
 export * from "./DetailsBox";
+export * from "./ErrorBoundary";
 export * from "./InfoBox";
 export * from "./LockedGSol";
 export * from "./Logo";

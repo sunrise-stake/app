@@ -5,7 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { ErrorBoundary } from "./common/components/ErrorBoundary";
+import { ErrorBoundary } from "./common/components/";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
