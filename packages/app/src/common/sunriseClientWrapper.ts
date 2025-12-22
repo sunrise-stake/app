@@ -144,14 +144,23 @@ export class SunriseClientWrapper {
     // .then(this.triggerUpdateAndReturn.bind(this));
   }
 
-  async orderWithdrawal(amount: BN): Promise<string> {
+  async withdrawFromBlaze(amount: BN): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client.withdrawFromBlaze(amount);
+  }
+
+  async withdrawStakeFromBlaze(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
-      .orderUnstake(amount)
-      .then(async ([tx, keypairs]) =>
-        this.client.sendAndConfirmTransaction(tx, keypairs)
-      )
+      .withdrawStake(amount)
+      .then(async ({ signature }) => signature)
       .then(this.triggerUpdateAndReturn.bind(this));
+  }
+
+  async orderWithdrawal(amount: BN): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    // Use Blaze stake withdrawal instead of Marinade delayed unstake
+    return this.withdrawStakeFromBlaze(amount);
   }
 
   async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {

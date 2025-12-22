@@ -101,9 +101,10 @@ const StakeDashboard: FC = () => {
   const withdraw = async (amount: string): Promise<void> => {
     if (!client) return Promise.reject(new Error("Client not initialized"));
 
+    // Force all withdrawals through Blaze/SPL pool
     const withdraw = delayedWithdraw
       ? client.orderWithdrawal.bind(client)
-      : client.withdraw.bind(client);
+      : client.withdrawFromBlaze.bind(client);
 
     return withdraw(solToLamports(amount))
       .then((tx) => {
