@@ -1,4 +1,7 @@
-use crate::instructions::{InitEpochReport, RecoverTickets, UpdateEpochReport};
+use crate::instructions::{
+    DepositSplStakeToLiquid, InitEpochReport, MoveSplLiquidToMarinade, RecoverTickets,
+    UpdateEpochReport,
+};
 use crate::marinade::{
     accounts::MarinadeState,
     cpi::{
@@ -412,6 +415,50 @@ impl<'a> From<RecoverTickets<'a>> for AddLiquidityProperties<'a> {
 impl<'a> From<&RecoverTickets<'a>> for AddLiquidityProperties<'a> {
     fn from(recover_tickets: &RecoverTickets<'a>) -> Self {
         recover_tickets.to_owned().into()
+    }
+}
+impl<'a> From<MoveSplLiquidToMarinade<'a>> for AddLiquidityProperties<'a> {
+    fn from(accounts: MoveSplLiquidToMarinade<'a>) -> Self {
+        Self {
+            state: accounts.state,
+            marinade_state: accounts.marinade_state,
+            liq_pool_mint: accounts.liq_pool_mint,
+            liq_pool_mint_authority: accounts.liq_pool_mint_authority,
+            liq_pool_sol_leg_pda: accounts.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: accounts.liq_pool_msol_leg,
+            transfer_from: accounts.msol_token_account_authority.to_account_info(),
+            mint_liq_pool_to: accounts.liq_pool_token_account,
+            system_program: accounts.system_program,
+            token_program: accounts.token_program,
+            marinade_program: accounts.marinade_program,
+        }
+    }
+}
+impl<'a> From<&MoveSplLiquidToMarinade<'a>> for AddLiquidityProperties<'a> {
+    fn from(accounts: &MoveSplLiquidToMarinade<'a>) -> Self {
+        accounts.to_owned().into()
+    }
+}
+impl<'a> From<DepositSplStakeToLiquid<'a>> for AddLiquidityProperties<'a> {
+    fn from(accounts: DepositSplStakeToLiquid<'a>) -> Self {
+        Self {
+            state: accounts.state,
+            marinade_state: accounts.marinade_state,
+            liq_pool_mint: accounts.liq_pool_mint,
+            liq_pool_mint_authority: accounts.liq_pool_mint_authority,
+            liq_pool_sol_leg_pda: accounts.liq_pool_sol_leg_pda,
+            liq_pool_msol_leg: accounts.liq_pool_msol_leg,
+            transfer_from: accounts.msol_token_account_authority.to_account_info(),
+            mint_liq_pool_to: accounts.liq_pool_token_account,
+            system_program: accounts.system_program,
+            token_program: accounts.token_program,
+            marinade_program: accounts.marinade_program,
+        }
+    }
+}
+impl<'a> From<&DepositSplStakeToLiquid<'a>> for AddLiquidityProperties<'a> {
+    fn from(accounts: &DepositSplStakeToLiquid<'a>) -> Self {
+        accounts.to_owned().into()
     }
 }
 

@@ -159,8 +159,12 @@ export class SunriseClientWrapper {
 
   async orderWithdrawal(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
-    // Use Blaze stake withdrawal instead of Marinade delayed unstake
-    return this.withdrawStakeFromBlaze(amount);
+    return this.client
+      .orderUnstake(amount)
+      .then(async ([tx, keypairs]) =>
+        this.client.sendAndConfirmTransaction(tx, keypairs)
+      )
+      .then(this.triggerUpdateAndReturn.bind(this));
   }
 
   async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
