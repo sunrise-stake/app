@@ -6,7 +6,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-sunrise_stake = "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
+gsol_mint_manager = "sgmdmefVZeTCzNFaxaUyZxG5HvBjU8VYVc1DR151iXb"
+marinade_liquidity_pool_beam = "sbm1g72BpYd3pPdHtwna8xogFhYLcCKdUKricTGwibF"
+marinade_stake_pool_beam = "sbm2EQPK9SDWFykkFqUhTV1t1ng2pGgSXESoyXQ5HMF"
+spl_stake_pool_beam = "sbm34B5emb8AYFSsuUL9h24f6dGVyjLP39ehELjxd6D"
 
 [toolchain]
 anchor_version = "0.31.1"
