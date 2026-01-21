@@ -1,0 +1,8 @@
+{
+  "rules": [
+    {
+      "pathPattern": "/**",
+      "apiPath": "https://blink.sunrisestake.com/api/actions/stake"
+    }
+  ]
+}
