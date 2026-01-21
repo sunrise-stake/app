@@ -127,3 +127,202 @@ pub fn calc_blaze_sol_withdrawal_fee(stake_pool: &StakePool, pool_tokens: u64) -
 pub fn calc_blaze_stake_withdrawal_fee(stake_pool: &StakePool, pool_tokens: u64) -> Result<u64> {
     Ok(calc_pool_tokens_stake_withdrawal_fee(stake_pool, pool_tokens).unwrap())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_test_stake_pool(total_lamports: u64, pool_token_supply: u64) -> StakePool {
+        StakePool {
+            account_type: 1,
+            manager: Pubkey::default(),
+            staker: Pubkey::default(),
+            stake_deposit_authority: Pubkey::default(),
+            stake_withdraw_bump_seed: 255,
+            validator_list: Pubkey::default(),
+            reserve_stake: Pubkey::default(),
+            pool_mint: Pubkey::default(),
+            manager_fee_account: Pubkey::default(),
+            token_program_id: Pubkey::default(),
+            total_lamports,
+            pool_token_supply,
+            last_update_epoch: 0,
+            lockup: Lockup::default(),
+            epoch_fee: Fee { denominator: 0, numerator: 0 },
+            next_epoch_fee: None,
+            preferred_deposit_validator_vote_address: None,
+            preferred_withdraw_validator_vote_address: None,
+            stake_deposit_fee: Fee { denominator: 0, numerator: 0 },
+            stake_withdrawal_fee: Fee { denominator: 1000, numerator: 3 }, // 0.3% fee
+            next_stake_withdrawal_fee: None,
+            stake_referral_fee: 0,
+            sol_deposit_authority: None,
+            sol_deposit_fee: Fee { denominator: 0, numerator: 0 },
+            sol_referral_fee: 0,
+            sol_withdraw_authority: None,
+            sol_withdrawal_fee: Fee { denominator: 1000, numerator: 3 }, // 0.3% fee
+            next_sol_withdrawal_fee: None,
+            last_epoch_pool_token_supply: 0,
+            last_epoch_total_lamports: 0,
+        }
+    }
+
+    mod fee_tests {
+        use super::*;
+
+        #[test]
+        fn test_fee_apply_zero_denominator() {
+            let fee = Fee { denominator: 0, numerator: 1 };
+            assert_eq!(fee.apply(1000), Some(1000));
+        }
+
+        #[test]
+        fn test_fee_apply_normal() {
+            // 0.3% fee = 3/1000
+            let fee = Fee { denominator: 1000, numerator: 3 };
+            // 1000 * 3 / 1000 = 3
+            assert_eq!(fee.apply(1000), Some(3));
+        }
+
+        #[test]
+        fn test_fee_apply_large_amount() {
+            let fee = Fee { denominator: 1000, numerator: 3 };
+            // 1_000_000_000 * 3 / 1000 = 3_000_000
+            assert_eq!(fee.apply(1_000_000_000), Some(3_000_000));
+        }
+
+        #[test]
+        fn test_fee_apply_100_percent() {
+            let fee = Fee { denominator: 100, numerator: 100 };
+            assert_eq!(fee.apply(500), Some(500));
+        }
+    }
+
+    mod calc_pool_tokens_tests {
+        use super::*;
+
+        #[test]
+        fn test_calc_pool_tokens_1_to_1_ratio() {
+            // When total_lamports == pool_token_supply, ratio is 1:1
+            let pool = create_test_stake_pool(1_000_000_000, 1_000_000_000);
+            assert_eq!(calc_pool_tokens_for_deposit(&pool, 100), Some(100));
+        }
+
+        #[test]
+        fn test_calc_pool_tokens_2_to_1_ratio() {
+            // When total_lamports is 2x pool_token_supply
+            // 1 lamport = 0.5 pool tokens
+            let pool = create_test_stake_pool(2_000_000_000, 1_000_000_000);
+            assert_eq!(calc_pool_tokens_for_deposit(&pool, 100), Some(50));
+        }
+
+        #[test]
+        fn test_calc_pool_tokens_empty_pool() {
+            // Empty pool should return same amount (1:1)
+            let pool = create_test_stake_pool(0, 0);
+            assert_eq!(calc_pool_tokens_for_deposit(&pool, 100), Some(100));
+        }
+
+        #[test]
+        fn test_calc_pool_tokens_large_deposit() {
+            let pool = create_test_stake_pool(100_000_000_000, 100_000_000_000);
+            assert_eq!(
+                calc_pool_tokens_for_deposit(&pool, 10_000_000_000),
+                Some(10_000_000_000)
+            );
+        }
+    }
+
+    mod calc_lamports_withdraw_tests {
+        use super::*;
+
+        #[test]
+        fn test_calc_lamports_1_to_1_ratio() {
+            let pool = create_test_stake_pool(1_000_000_000, 1_000_000_000);
+            assert_eq!(calc_lamports_withdraw_amount(&pool, 100), Some(100));
+        }
+
+        #[test]
+        fn test_calc_lamports_2_to_1_ratio() {
+            // When total_lamports is 2x pool_token_supply
+            // 1 pool token = 2 lamports
+            let pool = create_test_stake_pool(2_000_000_000, 1_000_000_000);
+            assert_eq!(calc_lamports_withdraw_amount(&pool, 100), Some(200));
+        }
+
+        #[test]
+        fn test_calc_lamports_empty_pool() {
+            let pool = create_test_stake_pool(0, 0);
+            // With 0 supply, should return 0
+            assert_eq!(calc_lamports_withdraw_amount(&pool, 100), Some(0));
+        }
+
+        #[test]
+        fn test_calc_lamports_small_amount() {
+            let pool = create_test_stake_pool(1_000_000_000, 1_000_000_000);
+            assert_eq!(calc_lamports_withdraw_amount(&pool, 1), Some(1));
+        }
+    }
+
+    mod withdrawal_fee_tests {
+        use super::*;
+
+        #[test]
+        fn test_calc_withdrawal_fee_normal() {
+            // 0.3% fee on 1000 tokens = 3
+            let pool = create_test_stake_pool(1_000_000_000, 1_000_000_000);
+            assert_eq!(calc_pool_tokens_stake_withdrawal_fee(&pool, 1000), Some(3));
+        }
+
+        #[test]
+        fn test_calc_withdrawal_fee_1_sol() {
+            // 0.3% fee on 1 SOL (1_000_000_000 lamports) = 3_000_000
+            let pool = create_test_stake_pool(1_000_000_000, 1_000_000_000);
+            assert_eq!(
+                calc_pool_tokens_stake_withdrawal_fee(&pool, 1_000_000_000),
+                Some(3_000_000)
+            );
+        }
+
+        #[test]
+        fn test_calc_withdrawal_fee_small_amount() {
+            // 0.3% fee on 100 = 0 (rounds down)
+            let pool = create_test_stake_pool(1_000_000_000, 1_000_000_000);
+            assert_eq!(calc_pool_tokens_stake_withdrawal_fee(&pool, 100), Some(0));
+        }
+    }
+
+    mod integration_tests {
+        use super::*;
+
+        #[test]
+        fn test_deposit_withdraw_roundtrip() {
+            // Deposit 1 SOL, then withdraw - should get same amount back (ignoring fees)
+            let pool = create_test_stake_pool(100_000_000_000, 100_000_000_000);
+
+            let deposit_lamports = 1_000_000_000u64;
+            let pool_tokens = calc_pool_tokens_for_deposit(&pool, deposit_lamports).unwrap();
+            let withdraw_lamports = calc_lamports_withdraw_amount(&pool, pool_tokens).unwrap();
+
+            assert_eq!(deposit_lamports, withdraw_lamports);
+        }
+
+        #[test]
+        fn test_pool_token_value_increases() {
+            // Simulate pool earning rewards (total_lamports increases, supply stays same)
+            let initial_pool = create_test_stake_pool(100_000_000_000, 100_000_000_000);
+
+            // After rewards, pool has 110 SOL but same supply
+            let rewarded_pool = create_test_stake_pool(110_000_000_000, 100_000_000_000);
+
+            let tokens = 1_000_000_000u64;
+            let initial_value = calc_lamports_withdraw_amount(&initial_pool, tokens).unwrap();
+            let rewarded_value = calc_lamports_withdraw_amount(&rewarded_pool, tokens).unwrap();
+
+            // Pool tokens should be worth more after rewards
+            assert!(rewarded_value > initial_value);
+            assert_eq!(initial_value, 1_000_000_000); // 1 SOL
+            assert_eq!(rewarded_value, 1_100_000_000); // 1.1 SOL
+        }
+    }
+}

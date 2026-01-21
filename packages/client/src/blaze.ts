@@ -21,7 +21,10 @@ import {
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
 import { getStakePoolAccount } from "./decodeStakePool.js";
-import { struct, u8, u32, u64, publicKey, vec } from "@project-serum/borsh";
+import {
+  ValidatorListLayout,
+  ValidatorStakeInfoLayout,
+} from "@solana/spl-stake-pool";
 
 export const blazeDeposit = async (
   config: SunriseStakeConfig,
@@ -156,36 +159,51 @@ export const blazeWithdrawSol = async (
     .transaction();
 };
 
-// Validator list entry structure
-interface ValidatorListEntry {
-  voteAccountAddress: PublicKey;
-  balance: BN;
-  score: number;
-  activeStakeLamports: BN;
-  transientStakeLamports: BN;
-  status: number;
-}
+/**
+ * Size of each ValidatorStakeInfo entry in bytes.
+ * From @solana/spl-stake-pool ValidatorStakeInfoLayout.span
+ */
+const VALIDATOR_STAKE_INFO_SIZE = ValidatorStakeInfoLayout.span;
 
-// Layout for validator list
-const ValidatorListLayout = struct<{
-  accountType: number;
-  maxValidators: number;
-  validators: ValidatorListEntry[];
-}>([
-  u8("accountType"),
-  u32("maxValidators"),
-  vec(
-    struct<ValidatorListEntry>([
-      publicKey("voteAccountAddress"),
-      u64("balance"),
-      u32("score"),
-      u64("activeStakeLamports"),
-      u64("transientStakeLamports"),
-      u8("status"),
-    ]),
-    "validators"
-  ),
-]);
+/** Validator list header size: u8 accountType + u32 maxValidators */
+const VALIDATOR_LIST_HEADER_SIZE = 5;
+
+/**
+ * Type for decoded validator stake info from @solana/spl-stake-pool.
+ */
+type ValidatorStakeInfo = ReturnType<typeof ValidatorStakeInfoLayout.decode>;
+
+/**
+ * Decode the validator list from account data.
+ *
+ * Note: SPL stake pool uses a packed array format where validators are stored
+ * directly after the header without a length prefix. The number of validators
+ * is calculated from the remaining data size divided by entry size.
+ *
+ * We don't use ValidatorListLayout.decode() because it expects a borsh vec
+ * with length prefix, which doesn't match the actual on-chain format.
+ */
+const decodeValidatorList = (
+  data: Buffer
+): { accountType: number; maxValidators: number; validators: ValidatorStakeInfo[] } => {
+  const accountType = data.readUInt8(0);
+  const maxValidators = data.readUInt32LE(1);
+
+  // Calculate number of validators from remaining data (packed array, no length prefix)
+  const validatorsData = data.slice(VALIDATOR_LIST_HEADER_SIZE);
+  const numValidators = Math.floor(validatorsData.length / VALIDATOR_STAKE_INFO_SIZE);
+
+  const validators: ValidatorStakeInfo[] = [];
+  for (let i = 0; i < numValidators; i++) {
+    const offset = i * VALIDATOR_STAKE_INFO_SIZE;
+    const entryData = validatorsData.slice(offset, offset + VALIDATOR_STAKE_INFO_SIZE);
+    if (entryData.length === VALIDATOR_STAKE_INFO_SIZE) {
+      validators.push(ValidatorStakeInfoLayout.decode(entryData));
+    }
+  }
+
+  return { accountType, maxValidators, validators };
+};
 
 // Helper function to find the appropriate validator stake account for withdrawal
 export const getWithdrawStakeAccount = async (
@@ -204,7 +222,7 @@ export const getWithdrawStakeAccount = async (
       throw new Error("Validator list account not found");
     }
 
-    const validatorList = ValidatorListLayout.decode(validatorListAccount.data);
+    const validatorList = decodeValidatorList(validatorListAccount.data);
 
     // Find the preferred validator's entry
     for (const validator of validatorList.validators) {
@@ -244,7 +262,7 @@ export const getWithdrawStakeAccount = async (
     throw new Error("Validator list account not found");
   }
 
-  const validatorList = ValidatorListLayout.decode(validatorListAccount.data);
+  const validatorList = decodeValidatorList(validatorListAccount.data);
 
   // Find the first active validator with balance
   for (const validator of validatorList.validators) {

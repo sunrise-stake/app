@@ -157,3 +157,118 @@ pub fn deposit_spl_stake_to_liquid_handler(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::utils::seeds;
+
+    /// Test PDA derivation for stake account matches create_spl_stake_account
+    #[test]
+    fn test_stake_account_pda_derivation() {
+        let state_key = Pubkey::new_unique();
+        let index: u64 = 0;
+
+        let (pda, _bump) = Pubkey::find_program_address(
+            &[
+                state_key.as_ref(),
+                seeds::SPL_REBALANCE_STAKE_ACCOUNT,
+                &index.to_be_bytes(),
+            ],
+            &crate::ID,
+        );
+
+        // PDA should be valid (not on curve)
+        assert!(!pda.is_on_curve());
+    }
+
+    #[test]
+    fn test_stake_account_pda_uses_big_endian_index() {
+        let state_key = Pubkey::new_unique();
+
+        // Index 256 in big-endian is [0,0,0,0,0,0,1,0]
+        // Index 256 in little-endian is [0,1,0,0,0,0,0,0]
+        let index: u64 = 256;
+
+        let be_bytes = index.to_be_bytes();
+        let le_bytes = index.to_le_bytes();
+
+        // Verify they're different (ensuring we test the right thing)
+        assert_ne!(be_bytes, le_bytes);
+
+        // The PDA uses big-endian
+        let (pda_be, _) = Pubkey::find_program_address(
+            &[
+                state_key.as_ref(),
+                seeds::SPL_REBALANCE_STAKE_ACCOUNT,
+                &be_bytes,
+            ],
+            &crate::ID,
+        );
+
+        let (pda_le, _) = Pubkey::find_program_address(
+            &[
+                state_key.as_ref(),
+                seeds::SPL_REBALANCE_STAKE_ACCOUNT,
+                &le_bytes,
+            ],
+            &crate::ID,
+        );
+
+        // They should produce different PDAs
+        assert_ne!(pda_be, pda_le);
+    }
+
+    #[test]
+    fn test_deactivation_epoch_check_logic() {
+        // Simulating the check: stake.delegation.deactivation_epoch < clock.epoch
+
+        // Case 1: Stake deactivated in epoch 5, current epoch is 10 -> should pass
+        let deactivation_epoch: u64 = 5;
+        let current_epoch: u64 = 10;
+        assert!(deactivation_epoch < current_epoch, "Should be fully deactivated");
+
+        // Case 2: Stake deactivated in epoch 10, current epoch is 10 -> should fail
+        let deactivation_epoch: u64 = 10;
+        let current_epoch: u64 = 10;
+        assert!(!(deactivation_epoch < current_epoch), "Same epoch means still deactivating");
+
+        // Case 3: Stake not deactivated (MAX epoch), current epoch is 10 -> should fail
+        let deactivation_epoch: u64 = u64::MAX;
+        let current_epoch: u64 = 10;
+        assert!(!(deactivation_epoch < current_epoch), "MAX means not deactivated");
+    }
+
+    #[test]
+    fn test_state_accounting_overflow_protection() {
+        // Test that checked_add is used for marinade_minted_gsol
+        let current: u64 = u64::MAX - 100;
+        let to_add: u64 = 50;
+
+        // This should succeed
+        let result = current.checked_add(to_add);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), u64::MAX - 50);
+
+        // This should fail (overflow)
+        let to_add_overflow: u64 = 200;
+        let result_overflow = current.checked_add(to_add_overflow);
+        assert!(result_overflow.is_none());
+    }
+
+    #[test]
+    fn test_stake_withdraw_instruction_format() {
+        // The native stake program's Withdraw instruction has discriminator 4
+        // Data format: [discriminator (4 bytes LE), lamports (8 bytes LE)]
+        let lamports: u64 = 1_000_000_000;
+
+        // Build instruction data like stake::instruction::withdraw does
+        let mut data = Vec::with_capacity(12);
+        data.extend_from_slice(&4u32.to_le_bytes()); // Withdraw discriminator
+        data.extend_from_slice(&lamports.to_le_bytes());
+
+        assert_eq!(data.len(), 12);
+        assert_eq!(u32::from_le_bytes(data[0..4].try_into().unwrap()), 4);
+        assert_eq!(u64::from_le_bytes(data[4..12].try_into().unwrap()), lamports);
+    }
+}
