@@ -1,0 +1,191 @@
+[workspace]
+types = "../client/src/types"
+
+[features]
+seeds = false
+skip-lint = false
+
+[toolchain]
+anchor_version = "0.31.1"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "../../fixtures/id.json"
+
+[test]
+startup_wait = 20000
+
+[scripts]
+test = "yarn test:anchor"
+
+# Programs needed for the scenario tests
+[[test.genesis]]
+address = "sunzv8N3A8dRHwUBvxgRDEbWKk8t7yiHR4FLRgFsTX6"
+program = "../../../../target/deploy/sunrise_stake.so"
+
+[[test.genesis]]
+address = "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+program = "../../fixtures/marinade_finance.so"
+
+[[test.genesis]]
+address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
+program = "../../fixtures/blaze/spl_stake_pool.so"
+
+[[test.genesis]]
+address = "SUNFT6ErsQvMcDzMcGyndq2P31wYCFs6G6WEcoyGkGc"
+program = "../../fixtures/impact_nft.so"
+
+[test.validator]
+slots_per_epoch = "32"
+gossip_port = 8893
+
+# Core Sunrise accounts - using admin fixture with modified update_authority
+[[test.validator.account]]
+address = "43m66crxGfXSJpmx5wXRoFuHubhHA1GCvtHgmHW6cM1P"
+filename = "../../fixtures/scenarios/admin/sunrise_state_admin.json"
+
+[[test.validator.account]]
+address = "gso1xA56hacfgTHTF4F7wN5r4jbnJsKh99vR595uybA"
+filename = "../../fixtures/scenarios/gsol_mint.json"
+
+[[test.validator.account]]
+address = "6HQrvpMJFqMj35JqMReyhnUrRXNucAAB6FywdDu7xPKA"
+filename = "../../fixtures/scenarios/treasury.json"
+
+[[test.validator.account]]
+address = "6RzCneyeEqnjiWxrzqfBwHDEpTrbcSkBFFUrtMZnNjpc"
+filename = "../../fixtures/scenarios/impact_nft_state.json"
+
+# Admin wallet (update_authority) - needs SOL for fees
+[[test.validator.account]]
+address = "5HnwQGT79JypiAdjdjsXEn1EMD2AsRVVubqDyWfyWXRv"
+filename = "../../fixtures/scenarios/admin/admin_wallet.json"
+
+# Marinade accounts
+[[test.validator.account]]
+address = "8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"
+filename = "../../fixtures/scenarios/marinade_state.json"
+
+[[test.validator.account]]
+address = "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So"
+filename = "../../fixtures/scenarios/msol_mint.json"
+
+[[test.validator.account]]
+address = "LPmSozJJ8Jh69ut2WP3XmVohTjL4ipR18yiCzxrUmVj"
+filename = "../../fixtures/scenarios/lp_mint.json"
+
+[[test.validator.account]]
+address = "7GgPYjS5Dza89wV6FpZ23kUJRG5vbQ1GM25ezspYFSoE"
+filename = "../../fixtures/scenarios/liq_pool_msol_leg.json"
+
+[[test.validator.account]]
+address = "UefNb6z6yvArqe4cJHTXCqStRsKmWhGxnZzuHbikP5Q"
+filename = "../../fixtures/scenarios/liq_pool_sol_leg_pda.json"
+
+[[test.validator.account]]
+address = "EyaSjUtSgo9aRD1f8LWXwdvkpDTmXAW54yoSHZRF14WL"
+filename = "../../fixtures/scenarios/liq_pool_mint_authority.json"
+
+# Sunrise token accounts
+[[test.validator.account]]
+address = "6vRu2voMXGeMzAL12epHKKQrAv3v6EVoipNdh9u9s5L3"
+filename = "../../fixtures/scenarios/msol_token_account.json"
+
+[[test.validator.account]]
+address = "HoaRQ3dcYmK2oqXT7JzzecJjJd5NXhiiqC2J4r4NjxUu"
+filename = "../../fixtures/scenarios/msol_token_account_authority.json"
+
+[[test.validator.account]]
+address = "Aw7GthzX8W15yCnMUvhBG1G1mArSu3QqXmXcmcx4ZHn8"
+filename = "../../fixtures/scenarios/liq_pool_token_account.json"
+
+# SPL Stake Pool (Blaze) accounts
+[[test.validator.account]]
+address = "stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"
+filename = "../../fixtures/scenarios/blaze_stake_pool.json"
+
+[[test.validator.account]]
+address = "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1"
+filename = "../../fixtures/scenarios/bsol_mint.json"
+
+[[test.validator.account]]
+address = "5zCT6KjKh62XiA8KFxW9vitrZPUFJLrunQCdnm9nFAvB"
+filename = "../../fixtures/scenarios/sunrise_bsol_token_account.json"
+
+[[test.validator.account]]
+address = "Fk6knLZZoSjHg2viJLReTCPhuFgKFzcnXunuGa8QaRuP"
+filename = "../../fixtures/scenarios/bsol_token_account_authority.json"
+
+# SPL stake pool additional accounts - addresses from stake pool data
+# Manager Fee Account
+[[test.validator.account]]
+address = "Dpo148tVGewDPyh2FkGV18gouWctbdX2fHJopJGe9xv1"
+filename = "../../fixtures/blaze/fees_depot.json"
+
+# Reserve Stake Account - need to create fixture
+[[test.validator.account]]
+address = "rsrxDvYUXjH1RQj2Ke36LNZEVqGztATxFkqNukERqFT"
+filename = "../../fixtures/scenarios/admin/reserve_stake.json"
+
+# Validator List - need to create fixture
+[[test.validator.account]]
+address = "1istpXjy8BM7Vd5vPfA485frrV7SRJhgq5vs3sskWmc"
+filename = "../../fixtures/scenarios/admin/validator_list.json"
+
+# Epoch report account
+[[test.validator.account]]
+address = "A9bNHVY3XReubhkuo2dkJnb9QS8qJJB72EafHAFDHE1A"
+filename = "../../fixtures/scenarios/epoch1/epoch_report_account.json"
+
+# Additional Marinade accounts
+[[test.validator.account]]
+address = "B1aLzaNMeFVAyQ6f3XbbUyKcH2YPHu2fqiEagmiF23VR"
+filename = "../../fixtures/scenarios/treasury_msol_account_marinade.json"
+
+[[test.validator.account]]
+address = "Du3Ysj1wKbxPKkuPPnvzQLQh8oMSVifs3jGZjJWXFmHN"
+filename = "../../fixtures/scenarios/reserve_pda_marinade.json"
+
+# Impact NFT accounts
+[[test.validator.account]]
+address = "27CTW8NkU2YHAavDRuF43iBKUhXLGv1XMhDyhZrxw3jX"
+filename = "../../fixtures/scenarios/offset_metadata.json"
+
+[[test.validator.account]]
+address = "Aj8WR7ZGEpa8pFhRWAmcBtDxMxGnoUkQDe3Z9KncNFHL"
+filename = "../../fixtures/scenarios/offset_tiers.json"
+
+[[test.validator.account]]
+address = "FxLQos1kyk4JW6rAGs8CPoP9eWXUuZTnHspQSfTFBELs"
+filename = "../../fixtures/scenarios/nft_holder_token_account.json"
+
+[[test.validator.account]]
+address = "9QXDinR3EaKJnoqEBvnYVdTen2GVcaxmX3AR2PUbH5qJ"
+filename = "../../fixtures/scenarios/nft_1_collection_metadata.json"
+
+[[test.validator.account]]
+address = "5QWkXn9fqJCeUVgLRVEc8CvN81mZDXWMa2prqmJthKk6"
+filename = "../../fixtures/scenarios/nft_1_collection_master_edition.json"
+
+[[test.validator.account]]
+address = "Bz3aDGXTumhYWhHJFJQmKzqrYZwxc6vBMBwMa1xq6d8k"
+filename = "../../fixtures/scenarios/nft_mint.json"
+
+[[test.validator.account]]
+address = "66dcpKcdX8cBeLXTqQiomjS9xsrTkKyTUzX7ADro6rvn"
+filename = "../../fixtures/scenarios/nft_1_collection_mint.json"
+
+[[test.validator.account]]
+address = "G9So1EmtQDVuUexpJtXVkgvqWKNRM5vByJZKY6vnw6PJ"
+filename = "../../fixtures/scenarios/nft_2_collection_mint.json"
+
+[[test.validator.account]]
+address = "9m3SkHXB1UeTPmemAUVkp1PaMyhFt26jELktvx7rCuLN"
+filename = "../../fixtures/scenarios/nft_2_collection_metadata.json"
+
+[[test.validator.account]]
+address = "EsdcZ5H42yJfMX9XUsrsKi2gsdxpxJoTqpEZsacX81vH"
+filename = "../../fixtures/scenarios/nft_2_collection_master_edition.json"
