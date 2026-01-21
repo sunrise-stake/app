@@ -21,10 +21,7 @@ import {
   type Wallet,
 } from "@sunrisestake/marinade-ts-sdk";
 import { getStakePoolAccount } from "./decodeStakePool.js";
-import {
-  ValidatorListLayout,
-  ValidatorStakeInfoLayout,
-} from "@solana/spl-stake-pool";
+import { ValidatorStakeInfoLayout } from "@solana/spl-stake-pool";
 
 export const blazeDeposit = async (
   config: SunriseStakeConfig,
@@ -163,7 +160,7 @@ export const blazeWithdrawSol = async (
  * Size of each ValidatorStakeInfo entry in bytes.
  * From @solana/spl-stake-pool ValidatorStakeInfoLayout.span
  */
-const VALIDATOR_STAKE_INFO_SIZE = ValidatorStakeInfoLayout.span;
+const VALIDATOR_STAKE_INFO_SIZE: number = ValidatorStakeInfoLayout.span;
 
 /** Validator list header size: u8 accountType + u32 maxValidators */
 const VALIDATOR_LIST_HEADER_SIZE = 5;
@@ -185,18 +182,27 @@ type ValidatorStakeInfo = ReturnType<typeof ValidatorStakeInfoLayout.decode>;
  */
 const decodeValidatorList = (
   data: Buffer
-): { accountType: number; maxValidators: number; validators: ValidatorStakeInfo[] } => {
+): {
+  accountType: number;
+  maxValidators: number;
+  validators: ValidatorStakeInfo[];
+} => {
   const accountType = data.readUInt8(0);
   const maxValidators = data.readUInt32LE(1);
 
   // Calculate number of validators from remaining data (packed array, no length prefix)
   const validatorsData = data.slice(VALIDATOR_LIST_HEADER_SIZE);
-  const numValidators = Math.floor(validatorsData.length / VALIDATOR_STAKE_INFO_SIZE);
+  const numValidators = Math.floor(
+    validatorsData.length / VALIDATOR_STAKE_INFO_SIZE
+  );
 
   const validators: ValidatorStakeInfo[] = [];
   for (let i = 0; i < numValidators; i++) {
     const offset = i * VALIDATOR_STAKE_INFO_SIZE;
-    const entryData = validatorsData.slice(offset, offset + VALIDATOR_STAKE_INFO_SIZE);
+    const entryData = validatorsData.slice(
+      offset,
+      offset + VALIDATOR_STAKE_INFO_SIZE
+    );
     if (entryData.length === VALIDATOR_STAKE_INFO_SIZE) {
       validators.push(ValidatorStakeInfoLayout.decode(entryData));
     }

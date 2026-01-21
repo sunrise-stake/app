@@ -226,17 +226,26 @@ mod tests {
         // Case 1: Stake deactivated in epoch 5, current epoch is 10 -> should pass
         let deactivation_epoch: u64 = 5;
         let current_epoch: u64 = 10;
-        assert!(deactivation_epoch < current_epoch, "Should be fully deactivated");
+        assert!(
+            deactivation_epoch < current_epoch,
+            "Should be fully deactivated"
+        );
 
         // Case 2: Stake deactivated in epoch 10, current epoch is 10 -> should fail
         let deactivation_epoch: u64 = 10;
         let current_epoch: u64 = 10;
-        assert!(!(deactivation_epoch < current_epoch), "Same epoch means still deactivating");
+        assert!(
+            !(deactivation_epoch < current_epoch),
+            "Same epoch means still deactivating"
+        );
 
         // Case 3: Stake not deactivated (MAX epoch), current epoch is 10 -> should fail
         let deactivation_epoch: u64 = u64::MAX;
         let current_epoch: u64 = 10;
-        assert!(!(deactivation_epoch < current_epoch), "MAX means not deactivated");
+        assert!(
+            !(deactivation_epoch < current_epoch),
+            "MAX means not deactivated"
+        );
     }
 
     #[test]
@@ -269,6 +278,9 @@ mod tests {
 
         assert_eq!(data.len(), 12);
         assert_eq!(u32::from_le_bytes(data[0..4].try_into().unwrap()), 4);
-        assert_eq!(u64::from_le_bytes(data[4..12].try_into().unwrap()), lamports);
+        assert_eq!(
+            u64::from_le_bytes(data[4..12].try_into().unwrap()),
+            lamports
+        );
     }
 }

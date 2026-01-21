@@ -126,19 +126,19 @@ pub fn create_spl_stake_account_handler(
     // Build accounts list following the SPL stake pool WithdrawStake layout (13 accounts)
     // See: https://github.com/solana-program/stake-pool/blob/main/program/src/processor.rs
     let accounts = vec![
-        AccountMeta::new(*ctx.accounts.stake_pool.key, false),                              // 0: stake_pool_info [w]
-        AccountMeta::new(*ctx.accounts.validator_stake_list.key, false),                    // 1: validator_list_info [w]
-        AccountMeta::new_readonly(*ctx.accounts.stake_pool_withdraw_authority.key, false),  // 2: withdraw_authority_info []
-        AccountMeta::new(*ctx.accounts.stake_account_to_split.key, false),                  // 3: stake_split_from [w]
-        AccountMeta::new(ctx.accounts.new_stake_account.key(), false),                      // 4: stake_split_to [w]
-        AccountMeta::new_readonly(ctx.accounts.msol_token_account_authority.key(), false),  // 5: user_stake_authority_info []
-        AccountMeta::new_readonly(*ctx.accounts.bsol_account_authority.key, true),          // 6: user_transfer_authority_info [s]
-        AccountMeta::new(ctx.accounts.bsol_token_account.key(), false),                     // 7: burn_from_pool_info [w]
-        AccountMeta::new(*ctx.accounts.manager_fee_account.key, false),                     // 8: manager_fee_info [w]
-        AccountMeta::new(*ctx.accounts.stake_pool_token_mint.key, false),                   // 9: pool_mint_info [w]
-        AccountMeta::new_readonly(*ctx.accounts.sysvar_clock.key, false),                   // 10: clock_info []
-        AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),                 // 11: token_program_info []
-        AccountMeta::new_readonly(*ctx.accounts.native_stake_program.key, false),           // 12: stake_program_info []
+        AccountMeta::new(*ctx.accounts.stake_pool.key, false), // 0: stake_pool_info [w]
+        AccountMeta::new(*ctx.accounts.validator_stake_list.key, false), // 1: validator_list_info [w]
+        AccountMeta::new_readonly(*ctx.accounts.stake_pool_withdraw_authority.key, false), // 2: withdraw_authority_info []
+        AccountMeta::new(*ctx.accounts.stake_account_to_split.key, false), // 3: stake_split_from [w]
+        AccountMeta::new(ctx.accounts.new_stake_account.key(), false),     // 4: stake_split_to [w]
+        AccountMeta::new_readonly(ctx.accounts.msol_token_account_authority.key(), false), // 5: user_stake_authority_info []
+        AccountMeta::new_readonly(*ctx.accounts.bsol_account_authority.key, true), // 6: user_transfer_authority_info [s]
+        AccountMeta::new(ctx.accounts.bsol_token_account.key(), false), // 7: burn_from_pool_info [w]
+        AccountMeta::new(*ctx.accounts.manager_fee_account.key, false), // 8: manager_fee_info [w]
+        AccountMeta::new(*ctx.accounts.stake_pool_token_mint.key, false), // 9: pool_mint_info [w]
+        AccountMeta::new_readonly(*ctx.accounts.sysvar_clock.key, false), // 10: clock_info []
+        AccountMeta::new_readonly(ctx.accounts.token_program.key(), false), // 11: token_program_info []
+        AccountMeta::new_readonly(*ctx.accounts.native_stake_program.key, false), // 12: stake_program_info []
     ];
 
     let instruction = Instruction {

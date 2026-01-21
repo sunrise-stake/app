@@ -148,19 +148,34 @@ mod tests {
             pool_token_supply,
             last_update_epoch: 0,
             lockup: Lockup::default(),
-            epoch_fee: Fee { denominator: 0, numerator: 0 },
+            epoch_fee: Fee {
+                denominator: 0,
+                numerator: 0,
+            },
             next_epoch_fee: None,
             preferred_deposit_validator_vote_address: None,
             preferred_withdraw_validator_vote_address: None,
-            stake_deposit_fee: Fee { denominator: 0, numerator: 0 },
-            stake_withdrawal_fee: Fee { denominator: 1000, numerator: 3 }, // 0.3% fee
+            stake_deposit_fee: Fee {
+                denominator: 0,
+                numerator: 0,
+            },
+            stake_withdrawal_fee: Fee {
+                denominator: 1000,
+                numerator: 3,
+            }, // 0.3% fee
             next_stake_withdrawal_fee: None,
             stake_referral_fee: 0,
             sol_deposit_authority: None,
-            sol_deposit_fee: Fee { denominator: 0, numerator: 0 },
+            sol_deposit_fee: Fee {
+                denominator: 0,
+                numerator: 0,
+            },
             sol_referral_fee: 0,
             sol_withdraw_authority: None,
-            sol_withdrawal_fee: Fee { denominator: 1000, numerator: 3 }, // 0.3% fee
+            sol_withdrawal_fee: Fee {
+                denominator: 1000,
+                numerator: 3,
+            }, // 0.3% fee
             next_sol_withdrawal_fee: None,
             last_epoch_pool_token_supply: 0,
             last_epoch_total_lamports: 0,
@@ -172,28 +187,40 @@ mod tests {
 
         #[test]
         fn test_fee_apply_zero_denominator() {
-            let fee = Fee { denominator: 0, numerator: 1 };
+            let fee = Fee {
+                denominator: 0,
+                numerator: 1,
+            };
             assert_eq!(fee.apply(1000), Some(1000));
         }
 
         #[test]
         fn test_fee_apply_normal() {
             // 0.3% fee = 3/1000
-            let fee = Fee { denominator: 1000, numerator: 3 };
+            let fee = Fee {
+                denominator: 1000,
+                numerator: 3,
+            };
             // 1000 * 3 / 1000 = 3
             assert_eq!(fee.apply(1000), Some(3));
         }
 
         #[test]
         fn test_fee_apply_large_amount() {
-            let fee = Fee { denominator: 1000, numerator: 3 };
+            let fee = Fee {
+                denominator: 1000,
+                numerator: 3,
+            };
             // 1_000_000_000 * 3 / 1000 = 3_000_000
             assert_eq!(fee.apply(1_000_000_000), Some(3_000_000));
         }
 
         #[test]
         fn test_fee_apply_100_percent() {
-            let fee = Fee { denominator: 100, numerator: 100 };
+            let fee = Fee {
+                denominator: 100,
+                numerator: 100,
+            };
             assert_eq!(fee.apply(500), Some(500));
         }
     }

@@ -1,16 +1,10 @@
 import { describe, it } from "mocha";
 import { expect } from "chai";
-import { PublicKey, Connection } from "@solana/web3.js";
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { ValidatorStakeInfoLayout } from "@solana/spl-stake-pool";
 import { STAKE_POOL_PROGRAM_ID } from "../constants.js";
-
-// ESM equivalent of __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import validatorListFixture from "../../../tests/fixtures/blaze/validator_list.json";
 
 /**
  * Unit tests for blaze.ts validator list parsing and stake account selection.
@@ -89,12 +83,7 @@ describe("blaze", () => {
 
     before(() => {
       // Load the mainnet validator list fixture
-      const fixturePath = join(
-        __dirname,
-        "../../../tests/fixtures/blaze/validator_list.json"
-      );
-      const fixture = JSON.parse(readFileSync(fixturePath, "utf-8"));
-      validatorListData = Buffer.from(fixture.account.data[0], "base64");
+      validatorListData = Buffer.from(validatorListFixture.account.data[0], "base64");
     });
 
     it("parses header correctly", () => {
@@ -210,12 +199,7 @@ describe("blaze", () => {
     let validators: ValidatorStakeInfo[];
 
     before(() => {
-      const fixturePath = join(
-        __dirname,
-        "../../../tests/fixtures/blaze/validator_list.json"
-      );
-      const fixture = JSON.parse(readFileSync(fixturePath, "utf-8"));
-      const data = Buffer.from(fixture.account.data[0], "base64");
+      const data = Buffer.from(validatorListFixture.account.data[0], "base64");
       validators = decodeValidatorList(data).validators;
     });
 
