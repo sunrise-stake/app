@@ -51,8 +51,8 @@ describe("spl-rebalance-liquid-transfer", () => {
 
     // Get initial state values from the State account
     const state = await client.program.account.state.fetch(client.env.state);
-    initialBlazeMintedGsol = state.blazeMintedGsol as BN;
-    initialMarinadeMintedGsol = state.marinadeMintedGsol as BN;
+    initialBlazeMintedGsol = state.blazeMintedGsol;
+    initialMarinadeMintedGsol = state.marinadeMintedGsol;
 
     const balance = await client.balance();
     initialBsolBalance = new BN(balance.bsolBalance?.amount ?? "0");
@@ -74,11 +74,13 @@ describe("spl-rebalance-liquid-transfer", () => {
     await client.sendAndConfirmTransaction(transaction, []);
 
     // Get updated state
-    const postState = await client.program.account.state.fetch(client.env.state);
+    const postState = await client.program.account.state.fetch(
+      client.env.state
+    );
     const postBalance = await client.balance();
 
-    const newBlazeMintedGsol = postState.blazeMintedGsol as BN;
-    const newMarinadeMintedGsol = postState.marinadeMintedGsol as BN;
+    const newBlazeMintedGsol = postState.blazeMintedGsol;
+    const newMarinadeMintedGsol = postState.marinadeMintedGsol;
     const newBsolBalance = new BN(postBalance.bsolBalance?.amount ?? "0");
     const newLpBalance = new BN(postBalance.liqPoolBalance?.amount ?? "0");
 
@@ -93,7 +95,9 @@ describe("spl-rebalance-liquid-transfer", () => {
     expectAmount(blazeDecrease, lamports, new BN(100_000)); // Allow small tolerance for fees
 
     // Verify state accounting - marinade_minted_gsol should increase
-    const marinadeIncrease = newMarinadeMintedGsol.sub(initialMarinadeMintedGsol);
+    const marinadeIncrease = newMarinadeMintedGsol.sub(
+      initialMarinadeMintedGsol
+    );
     log("Marinade increase:", marinadeIncrease.toString());
     expectAmount(marinadeIncrease, lamports, new BN(100_000)); // Allow small tolerance for fees
 
