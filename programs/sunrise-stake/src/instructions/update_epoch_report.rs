@@ -93,10 +93,10 @@ pub fn update_epoch_report_handler<'info>(
 ) -> Result<()> {
     // we can update the epoch report if either
     // a) the account is at the current epoch or
-    // b) the account is at the previous epoch and there are no open tickets
+    // b) the account is at a previous epoch and there are no open tickets
 
     let current_epoch = ctx.accounts.clock.epoch;
-    let is_previous_epoch = ctx.accounts.epoch_report_account.epoch == current_epoch - 1;
+    let is_previous_epoch = ctx.accounts.epoch_report_account.epoch < current_epoch;
     let is_current_epoch = ctx.accounts.epoch_report_account.epoch == current_epoch;
     let is_previous_epoch_and_no_open_tickets =
         is_previous_epoch && ctx.accounts.epoch_report_account.tickets == 0;
@@ -108,6 +108,8 @@ pub fn update_epoch_report_handler<'info>(
 
     ctx.accounts.epoch_report_account.epoch = ctx.accounts.clock.epoch;
     ctx.accounts.epoch_report_account.current_gsol_supply = ctx.accounts.gsol_mint.supply;
+    ctx.accounts.epoch_report_account.tickets = 0;
+    ctx.accounts.epoch_report_account.total_ordered_lamports = 0;
 
     let calculate_yield_accounts: CalculateExtractableYieldProperties = ctx.accounts.deref().into();
     let extractable_yield = marinade::calculate_extractable_yield(&calculate_yield_accounts)?;
