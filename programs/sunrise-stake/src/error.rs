@@ -50,4 +50,8 @@ pub enum ErrorCode {
     AccountDiscriminatorMismatch,
     #[msg("Account did not deserialize")]
     AccountDidNotDeserialize,
+    #[msg("Stake account is not fully deactivated yet")]
+    StakeAccountNotFullyDeactivated,
+    #[msg("Invalid stake account state")]
+    InvalidStakeAccountState,
 }

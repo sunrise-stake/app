@@ -9,6 +9,7 @@ plugins:
   - file-extension-in-import-ts
 ignorePatterns:
   - "**/types/sunrise_stake.ts"
+  - "**/__tests__/**"
 parser: "@typescript-eslint/parser"
 parserOptions:
   ecmaVersion: latest

@@ -7,6 +7,8 @@ import {
   Keypair,
   PublicKey,
   type Signer,
+  SYSVAR_CLOCK_PUBKEY,
+  SYSVAR_STAKE_HISTORY_PUBKEY,
   Transaction,
   type TransactionInstruction,
   StakeProgram,
@@ -18,6 +20,7 @@ import {
   findBSolTokenAccountAuthority,
   findGSolMintAuthority,
   findMSolTokenAccountAuthority,
+  findSplRebalanceStakeAccount,
   logKeys,
   marinadeTargetReached,
   type Options,
@@ -69,7 +72,12 @@ import {
   triggerRebalance,
   getEpochReportAccount,
 } from "./marinade.js";
-import { blazeDeposit, blazeWithdrawSol, blazeWithdrawStake } from "./blaze.js";
+import {
+  blazeDeposit,
+  blazeWithdrawSol,
+  blazeWithdrawStake,
+  getWithdrawStakeAccount,
+} from "./blaze.js";
 import { type BlazeState } from "./types/Solblaze.js";
 import { getStakePoolAccount, type StakePool } from "./decodeStakePool.js";
 import { type EpochReportAccount } from "./types/EpochReportAccount.js";
@@ -1985,6 +1993,259 @@ export class SunriseStakeClient {
       ),
       unrealizedYield: unrealizedYield ?? null,
     };
+  }
+
+  // //////////////////////////
+  // SPL Rebalance Admin Functions
+  // //////////////////////////
+
+  /**
+   * Move SOL from SPL stake pool (liquid reserve) directly to Marinade liquidity pool.
+   * Admin-only instruction for rebalancing funds between pools.
+   * @param lamports The amount of lamports to move
+   */
+  public async moveSplLiquidToMarinade(lamports: BN): Promise<Transaction> {
+    if (
+      this.marinadeState == null ||
+      this.config == null ||
+      this.blazeState == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.bsolTokenAccountAuthority == null ||
+      this.liqPoolTokenAccount == null ||
+      this.bsolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    type Accounts = Parameters<
+      ReturnType<
+        typeof this.program.methods.moveSplLiquidToMarinade
+      >["accounts"]
+    >[0];
+
+    // Note: accounts with `relations` (updateAuthority, marinadeState) and PDAs
+    // (bsolAccountAuthority, msolTokenAccountAuthority) are auto-resolved by Anchor
+    const accounts: Accounts = {
+      state: this.env.state,
+      payer: this.staker,
+      stakePool: this.blazeState.pool,
+      stakePoolWithdrawAuthority: this.blazeState.withdrawAuthority,
+      reserveStakeAccount: this.blazeState.reserveAccount,
+      managerFeeAccount: this.blazeState.feesDepot,
+      stakePoolTokenMint: this.blazeState.bsolMint,
+      bsolTokenAccount: this.bsolTokenAccount,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      sysvarClock: SYSVAR_CLOCK_PUBKEY,
+      sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
+      stakePoolProgram: STAKE_POOL_PROGRAM_ID,
+      nativeStakeProgram: StakeProgram.programId,
+    };
+
+    return this.program.methods
+      .moveSplLiquidToMarinade(lamports)
+      .accounts(accounts)
+      .transaction();
+  }
+
+  /**
+   * Create a stake account from SPL stake pool and deactivate it.
+   * Admin-only instruction for rebalancing funds between pools.
+   * The stake account will be deactivated and can be deposited to Marinade liq pool
+   * after it fully deactivates (next epoch boundary).
+   * @param index The index of the stake account PDA
+   * @param lamports The amount of lamports to withdraw as stake
+   */
+  public async createSplStakeAccount(
+    index: bigint,
+    lamports: BN
+  ): Promise<Transaction> {
+    if (
+      this.config == null ||
+      this.blazeState == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.bsolTokenAccountAuthority == null ||
+      this.bsolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    // Find the validator stake account to split from
+    const stakeAccountToSplit = await getWithdrawStakeAccount(
+      this.provider.connection,
+      this.blazeState
+    );
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.createSplStakeAccount>["accounts"]
+    >[0];
+
+    // Note: accounts with `relations` (updateAuthority) and PDAs
+    // (newStakeAccount, bsolAccountAuthority, msolTokenAccountAuthority) are auto-resolved by Anchor
+    const accounts: Accounts = {
+      state: this.env.state,
+      payer: this.staker,
+      stakePool: this.blazeState.pool,
+      validatorStakeList: this.blazeState.validatorList,
+      stakePoolWithdrawAuthority: this.blazeState.withdrawAuthority,
+      stakeAccountToSplit,
+      managerFeeAccount: this.blazeState.feesDepot,
+      stakePoolTokenMint: this.blazeState.bsolMint,
+      bsolTokenAccount: this.bsolTokenAccount,
+      sysvarClock: SYSVAR_CLOCK_PUBKEY,
+      stakePoolProgram: STAKE_POOL_PROGRAM_ID,
+      nativeStakeProgram: StakeProgram.programId,
+    };
+
+    return this.program.methods
+      .createSplStakeAccount(new BN(index.toString()), lamports)
+      .accounts(accounts)
+      .transaction();
+  }
+
+  /**
+   * Deposit a deactivated stake account (from SPL rebalancing) into Marinade liquidity pool.
+   * Admin-only instruction. The stake account must be fully deactivated.
+   * @param index The index of the stake account PDA
+   */
+  public async depositSplStakeToLiquid(index: bigint): Promise<Transaction> {
+    if (
+      this.marinadeState == null ||
+      this.config == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.liqPoolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    type Accounts = Parameters<
+      ReturnType<
+        typeof this.program.methods.depositSplStakeToLiquid
+      >["accounts"]
+    >[0];
+
+    // Note: accounts with `relations` (updateAuthority, marinadeState) and PDAs
+    // (stakeAccount, msolTokenAccountAuthority) are auto-resolved by Anchor
+    const accounts: Accounts = {
+      state: this.env.state,
+      payer: this.staker,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      sysvarClock: SYSVAR_CLOCK_PUBKEY,
+      sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
+      nativeStakeProgram: StakeProgram.programId,
+    };
+
+    return this.program.methods
+      .depositSplStakeToLiquid(new BN(index.toString()))
+      .accounts(accounts)
+      .transaction();
+  }
+
+  /**
+   * Find all SPL rebalance stake accounts created by this protocol.
+   * Useful for reporting and for determining which accounts can be deposited to Marinade.
+   * @param maxIndex The maximum index to check (default: 100)
+   */
+  public async findSplRebalanceStakeAccounts(maxIndex = 100): Promise<
+    Array<{
+      index: bigint;
+      address: PublicKey;
+      lamports: number;
+      state:
+        | "initializing"
+        | "delegated"
+        | "deactivating"
+        | "deactivated"
+        | "unknown";
+      deactivationEpoch?: number;
+    }>
+  > {
+    if (this.config == null) throw new Error("init not called");
+
+    const accounts: Array<{
+      index: bigint;
+      address: PublicKey;
+      lamports: number;
+      state:
+        | "initializing"
+        | "delegated"
+        | "deactivating"
+        | "deactivated"
+        | "unknown";
+      deactivationEpoch?: number;
+    }> = [];
+
+    const currentEpoch = await this.provider.connection.getEpochInfo();
+
+    // Max u64 as string - represents "not deactivated"
+    const MAX_U64_STR = "18446744073709551615";
+
+    for (let i = 0; i < maxIndex; i++) {
+      const [address] = findSplRebalanceStakeAccount(this.config, BigInt(i));
+      const accountInfo = await this.provider.connection.getAccountInfo(
+        address
+      );
+
+      if (accountInfo != null) {
+        // Parse stake account state
+        let state:
+          | "initializing"
+          | "delegated"
+          | "deactivating"
+          | "deactivated"
+          | "unknown" = "unknown";
+        let deactivationEpoch: number | undefined;
+
+        // Check if it's a stake account and parse its state
+        if (accountInfo.owner.equals(StakeProgram.programId)) {
+          try {
+            const parsedAccount =
+              await this.provider.connection.getParsedAccountInfo(address);
+            const parsed = parsedAccount?.value?.data;
+            if (parsed && typeof parsed === "object" && "parsed" in parsed) {
+              const stakeType = parsed.parsed?.type;
+              const info = parsed.parsed?.info;
+
+              if (stakeType === "initialized") {
+                state = "initializing";
+              } else if (stakeType === "delegated") {
+                const deactivationEpochStr =
+                  info?.stake?.delegation?.deactivationEpoch;
+                if (deactivationEpochStr != null) {
+                  // Max u64 means not deactivated yet - compare as string to avoid precision loss
+                  if (deactivationEpochStr === MAX_U64_STR) {
+                    state = "delegated";
+                  } else {
+                    deactivationEpoch = parseInt(deactivationEpochStr, 10);
+                    if (deactivationEpoch < currentEpoch.epoch) {
+                      state = "deactivated";
+                    } else {
+                      state = "deactivating";
+                    }
+                  }
+                }
+              }
+            }
+          } catch {
+            // If parsing fails, leave state as unknown
+          }
+        }
+
+        accounts.push({
+          index: BigInt(i),
+          address,
+          lamports: accountInfo.lamports,
+          state,
+          deactivationEpoch,
+        });
+      }
+    }
+
+    return accounts;
   }
 
   /**

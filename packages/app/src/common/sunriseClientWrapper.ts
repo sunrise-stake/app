@@ -144,6 +144,19 @@ export class SunriseClientWrapper {
     // .then(this.triggerUpdateAndReturn.bind(this));
   }
 
+  async withdrawFromBlaze(amount: BN): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client.withdrawFromBlaze(amount);
+  }
+
+  async withdrawStakeFromBlaze(amount: BN): Promise<string> {
+    if (this.readonlyWallet) throw new Error("Readonly wallet");
+    return this.client
+      .withdrawStake(amount)
+      .then(async ({ signature }) => signature)
+      .then(this.triggerUpdateAndReturn.bind(this));
+  }
+
   async orderWithdrawal(amount: BN): Promise<string> {
     if (this.readonlyWallet) throw new Error("Readonly wallet");
     return this.client
