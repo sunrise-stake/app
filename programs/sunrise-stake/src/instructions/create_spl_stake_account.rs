@@ -195,8 +195,14 @@ pub fn create_spl_stake_account_handler(
     )?;
 
     // Step 3: Update accounting
+    // Cap at available blaze_minted_gsol to avoid underflow (yield appreciation
+    // means actual SOL value can exceed the tracked accounting amount)
     let state = &mut ctx.accounts.state;
-    state.blaze_minted_gsol = state.blaze_minted_gsol.checked_sub(lamports).unwrap();
+    let accounting_adjustment = std::cmp::min(lamports, state.blaze_minted_gsol);
+    state.blaze_minted_gsol = state
+        .blaze_minted_gsol
+        .checked_sub(accounting_adjustment)
+        .unwrap();
 
     msg!(
         "Stake account created and deactivated. blaze_minted_gsol: {}. Will be fully deactivated at next epoch.",

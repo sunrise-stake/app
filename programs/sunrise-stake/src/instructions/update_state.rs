@@ -65,10 +65,7 @@ pub fn update_state_handler(ctx: Context<UpdateState>, state: StateInput) -> Res
     let state_account = &mut ctx.accounts.state;
     let gsol_mint = state_account.gsol_mint;
 
-    let marinade_minted_gsol = state_account.marinade_minted_gsol;
-    let blaze_minted_gsol = state_account.blaze_minted_gsol;
-
-    state_account.set_values(&state, &gsol_mint, marinade_minted_gsol, blaze_minted_gsol);
+    state_account.set_values(&state, &gsol_mint);
 
     // Create any token accounts not yet created
     if *ctx.accounts.msol_token_account.owner != ctx.accounts.token_program.key() {

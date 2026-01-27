@@ -151,8 +151,13 @@ impl<'info> SplWithdrawSol<'info> {
             &[&seeds],
         )?;
 
+        // saturating_sub: blaze_minted_gsol is bookkeeping only and does not
+        // control SOL disbursement (that is governed by actual bSOL balance and
+        // pool exchange rate). Yield appreciation can cause the tracked value
+        // to drift below the real amount, so we clamp to zero rather than
+        // panic, which would block users from unstaking.
         let state = &mut self.state;
-        self.state.blaze_minted_gsol = state.blaze_minted_gsol.checked_sub(lamports).unwrap();
+        self.state.blaze_minted_gsol = state.blaze_minted_gsol.saturating_sub(lamports);
 
         Ok(())
     }

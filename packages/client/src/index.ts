@@ -167,6 +167,8 @@ export class SunriseStakeClient {
       updateAuthority: sunriseStakeState.updateAuthority,
       liqPoolProportion: sunriseStakeState.liqPoolProportion,
       liqPoolMinProportion: sunriseStakeState.liqPoolMinProportion,
+      marinadeMintedGsol: sunriseStakeState.marinadeMintedGsol,
+      blazeMintedGsol: sunriseStakeState.blazeMintedGsol,
       impactNFTStateAddress: this.env.impactNFT.state,
       options: this.options,
     };
@@ -815,7 +817,9 @@ export class SunriseStakeClient {
       )} (${bpShare.toString()}%)`,
       "Liquidity Pool Value": `${toSol(
         details.lpDetails.lpSolValue
-      )} (${lpShare.toString()}%)`,
+      )} (${lpShare.toString()}%) (Target: ${
+        this.config?.liqPoolProportion ?? "-"
+      }%, Min: ${this.config?.liqPoolMinProportion ?? "-"}%)`,
       "Total Value": `${toSol(totalValue)}`,
       "Open Orders": `${details.epochReport.tickets.toNumber()}`,
       "Open Order value": `${toSol(
@@ -1521,7 +1525,7 @@ export class SunriseStakeClient {
     options: Options = {}
     // TODO get these types from the IDL
   ): Promise<{ accounts: any; parameters: any }> => {
-    const config = {
+    const config: SunriseStakeConfig = {
       gsolMint,
       programId: this.program.programId,
       stateAddress: this.env.state,
@@ -1529,6 +1533,8 @@ export class SunriseStakeClient {
       treasury,
       liqPoolProportion: DEFAULT_LP_PROPORTION,
       liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      marinadeMintedGsol: new BN(0),
+      blazeMintedGsol: new BN(0),
       impactNFTStateAddress: this.env.impactNFT.state,
       options,
     };
@@ -1586,6 +1592,8 @@ export class SunriseStakeClient {
       bsolAuthorityBump,
       liqPoolProportion: DEFAULT_LP_PROPORTION,
       liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      marinadeMintedGsol: null,
+      blazeMintedGsol: null,
     };
 
     return { accounts, parameters };
@@ -1677,17 +1685,23 @@ export class SunriseStakeClient {
    * @param newUpdateAuthority
    * @param newliqPoolProportion
    * @param newliqPoolMinProportion
+   * @param newMarinadeMintedGsol
+   * @param newBlazeMintedGsol
    */
   public async update({
     newTreasury,
     newUpdateAuthority,
     newliqPoolProportion,
     newliqPoolMinProportion,
+    newMarinadeMintedGsol,
+    newBlazeMintedGsol,
   }: {
     newTreasury?: PublicKey;
     newUpdateAuthority?: PublicKey;
     newliqPoolProportion?: number;
     newliqPoolMinProportion?: number;
+    newMarinadeMintedGsol?: BN;
+    newBlazeMintedGsol?: BN;
   }): Promise<void> {
     if (this.config == null) throw new Error("init not called");
 
@@ -1699,10 +1713,13 @@ export class SunriseStakeClient {
     await this.program.methods
       .updateState({
         ...parameters,
-        updateAuthority: newUpdateAuthority ?? parameters.updateAuthority,
-        liqPoolProportion: newliqPoolProportion ?? parameters.liqPoolProportion,
+        updateAuthority: newUpdateAuthority ?? this.config.updateAuthority,
+        liqPoolProportion:
+          newliqPoolProportion ?? this.config.liqPoolProportion,
         liqPoolMinProportion:
-          newliqPoolMinProportion ?? parameters.liqPoolMinProportion,
+          newliqPoolMinProportion ?? this.config.liqPoolMinProportion,
+        marinadeMintedGsol: newMarinadeMintedGsol ?? null,
+        blazeMintedGsol: newBlazeMintedGsol ?? null,
       })
       .accounts(accounts)
       .rpc()
