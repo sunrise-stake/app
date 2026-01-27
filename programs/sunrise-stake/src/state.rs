@@ -39,13 +39,7 @@ pub struct State {
 impl State {
     pub const SPACE: usize = 32 + 32 + 32 + 32 + 1 + 1 + 1 + 1 + 32 + 8 + 8 + 1 + 8 /* DISCRIMINATOR */ ;
 
-    pub fn set_values(
-        &mut self,
-        input: &StateInput,
-        gsol_mint: &Pubkey,
-        marinade_minted_gsol: u64,
-        blaze_minted_gsol: u64,
-    ) {
+    pub fn set_values(&mut self, input: &StateInput, gsol_mint: &Pubkey) {
         self.marinade_state = input.marinade_state;
         self.blaze_state = input.blaze_state;
         self.update_authority = input.update_authority;
@@ -56,8 +50,12 @@ impl State {
         self.gsol_mint = *gsol_mint;
         self.liq_pool_proportion = input.liq_pool_proportion;
         self.liq_pool_min_proportion = input.liq_pool_min_proportion;
-        self.marinade_minted_gsol = marinade_minted_gsol;
-        self.blaze_minted_gsol = blaze_minted_gsol;
+        if let Some(val) = input.marinade_minted_gsol {
+            self.marinade_minted_gsol = val;
+        }
+        if let Some(val) = input.blaze_minted_gsol {
+            self.blaze_minted_gsol = val;
+        }
     }
 }
 
@@ -72,6 +70,8 @@ pub struct StateInput {
     pub bsol_authority_bump: u8,
     pub liq_pool_proportion: u8,
     pub liq_pool_min_proportion: u8,
+    pub marinade_minted_gsol: Option<u64>,
+    pub blaze_minted_gsol: Option<u64>,
 }
 
 /// Maps a marinade ticket account to a GSOL token holder

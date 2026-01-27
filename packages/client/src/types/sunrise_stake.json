@@ -4866,6 +4866,18 @@
           {
             "name": "liq_pool_min_proportion",
             "type": "u8"
+          },
+          {
+            "name": "marinade_minted_gsol",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "blaze_minted_gsol",
+            "type": {
+              "option": "u64"
+            }
           }
         ]
       }

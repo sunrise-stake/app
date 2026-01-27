@@ -168,6 +168,14 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
     )?;
 
     if liquid_unstake_amount == 0 {
+        // All SOL came from LP removal (Marinade-side), update accounting.
+        // saturating_sub: these fields are bookkeeping only and do not control
+        // SOL disbursement (that is governed by actual token balances and pool
+        // exchange rates). Yield appreciation can cause the tracked value to
+        // drift below the real amount, so we clamp to zero rather than panic,
+        // which would block users from unstaking.
+        let state = &mut ctx.accounts.state;
+        state.marinade_minted_gsol = state.marinade_minted_gsol.saturating_sub(lamports);
         return Ok(());
     }
 
@@ -212,9 +220,6 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
         );
         let accounts = ctx.accounts.deref().into();
         marinade::unstake(&accounts, msol_value)?;
-
-        let state = &mut ctx.accounts.state;
-        state.marinade_minted_gsol = state.marinade_minted_gsol.checked_sub(lamports).unwrap();
     }
 
     if blaze_withdraw_amount > 0 {
@@ -244,6 +249,13 @@ pub fn liquid_unstake_handler(ctx: Context<LiquidUnstake>, lamports: u64) -> Res
         };
         accounts.withdraw_sol(blaze_withdraw_amount)?;
     }
+
+    // Update accounting: marinade portion is everything not withdrawn from blaze.
+    // (blaze_minted_gsol is already decremented inside withdraw_sol.)
+    // saturating_sub: see comment above — bookkeeping only, must not block users.
+    let state = &mut ctx.accounts.state;
+    let marinade_portion = lamports.saturating_sub(blaze_withdraw_amount);
+    state.marinade_minted_gsol = state.marinade_minted_gsol.saturating_sub(marinade_portion);
 
     Ok(())
 }

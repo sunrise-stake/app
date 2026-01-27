@@ -4872,6 +4872,18 @@ export type SunriseStake = {
           {
             "name": "liqPoolMinProportion",
             "type": "u8"
+          },
+          {
+            "name": "marinadeMintedGsol",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "blazeMintedGsol",
+            "type": {
+              "option": "u64"
+            }
           }
         ]
       }

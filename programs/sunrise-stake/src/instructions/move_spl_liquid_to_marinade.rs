@@ -175,9 +175,18 @@ pub fn move_spl_liquid_to_marinade_handler(
     marinade::add_liquidity_from_pda(&add_liquidity_props, lamports)?;
 
     // Step 3: Update accounting
+    // Cap at available blaze_minted_gsol to avoid underflow (yield appreciation
+    // means actual SOL value can exceed the tracked accounting amount)
     let state = &mut ctx.accounts.state;
-    state.blaze_minted_gsol = state.blaze_minted_gsol.checked_sub(lamports).unwrap();
-    state.marinade_minted_gsol = state.marinade_minted_gsol.checked_add(lamports).unwrap();
+    let accounting_adjustment = std::cmp::min(lamports, state.blaze_minted_gsol);
+    state.blaze_minted_gsol = state
+        .blaze_minted_gsol
+        .checked_sub(accounting_adjustment)
+        .unwrap();
+    state.marinade_minted_gsol = state
+        .marinade_minted_gsol
+        .checked_add(accounting_adjustment)
+        .unwrap();
 
     msg!(
         "Rebalance complete. blaze_minted_gsol: {}, marinade_minted_gsol: {}",

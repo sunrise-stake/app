@@ -73,6 +73,9 @@ export interface SunriseStakeConfig {
 
   liqPoolMinProportion: number;
 
+  marinadeMintedGsol: BN;
+  blazeMintedGsol: BN;
+
   options: Options;
   impactNFTStateAddress: PublicKey | undefined; // a state can exist without an impact nft state
 }
