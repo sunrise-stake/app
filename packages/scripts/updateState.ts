@@ -2,7 +2,8 @@ import { SunriseStakeClient } from "../client/src/index.js";
 import "./util.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
-import {WalletAdapterNetwork} from "@solana/wallet-adapter-base";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import BN from "bn.js";
 
 // Known treasury addresses:
 // dev: GRrWR48gthj53CpmdvThjh3Nh5XtjNJLsxqdKtNpJyDp
@@ -15,6 +16,8 @@ const parseArgs = () => {
     newTreasury?: PublicKey;
     newliqPoolProportion?: number;
     newliqPoolMinProportion?: number;
+    newMarinadeMintedGsol?: BN;
+    newBlazeMintedGsol?: BN;
   } = {};
 
   for (let i = 2; i < process.argv.length; i++) {
@@ -30,6 +33,12 @@ const parseArgs = () => {
     } else if (arg === "--treasury" && nextArg) {
       updates.newTreasury = new PublicKey(nextArg);
       i++;
+    } else if (arg === "--marinadeMintedGsol" && nextArg) {
+      updates.newMarinadeMintedGsol = new BN(nextArg);
+      i++;
+    } else if (arg === "--blazeMintedGsol" && nextArg) {
+      updates.newBlazeMintedGsol = new BN(nextArg);
+      i++;
     }
   }
 
@@ -42,9 +51,11 @@ const parseArgs = () => {
   if (Object.keys(updates).length === 0) {
     console.log("Usage: updateState.ts [options]");
     console.log("Options:");
-    console.log("  --liqPoolProportion <0-100>     Target LP proportion");
-    console.log("  --liqPoolMinProportion <0-100>  Minimum LP proportion");
-    console.log("  --treasury <pubkey>             Treasury address");
+    console.log("  --liqPoolProportion <0-100>       Target LP proportion");
+    console.log("  --liqPoolMinProportion <0-100>    Minimum LP proportion");
+    console.log("  --treasury <pubkey>               Treasury address");
+    console.log("  --marinadeMintedGsol <lamports>   Reset marinade minted gsol");
+    console.log("  --blazeMintedGsol <lamports>      Reset blaze minted gsol");
     process.exit(1);
   }
 

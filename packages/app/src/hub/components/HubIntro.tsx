@@ -2,7 +2,7 @@ import { Transition } from "@headlessui/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { type FC } from "react";
 
-import { CarbonRecovered, LogoIcon, LogoText } from "../../common/components";
+import { LogoIcon, LogoText } from "../../common/components";
 
 const HubIntro: FC<{
   show: boolean;
@@ -86,7 +86,6 @@ const HubIntro: FC<{
           Connect Wallet
           {/* Start reducing CO<sub>2</sub>&nbsp;emissions */}
         </WalletMultiButton>
-        <CarbonRecovered />
       </Transition.Child>
     </Transition>
   );
