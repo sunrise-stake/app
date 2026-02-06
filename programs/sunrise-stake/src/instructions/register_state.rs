@@ -56,7 +56,7 @@ pub struct RegisterState<'info> {
 
 pub fn register_state_handler(ctx: Context<RegisterState>, state: StateInput) -> Result<()> {
     let state_account = &mut ctx.accounts.state;
-    state_account.set_values(&state, &ctx.accounts.mint.key(), 0, 0);
+    state_account.set_values(&state, &ctx.accounts.mint.key());
 
     // create the gsol mint
     let gsol_mint_authority = Pubkey::create_program_address(

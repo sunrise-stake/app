@@ -2,10 +2,13 @@
 
 # Script to run all scenario tests
 
-echo "Running all unlock scenario tests..."
+echo "Running all scenario tests..."
 echo "=================================="
 
 scenarios=(
+    # SPL Rebalance scenarios
+    "spl-rebalance-liquid-transfer"
+    # Unlock scenarios
     "unlock-recover-tickets-fails"
     "successful-update-with-nft"
     "update-nft-fallback"

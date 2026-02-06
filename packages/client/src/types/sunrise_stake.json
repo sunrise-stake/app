@@ -329,6 +329,195 @@
       ]
     },
     {
+      "name": "create_spl_stake_account",
+      "docs": [
+        "Create a stake account from the SPL stake pool and deactivate it.",
+        "Admin-only instruction. The stake account can be deposited to Marinade liq pool",
+        "after it fully deactivates (next epoch boundary)."
+      ],
+      "discriminator": [
+        139,
+        134,
+        75,
+        132,
+        132,
+        134,
+        40,
+        201
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "update_authority",
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "new_stake_account",
+          "docs": [
+            "The new stake account - must be uninitialized, will be created by SPL stake pool"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  112,
+                  108,
+                  95,
+                  114,
+                  101,
+                  98,
+                  97,
+                  108,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "index"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_pool",
+          "writable": true
+        },
+        {
+          "name": "validator_stake_list",
+          "writable": true
+        },
+        {
+          "name": "stake_pool_withdraw_authority"
+        },
+        {
+          "name": "stake_account_to_split",
+          "writable": true
+        },
+        {
+          "name": "manager_fee_account",
+          "writable": true
+        },
+        {
+          "name": "stake_pool_token_mint",
+          "writable": true
+        },
+        {
+          "name": "bsol_token_account",
+          "writable": true
+        },
+        {
+          "name": "bsol_account_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "msol_token_account_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "sysvar_clock"
+        },
+        {
+          "name": "stake_pool_program"
+        },
+        {
+          "name": "native_stake_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u64"
+        },
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "deposit",
       "discriminator": [
         242,
@@ -481,6 +670,166 @@
       "args": [
         {
           "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "deposit_spl_stake_to_liquid",
+      "docs": [
+        "Deposit a deactivated stake account (from SPL rebalancing) into Marinade liquidity pool.",
+        "Admin-only instruction. The stake account must be fully deactivated."
+      ],
+      "discriminator": [
+        191,
+        38,
+        57,
+        114,
+        116,
+        104,
+        221,
+        27
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "update_authority",
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stake_account",
+          "docs": [
+            "The stake account to withdraw from - must be fully deactivated"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  112,
+                  108,
+                  95,
+                  114,
+                  101,
+                  98,
+                  97,
+                  108,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "index"
+              }
+            ]
+          }
+        },
+        {
+          "name": "marinade_state",
+          "writable": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "liq_pool_mint",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_mint_authority"
+        },
+        {
+          "name": "liq_pool_sol_leg_pda",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_msol_leg",
+          "writable": true
+        },
+        {
+          "name": "msol_token_account_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "liq_pool_token_account",
+          "writable": true
+        },
+        {
+          "name": "sysvar_clock"
+        },
+        {
+          "name": "sysvar_stake_history"
+        },
+        {
+          "name": "native_stake_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "marinade_program",
+          "address": "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
           "type": "u64"
         }
       ]
@@ -1635,6 +1984,177 @@
         },
         {
           "name": "nft_collection_master_edition"
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "move_spl_liquid_to_marinade",
+      "docs": [
+        "Move SOL from SPL stake pool (liquid reserve) directly to Marinade liquidity pool.",
+        "Admin-only instruction for rebalancing funds between pools."
+      ],
+      "discriminator": [
+        236,
+        65,
+        236,
+        136,
+        92,
+        161,
+        51,
+        49
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "update_authority",
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stake_pool",
+          "writable": true
+        },
+        {
+          "name": "stake_pool_withdraw_authority"
+        },
+        {
+          "name": "reserve_stake_account",
+          "writable": true
+        },
+        {
+          "name": "manager_fee_account",
+          "writable": true
+        },
+        {
+          "name": "stake_pool_token_mint",
+          "writable": true
+        },
+        {
+          "name": "bsol_token_account",
+          "writable": true
+        },
+        {
+          "name": "bsol_account_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "marinade_state",
+          "writable": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "liq_pool_mint",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_mint_authority"
+        },
+        {
+          "name": "liq_pool_sol_leg_pda",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_msol_leg",
+          "writable": true
+        },
+        {
+          "name": "msol_token_account_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "liq_pool_token_account",
+          "writable": true
+        },
+        {
+          "name": "sysvar_clock"
+        },
+        {
+          "name": "sysvar_stake_history"
+        },
+        {
+          "name": "stake_pool_program"
+        },
+        {
+          "name": "native_stake_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "marinade_program",
+          "address": "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
         }
       ],
       "args": [
@@ -4039,6 +4559,16 @@
       "code": 6023,
       "name": "AccountDidNotDeserialize",
       "msg": "Account did not deserialize"
+    },
+    {
+      "code": 6024,
+      "name": "StakeAccountNotFullyDeactivated",
+      "msg": "Stake account is not fully deactivated yet"
+    },
+    {
+      "code": 6025,
+      "name": "InvalidStakeAccountState",
+      "msg": "Invalid stake account state"
     }
   ],
   "types": [
@@ -4336,6 +4866,18 @@
           {
             "name": "liq_pool_min_proportion",
             "type": "u8"
+          },
+          {
+            "name": "marinade_minted_gsol",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "blaze_minted_gsol",
+            "type": {
+              "option": "u64"
+            }
           }
         ]
       }

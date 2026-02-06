@@ -60,6 +60,7 @@ export const enum ProgramDerivedAddressSeed {
   LOCK_TOKEN_ACCOUNT = "lock_token_account",
   IMPACT_NFT_MINT_AUTHORITY = "impact_nft_mint_authority",
   IMPACT_NFT_MINT_ACCOUNT = "impact_nft_mint_account",
+  SPL_REBALANCE_STAKE_ACCOUNT = "spl_rebalance_stake",
 }
 
 export interface SunriseStakeConfig {
@@ -71,6 +72,9 @@ export interface SunriseStakeConfig {
   liqPoolProportion: number;
 
   liqPoolMinProportion: number;
+
+  marinadeMintedGsol: BN;
+  blazeMintedGsol: BN;
 
   options: Options;
   impactNFTStateAddress: PublicKey | undefined; // a state can exist without an impact nft state
@@ -177,6 +181,20 @@ export const findImpactNFTMint = (
     ProgramDerivedAddressSeed.IMPACT_NFT_MINT_ACCOUNT,
     [authority.toBuffer()]
   );
+
+export const findSplRebalanceStakeAccount = (
+  config: SunriseStakeConfig,
+  index: bigint
+): [PublicKey, number] => {
+  const indexBuf = Buffer.allocUnsafe(8);
+  indexBuf.writeBigInt64BE(index, 0);
+
+  return findProgramDerivedAddress(
+    config,
+    ProgramDerivedAddressSeed.SPL_REBALANCE_STAKE_ACCOUNT,
+    [indexBuf]
+  );
+};
 
 export const logKeys = (transaction: Transaction): void => {
   transaction.instructions.forEach((instruction, j) => {

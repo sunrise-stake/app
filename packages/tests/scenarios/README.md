@@ -1,8 +1,20 @@
-# Sunrise Stake Unlock Scenarios Test Suite
+# Sunrise Stake Scenario Tests
 
-This directory contains comprehensive scenario tests for the unlock flow, testing all decision points and edge cases using real mainnet data.
+This directory contains comprehensive scenario tests for various Sunrise Stake flows, testing decision points and edge cases using real mainnet data.
 
 ## Scenarios Overview
+
+### SPL Rebalance Scenarios
+
+These scenarios test the admin-only instructions for rebalancing funds between SPL stake pools and Marinade.
+
+#### spl-rebalance-liquid-transfer
+- **Purpose**: Test `moveSplLiquidToMarinade` instruction
+- **Flow**: Directly transfer SOL value from SPL pool (bSOL) to Marinade liquidity pool (LP tokens)
+- **Verifies**: State accounting updates correctly, bSOL burned, LP tokens received
+- **Note**: Does not require validator stake accounts, works with fixtures
+
+### Unlock Flow Scenarios
 
 ### Decision Points in Unlock Flow
 
@@ -71,3 +83,13 @@ Key accounts that vary between scenarios:
 - Lock account `updated_to_epoch` value
 - NFT account validity
 - Ticket account states
+
+### Admin Fixtures
+
+For admin-only instructions (like SPL rebalance), special fixtures are used:
+- `fixtures/scenarios/admin/sunrise_state_admin.json` - Sunrise state with `update_authority` set to the test wallet
+- `fixtures/scenarios/admin/admin_wallet.json` - Admin wallet with SOL for transaction fees
+- `fixtures/scenarios/admin/reserve_stake.json` - SPL stake pool reserve stake account
+- `fixtures/scenarios/admin/validator_list.json` - SPL stake pool validator list
+
+The admin wallet private key is stored in each scenario's `.env` file as `ADMIN_PRIVATE_KEY`.

@@ -335,6 +335,195 @@ export type SunriseStake = {
       ]
     },
     {
+      "name": "createSplStakeAccount",
+      "docs": [
+        "Create a stake account from the SPL stake pool and deactivate it.",
+        "Admin-only instruction. The stake account can be deposited to Marinade liq pool",
+        "after it fully deactivates (next epoch boundary)."
+      ],
+      "discriminator": [
+        139,
+        134,
+        75,
+        132,
+        132,
+        134,
+        40,
+        201
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "updateAuthority",
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "newStakeAccount",
+          "docs": [
+            "The new stake account - must be uninitialized, will be created by SPL stake pool"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  112,
+                  108,
+                  95,
+                  114,
+                  101,
+                  98,
+                  97,
+                  108,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "index"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stakePool",
+          "writable": true
+        },
+        {
+          "name": "validatorStakeList",
+          "writable": true
+        },
+        {
+          "name": "stakePoolWithdrawAuthority"
+        },
+        {
+          "name": "stakeAccountToSplit",
+          "writable": true
+        },
+        {
+          "name": "managerFeeAccount",
+          "writable": true
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "writable": true
+        },
+        {
+          "name": "bsolTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "msolTokenAccountAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "sysvarClock"
+        },
+        {
+          "name": "stakePoolProgram"
+        },
+        {
+          "name": "nativeStakeProgram"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u64"
+        },
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "deposit",
       "discriminator": [
         242,
@@ -487,6 +676,166 @@ export type SunriseStake = {
       "args": [
         {
           "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "depositSplStakeToLiquid",
+      "docs": [
+        "Deposit a deactivated stake account (from SPL rebalancing) into Marinade liquidity pool.",
+        "Admin-only instruction. The stake account must be fully deactivated."
+      ],
+      "discriminator": [
+        191,
+        38,
+        57,
+        114,
+        116,
+        104,
+        221,
+        27
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "updateAuthority",
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stakeAccount",
+          "docs": [
+            "The stake account to withdraw from - must be fully deactivated"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  112,
+                  108,
+                  95,
+                  114,
+                  101,
+                  98,
+                  97,
+                  108,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "index"
+              }
+            ]
+          }
+        },
+        {
+          "name": "marinadeState",
+          "writable": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "liqPoolMint",
+          "writable": true
+        },
+        {
+          "name": "liqPoolMintAuthority"
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "writable": true
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "writable": true
+        },
+        {
+          "name": "msolTokenAccountAuthority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "sysvarClock"
+        },
+        {
+          "name": "sysvarStakeHistory"
+        },
+        {
+          "name": "nativeStakeProgram"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "marinadeProgram",
+          "address": "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
           "type": "u64"
         }
       ]
@@ -1641,6 +1990,177 @@ export type SunriseStake = {
         },
         {
           "name": "nftCollectionMasterEdition"
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "moveSplLiquidToMarinade",
+      "docs": [
+        "Move SOL from SPL stake pool (liquid reserve) directly to Marinade liquidity pool.",
+        "Admin-only instruction for rebalancing funds between pools."
+      ],
+      "discriminator": [
+        236,
+        65,
+        236,
+        136,
+        92,
+        161,
+        51,
+        49
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "updateAuthority",
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stakePool",
+          "writable": true
+        },
+        {
+          "name": "stakePoolWithdrawAuthority"
+        },
+        {
+          "name": "reserveStakeAccount",
+          "writable": true
+        },
+        {
+          "name": "managerFeeAccount",
+          "writable": true
+        },
+        {
+          "name": "stakePoolTokenMint",
+          "writable": true
+        },
+        {
+          "name": "bsolTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "bsolAccountAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "marinadeState",
+          "writable": true,
+          "relations": [
+            "state"
+          ]
+        },
+        {
+          "name": "liqPoolMint",
+          "writable": true
+        },
+        {
+          "name": "liqPoolMintAuthority"
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "writable": true
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "writable": true
+        },
+        {
+          "name": "msolTokenAccountAuthority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "state"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  115,
+                  111,
+                  108,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "liqPoolTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "sysvarClock"
+        },
+        {
+          "name": "sysvarStakeHistory"
+        },
+        {
+          "name": "stakePoolProgram"
+        },
+        {
+          "name": "nativeStakeProgram"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "marinadeProgram",
+          "address": "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
         }
       ],
       "args": [
@@ -4045,6 +4565,16 @@ export type SunriseStake = {
       "code": 6023,
       "name": "accountDidNotDeserialize",
       "msg": "Account did not deserialize"
+    },
+    {
+      "code": 6024,
+      "name": "stakeAccountNotFullyDeactivated",
+      "msg": "Stake account is not fully deactivated yet"
+    },
+    {
+      "code": 6025,
+      "name": "invalidStakeAccountState",
+      "msg": "Invalid stake account state"
     }
   ],
   "types": [
@@ -4342,6 +4872,18 @@ export type SunriseStake = {
           {
             "name": "liqPoolMinProportion",
             "type": "u8"
+          },
+          {
+            "name": "marinadeMintedGsol",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "blazeMintedGsol",
+            "type": {
+              "option": "u64"
+            }
           }
         ]
       }

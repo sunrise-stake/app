@@ -9,3 +9,4 @@ pub const LOCK_ACCOUNT: &[u8] = b"lock_account";
 pub const LOCK_TOKEN_ACCOUNT: &[u8] = b"lock_token_account";
 pub const IMPACT_NFT_MINT_AUTHORITY: &[u8] = b"impact_nft_mint_authority";
 pub const IMPACT_NFT_MINT_ACCOUNT: &[u8] = b"impact_nft_mint_account";
+pub const SPL_REBALANCE_STAKE_ACCOUNT: &[u8] = b"spl_rebalance_stake";

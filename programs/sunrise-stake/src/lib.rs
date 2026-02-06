@@ -98,6 +98,39 @@ pub mod sunrise_stake {
         ctx.accounts.withdraw_stake(amount)
     }
 
+    //////////////////////////////////////////
+    // SPL Rebalance Instructions (Admin)
+    /////////////////////////////////////////
+
+    /// Move SOL from SPL stake pool (liquid reserve) directly to Marinade liquidity pool.
+    /// Admin-only instruction for rebalancing funds between pools.
+    pub fn move_spl_liquid_to_marinade(
+        ctx: Context<MoveSplLiquidToMarinade>,
+        lamports: u64,
+    ) -> Result<()> {
+        move_spl_liquid_to_marinade_handler(ctx, lamports)
+    }
+
+    /// Create a stake account from the SPL stake pool and deactivate it.
+    /// Admin-only instruction. The stake account can be deposited to Marinade liq pool
+    /// after it fully deactivates (next epoch boundary).
+    pub fn create_spl_stake_account(
+        ctx: Context<CreateSplStakeAccount>,
+        index: u64,
+        lamports: u64,
+    ) -> Result<()> {
+        create_spl_stake_account_handler(ctx, index, lamports)
+    }
+
+    /// Deposit a deactivated stake account (from SPL rebalancing) into Marinade liquidity pool.
+    /// Admin-only instruction. The stake account must be fully deactivated.
+    pub fn deposit_spl_stake_to_liquid(
+        ctx: Context<DepositSplStakeToLiquid>,
+        index: u64,
+    ) -> Result<()> {
+        deposit_spl_stake_to_liquid_handler(ctx, index)
+    }
+
     ////////////////////////////
     // LOCK FUNCTIONS
     ////////////////////////////
