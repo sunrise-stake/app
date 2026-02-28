@@ -1,0 +1,2329 @@
+import { type SunriseStake } from "./types/sunrise_stake.js";
+import idl from "./types/sunrise_stake.json";
+import { type AnchorProvider, Program, utils } from "@coral-xyz/anchor";
+import {
+  ComputeBudgetProgram,
+  type ConfirmOptions,
+  Keypair,
+  PublicKey,
+  type Signer,
+  SYSVAR_CLOCK_PUBKEY,
+  SYSVAR_STAKE_HISTORY_PUBKEY,
+  Transaction,
+  type TransactionInstruction,
+  StakeProgram,
+  Authorized,
+} from "@solana/web3.js";
+import {
+  confirm,
+  findAllTickets,
+  findBSolTokenAccountAuthority,
+  findGSolMintAuthority,
+  findMSolTokenAccountAuthority,
+  findSplRebalanceStakeAccount,
+  logKeys,
+  marinadeTargetReached,
+  type Options,
+  proportionalBN,
+  setUpAnchor,
+  type SunriseStakeConfig,
+  ZERO,
+  ZERO_BALANCE,
+  toSol,
+  findImpactNFTMintAuthority,
+  getImpactNFT,
+  zip,
+  messageFromError,
+} from "./util.js";
+import {
+  Marinade,
+  MarinadeConfig,
+  type MarinadeState,
+} from "@sunrisestake/marinade-ts-sdk";
+import {
+  type Balance,
+  type Details,
+  type WithdrawalFees,
+} from "./types/Details.js";
+import {
+  type SunriseTicketAccountFields,
+  type TicketAccount,
+} from "./types/TicketAccount.js";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import {
+  DEFAULT_LP_MIN_PROPORTION,
+  DEFAULT_LP_PROPORTION,
+  EMPTY_EPOCH_REPORT,
+  Environment,
+  type EnvironmentConfig,
+  MARINADE_TICKET_RENT,
+  NETWORK_FEE,
+  SOLBLAZE_ENABLED,
+  STAKE_POOL_PROGRAM_ID,
+} from "./constants.js";
+import {
+  deposit,
+  depositStakeAccount,
+  liquidUnstake,
+  triggerRebalance,
+  getEpochReportAccount,
+} from "./marinade.js";
+import {
+  blazeDeposit,
+  blazeWithdrawSol,
+  blazeWithdrawStake,
+  getWithdrawStakeAccount,
+} from "./blaze.js";
+import { type BlazeState } from "./types/Solblaze.js";
+import { getStakePoolAccount, type StakePool } from "./decodeStakePool.js";
+import { type EpochReportAccount } from "./types/EpochReportAccount.js";
+import { LockClient, type LockAccountSummary } from "./lock.js";
+import BN from "bn.js";
+import { getPriorityFee } from "./helius.js";
+
+// export getStakePoolAccount
+export { getStakePoolAccount, type StakePool };
+
+// export all types
+export * from "./types/sunrise_stake.js";
+export * from "./types/Details.js";
+export * from "./types/TicketAccount.js";
+export * from "./types/EpochReportAccount.js";
+export * from "./types/Solblaze.js";
+
+// export all constants
+export * from "./constants.js";
+
+export { toSol, findImpactNFTMintAuthority, ZERO_BALANCE } from "./util.js";
+
+export class SunriseStakeClient {
+  readonly program: Program<SunriseStake>;
+  config: SunriseStakeConfig | undefined;
+
+  // TODO make private once all functions are moved in here
+  marinade: Marinade | undefined;
+  marinadeState: MarinadeState | undefined;
+
+  // TODO move to config?
+  readonly staker: PublicKey;
+  stakerGSolTokenAccount: PublicKey | undefined;
+
+  msolTokenAccountAuthority: PublicKey | undefined;
+  msolTokenAccount: PublicKey | undefined;
+
+  bsolTokenAccountAuthority: PublicKey | undefined;
+  bsolTokenAccount: PublicKey | undefined;
+
+  blazeState: BlazeState | undefined;
+
+  liqPoolTokenAccount: PublicKey | undefined;
+  lockClient: LockClient | undefined;
+
+  readonly env: EnvironmentConfig;
+
+  private constructor(
+    readonly provider: AnchorProvider,
+    env: EnvironmentConfig,
+    readonly options: Options = {}
+  ) {
+    this.program = new Program<SunriseStake>(idl as SunriseStake, provider);
+    this.staker = this.provider.publicKey;
+    this.env = {
+      ...env,
+      ...options.environmentOverrides,
+    };
+  }
+
+  private log(...args: any[]): void {
+    Boolean(this.config?.options.verbose) && console.log(...args);
+  }
+
+  /**
+   * Refresh the client's internal state
+   */
+  public async refresh(): Promise<void> {
+    await this.init();
+  }
+
+  private async init(): Promise<void> {
+    const sunriseStakeState = await this.program.account.state.fetch(
+      this.env.state
+    );
+
+    const stakePoolInfo = await getStakePoolAccount(
+      this.provider.connection,
+      this.env.blaze.pool
+    );
+
+    this.config = {
+      gsolMint: sunriseStakeState.gsolMint,
+      treasury: sunriseStakeState.treasury,
+      programId: this.program.programId,
+      stateAddress: this.env.state,
+      updateAuthority: sunriseStakeState.updateAuthority,
+      liqPoolProportion: sunriseStakeState.liqPoolProportion,
+      liqPoolMinProportion: sunriseStakeState.liqPoolMinProportion,
+      marinadeMintedGsol: sunriseStakeState.marinadeMintedGsol,
+      blazeMintedGsol: sunriseStakeState.blazeMintedGsol,
+      impactNFTStateAddress: this.env.impactNFT.state,
+      options: this.options,
+    };
+
+    this.stakerGSolTokenAccount = PublicKey.findProgramAddressSync(
+      [
+        this.staker.toBuffer(),
+        TOKEN_PROGRAM_ID.toBuffer(),
+        sunriseStakeState.gsolMint.toBuffer(),
+      ],
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    )[0];
+    const [gsolMintAuthority] = findGSolMintAuthority(this.config);
+    this.msolTokenAccountAuthority = findMSolTokenAccountAuthority(
+      this.config
+    )[0];
+    this.bsolTokenAccountAuthority = findBSolTokenAccountAuthority(
+      this.config
+    )[0];
+
+    const marinadeConfig = new MarinadeConfig({
+      connection: this.provider.connection,
+      publicKey: this.provider.publicKey,
+      proxyStateAddress: this.env.state,
+      proxySolMintAuthority: gsolMintAuthority,
+      proxySolMintAddress: this.config.gsolMint,
+      msolTokenAccountAuthority: this.msolTokenAccountAuthority,
+      proxyTreasury: this.config.treasury,
+    });
+    this.marinade = new Marinade(marinadeConfig);
+    this.marinadeState = await this.marinade.getMarinadeState();
+    this.msolTokenAccount = utils.token.associatedAddress({
+      mint: this.marinadeState.mSolMintAddress,
+      owner: this.msolTokenAccountAuthority,
+    });
+    this.liqPoolTokenAccount = utils.token.associatedAddress({
+      mint: this.marinadeState.lpMint.address,
+      owner: this.msolTokenAccountAuthority,
+    });
+
+    const [withdrawAuthority] = PublicKey.findProgramAddressSync(
+      [this.env.blaze.pool.toBuffer(), Buffer.from("withdraw")],
+      STAKE_POOL_PROGRAM_ID
+    );
+
+    const [depositAuthority] = PublicKey.findProgramAddressSync(
+      [this.env.blaze.pool.toBuffer(), Buffer.from("deposit")],
+      STAKE_POOL_PROGRAM_ID
+    );
+
+    this.blazeState = {
+      pool: this.env.blaze.pool,
+      bsolMint: stakePoolInfo.poolMint,
+      validatorList: stakePoolInfo.validatorList,
+      reserveAccount: stakePoolInfo.reserveStake,
+      managerAccount: stakePoolInfo.manager,
+      feesDepot: stakePoolInfo.managerFeeAccount,
+      withdrawAuthority,
+      depositAuthority,
+    };
+
+    this.bsolTokenAccount = utils.token.associatedAddress({
+      mint: stakePoolInfo.poolMint,
+      owner: this.bsolTokenAccountAuthority,
+    });
+
+    this.lockClient = await LockClient.build(
+      this.config,
+      this.program,
+      this.staker
+    );
+  }
+
+  /**
+   * Signs a transaction with the wallet first, then additional signers.
+   * This signing order is required by Phantom's Lighthouse security system.
+   * @param transaction The transaction to sign
+   * @param signers Additional signers (keypairs) to sign after the wallet
+   * @returns The fully signed transaction
+   */
+  private async signTransaction(
+    transaction: Transaction,
+    signers: Signer[]
+  ): Promise<Transaction> {
+    // Wallet signs first (Phantom requirement)
+    const signedTx = await this.provider.wallet.signTransaction(transaction);
+
+    // Additional signers sign afterward
+    for (const signer of signers) {
+      signedTx.partialSign(signer);
+    }
+
+    return signedTx;
+  }
+
+  /**
+   * Utility function for sending an transaction and waiting for it to confirm.
+   * @param transaction
+   * @param signers
+   * @param opts
+   */
+  public async sendAndConfirmTransaction(
+    transaction: Transaction,
+    signers?: Signer[],
+    opts?: ConfirmOptions
+  ): Promise<string> {
+    if (
+      this.options.addPriorityFee !== undefined &&
+      this.options.addPriorityFee
+    ) {
+      await this.addPriorityFee(transaction);
+    }
+
+    // If there are additional signers, use custom signing order for Phantom compatibility
+    if (signers && signers.length > 0) {
+      // Prepare transaction
+      transaction.feePayer = this.provider.publicKey;
+      transaction.recentBlockhash = (
+        await this.provider.connection.getLatestBlockhash()
+      ).blockhash;
+
+      const signedTx = await this.signTransaction(transaction, signers);
+      const signature = await this.provider.connection.sendRawTransaction(
+        signedTx.serialize(),
+        opts
+      );
+
+      await confirm(this.provider.connection)(signature);
+      return signature;
+    }
+
+    // No additional signers - use default Anchor behavior
+    return this.provider
+      .sendAndConfirm(transaction, signers, opts)
+      .catch((e) => {
+        this.log(e.logs);
+        throw e;
+      });
+  }
+
+  /**
+   * Send and confirm multiple transactions in sequence
+   *
+   * @param transactions
+   * @param signers
+   * @param opts
+   * @param withRefresh Refresh the client's internal state after sending the transactions (default: false)
+   * @param stopOnFirstFailure If true, stops processing on first failure. If false, continues with remaining transactions (default: true)
+   * @returns Object containing signatures array and errors array. When stopOnFirstFailure is true, throws on first error instead of populating errors array.
+   */
+  public async sendAndConfirmTransactions(
+    transactions: Transaction[],
+    signers: Signer[][] = [],
+    opts?: ConfirmOptions,
+    withRefresh = false,
+    stopOnFirstFailure = true
+  ): Promise<{ signatures: string[]; errors: Error[] }> {
+    if (this.config == null) {
+      throw new Error("init not called");
+    }
+
+    const txesWithSigners = zip(transactions, signers, []);
+    const signatures: string[] = [];
+    const errors: Error[] = [];
+
+    if (
+      this.options.addPriorityFee !== undefined &&
+      this.options.addPriorityFee
+    ) {
+      for (const tx of transactions) {
+        await this.addPriorityFee(tx);
+      }
+    }
+
+    this.log("Sending transactions: ", transactions.length);
+    for (const [tx, signers] of txesWithSigners) {
+      try {
+        const txSig = await this.sendAndConfirmTransaction(tx, signers, opts);
+        this.log("Transaction sent: ", txSig);
+        signatures.push(txSig);
+        errors.push(null as any); // No error for this transaction
+      } catch (error) {
+        if (stopOnFirstFailure) {
+          throw error;
+        } else {
+          this.log(
+            `Transaction failed, continuing: ${messageFromError(error)}`
+          );
+          errors.push(error as Error);
+        }
+      }
+    }
+
+    if (withRefresh) {
+      await this.refresh();
+    }
+
+    return { signatures, errors };
+  }
+
+  /**
+   * Create a new GSol token account for the staker
+   * @param account
+   * @param authority
+   */
+  createGSolTokenAccountIx(
+    account = this.stakerGSolTokenAccount,
+    authority = this.staker
+  ): TransactionInstruction {
+    if (account == null || this.config == null)
+      throw new Error("init not called");
+
+    return createAssociatedTokenAccountIdempotentInstruction(
+      this.provider.publicKey,
+      account,
+      authority,
+      this.config.gsolMint
+    );
+  }
+
+  private async addPriorityFee(tx: Transaction): Promise<Transaction> {
+    if (this.env.heliusUrl === undefined) {
+      throw new Error(
+        "Helius URL not set - cannot set priority fee. Either set heliusUrl in the environment or disable addPriorityFee in the options"
+      );
+    }
+    let priorityFee: number;
+    try {
+      priorityFee = await getPriorityFee(this.env.heliusUrl, tx);
+    } catch (e) {
+      console.error(
+        "Error getting priority fee from Helius - proceeding without priority fee",
+        e
+      );
+      return tx;
+    }
+
+    const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: priorityFee,
+    });
+
+    tx.instructions.push(priorityFeeInstruction);
+
+    return tx;
+  }
+
+  /**
+   * Deposit GSol into the staker's GSol token account
+   * @param lamports
+   * @param recipient The recipient of the gSOL. If not provided, the current staker will be used.
+   */
+  public async makeBalancedDeposit(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
+    const details = await this.details();
+    if (
+      marinadeTargetReached(details, this.env.percentageStakeToMarinade) &&
+      SOLBLAZE_ENABLED
+    ) {
+      console.log("Routing deposit to Solblaze");
+      return this.depositToBlaze(lamports, recipient);
+    }
+    console.log("Depositing to marinade");
+    return this.deposit(lamports, recipient);
+  }
+
+  /**
+   * Deposit directly to Marinade
+   * @deprecated - use makeBalancedDeposit instead
+   * @param lamports
+   * @param recipient The recipient of the gSOL. If not provided, the current staker will be used.
+   */
+  public async deposit(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
+    if (
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    const recipientAuthority = recipient ?? this.staker;
+    const recipientGsolTokenAccountAddress =
+      recipient != null
+        ? utils.token.associatedAddress({
+            mint: this.config.gsolMint,
+            owner: recipientAuthority,
+          })
+        : this.stakerGSolTokenAccount;
+
+    const gsolTokenAccount = await this.provider.connection.getAccountInfo(
+      recipientGsolTokenAccountAddress
+    );
+
+    const transaction = new Transaction();
+
+    if (gsolTokenAccount == null) {
+      const createUserTokenAccount = this.createGSolTokenAccountIx(
+        recipientGsolTokenAccountAddress,
+        recipient
+      );
+      transaction.add(createUserTokenAccount);
+    }
+
+    const depositTx = await deposit(
+      this.config,
+      this.program,
+      this.marinadeState,
+      this.config.stateAddress,
+      this.provider.publicKey,
+      recipientGsolTokenAccountAddress,
+      lamports
+    );
+
+    transaction.add(depositTx);
+
+    return transaction;
+  }
+
+  /**
+   * Deposit directly to Solblaze
+   * @deprecated - use makeBalancedDeposit instead
+   * @param lamports
+   * @param recipient The recipient of the gSOL. If not provided, the current staker will be used.
+   */
+  public async depositToBlaze(
+    lamports: BN,
+    recipient?: PublicKey
+  ): Promise<Transaction> {
+    if (
+      this.config == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.blazeState == null
+    )
+      throw new Error("init not called");
+
+    const recipientAuthority = recipient ?? this.staker;
+    const recipientGsolTokenAccountAddress =
+      recipient != null
+        ? utils.token.associatedAddress({
+            mint: this.config.gsolMint,
+            owner: recipientAuthority,
+          })
+        : this.stakerGSolTokenAccount;
+    const gsolTokenAccount = await this.provider.connection.getAccountInfo(
+      recipientGsolTokenAccountAddress
+    );
+
+    const transaction = new Transaction();
+
+    if (gsolTokenAccount == null) {
+      const createUserTokenAccount = this.createGSolTokenAccountIx(
+        recipientGsolTokenAccountAddress,
+        recipient
+      );
+      transaction.add(createUserTokenAccount);
+    }
+
+    const depositTx = await blazeDeposit(
+      this.config,
+      this.program,
+      this.blazeState,
+      this.provider.publicKey,
+      recipientGsolTokenAccountAddress,
+      lamports
+    );
+
+    transaction.add(depositTx);
+
+    return transaction;
+  }
+
+  /**
+   * Deposit an existing SPL Stake account
+   * @param stakeAccountAddress
+   */
+  public async depositStakeAccount(
+    stakeAccountAddress: PublicKey
+  ): Promise<string> {
+    if (
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    const transaction = new Transaction();
+
+    const gSolTokenAccount = await this.provider.connection.getAccountInfo(
+      this.stakerGSolTokenAccount
+    );
+
+    if (gSolTokenAccount == null) {
+      const createUserTokenAccount = this.createGSolTokenAccountIx();
+      transaction.add(createUserTokenAccount);
+    }
+
+    const depositStakeIx = await depositStakeAccount(
+      this.config,
+      this.program,
+      this.marinade,
+      this.marinadeState,
+      this.provider.publicKey,
+      stakeAccountAddress,
+      this.stakerGSolTokenAccount
+    );
+
+    console.log("Depositing Stake Account...");
+    transaction.add(depositStakeIx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+  /**
+   * Withdraw GSol from the staker's GSol token account.
+   * Note - this currently uses Marinade only.
+   * @param lamports
+   */
+  public async unstake(lamports: BN): Promise<Transaction> {
+    if (
+      this.marinadeState == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.blazeState == null
+    )
+      throw new Error("init not called");
+
+    const transaction = await liquidUnstake(
+      this.config,
+      this.blazeState,
+      this.marinadeState,
+      this.program,
+      this.env.state,
+      this.staker,
+      this.stakerGSolTokenAccount,
+      lamports
+    );
+
+    Boolean(this.config?.options.verbose) && logKeys(transaction);
+
+    return transaction;
+  }
+
+  /**
+   * Permissionless admin function.
+   *
+   * Recover delayed unstake tickets from rebalances in the previous epoch, if necessary
+   * Note, even if there are no tickets to recover, if the epoch report references the previous epoch
+   * we call this instruction anyway as part of triggerRebalance, to update the epoch.
+   */
+  async recoverTickets(): Promise<TransactionInstruction | null> {
+    if (
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.bsolTokenAccount == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.blazeState == null ||
+      this.liqPoolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    // check the most recent epoch report account
+    // if it is not for the current epoch, then we may need to recover tickets
+    const { account: epochReport } = await getEpochReportAccount(
+      this.config,
+      this.program
+    );
+    const currentEpoch = await this.program.provider.connection.getEpochInfo();
+
+    if (epochReport == null) {
+      // no epoch report account found at all - something went wrong
+      throw new Error("No epoch report account found during recoverTickets");
+    }
+
+    this.log(
+      `Current epoch: ${
+        currentEpoch.epoch
+      }, epoch report epoch: ${epochReport.epoch.toNumber()}`
+    );
+    if (currentEpoch.epoch === epochReport.epoch.toNumber()) {
+      // nothing to do here - the report account is for the current epoch, so we cannot recover any tickets yet
+      this.log("Skipping recoverTickets, epoch report is for current epoch");
+      return null;
+    } else {
+      this.log(
+        "Updating epoch report account and recovering tickets from previous epoch"
+      );
+    }
+
+    // get a list of all the open delayed unstake tickets that can now be recovered
+    const previousEpochTickets = await findAllTickets(
+      this.program.provider.connection,
+      this.config,
+      // change BigInt(1) to 1n when we target ES2020 in tsconfig.json
+      BigInt(epochReport.epoch.toString()),
+      epochReport.tickets.toNumber()
+    );
+
+    const previousEpochTicketAccountMetas = previousEpochTickets.map(
+      (ticket) => ({
+        pubkey: ticket,
+        isSigner: false,
+        isWritable: true,
+      })
+    );
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.recoverTickets>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.config.stateAddress,
+      payer: this.staker,
+      msolMint: this.marinadeState.mSolMint.address,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolMsolLegAuthority: await this.marinadeState.mSolLegAuthority(),
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      reservePda: await this.marinadeState.reserveAddress(),
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getBsolFrom: this.bsolTokenAccount,
+    };
+
+    return this.program.methods
+      .recoverTickets()
+      .accounts(accounts)
+      .remainingAccounts(previousEpochTicketAccountMetas)
+      .instruction();
+  }
+
+  /**
+   * Permissionless admin function.
+   *
+   * Update the epoch report account to the current epoch.
+   * The epoch report account is used to track the total yield earned by the protocol
+   * as well as the amount of in-flight delayed unstake tickets created through pool rebalancing.
+   */
+  async updateEpochReport(): Promise<void> {
+    if (
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.bsolTokenAccount == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.blazeState == null ||
+      this.liqPoolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    // check the most recent epoch report account
+    // if it is not for the current epoch, then we may need to recover tickets
+    const { account: epochReport } = await getEpochReportAccount(
+      this.config,
+      this.program
+    );
+
+    if (epochReport == null) {
+      // no epoch report account found at all - something went wrong
+      throw new Error("No epoch report account found during recoverTickets");
+    }
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.updateEpochReport>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.config.stateAddress,
+      payer: this.staker,
+      msolMint: this.marinadeState.mSolMint.address,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolMsolLegAuthority: await this.marinadeState.mSolLegAuthority(),
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getBsolFrom: this.bsolTokenAccount,
+    };
+
+    await this.program.methods
+      .updateEpochReport()
+      .accounts(accounts)
+      .rpc()
+      .then(confirm(this.provider.connection));
+  }
+
+  /**
+   * Permissionless admin function.
+   *
+   * Trigger a rebalance without doing anything else.
+   *
+   * A rebalance is necessary when the amount of funds in one of the pools is too low.
+   * This happens when too many people withdraw from the liquidity pool at once.
+   * Rebalancing moves a proportion of the stake pool into the liquidity pool, using a delayed unstake.
+   * This must then be redeemed in the next epoch by making a recover-tickets call.
+   */
+  public async triggerRebalance(): Promise<string[]> {
+    if (
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.stakerGSolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    const txHashes: string[] = [];
+
+    // Execute recoverTickets first if needed
+    const recoverInstruction = await this.recoverTickets();
+    if (recoverInstruction != null) {
+      const recoverTxHash = await this.sendAndConfirmTransaction(
+        new Transaction().add(recoverInstruction)
+      );
+      txHashes.push(recoverTxHash);
+
+      // Refresh client state after recovering tickets to ensure we have the updated epoch report
+      await this.refresh();
+    }
+
+    // Now trigger rebalance - this will fetch fresh epoch report data
+    const { instruction: rebalanceInstruction } = await triggerRebalance(
+      this.config,
+      this.marinadeState,
+      this.program,
+      this.env.state,
+      this.provider.publicKey
+    );
+
+    const rebalanceTxHash = await this.sendAndConfirmTransaction(
+      new Transaction().add(rebalanceInstruction)
+    );
+    txHashes.push(rebalanceTxHash);
+
+    return txHashes;
+  }
+
+  /**
+   * Print a detailed report of the current state of the protocol.
+   */
+  public async report(): Promise<void> {
+    const details = await this.details();
+
+    const inflightTotal = details.epochReport.totalOrderedLamports;
+
+    const totalValue = details.mpDetails.msolValue
+      .add(details.bpDetails.bsolValue)
+      .add(details.lpDetails.lpSolValue)
+      .add(inflightTotal);
+
+    const mpShare =
+      details.mpDetails.msolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    const bpShare =
+      details.bpDetails.bsolValue.muln(10_000).div(totalValue).toNumber() / 100;
+    const lpShare =
+      details.lpDetails.lpSolValue.muln(10_000).div(totalValue).toNumber() /
+      100;
+    const inflightShare =
+      inflightTotal.muln(10_000).div(totalValue).toNumber() / 100;
+
+    const missingValue = totalValue.sub(
+      new BN(details.balances.gsolSupply.amount)
+    );
+    const missingValueShare =
+      missingValue.muln(10_000).div(totalValue).toNumber() / 100;
+
+    const report: Record<string, string> = {
+      "gSOL Supply": details.balances.gsolSupply.uiAmountString ?? "-",
+      "Marinade Stake Pool Value": `${toSol(
+        details.mpDetails.msolValue
+      )} (${mpShare.toString()}%)`,
+      "SolBlaze Stake Pool Value": `${toSol(
+        details.bpDetails.bsolValue
+      )} (${bpShare.toString()}%)`,
+      "Liquidity Pool Value": `${toSol(
+        details.lpDetails.lpSolValue
+      )} (${lpShare.toString()}%) (Target: ${
+        this.config?.liqPoolProportion ?? "-"
+      }%, Min: ${this.config?.liqPoolMinProportion ?? "-"}%)`,
+      "Total Value": `${toSol(totalValue)}`,
+      "Open Orders": `${details.epochReport.tickets.toNumber()}`,
+      "Open Order value": `${toSol(
+        inflightTotal
+      )} (${inflightShare.toString()}%)`,
+      "Extractable Yield (calculated)": `${toSol(
+        missingValue
+      )} (${missingValueShare.toString()}%)`,
+      "Extractable Yield": `${toSol(details.extractableYield)}`,
+      "Epoch Report Epoch": `${details.epochReport.epoch.toNumber()}`,
+      "Current Epoch": `${details.currentEpoch.epoch}`,
+      "Epoch Report Tickets": `${details.epochReport.tickets.toNumber()}`,
+    };
+
+    Object.keys(report).forEach((key) => {
+      this.log(key, ":", report[key]);
+    });
+  }
+
+  /**
+   * Trigger a delayed unstake of the given amount of SOL.
+   * This creates a ticket, which can be redeemed for SOL in the next epoch.
+   * Note - it currently works only with marinade.
+   * @param lamports
+   */
+  public async orderUnstake(lamports: BN): Promise<[Transaction, Keypair[]]> {
+    if (
+      this.marinadeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    const { transaction, newTicketAccount, proxyTicketAccount } =
+      await this.marinade.orderUnstake(lamports, this.msolTokenAccount);
+
+    Boolean(this.config?.options.verbose) && logKeys(transaction);
+
+    return [transaction, [newTicketAccount, proxyTicketAccount]];
+  }
+
+  private async toTicketAccount(
+    sunriseTicketAccount: SunriseTicketAccountFields,
+    address: PublicKey
+  ): Promise<TicketAccount> {
+    const marinadeTicketAccount = await this.marinade?.getDelayedUnstakeTicket(
+      sunriseTicketAccount.marinadeTicketAccount
+    );
+
+    if (marinadeTicketAccount == null)
+      throw new Error(
+        `Marinade ticket with address ${sunriseTicketAccount.marinadeTicketAccount.toString()} not found`
+      );
+
+    return {
+      address,
+      ...sunriseTicketAccount,
+      ...marinadeTicketAccount,
+    };
+  }
+
+  /**
+   * Find all delayed-unstake tickets for the current user
+   */
+  public async getDelayedUnstakeTickets(): Promise<TicketAccount[]> {
+    if (this.marinade == null) throw new Error("init not called");
+
+    const beneficiary = this.provider.publicKey;
+
+    const ticketAccounts = await this.program.account.sunriseTicketAccount.all([
+      {
+        memcmp: {
+          offset: 8 + 32 + 32,
+          bytes: beneficiary.toBase58(),
+        },
+      },
+    ]);
+
+    const resolvedTicketAccountPromises = ticketAccounts.map(
+      async ({ account, publicKey }) => this.toTicketAccount(account, publicKey)
+    );
+
+    return Promise.all(resolvedTicketAccountPromises) as Promise<
+      TicketAccount[]
+    >;
+  }
+
+  /**
+   * Redeem a delayed-unstake ticket and send the SOL to the given address.
+   * @param ticketAccount
+   */
+  public async claimUnstakeTicket(
+    ticketAccount: TicketAccount
+  ): Promise<Transaction> {
+    if (this.marinade == null || this.marinadeState == null)
+      throw new Error("init not called");
+
+    const reservePda = await this.marinadeState.reserveAddress();
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.claimUnstakeTicket>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.env.state,
+      reservePda,
+      sunriseTicketAccount: ticketAccount.address,
+      transferSolTo: this.staker,
+    };
+
+    const transaction = await this.program.methods
+      .claimUnstakeTicket()
+      .accounts(accounts)
+      .transaction();
+
+    Boolean(this.config?.options.verbose) && logKeys(transaction);
+
+    return transaction;
+  }
+
+  /**
+   * Immediately withdraw the given amount of SOL from the Solblaze stake pool.
+   * @param amount
+   */
+  public async withdrawFromBlaze(amount: BN): Promise<string> {
+    if (
+      this.blazeState == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.bsolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    const withdrawIx = await blazeWithdrawSol(
+      this.config,
+      this.program,
+      this.blazeState,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      amount
+    );
+
+    const transaction = new Transaction().add(withdrawIx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+  /**
+   * Withdraw the given amount of SOL from the Solblaze stake pool into a stake account
+   * @param newStakeAccount
+   * @param amount
+   */
+  public async withdrawStakeFromBlaze(
+    newStakeAccount: PublicKey,
+    amount: BN
+  ): Promise<string> {
+    if (
+      this.blazeState == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.bsolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    const withdrawStakeIx = await blazeWithdrawStake(
+      this.config,
+      this.program,
+      this.blazeState,
+      newStakeAccount,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      amount,
+      this.provider.connection
+    );
+
+    const transaction = new Transaction().add(withdrawStakeIx);
+    return this.sendAndConfirmTransaction(transaction, []);
+  }
+
+  /**
+   * Creates a new uninitialized stake account
+   * @param stakeAccount The keypair for the new stake account
+   * @param lamports The amount of lamports to fund the account with (default: rent exemption amount)
+   * @private
+   */
+  private async createStakeAccount(
+    stakeAccount: Keypair,
+    lamports?: number
+  ): Promise<Transaction> {
+    // Get minimum balance for rent exemption (200 bytes for stake account)
+    const rentExemption =
+      await this.provider.connection.getMinimumBalanceForRentExemption(
+        StakeProgram.space
+      );
+
+    const transaction = StakeProgram.createAccount({
+      fromPubkey: this.provider.publicKey,
+      stakePubkey: stakeAccount.publicKey,
+      authorized: new Authorized(
+        this.provider.publicKey,
+        this.provider.publicKey
+      ),
+      lamports: lamports ?? rentExemption,
+    });
+    return transaction;
+  }
+
+  /**
+   * Withdraw the given amount of gSOL into a new stake account.
+   * This function creates a new stake account and withdraws the equivalent SOL from Blaze.
+   * @param amount The amount of gSOL (in lamports) to withdraw
+   * @returns An object containing the transaction signature and the new stake account public key
+   */
+  public async withdrawStake(amount: BN): Promise<{
+    signature: string;
+    stakeAccount: PublicKey;
+  }> {
+    if (
+      this.blazeState == null ||
+      this.config == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.bsolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    // Generate a new stake account keypair
+    const stakeAccount = Keypair.generate();
+
+    // Create the stake account creation transaction
+    const createStakeAccountTx = await this.createStakeAccount(stakeAccount);
+
+    // Get the withdraw stake instruction
+    const withdrawStakeIx = await blazeWithdrawStake(
+      this.config,
+      this.program,
+      this.blazeState,
+      stakeAccount.publicKey,
+      this.provider.publicKey,
+      this.stakerGSolTokenAccount,
+      amount,
+      this.provider.connection
+    );
+
+    // Combine both instructions in a single transaction
+    const transaction = new Transaction()
+      .add(...createStakeAccountTx.instructions)
+      .add(withdrawStakeIx);
+
+    // Send the transaction with the stake account as a signer
+    const signature = await this.sendAndConfirmTransaction(transaction, [
+      stakeAccount,
+    ]);
+
+    return {
+      signature,
+      stakeAccount: stakeAccount.publicKey,
+    };
+  }
+
+  /**
+   * Create a new EpochReport account for a sunrise state instance.
+   * This should be done only once per state, and must be signed by the update authority
+   */
+  public async initEpochReport(): Promise<string> {
+    if (
+      this.marinadeState == null ||
+      this.blazeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.liqPoolTokenAccount == null ||
+      this.bsolTokenAccount == null
+    ) {
+      throw new Error("init not called");
+    }
+
+    const liqPoolSolLegPda = await this.marinadeState.solLeg();
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.initEpochReport>["accounts"]
+    >[0] & { marinadeState: PublicKey };
+
+    const accounts: Accounts = {
+      state: this.env.state,
+      marinadeState: this.marinadeState.marinadeStateAddress,
+      msolMint: this.marinadeState.mSolMintAddress,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolSolLegPda,
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getBsolFrom: this.bsolTokenAccount,
+    };
+
+    return this.program.methods
+      .initEpochReport(new BN(0))
+      .accounts(accounts)
+      .rpc();
+  }
+
+  /**
+   * Get the EpochReport account for this sunrise state instance
+   * The EpochReport account contains running totals of the state's accrued yield,
+   * and is updated regularly
+   */
+  public async getEpochReport(): Promise<EpochReportAccount> {
+    if (this.config == null) {
+      throw new Error("init not called");
+    }
+
+    const { account } = await getEpochReportAccount(this.config, this.program);
+
+    // The update authority must create the epoch report account for this sunrise state instance
+    if (account == null) throw new Error("Epoch report account not found");
+
+    return account;
+  }
+
+  /**
+   * Create an instruction that extracts yield from the sunrise protocol and sends it to the designated
+   * yield account.
+   *
+   * This is a permissionless crank operation that can be called by anyone.
+   */
+  public async extractYieldIx(): Promise<TransactionInstruction> {
+    if (
+      this.marinadeState == null ||
+      this.blazeState == null ||
+      this.marinade == null ||
+      this.config == null ||
+      this.msolTokenAccount == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.liqPoolTokenAccount == null ||
+      this.bsolTokenAccount == null
+    ) {
+      throw new Error("init not called");
+    }
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.extractToTreasury>["accounts"]
+    >[0];
+
+    const liqPoolSolLegPda = await this.marinadeState.solLeg();
+
+    const accounts: Accounts = {
+      state: this.env.state,
+      msolMint: this.marinadeState.mSolMintAddress,
+      bsolMint: this.blazeState.bsolMint,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolSolLegPda,
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      treasuryMsolAccount: this.marinadeState.treasuryMsolAccount,
+      getMsolFrom: this.msolTokenAccount,
+      getBsolFrom: this.bsolTokenAccount,
+    };
+
+    return this.program.methods
+      .extractToTreasury()
+      .accounts(accounts)
+      .instruction();
+  }
+
+  /**
+   * Creates and submits an extractYield transaction that extracts yield from the sunrise protocol and sends it to the designated
+   * yield account.
+   *
+   * This is a permissionless crank operation that can be called by anyone.
+   */
+  public async extractYield(): Promise<string> {
+    const instruction = await this.extractYieldIx();
+    const transaction = new Transaction().add(instruction);
+    transaction.feePayer = this.staker;
+    return this.sendAndConfirmTransaction(transaction);
+  }
+
+  /**
+   * Calculates the cost of withdrawing a given amount of lamports, given the current state of the pools
+   * @param withdrawalLamports
+   * @param details
+   */
+  public calculateWithdrawalFee(
+    withdrawalLamports: BN,
+    details: Details
+  ): WithdrawalFees {
+    // Calculate how much can be withdrawn from the lp (without fee)
+    const lpSolShare = details.lpDetails.lpSolShare;
+    const preferredMinLiqPoolValue = new BN(details.balances.gsolSupply.amount)
+      .muln(DEFAULT_LP_MIN_PROPORTION)
+      .divn(100);
+    const postUnstakeLpSolValue = new BN(lpSolShare).sub(withdrawalLamports);
+
+    // Calculate how much will be withdrawn through liquid unstaking (with fee)
+    const amountBeingLiquidUnstaked = withdrawalLamports.sub(lpSolShare);
+
+    // Determine if a rebalance will occur (if the lp value is too low)
+    // This will incur a cost due to the unstake ticket rent
+    const amountToOrderUnstake = new BN(preferredMinLiqPoolValue).sub(
+      postUnstakeLpSolValue
+    );
+    const rentForOrderUnstakeTicket = amountToOrderUnstake.gt(ZERO)
+      ? MARINADE_TICKET_RENT
+      : 0;
+
+    this.log("withdrawal lamports: ", withdrawalLamports.toString());
+    this.log("lp sol share: ", lpSolShare.toString());
+    this.log("preferred min lp value: ", preferredMinLiqPoolValue.toString());
+    this.log("post unstake lp sol value: ", postUnstakeLpSolValue.toString());
+    this.log(
+      "amount being liquid unstaked: ",
+      amountBeingLiquidUnstaked.toString()
+    );
+    this.log("amount to order unstake: ", amountToOrderUnstake.toString());
+    this.log("rent for order unstake: ", rentForOrderUnstakeTicket.toString());
+
+    const ticketFee = rentForOrderUnstakeTicket;
+    let totalFee =
+      rentForOrderUnstakeTicket > 0
+        ? new BN(rentForOrderUnstakeTicket + 2 * NETWORK_FEE)
+        : ZERO;
+
+    this.log("base fee for order unstake: ", totalFee.toString());
+
+    if (amountBeingLiquidUnstaked.lte(ZERO)) {
+      return {
+        liquidUnstakeFee: ZERO,
+        ticketFee,
+        totalFee,
+      };
+    }
+
+    let marinadeUnstake: BN;
+
+    const msolValue = details.mpDetails.msolValue;
+    const bsolValue = details.bpDetails.bsolValue;
+
+    if (msolValue >= bsolValue) {
+      marinadeUnstake =
+        msolValue > amountBeingLiquidUnstaked
+          ? amountBeingLiquidUnstaked
+          : msolValue;
+    } else {
+      marinadeUnstake =
+        bsolValue > amountBeingLiquidUnstaked
+          ? new BN(0)
+          : amountBeingLiquidUnstaked.sub(bsolValue);
+    }
+
+    const blazeUnstake = amountBeingLiquidUnstaked.sub(marinadeUnstake);
+    const blazeUnstakeFee = blazeUnstake
+      .mul(details.bpDetails.solWithdrawalFee.numerator)
+      .div(details.bpDetails.solWithdrawalFee.denominator);
+
+    const marinadeUnstakeFee = marinadeUnstake.muln(3).divn(1000);
+    const liquidUnstakeFee = blazeUnstakeFee.add(marinadeUnstakeFee);
+
+    totalFee = totalFee.add(liquidUnstakeFee);
+
+    this.log({
+      withdrawalLamports: withdrawalLamports.toString(),
+      lpSolShare: lpSolShare.toString(),
+      amountBeingLiquidUnstaked: amountBeingLiquidUnstaked.toString(),
+      marinadeUnstake: marinadeUnstake.toString(),
+      blazeUnstake: blazeUnstake.toString(),
+      marinadeUnstakeFee: marinadeUnstakeFee.toString(),
+      blazeUnstakeFee: blazeUnstakeFee.toString(),
+      liquidUnstakeFee: liquidUnstakeFee.toString(),
+      msolValue: msolValue.toString(),
+      bsolValue: bsolValue.toString(),
+      totalFee: totalFee.toString(),
+    });
+
+    return {
+      liquidUnstakeFee,
+      ticketFee,
+      totalFee,
+    };
+  }
+
+  /**
+   * Returns an object containing the current state of the Sunrise protocol,
+   * as well as balances and impact nft status for the user
+   */
+  public async details(): Promise<Details> {
+    if (
+      this.marinadeState == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.msolTokenAccount == null ||
+      this.config == null
+    )
+      throw new Error("init not called");
+
+    const currentEpochPromise = this.provider.connection.getEpochInfo();
+
+    const lpMintInfoPromise = this.marinadeState.lpMint.mintInfo();
+    const lpMsolBalancePromise =
+      this.provider.connection.getTokenAccountBalance(
+        this.marinadeState.mSolLeg
+      );
+
+    const solLeg = await this.marinadeState.solLeg();
+    const solLegBalancePromise = this.provider.connection.getBalance(solLeg);
+
+    const balancesPromise = this.balance();
+
+    const lockAccountPromise = await this.getLockAccount(true);
+
+    const impactNFTPromise = await getImpactNFT(
+      this.config,
+      this.staker,
+      this.provider
+    );
+
+    const [
+      currentEpoch,
+      lpMintInfo,
+      lpSolLegBalance,
+      lpMsolBalance,
+      balances,
+      lockAccountDetails,
+      impactNFT,
+    ] = await Promise.all([
+      currentEpochPromise,
+      lpMintInfoPromise,
+      solLegBalancePromise,
+      lpMsolBalancePromise,
+      balancesPromise,
+      lockAccountPromise,
+      impactNFTPromise,
+    ]);
+
+    const availableLiqPoolSolLegBalance = new BN(lpSolLegBalance).sub(
+      this.marinadeState.state.rentExemptForTokenAcc
+    );
+    const lpMsolShare = proportionalBN(
+      new BN(balances.liqPoolBalance.amount),
+      new BN(lpMsolBalance.value.amount),
+      new BN(lpMintInfo.supply.toString())
+    );
+    const lpSolShare = proportionalBN(
+      new BN(balances.liqPoolBalance.amount),
+      availableLiqPoolSolLegBalance,
+      new BN(lpMintInfo.supply.toString())
+    );
+    const solValueOlpMSolShare = this.computeLamportsFromMSol(
+      lpMsolShare,
+      this.marinadeState
+    );
+
+    const lpSolValue = lpSolShare.add(solValueOlpMSolShare);
+
+    const solValueOfMSol = this.computeLamportsFromMSol(
+      new BN(balances.msolBalance.amount),
+      this.marinadeState
+    );
+
+    const mpDetails = {
+      msolPrice: this.marinadeState.mSolPrice,
+      msolValue: solValueOfMSol,
+      stakeDelta: this.marinadeState.stakeDelta().toNumber(),
+    };
+
+    const lpDetails = {
+      mintAddress: this.marinadeState.lpMint.address.toBase58(),
+      supply: lpMintInfo.supply,
+      mintAuthority: lpMintInfo.mintAuthority?.toBase58(),
+      decimals: lpMintInfo.decimals,
+      lpSolShare, // proportion of SOL deposited in the LP
+      lpMsolShare,
+      lpSolValue, // total SOL value of the LP tokens held by the sunrise instance
+      msolLeg: this.marinadeState.mSolLeg.toBase58(),
+    };
+
+    const { account: epochReport } = await getEpochReportAccount(
+      this.config,
+      this.program
+    );
+
+    const stakePoolInfo = await getStakePoolAccount(
+      this.provider.connection,
+      this.env.blaze.pool
+    );
+    const [bsolPrice, bsolValue] = this.computeLamportsFromBSol(
+      new BN(balances.bsolBalance.amount),
+      stakePoolInfo
+    );
+
+    const bpDetails = {
+      pool: this.env.blaze.pool.toString(),
+      bsolPrice,
+      bsolValue,
+      solWithdrawalFee: {
+        numerator: stakePoolInfo.solWithdrawalFee.numerator,
+        denominator: stakePoolInfo.solWithdrawalFee.denominator,
+      },
+    };
+
+    const lockDetails: Details["lockDetails"] =
+      lockAccountDetails.lockAccount != null &&
+      lockAccountDetails.tokenAccount != null &&
+      lockAccountDetails.lockAccount.startEpoch != null &&
+      lockAccountDetails.lockAccount.updatedToEpoch != null
+        ? {
+            lockAccount: lockAccountDetails.lockAccountAddress,
+            lockTokenAccount: lockAccountDetails.tokenAccountAddress,
+            startEpoch: lockAccountDetails.lockAccount.startEpoch,
+            updatedToEpoch: lockAccountDetails.lockAccount.updatedToEpoch,
+            amountLocked: new BN(`${lockAccountDetails.tokenAccount.amount}`),
+            yield: lockAccountDetails.lockAccount.yieldAccruedByOwner,
+            currentLevel: lockAccountDetails.currentLevel,
+            yieldToNextLevel: lockAccountDetails.yieldToNextLevel,
+            unrealizedYield: lockAccountDetails.unrealizedYield,
+          }
+        : undefined;
+
+    const nftSummary =
+      this.config.impactNFTStateAddress != null
+        ? {
+            stateAddress: this.config.impactNFTStateAddress,
+            mintAuthority: findImpactNFTMintAuthority(this.config)[0],
+            mint: impactNFT.mint,
+            tokenAccount: impactNFT.tokenAccount,
+          }
+        : undefined;
+    const impactNFTDetails: Details["impactNFTDetails"] = impactNFT?.exists
+      ? nftSummary
+      : undefined;
+
+    const detailsWithoutYield: Omit<Details, "extractableYield"> = {
+      staker: this.staker.toBase58(),
+      balances,
+      currentEpoch,
+      epochReport: epochReport ?? EMPTY_EPOCH_REPORT,
+      stakerGSolTokenAccount: this.stakerGSolTokenAccount.toBase58(),
+      sunriseStakeConfig: {
+        gsolMint: this.config.gsolMint.toBase58(),
+        programId: this.config.programId.toBase58(),
+        stateAddress: this.config.stateAddress.toBase58(),
+        treasury: this.config.treasury.toBase58(),
+        msolTokenAccount: this.msolTokenAccount.toBase58(),
+        msolTokenAccountAuthority: this.msolTokenAccountAuthority?.toBase58(),
+      },
+      marinadeFinanceProgramId:
+        this.marinadeState.marinadeFinanceProgramId.toBase58(),
+      marinadeStateAddress: this.marinadeState.marinadeStateAddress.toBase58(),
+      mpDetails,
+      lpDetails,
+      bpDetails,
+      lockDetails,
+      impactNFTDetails,
+    };
+
+    const extractableYield =
+      this.calculateExtractableYield(detailsWithoutYield);
+
+    return {
+      ...detailsWithoutYield,
+      extractableYield,
+    };
+  }
+
+  private computeLamportsFromMSol(
+    msolAmount: BN,
+    marinadeState: MarinadeState
+  ): BN {
+    const totalCoolingDown =
+      marinadeState.state.stakeSystem.delayedUnstakeCoolingDown.add(
+        marinadeState.state.emergencyCoolingDown
+      );
+    const totalLamportsUnderControl =
+      marinadeState.state.validatorSystem.totalActiveBalance
+        .add(totalCoolingDown)
+        .add(marinadeState.state.availableReserveBalance);
+    const totalVirtualStakedLamports = totalLamportsUnderControl.sub(
+      marinadeState.state.circulatingTicketBalance
+    );
+
+    return proportionalBN(
+      msolAmount,
+      totalVirtualStakedLamports,
+      marinadeState.state.msolSupply
+    );
+  }
+
+  private computeLamportsFromBSol(
+    bsolAmount: BN,
+    stakePoolInfo: StakePool
+  ): [number, BN] {
+    const bsolPrice =
+      Number(stakePoolInfo.totalLamports) /
+      Number(stakePoolInfo.poolTokenSupply);
+    const solValue = Math.floor(Number(bsolAmount) * bsolPrice);
+
+    return [bsolPrice, new BN(solValue)];
+  }
+
+  private readonly getRegisterStateAccounts = async (
+    treasury: PublicKey,
+    gsolMint: PublicKey,
+    options: Options = {}
+    // TODO get these types from the IDL
+  ): Promise<{ accounts: any; parameters: any }> => {
+    const config: SunriseStakeConfig = {
+      gsolMint,
+      programId: this.program.programId,
+      stateAddress: this.env.state,
+      updateAuthority: this.provider.publicKey,
+      treasury,
+      liqPoolProportion: DEFAULT_LP_PROPORTION,
+      liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      marinadeMintedGsol: new BN(0),
+      blazeMintedGsol: new BN(0),
+      impactNFTStateAddress: this.env.impactNFT.state,
+      options,
+    };
+    const marinadeConfig = new MarinadeConfig({
+      connection: this.provider.connection,
+    });
+
+    const marinadeState = await new Marinade(marinadeConfig).getMarinadeState();
+
+    const [, gsolMintAuthorityBump] = findGSolMintAuthority(config);
+
+    const [msolAuthority, msolAuthorityBump] =
+      findMSolTokenAccountAuthority(config);
+    const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: marinadeState.mSolMintAddress,
+      owner: msolAuthority,
+    });
+    // use the same token authority PDA for the msol token account
+    // and the liquidity pool token account for convenience
+    const liqPoolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: marinadeState.lpMint.address,
+      owner: msolAuthority,
+    });
+
+    const [bsolAuthority, bsolAuthorityBump] =
+      findBSolTokenAccountAuthority(config);
+    const bsolTokenAccountAddress = utils.token.associatedAddress({
+      mint: this.env.blaze.bsolMint,
+      owner: bsolAuthority,
+    });
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.registerState>["accounts"]
+    >[0];
+
+    const accounts: Accounts = {
+      state: this.env.state,
+      payer: this.provider.publicKey,
+      mint: gsolMint,
+      msolMint: marinadeState.mSolMintAddress,
+      bsolMint: this.env.blaze.bsolMint,
+      msolTokenAccount: msolAssociatedTokenAccountAddress,
+      liqPoolMint: marinadeState.lpMint.address,
+      liqPoolTokenAccount: liqPoolAssociatedTokenAccountAddress,
+      bsolTokenAccount: bsolTokenAccountAddress,
+    };
+
+    const parameters = {
+      marinadeState: marinadeConfig.marinadeStateAddress,
+      blazeState: this.env.blaze.pool,
+      updateAuthority: this.provider.publicKey,
+      treasury,
+      gsolMintAuthorityBump,
+      msolAuthorityBump,
+      bsolAuthorityBump,
+      liqPoolProportion: DEFAULT_LP_PROPORTION,
+      liqPoolMinProportion: DEFAULT_LP_MIN_PROPORTION,
+      marinadeMintedGsol: null,
+      blazeMintedGsol: null,
+    };
+
+    return { accounts, parameters };
+  };
+
+  private calculateExtractableYield({
+    balances,
+    mpDetails,
+    lpDetails,
+    epochReport,
+    bpDetails,
+  }: Omit<Details, "extractableYield">): BN {
+    if (this.marinadeState == null || this.msolTokenAccount == null)
+      throw new Error("init not called");
+
+    // deposited in Stake Pool
+    const solValueOfMSol = mpDetails.msolValue;
+    const solValueOfBSol = bpDetails.bsolValue;
+
+    // deposited in Liquidity Pool
+    const solValueOfLP = lpDetails.lpSolValue;
+
+    const gsolSupply = new BN(balances.gsolSupply.amount);
+
+    const totalSolValueStaked = solValueOfMSol
+      .add(solValueOfLP)
+      .add(solValueOfBSol);
+
+    const inflightTotal = epochReport.totalOrderedLamports;
+
+    const extractableSOLGross = totalSolValueStaked
+      .add(inflightTotal)
+      .sub(gsolSupply);
+
+    const fee = extractableSOLGross.muln(3).divn(1000);
+
+    return extractableSOLGross.sub(fee);
+  }
+
+  /**
+   * Create a new sunrise stake instance.
+   * This sets the Anchor-specified wallet as the updateAuthority of this instance.
+   * It also creates a new "gsol" token - each instance of sunrise is associated with its own token
+   * @param treasury
+   * @param gsolMint
+   * @param env
+   * @param options
+   */
+  public static async register(
+    treasury: PublicKey,
+    gsolMint: Keypair,
+    env: Omit<EnvironmentConfig, "state">,
+    options: Options = {}
+  ): Promise<SunriseStakeClient> {
+    const sunriseStakeState = Keypair.generate();
+    const client = new SunriseStakeClient(
+      setUpAnchor(),
+      {
+        ...env,
+        state: sunriseStakeState.publicKey,
+      },
+      options
+    );
+
+    const { accounts, parameters } = await client.getRegisterStateAccounts(
+      treasury,
+      gsolMint.publicKey,
+      options
+    );
+
+    await client.program.methods
+      .registerState(parameters)
+      .accounts(accounts)
+      .signers([gsolMint, sunriseStakeState])
+      .rpc()
+      .then(confirm(client.provider.connection));
+
+    await client.init();
+
+    await client.initEpochReport().then(confirm(client.provider.connection));
+
+    return client;
+  }
+
+  /**
+   * Updates the configuration of the sunrise state instance. This can be used to set a new yield account,
+   * or a new update authority, or set a new liquidity pool proportion.
+   * @param newTreasury
+   * @param newUpdateAuthority
+   * @param newliqPoolProportion
+   * @param newliqPoolMinProportion
+   * @param newMarinadeMintedGsol
+   * @param newBlazeMintedGsol
+   */
+  public async update({
+    newTreasury,
+    newUpdateAuthority,
+    newliqPoolProportion,
+    newliqPoolMinProportion,
+    newMarinadeMintedGsol,
+    newBlazeMintedGsol,
+  }: {
+    newTreasury?: PublicKey;
+    newUpdateAuthority?: PublicKey;
+    newliqPoolProportion?: number;
+    newliqPoolMinProportion?: number;
+    newMarinadeMintedGsol?: BN;
+    newBlazeMintedGsol?: BN;
+  }): Promise<void> {
+    if (this.config == null) throw new Error("init not called");
+
+    const { accounts, parameters } = await this.getRegisterStateAccounts(
+      newTreasury ?? this.config.treasury,
+      this.config.gsolMint
+    );
+
+    await this.program.methods
+      .updateState({
+        ...parameters,
+        updateAuthority: newUpdateAuthority ?? this.config.updateAuthority,
+        liqPoolProportion:
+          newliqPoolProportion ?? this.config.liqPoolProportion,
+        liqPoolMinProportion:
+          newliqPoolMinProportion ?? this.config.liqPoolMinProportion,
+        marinadeMintedGsol: newMarinadeMintedGsol ?? null,
+        blazeMintedGsol: newBlazeMintedGsol ?? null,
+      })
+      .accounts(accounts)
+      .rpc()
+      .then(confirm(this.provider.connection));
+
+    await this.init();
+  }
+
+  /**
+   * Get the user's current balance, and the current gsol supply
+   */
+  public async balance(): Promise<Balance> {
+    if (
+      this.marinadeState == null ||
+      this.stakerGSolTokenAccount == null ||
+      this.config == null
+    )
+      throw new Error("init not called");
+    const gsolBalancePromise = this.provider.connection
+      .getTokenAccountBalance(this.stakerGSolTokenAccount)
+      .catch((e) => {
+        // Treat a missing account as zero balance
+        if ((e.message as string).endsWith("could not find account")) {
+          return ZERO_BALANCE;
+        }
+        throw e;
+      });
+
+    const gsolSupplyPromise = this.provider.connection.getTokenSupply(
+      this.config.gsolMint
+    );
+
+    const msolTokenAccountAuthority = findMSolTokenAccountAuthority(
+      this.config
+    )[0];
+    const msolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: this.marinadeState.mSolMintAddress,
+      owner: msolTokenAccountAuthority,
+    });
+    const msolLamportsBalancePromise =
+      this.provider.connection.getTokenAccountBalance(
+        msolAssociatedTokenAccountAddress
+      );
+
+    const bsolTokenAccountAuthority = findBSolTokenAccountAuthority(
+      this.config
+    )[0];
+    const bsolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: this.env.blaze.bsolMint,
+      owner: bsolTokenAccountAuthority,
+    });
+    const bsolLamportsBalancePromise =
+      this.provider.connection.getTokenAccountBalance(
+        bsolAssociatedTokenAccountAddress
+      );
+
+    // use the same token authority PDA for the msol token account
+    // and the liquidity pool token account for convenience
+    const liqPoolAssociatedTokenAccountAddress = utils.token.associatedAddress({
+      mint: this.marinadeState.lpMint.address,
+      owner: msolTokenAccountAuthority,
+    });
+
+    const liqPoolBalancePromise =
+      this.provider.connection.getTokenAccountBalance(
+        liqPoolAssociatedTokenAccountAddress
+      );
+
+    const treasuryBalancePromise = this.provider.connection.getBalance(
+      this.config.treasury
+    );
+
+    const holdingAccountBalancePromise = this.provider.connection.getBalance(
+      this.env.holdingAccount
+    );
+
+    const [
+      gsolBalance,
+      gsolSupply,
+      msolLamportsBalance,
+      lpBalance,
+      treasuryBalance,
+      bsolLamportsBalance,
+      holdingAccountBalance,
+    ] = await Promise.all([
+      gsolBalancePromise,
+      gsolSupplyPromise,
+      msolLamportsBalancePromise,
+      liqPoolBalancePromise,
+      treasuryBalancePromise,
+      bsolLamportsBalancePromise,
+      holdingAccountBalancePromise,
+    ]);
+
+    return {
+      gsolBalance: gsolBalance.value,
+      gsolSupply: gsolSupply.value,
+      msolBalance: msolLamportsBalance.value,
+      msolPrice: this.marinadeState.mSolPrice,
+      liqPoolBalance: lpBalance.value,
+      treasuryBalance,
+      bsolBalance: bsolLamportsBalance.value,
+      holdingAccountBalance,
+    };
+  }
+
+  /**
+   * Lock some staked gSOL in order to obtain an Impact NFT
+   * @param lamports
+   */
+  public async lockGSol(lamports: BN): Promise<Transaction[]> {
+    if (
+      this.stakerGSolTokenAccount == null ||
+      this.config == null ||
+      this.marinade == null ||
+      this.marinadeState == null ||
+      this.lockClient == null
+    )
+      throw new Error("init not called");
+
+    // Before locking gsol, the epoch report account must be updated to the current epoch,
+    // via a recoverTickets instruction.
+    // The first person to lock this epoch will trigger this update before
+    // updating their lock account.
+    // However, combining a recoverTickets instruction and a lockGsol instruction into a
+    // single transaction results in a transaction that is too large.
+    // Therefore, we split the transaction into two parts
+    const transactions: Transaction[] = [];
+
+    const recoverInstruction = await this.recoverTickets();
+
+    if (recoverInstruction != null) {
+      transactions.push(new Transaction().add(recoverInstruction));
+    }
+
+    const lockTx = await this.lockClient.lockGSol(
+      this.stakerGSolTokenAccount,
+      lamports
+    );
+    transactions.push(lockTx);
+
+    return transactions;
+  }
+
+  /**
+   * Update the account that records the yield proportion allocated to a user, by virtue of their
+   * locked gSOL.
+   */
+  public async updateLockAccount(): Promise<Transaction[]> {
+    if (this.config == null || this.lockClient == null)
+      throw new Error("init not called");
+
+    // Before updating a lock account, the epoch report account must be updated to the current epoch,
+    // via a recoverTickets instruction.
+    // The first person to update their lock account this epoch will trigger this update before
+    // updating their lock account.
+    // However, combining a recoverTickets instruction and an updateLockAccount instruction into a
+    // single transaction results in a transaction that is too large.
+    // Therefore, we split the transaction into two parts
+    const transactions: Transaction[] = [];
+
+    const currentEpoch = await this.provider.connection.getEpochInfo();
+
+    // ensure all rebalance tickets are recovered before updating the yield on the lock account
+    // otherwise the calculations will be incorrect
+    // this will also update the epoch report to the current epoch if not already updated
+    const recoverInstruction = await this.recoverTickets();
+
+    if (recoverInstruction != null) {
+      await this.sendAndConfirmTransaction(
+        new Transaction().add(recoverInstruction)
+      );
+    }
+
+    const { lockAccount } = await this.getLockAccount();
+
+    if (lockAccount == null) throw new Error("lock account not found");
+    if (lockAccount.startEpoch == null || lockAccount.updatedToEpoch == null)
+      throw new Error("lock account has not been locked?");
+
+    // only update if the lock account has not been updated this epoch
+    if (lockAccount.updatedToEpoch?.toNumber() < currentEpoch.epoch) {
+      const updateTx = await this.lockClient.updateLockAccount();
+      transactions.push(updateTx);
+    }
+
+    return transactions;
+  }
+
+  /**
+   * Add some staked gSOL to locked gSOL
+   * @param lamports
+   */
+  public async addLockedGSol(lamports: BN): Promise<Transaction[]> {
+    if (
+      this.stakerGSolTokenAccount == null ||
+      this.config == null ||
+      this.marinade == null ||
+      this.marinadeState == null ||
+      this.lockClient == null
+    )
+      throw new Error("init not called");
+
+    const transactions: Transaction[] = [];
+
+    const recoverInstruction = await this.recoverTickets();
+
+    if (recoverInstruction != null) {
+      transactions.push(new Transaction().add(recoverInstruction));
+    }
+
+    const lockTx = await this.lockClient.addLockedGSol(
+      this.stakerGSolTokenAccount,
+      lamports
+    );
+    transactions.push(lockTx);
+
+    return transactions;
+  }
+
+  /**
+   * Unlock a user's gSOL so that it can be unstaked
+   */
+  public async unlockGSol(): Promise<Transaction[]> {
+    if (this.lockClient == null) throw new Error("init not called");
+    if (this.stakerGSolTokenAccount == null) throw new Error("No stake found");
+
+    const transactions: Transaction[] = [];
+
+    // Update a lock account if it has not been updated this epoch
+    try {
+      const updateLockAccountTxes = await this.updateLockAccount();
+      transactions.push(...updateLockAccountTxes);
+    } catch (error) {
+      // we want to be tolerant of errors here, since the lock account update may fail, eg
+      // due to issues with the impact nft (one example is the nft being burned)
+      // This should not prevent the unlock from happening
+      console.warn(
+        "An error occurred during lock account update. Continuing with unlock:",
+        error
+      );
+    }
+
+    // updateLockAccount returns an array of transactions.
+    // Theoretically, the unlock transaction could be combined with the update transaction
+    // TODO - combine the unlock transaction with the update transaction if possible
+    const unlockTx = await this.lockClient.unlockGSol(
+      this.stakerGSolTokenAccount
+    );
+
+    transactions.push(unlockTx);
+
+    return transactions;
+  }
+
+  /**
+   * Get a user's lock account, that records the yield proportion allocated to a user, by virtue of their
+   * locked gSOL.
+   * @param withRefresh
+   */
+  public async getLockAccount(
+    withRefresh = false
+  ): Promise<LockAccountSummary> {
+    if (this.lockClient == null) throw new Error("init not called");
+
+    if (withRefresh) await this.lockClient.refresh();
+
+    const updatedYieldAccrued =
+      this.lockClient.lockAccount != null
+        ? await this.lockClient.calculateUpdatedYieldAccrued()
+        : null;
+
+    const currentLevel = this.lockClient.getCurrentLevel();
+
+    // TODO this is a little messy, as we are reversing a calculation that was already made in calculateUpdatedYieldAccrued
+    const unrealizedYield = updatedYieldAccrued?.sub(
+      this.lockClient.lockAccount?.yieldAccruedByOwner ?? ZERO
+    );
+
+    return {
+      lockAccount: this.lockClient.lockAccount,
+      lockAccountAddress: this.lockClient.lockAccountAddress,
+      tokenAccount: this.lockClient.lockTokenAccount,
+      tokenAccountAddress: this.lockClient.lockTokenAccountAddress,
+      currentLevel,
+      yieldToNextLevel: this.lockClient.getYieldToNextLevel(
+        currentLevel?.index
+      ),
+      unrealizedYield: unrealizedYield ?? null,
+    };
+  }
+
+  // //////////////////////////
+  // SPL Rebalance Admin Functions
+  // //////////////////////////
+
+  /**
+   * Move SOL from SPL stake pool (liquid reserve) directly to Marinade liquidity pool.
+   * Admin-only instruction for rebalancing funds between pools.
+   * @param lamports The amount of lamports to move
+   */
+  public async moveSplLiquidToMarinade(lamports: BN): Promise<Transaction> {
+    if (
+      this.marinadeState == null ||
+      this.config == null ||
+      this.blazeState == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.bsolTokenAccountAuthority == null ||
+      this.liqPoolTokenAccount == null ||
+      this.bsolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    type Accounts = Parameters<
+      ReturnType<
+        typeof this.program.methods.moveSplLiquidToMarinade
+      >["accounts"]
+    >[0];
+
+    // Note: accounts with `relations` (updateAuthority, marinadeState) and PDAs
+    // (bsolAccountAuthority, msolTokenAccountAuthority) are auto-resolved by Anchor
+    const accounts: Accounts = {
+      state: this.env.state,
+      payer: this.staker,
+      stakePool: this.blazeState.pool,
+      stakePoolWithdrawAuthority: this.blazeState.withdrawAuthority,
+      reserveStakeAccount: this.blazeState.reserveAccount,
+      managerFeeAccount: this.blazeState.feesDepot,
+      stakePoolTokenMint: this.blazeState.bsolMint,
+      bsolTokenAccount: this.bsolTokenAccount,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      sysvarClock: SYSVAR_CLOCK_PUBKEY,
+      sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
+      stakePoolProgram: STAKE_POOL_PROGRAM_ID,
+      nativeStakeProgram: StakeProgram.programId,
+    };
+
+    return this.program.methods
+      .moveSplLiquidToMarinade(lamports)
+      .accounts(accounts)
+      .transaction();
+  }
+
+  /**
+   * Create a stake account from SPL stake pool and deactivate it.
+   * Admin-only instruction for rebalancing funds between pools.
+   * The stake account will be deactivated and can be deposited to Marinade liq pool
+   * after it fully deactivates (next epoch boundary).
+   * @param index The index of the stake account PDA
+   * @param lamports The amount of lamports to withdraw as stake
+   */
+  public async createSplStakeAccount(
+    index: bigint,
+    lamports: BN
+  ): Promise<Transaction> {
+    if (
+      this.config == null ||
+      this.blazeState == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.bsolTokenAccountAuthority == null ||
+      this.bsolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    // Find the validator stake account to split from
+    const stakeAccountToSplit = await getWithdrawStakeAccount(
+      this.provider.connection,
+      this.blazeState
+    );
+
+    type Accounts = Parameters<
+      ReturnType<typeof this.program.methods.createSplStakeAccount>["accounts"]
+    >[0];
+
+    // Note: accounts with `relations` (updateAuthority) and PDAs
+    // (newStakeAccount, bsolAccountAuthority, msolTokenAccountAuthority) are auto-resolved by Anchor
+    const accounts: Accounts = {
+      state: this.env.state,
+      payer: this.staker,
+      stakePool: this.blazeState.pool,
+      validatorStakeList: this.blazeState.validatorList,
+      stakePoolWithdrawAuthority: this.blazeState.withdrawAuthority,
+      stakeAccountToSplit,
+      managerFeeAccount: this.blazeState.feesDepot,
+      stakePoolTokenMint: this.blazeState.bsolMint,
+      bsolTokenAccount: this.bsolTokenAccount,
+      sysvarClock: SYSVAR_CLOCK_PUBKEY,
+      stakePoolProgram: STAKE_POOL_PROGRAM_ID,
+      nativeStakeProgram: StakeProgram.programId,
+    };
+
+    return this.program.methods
+      .createSplStakeAccount(new BN(index.toString()), lamports)
+      .accounts(accounts)
+      .transaction();
+  }
+
+  /**
+   * Deposit a deactivated stake account (from SPL rebalancing) into Marinade liquidity pool.
+   * Admin-only instruction. The stake account must be fully deactivated.
+   * @param index The index of the stake account PDA
+   */
+  public async depositSplStakeToLiquid(index: bigint): Promise<Transaction> {
+    if (
+      this.marinadeState == null ||
+      this.config == null ||
+      this.msolTokenAccountAuthority == null ||
+      this.liqPoolTokenAccount == null
+    )
+      throw new Error("init not called");
+
+    type Accounts = Parameters<
+      ReturnType<
+        typeof this.program.methods.depositSplStakeToLiquid
+      >["accounts"]
+    >[0];
+
+    // Note: accounts with `relations` (updateAuthority, marinadeState) and PDAs
+    // (stakeAccount, msolTokenAccountAuthority) are auto-resolved by Anchor
+    const accounts: Accounts = {
+      state: this.env.state,
+      payer: this.staker,
+      liqPoolMint: this.marinadeState.lpMint.address,
+      liqPoolMintAuthority: await this.marinadeState.lpMintAuthority(),
+      liqPoolSolLegPda: await this.marinadeState.solLeg(),
+      liqPoolMsolLeg: this.marinadeState.mSolLeg,
+      liqPoolTokenAccount: this.liqPoolTokenAccount,
+      sysvarClock: SYSVAR_CLOCK_PUBKEY,
+      sysvarStakeHistory: SYSVAR_STAKE_HISTORY_PUBKEY,
+      nativeStakeProgram: StakeProgram.programId,
+    };
+
+    return this.program.methods
+      .depositSplStakeToLiquid(new BN(index.toString()))
+      .accounts(accounts)
+      .transaction();
+  }
+
+  /**
+   * Find all SPL rebalance stake accounts created by this protocol.
+   * Useful for reporting and for determining which accounts can be deposited to Marinade.
+   * @param maxIndex The maximum index to check (default: 100)
+   */
+  public async findSplRebalanceStakeAccounts(maxIndex = 100): Promise<
+    Array<{
+      index: bigint;
+      address: PublicKey;
+      lamports: number;
+      state:
+        | "initializing"
+        | "delegated"
+        | "deactivating"
+        | "deactivated"
+        | "unknown";
+      deactivationEpoch?: number;
+    }>
+  > {
+    if (this.config == null) throw new Error("init not called");
+
+    const accounts: Array<{
+      index: bigint;
+      address: PublicKey;
+      lamports: number;
+      state:
+        | "initializing"
+        | "delegated"
+        | "deactivating"
+        | "deactivated"
+        | "unknown";
+      deactivationEpoch?: number;
+    }> = [];
+
+    const currentEpoch = await this.provider.connection.getEpochInfo();
+
+    // Max u64 as string - represents "not deactivated"
+    const MAX_U64_STR = "18446744073709551615";
+
+    for (let i = 0; i < maxIndex; i++) {
+      const [address] = findSplRebalanceStakeAccount(this.config, BigInt(i));
+      const accountInfo = await this.provider.connection.getAccountInfo(
+        address
+      );
+
+      if (accountInfo != null) {
+        // Parse stake account state
+        let state:
+          | "initializing"
+          | "delegated"
+          | "deactivating"
+          | "deactivated"
+          | "unknown" = "unknown";
+        let deactivationEpoch: number | undefined;
+
+        // Check if it's a stake account and parse its state
+        if (accountInfo.owner.equals(StakeProgram.programId)) {
+          try {
+            const parsedAccount =
+              await this.provider.connection.getParsedAccountInfo(address);
+            const parsed = parsedAccount?.value?.data;
+            if (parsed && typeof parsed === "object" && "parsed" in parsed) {
+              const stakeType = parsed.parsed?.type;
+              const info = parsed.parsed?.info;
+
+              if (stakeType === "initialized") {
+                state = "initializing";
+              } else if (stakeType === "delegated") {
+                const deactivationEpochStr =
+                  info?.stake?.delegation?.deactivationEpoch;
+                if (deactivationEpochStr != null) {
+                  // Max u64 means not deactivated yet - compare as string to avoid precision loss
+                  if (deactivationEpochStr === MAX_U64_STR) {
+                    state = "delegated";
+                  } else {
+                    deactivationEpoch = parseInt(deactivationEpochStr, 10);
+                    if (deactivationEpoch < currentEpoch.epoch) {
+                      state = "deactivated";
+                    } else {
+                      state = "deactivating";
+                    }
+                  }
+                }
+              }
+            }
+          } catch {
+            // If parsing fails, leave state as unknown
+          }
+        }
+
+        accounts.push({
+          index: BigInt(i),
+          address,
+          lamports: accountInfo.lamports,
+          state,
+          deactivationEpoch,
+        });
+      }
+    }
+
+    return accounts;
+  }
+
+  /**
+   * Create an instance of the Sunrise Client.
+   * @param provider
+   * @param stage
+   * @param options
+   */
+  public static async get(
+    provider: AnchorProvider,
+    stage: keyof typeof Environment,
+    options: Options = {}
+  ): Promise<SunriseStakeClient> {
+    const client = new SunriseStakeClient(
+      provider,
+      Environment[stage],
+      options
+    );
+    await client.init();
+    return client;
+  }
+}

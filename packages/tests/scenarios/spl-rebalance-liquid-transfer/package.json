@@ -1,0 +1,30 @@
+{
+  "name": "@sunrisestake/scenario-spl-rebalance-liquid-transfer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:anchor": "mocha -p ./tsconfig.json --no-parallel -t 1000000 ./*.ts",
+    "lint": "eslint -c ../../.eslintrc.yml --ext .ts,.tsx .",
+    "build": "echo 'No build required for test package'"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
+    "@solana/web3.js": "^1.98.2",
+    "@sunrisestake/client": "*",
+    "@types/chai-as-promised": "^8.0.2",
+    "bn.js": "^5.2.1",
+    "bs58": "^6.0.0",
+    "chai": "^5.1.2",
+    "chai-as-promised": "^8.0.1",
+    "dotenv-cli": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^5.0.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.16.5",
+    "eslint": "^8.33.0",
+    "mocha": "^10.8.2",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.7.2"
+  }
+}

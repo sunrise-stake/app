@@ -1,0 +1,11 @@
+diff --git a/node_modules/@metaplex-foundation/js/dist/esm/plugins/storageModule/StorageClient.mjs b/node_modules/@metaplex-foundation/js/dist/esm/plugins/storageModule/StorageClient.mjs
+index a13982b..ccfed9c 100644
+--- a/node_modules/@metaplex-foundation/js/dist/esm/plugins/storageModule/StorageClient.mjs
++++ b/node_modules/@metaplex-foundation/js/dist/esm/plugins/storageModule/StorageClient.mjs
+@@ -1,5 +1,5 @@
+ import { defineProperty as _defineProperty } from '../../_virtual/_rollupPluginBabelHelpers.mjs';
+-import fetch from 'node-fetch';
++// import fetch from 'node-fetch';
+ import { getBytesFromMetaplexFiles, toMetaplexFileFromJson, toMetaplexFile } from './MetaplexFile.mjs';
+ import { DriverNotProvidedError, InvalidJsonStringError } from '../../errors/SdkError.mjs';
+ 
