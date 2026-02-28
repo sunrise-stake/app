@@ -10,3 +10,4 @@ export * from "./Panel";
 export * from "./Spinner";
 export * from "./TooltipPopover";
 export * from "./TweetButton";
+export * from "./ShutdownBanner";

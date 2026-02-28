@@ -1,50 +1,23 @@
 import type BN from "bn.js";
-import React, { useState } from "react";
-import { FiArrowUpRight } from "react-icons/fi";
-
-import { useModal } from "../../common/hooks";
-import { AmountInput, Button, Spinner } from "../../common/components";
-import { DepositWarningModal } from "../../common/components/modals";
+import React from "react";
+import { IoWarningOutline } from "react-icons/io5";
 
 interface StakeFormProps {
   deposit: (amount: string) => Promise<any>;
   solBalance: BN | undefined;
 }
 
-const StakeForm: React.FC<StakeFormProps> = ({ deposit, solBalance }) => {
-  const [amount, setAmount] = useState("");
-  const [valid, setValid] = useState(false);
-  const [isBusy, setIsBusy] = useState(false);
-
-  const depositModal = useModal(() => {
-    setIsBusy(true);
-    deposit(amount).finally(() => {
-      setIsBusy(false);
-    });
-  });
-
+const StakeForm: React.FC<StakeFormProps> = () => {
   return (
-    <div>
-      <DepositWarningModal
-        ok={depositModal.onModalOK}
-        cancel={depositModal.onModalClose}
-        show={depositModal.modalShown}
-      />
-      <AmountInput
-        className="mb-5"
-        balance={solBalance}
-        token="SOL"
-        amount={amount}
-        setAmount={setAmount}
-        setValid={setValid}
-        mode="STAKE"
-      />
-      <div className="flex items-center justify-start sm:justify-end">
-        <Button onClick={depositModal.trigger} disabled={!valid || isBusy}>
-          {isBusy ? <Spinner size="1rem" className="mr-1" /> : null}
-          Deposit <FiArrowUpRight className="inline" size={24} />
-        </Button>
-      </div>
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <IoWarningOutline size={48} className="text-danger mb-4" />
+      <h2 className="text-xl font-semibold text-white mb-2">
+        Deposits Disabled
+      </h2>
+      <p className="text-gray-300 max-w-md">
+        Sunrise is shutting down and deposits have been disabled. Please
+        withdraw your existing SOL using the Unstake option above.
+      </p>
     </div>
   );
 };
