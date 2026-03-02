@@ -28,9 +28,9 @@ async function createStakeAccount({
     transaction.feePayer = wallet.publicKey;
     transaction.recentBlockhash = blockhash;
     transaction.lastValidBlockHeight = lastValidBlockHeight;
-    transaction.sign(stakeAccount);
-
+    // Wallet signs first (Phantom requirement), then additional signers
     const signedTransaction = await wallet.signTransaction(transaction);
+    signedTransaction.partialSign(stakeAccount);
 
     const signature = await connection.sendRawTransaction(signedTransaction.serialize());
     console.log("Stake Account creation transaction sent", signature);
