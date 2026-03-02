@@ -8,6 +8,7 @@ import { PageHelpModal } from "../components/modals/PageHelpModal";
 
 import { useZenMode } from "../context/ZenModeContext";
 import { ExternalLinks } from "../components/ExternalLinks";
+import { ShutdownBanner } from "../components/ShutdownBanner";
 
 const Layout: FC<{ children: ReactNode }> = ({ children }) => {
   const [zenMode] = useZenMode();
@@ -84,6 +85,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         <ExternalLinks />
       </Transition>
       <div className="flex flex-col min-h-screen">
+        <ShutdownBanner />
         <Toaster />
         <main className="grow flex">{children}</main>
       </div>

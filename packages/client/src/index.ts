@@ -243,6 +243,28 @@ export class SunriseStakeClient {
   }
 
   /**
+   * Signs a transaction with the wallet first, then additional signers.
+   * This signing order is required by Phantom's Lighthouse security system.
+   * @param transaction The transaction to sign
+   * @param signers Additional signers (keypairs) to sign after the wallet
+   * @returns The fully signed transaction
+   */
+  private async signTransaction(
+    transaction: Transaction,
+    signers: Signer[]
+  ): Promise<Transaction> {
+    // Wallet signs first (Phantom requirement)
+    const signedTx = await this.provider.wallet.signTransaction(transaction);
+
+    // Additional signers sign afterward
+    for (const signer of signers) {
+      signedTx.partialSign(signer);
+    }
+
+    return signedTx;
+  }
+
+  /**
    * Utility function for sending an transaction and waiting for it to confirm.
    * @param transaction
    * @param signers
@@ -259,6 +281,26 @@ export class SunriseStakeClient {
     ) {
       await this.addPriorityFee(transaction);
     }
+
+    // If there are additional signers, use custom signing order for Phantom compatibility
+    if (signers && signers.length > 0) {
+      // Prepare transaction
+      transaction.feePayer = this.provider.publicKey;
+      transaction.recentBlockhash = (
+        await this.provider.connection.getLatestBlockhash()
+      ).blockhash;
+
+      const signedTx = await this.signTransaction(transaction, signers);
+      const signature = await this.provider.connection.sendRawTransaction(
+        signedTx.serialize(),
+        opts
+      );
+
+      await confirm(this.provider.connection)(signature);
+      return signature;
+    }
+
+    // No additional signers - use default Anchor behavior
     return this.provider
       .sendAndConfirm(transaction, signers, opts)
       .catch((e) => {

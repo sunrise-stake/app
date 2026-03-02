@@ -6,6 +6,7 @@ import { type FC, useEffect, useState } from "react";
 import { FaLeaf } from "react-icons/fa";
 import { TbLeafOff } from "react-icons/tb";
 import { GiCircleForest } from "react-icons/gi";
+import { Popover } from "@headlessui/react";
 
 import {
   solToLamports,
@@ -49,7 +50,7 @@ const StakeDashboard: FC = () => {
   const [delayedUnstakeTickets, setDelayedUnstakeTickets] = useState<
     TicketAccount[]
   >([]);
-  const [mode, setMode] = useState<UIMode>("STAKE");
+  const [mode, setMode] = useState<UIMode>("UNSTAKE");
   const { totalCarbon } = useCarbon();
   const navigate = useNavigate();
 
@@ -147,24 +148,17 @@ const StakeDashboard: FC = () => {
         </LinkWithQuery>
       </div>
       <div className="flex">
-        <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg">
-          <Button
-            color={mode === "STAKE" ? "primary" : "secondary"}
-            size={"sm"}
-            className="mr-3 sm:mr-5"
-            onClick={() => {
-              setMode("STAKE");
-            }}
-          >
-            Stake
-            <FaLeaf
-              className={clx(
-                "animate-fade-in inline ml-2 transition-opacity duration-500",
-                { hidden: mode !== "STAKE" }
-              )}
-              size={24}
-            />
-          </Button>
+        <Panel className="flex flex-row mx-auto mb-9 p-3 sm:p-4 rounded-lg items-center">
+          <Popover className="relative mr-3 sm:mr-5">
+            <Popover.Button className="inline-flex items-center border-2 rounded-lg leading-6 shadow-sm border-outset bg-outset text-white px-5 py-3 text-xl opacity-50">
+              Stake
+              <FaLeaf className="inline ml-2" size={24} />
+            </Popover.Button>
+            <Popover.Panel className="absolute z-[100] bottom-full left-0 mb-2 bg-danger text-white text-sm rounded-lg p-4 w-64 shadow-xl">
+              Staking is disabled. Sunrise is shutting down - please withdraw
+              your SOL.
+            </Popover.Panel>
+          </Popover>
           <Button
             color={mode === "UNSTAKE" ? "danger" : "secondary"}
             size={"sm"}
