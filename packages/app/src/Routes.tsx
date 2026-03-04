@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 // import { ForestApp } from "./forest/ForestApp";
-import { GrowApp } from "./grow/GrowApp";
+// import { GrowApp } from "./grow/GrowApp";
 import { HubApp } from "./hub/HubApp";
 import { LockingApp } from "./locking/LockingApp";
 import { ReferralApp } from "./referral/ReferralApp";
@@ -21,7 +21,7 @@ import { LinkWithQuery } from "./common/components/LinkWithQuery";
 export enum AppRoute {
   Connect = "/connect", // not a route at present TODO fix
   Forest = "/forest",
-  Grow = "/grow",
+  // Grow = "/grow",
   Hub = "/",
   Lock = "/lock",
   Referral = "/referral",
@@ -32,7 +32,7 @@ export const Routes: FC = () => {
   const location = useLocation();
   const appRefs = {
     forest: useRef<null | HTMLDivElement>(null),
-    grow: useRef<null | HTMLDivElement>(null),
+    // grow: useRef<null | HTMLDivElement>(null),
     hub: useRef<null | HTMLDivElement>(null),
     locking: useRef<null | HTMLDivElement>(null),
     referral: useRef<null | HTMLDivElement>(null),
@@ -81,6 +81,7 @@ export const Routes: FC = () => {
               setCurrentHelpRoute(AppRoute.Forest);
             },
           }, */
+          /* Grow route disabled
           {
             path: AppRoute.Grow,
             onMatch: () => {
@@ -90,7 +91,7 @@ export const Routes: FC = () => {
               setCurrentRouteApp(appRefs.grow);
               setCurrentHelpRoute(AppRoute.Grow);
             },
-          },
+          }, */
           {
             path: AppRoute.Lock,
             onMatch: () => {
@@ -139,12 +140,13 @@ export const Routes: FC = () => {
           className="App ForestApp"
           ref={appRefs.forest}
         /> */}
+        {/* Grow app disabled
         <GrowApp
           id="grow-app"
           className="App GrowApp"
           ref={appRefs.grow}
           active={currentRouteApp === appRefs.grow}
-        />
+        /> */}
         <HubApp id="hub-app" className="App HubApp" ref={appRefs.hub} />
         <LockingApp
           id="locking-app"

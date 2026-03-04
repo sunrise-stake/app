@@ -8,11 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  IoChevronBackOutline,
-  IoChevronDownOutline,
-  IoChevronForwardOutline,
-} from "react-icons/io5";
+import { IoChevronBackOutline, IoChevronDownOutline } from "react-icons/io5";
 import { Button, Spinner } from "../common/components";
 import { useZenMode } from "../common/context/ZenModeContext";
 import { HubIntro } from "./components/HubIntro";
@@ -178,21 +174,6 @@ const _HubApp: ForwardRefRenderFunction<
               }}
             />
           )}
-          <LinkWithQuery
-            to="/grow"
-            className={clx(
-              "hidden md:flex flex-col justify-center transition-opacity ease-in duration-500",
-              showHubNav ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <div className="flex relative items-center nowrap text-2xl">
-              <span>Grow</span>
-              <IoChevronForwardOutline
-                className="inline"
-                size={LINK_CHEVRON_SIZE}
-              />
-            </div>
-          </LinkWithQuery>
         </div>
         <div className="w-full mt-2 text-center">
           {myTree?.metadata?.type?.level !== undefined &&
@@ -237,15 +218,6 @@ const _HubApp: ForwardRefRenderFunction<
                 <span>Forest</span>
               </div>
             </div>
-            <LinkWithQuery to="/grow" className="flex items-center">
-              <div className="flex items-center nowrap text-2xl relative">
-                <span>Grow</span>
-                <IoChevronForwardOutline
-                  className="inline"
-                  size={LINK_CHEVRON_SIZE}
-                />
-              </div>
-            </LinkWithQuery>
           </div>
           <div
             className={clx(
