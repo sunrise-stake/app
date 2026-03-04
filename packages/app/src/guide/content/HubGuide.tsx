@@ -18,15 +18,6 @@ const entries: GuideEntryProps[] = [
     ),
   },
   {
-    image: "guide/hub/3.png",
-    children: (
-      <div className="py-8">
-        Visit the Grow page to see how you can use your gSOL and add trees to
-        your forest.
-      </div>
-    ),
-  },
-  {
     image: "guide/hub/4.png",
     children: (
       <div className="py-8">

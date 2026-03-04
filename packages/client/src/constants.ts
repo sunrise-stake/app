@@ -33,6 +33,9 @@ export interface EnvironmentConfig {
   // This is used to get recommended priority fees.
   // if not set, priority fees are not used.
   heliusUrl: string | undefined;
+  // Address Lookup Table for reducing transaction size.
+  // If set, liquidUnstake transactions are sent as V0 VersionedTransactions.
+  lookupTableAddress: PublicKey | undefined;
 }
 export const Environment: Record<
   WalletAdapterNetwork | "localnet",
@@ -56,6 +59,9 @@ export const Environment: Record<
     },
     // Private Sunrise Helius Secure RPC
     heliusUrl: "https://weary-fayre-fast-mainnet.helius-rpc.com",
+    lookupTableAddress: new PublicKey(
+      "iNPPN8vBnmtj7A6b7yjKmcwTLoQqvNB4y11NE5CNp56"
+    ),
   },
   // TODO placeholders
   testnet: {
@@ -73,6 +79,7 @@ export const Environment: Record<
       state: PublicKey.default, // TODO
     },
     heliusUrl: undefined,
+    lookupTableAddress: undefined,
   },
   devnet: {
     state: new PublicKey("Jpp29FzyV7rXdVRWFaiE9tBcVCaEMvj16gk87rC3S4z"),
@@ -92,6 +99,9 @@ export const Environment: Record<
     },
     // Private Sunrise Helius Secure RPC
     heliusUrl: "https://indirect-josi-fast-devnet.helius-rpc.com",
+    lookupTableAddress: new PublicKey(
+      "Hi9kBre7NLfcse7UiSyZ9cQRjfJ8wCaeMHhfiiWDP1Lj"
+    ),
   },
   localnet: {
     state: new PublicKey("28SkW4iD7UJc9zkxcq6yNb1MFX2hxqdJjxjZs67Jwr2b"),
@@ -110,6 +120,7 @@ export const Environment: Record<
       state: PublicKey.default, // TODO
     },
     heliusUrl: undefined,
+    lookupTableAddress: undefined,
   },
 };
 

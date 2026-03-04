@@ -1,7 +1,7 @@
 import { type FC } from "react";
 import { HubGuide } from "../content/HubGuide";
 import { ForestGuide } from "../content/ForestGuide";
-import { GrowGuide } from "../content/GrowGuide";
+// import { GrowGuide } from "../content/GrowGuide";
 import { LockGuide } from "../content/LockGuide";
 import { StakeGuide } from "../content/StakeGuide";
 import { useHelp } from "../../common/context/HelpContext";
@@ -19,8 +19,8 @@ export const GuideSelector: FC = () => {
       return <HubGuide />;
     case AppRoute.Forest:
       return <ForestGuide />;
-    case AppRoute.Grow:
-      return <GrowGuide />;
+    // case AppRoute.Grow:
+    //   return <GrowGuide />;
     case AppRoute.Lock:
       return <LockGuide />;
     case AppRoute.Stake:
