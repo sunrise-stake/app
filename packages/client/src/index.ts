@@ -2,6 +2,7 @@ import { type SunriseStake } from "./types/sunrise_stake.js";
 import idl from "./types/sunrise_stake.json";
 import { type AnchorProvider, Program, utils } from "@coral-xyz/anchor";
 import {
+  type AddressLookupTableAccount,
   ComputeBudgetProgram,
   type ConfirmOptions,
   Keypair,
@@ -11,6 +12,8 @@ import {
   SYSVAR_STAKE_HISTORY_PUBKEY,
   Transaction,
   type TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
   StakeProgram,
   Authorized,
 } from "@solana/web3.js";
@@ -122,6 +125,7 @@ export class SunriseStakeClient {
 
   liqPoolTokenAccount: PublicKey | undefined;
   lockClient: LockClient | undefined;
+  private lookupTableAccount: AddressLookupTableAccount | undefined;
 
   readonly env: EnvironmentConfig;
 
@@ -240,6 +244,24 @@ export class SunriseStakeClient {
       this.program,
       this.staker
     );
+
+    if (this.env.lookupTableAddress) {
+      const altResult = await this.provider.connection.getAddressLookupTable(
+        this.env.lookupTableAddress
+      );
+      if (altResult.value) {
+        this.lookupTableAccount = altResult.value;
+        this.log(
+          "Address Lookup Table loaded:",
+          this.env.lookupTableAddress.toBase58()
+        );
+      } else {
+        console.warn(
+          "Address Lookup Table configured but not found on-chain:",
+          this.env.lookupTableAddress.toBase58()
+        );
+      }
+    }
   }
 
   /**
@@ -265,16 +287,93 @@ export class SunriseStakeClient {
   }
 
   /**
+   * Convert a legacy Transaction to a V0 VersionedTransaction using the cached Address Lookup Table.
+   * Returns undefined if no ALT is configured, allowing graceful fallback to the legacy path.
+   * Priority fees are added before V0 compilation since V0 messages are immutable.
+   */
+  private async toVersionedTransaction(
+    legacyTx: Transaction
+  ): Promise<VersionedTransaction | undefined> {
+    if (!this.lookupTableAccount) return undefined;
+
+    const instructions = [...legacyTx.instructions];
+
+    if (this.options.addPriorityFee) {
+      if (!this.env.heliusUrl) {
+        throw new Error(
+          "Helius URL not set - cannot set priority fee. Either set heliusUrl in the environment or disable addPriorityFee in the options"
+        );
+      }
+      try {
+        const priorityFee = await getPriorityFee(this.env.heliusUrl, legacyTx);
+        instructions.push(
+          ComputeBudgetProgram.setComputeUnitPrice({
+            microLamports: priorityFee,
+          })
+        );
+      } catch (e) {
+        console.error(
+          "Error getting priority fee from Helius - proceeding without priority fee",
+          e
+        );
+      }
+    }
+
+    const { blockhash } = await this.provider.connection.getLatestBlockhash();
+
+    const messageV0 = new TransactionMessage({
+      payerKey: this.provider.publicKey,
+      recentBlockhash: blockhash,
+      instructions,
+    }).compileToV0Message([this.lookupTableAccount]);
+
+    return new VersionedTransaction(messageV0);
+  }
+
+  /**
+   * Send and confirm a VersionedTransaction.
+   * Signs with the wallet first (Phantom requirement), then additional signers.
+   */
+  private async sendAndConfirmVersionedTransaction(
+    transaction: VersionedTransaction,
+    signers: Signer[] = [],
+    opts?: ConfirmOptions
+  ): Promise<string> {
+    const signedTx = await this.provider.wallet.signTransaction(transaction);
+
+    if (signers.length > 0) {
+      signedTx.sign(signers);
+    }
+
+    const signature = await this.provider.connection.sendRawTransaction(
+      signedTx.serialize(),
+      opts
+    );
+
+    await confirm(this.provider.connection)(signature);
+    return signature;
+  }
+
+  /**
    * Utility function for sending an transaction and waiting for it to confirm.
    * @param transaction
    * @param signers
    * @param opts
    */
   public async sendAndConfirmTransaction(
-    transaction: Transaction,
+    transaction: Transaction | VersionedTransaction,
     signers?: Signer[],
     opts?: ConfirmOptions
   ): Promise<string> {
+    // VersionedTransaction path (already has priority fee baked in)
+    if (transaction instanceof VersionedTransaction) {
+      return this.sendAndConfirmVersionedTransaction(
+        transaction,
+        signers,
+        opts
+      );
+    }
+
     if (
       this.options.addPriorityFee !== undefined &&
       this.options.addPriorityFee
@@ -320,7 +419,7 @@ export class SunriseStakeClient {
    * @returns Object containing signatures array and errors array. When stopOnFirstFailure is true, throws on first error instead of populating errors array.
    */
   public async sendAndConfirmTransactions(
-    transactions: Transaction[],
+    transactions: Array<Transaction | VersionedTransaction>,
     signers: Signer[][] = [],
     opts?: ConfirmOptions,
     withRefresh = false,
@@ -339,7 +438,10 @@ export class SunriseStakeClient {
       this.options.addPriorityFee
     ) {
       for (const tx of transactions) {
-        await this.addPriorityFee(tx);
+        // Skip priority fee for VersionedTransactions (already handled before V0 compilation)
+        if (!(tx instanceof VersionedTransaction)) {
+          await this.addPriorityFee(tx);
+        }
       }
     }
 
@@ -591,7 +693,9 @@ export class SunriseStakeClient {
    * Note - this currently uses Marinade only.
    * @param lamports
    */
-  public async unstake(lamports: BN): Promise<Transaction> {
+  public async unstake(
+    lamports: BN
+  ): Promise<Transaction | VersionedTransaction> {
     if (
       this.marinadeState == null ||
       this.config == null ||
@@ -614,7 +718,8 @@ export class SunriseStakeClient {
 
     Boolean(this.config?.options.verbose) && logKeys(transaction);
 
-    return transaction;
+    const versioned = await this.toVersionedTransaction(transaction);
+    return versioned ?? transaction;
   }
 
   /**
