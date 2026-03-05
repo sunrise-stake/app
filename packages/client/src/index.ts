@@ -101,7 +101,12 @@ export * from "./types/Solblaze.js";
 // export all constants
 export * from "./constants.js";
 
-export { toSol, findImpactNFTMintAuthority, ZERO_BALANCE } from "./util.js";
+export {
+  toSol,
+  findImpactNFTMintAuthority,
+  ZERO_BALANCE,
+  type SendTransactionFn,
+} from "./util.js";
 
 export class SunriseStakeClient {
   readonly program: Program<SunriseStake>;
@@ -287,23 +292,6 @@ export class SunriseStakeClient {
   }
 
   /**
-   * Check if the wallet supports sendTransaction (sign + send in one call).
-   * Browser wallet adapters (e.g. Phantom) expose this, which allows the wallet
-   * to simulate the transaction before signing (Lighthouse assertions).
-   * File-based wallets (e.g. Anchor's NodeWallet in scripts) do not.
-   */
-  private walletSupportsSendTransaction(wallet: unknown): wallet is {
-    sendTransaction: (
-      tx: Transaction | VersionedTransaction,
-      connection: unknown
-    ) => Promise<string>;
-  } {
-    return (
-      typeof (wallet as Record<string, unknown>).sendTransaction === "function"
-    );
-  }
-
-  /**
    * Convert a legacy Transaction to a V0 VersionedTransaction using the cached Address Lookup Table.
    * Returns undefined if no ALT is configured, allowing graceful fallback to the legacy path.
    * Priority fees are added before V0 compilation since V0 messages are immutable.
@@ -358,12 +346,10 @@ export class SunriseStakeClient {
     signers: Signer[] = [],
     opts?: ConfirmOptions
   ): Promise<string> {
-    // Single-signer: let the wallet handle signing + submission for proper simulation
-    if (
-      signers.length === 0 &&
-      this.walletSupportsSendTransaction(this.provider.wallet)
-    ) {
-      const signature = await this.provider.wallet.sendTransaction(
+    // Single-signer: let the wallet handle signing + submission for proper
+    // simulation support (e.g. Phantom Lighthouse)
+    if (signers.length === 0 && this.options.sendTransaction) {
+      const signature = await this.options.sendTransaction(
         transaction,
         this.provider.connection
       );
@@ -432,10 +418,10 @@ export class SunriseStakeClient {
       return signature;
     }
 
-    // No additional signers: prefer wallet.sendTransaction for proper
-    // wallet simulation support (e.g. Phantom Lighthouse)
-    if (this.walletSupportsSendTransaction(this.provider.wallet)) {
-      const signature = await this.provider.wallet.sendTransaction(
+    // No additional signers: prefer wallet sendTransaction for proper
+    // simulation support (e.g. Phantom Lighthouse)
+    if (this.options.sendTransaction) {
+      const signature = await this.options.sendTransaction(
         transaction,
         this.provider.connection
       );

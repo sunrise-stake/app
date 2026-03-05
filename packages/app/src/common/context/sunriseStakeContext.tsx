@@ -1,4 +1,8 @@
-import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import {
+  useAnchorWallet,
+  useConnection,
+  useWallet,
+} from "@solana/wallet-adapter-react";
 import { Keypair } from "@solana/web3.js";
 import { type Details } from "@sunrisestake/client";
 import {
@@ -34,6 +38,7 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [details, setDetails] = useState<Details>();
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
+  const { sendTransaction } = useWallet();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
 
@@ -64,7 +69,9 @@ const SunriseProvider: FC<{ children: ReactNode }> = ({ children }) => {
         wallet,
         setDetails,
         undefined,
-        setLoading
+        setLoading,
+        false,
+        sendTransaction
       )
         .then(updateClient)
         .catch((error) => {

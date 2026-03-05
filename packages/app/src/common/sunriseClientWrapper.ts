@@ -5,6 +5,7 @@ import {
   MINIMUM_EXTRACTABLE_YIELD,
   type WithdrawalFees,
   type Environment,
+  type SendTransactionFn,
 } from "@sunrisestake/client";
 import {
   type Connection,
@@ -101,7 +102,8 @@ export class SunriseClientWrapper {
     detailsListener?: (details: Details, changedAccount?: PublicKey) => void,
     accountListener?: (changedAccount?: PublicKey) => void,
     loadingListener?: (loading: boolean) => void,
-    readonlyWallet = false
+    readonlyWallet = false,
+    sendTransaction?: SendTransactionFn
   ): Promise<SunriseClientWrapper> {
     const provider = new AnchorProvider(
       connection,
@@ -111,6 +113,7 @@ export class SunriseClientWrapper {
     const client = await SunriseStakeClient.get(provider, stage, {
       verbose: Boolean(import.meta.env.REACT_APP_VERBOSE),
       addPriorityFee: import.meta.env.REACT_APP_ADD_PRIO_FEE === "true",
+      sendTransaction,
     });
 
     return new SunriseClientWrapper(
