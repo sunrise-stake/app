@@ -287,6 +287,23 @@ export class SunriseStakeClient {
   }
 
   /**
+   * Check if the wallet supports sendTransaction (sign + send in one call).
+   * Browser wallet adapters (e.g. Phantom) expose this, which allows the wallet
+   * to simulate the transaction before signing (Lighthouse assertions).
+   * File-based wallets (e.g. Anchor's NodeWallet in scripts) do not.
+   */
+  private walletSupportsSendTransaction(wallet: unknown): wallet is {
+    sendTransaction: (
+      tx: Transaction | VersionedTransaction,
+      connection: unknown
+    ) => Promise<string>;
+  } {
+    return (
+      typeof (wallet as Record<string, unknown>).sendTransaction === "function"
+    );
+  }
+
+  /**
    * Convert a legacy Transaction to a V0 VersionedTransaction using the cached Address Lookup Table.
    * Returns undefined if no ALT is configured, allowing graceful fallback to the legacy path.
    * Priority fees are added before V0 compilation since V0 messages are immutable.
@@ -332,13 +349,29 @@ export class SunriseStakeClient {
 
   /**
    * Send and confirm a VersionedTransaction.
-   * Signs with the wallet first (Phantom requirement), then additional signers.
+   * For single-signer transactions, uses wallet.sendTransaction so the wallet
+   * can simulate before signing (required for Phantom Lighthouse).
+   * For multi-signer, signs with wallet first, then additional signers.
    */
   private async sendAndConfirmVersionedTransaction(
     transaction: VersionedTransaction,
     signers: Signer[] = [],
     opts?: ConfirmOptions
   ): Promise<string> {
+    // Single-signer: let the wallet handle signing + submission for proper simulation
+    if (
+      signers.length === 0 &&
+      this.walletSupportsSendTransaction(this.provider.wallet)
+    ) {
+      const signature = await this.provider.wallet.sendTransaction(
+        transaction,
+        this.provider.connection
+      );
+      await confirm(this.provider.connection)(signature);
+      return signature;
+    }
+
+    // Multi-signer or no sendTransaction: sign with wallet first, then additional signers
     const signedTx = await this.provider.wallet.signTransaction(transaction);
 
     if (signers.length > 0) {
@@ -399,7 +432,18 @@ export class SunriseStakeClient {
       return signature;
     }
 
-    // No additional signers - use default Anchor behavior
+    // No additional signers: prefer wallet.sendTransaction for proper
+    // wallet simulation support (e.g. Phantom Lighthouse)
+    if (this.walletSupportsSendTransaction(this.provider.wallet)) {
+      const signature = await this.provider.wallet.sendTransaction(
+        transaction,
+        this.provider.connection
+      );
+      await confirm(this.provider.connection)(signature);
+      return signature;
+    }
+
+    // Fallback: use Anchor provider (e.g. scripts, non-browser contexts)
     return this.provider
       .sendAndConfirm(transaction, signers, opts)
       .catch((e) => {
