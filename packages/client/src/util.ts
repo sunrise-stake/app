@@ -4,6 +4,7 @@ import {
   type Connection,
   PublicKey,
   type Transaction,
+  type VersionedTransaction,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
@@ -266,11 +267,22 @@ export const ZERO_BALANCE = {
   },
 };
 
+/**
+ * Callback for wallet-native sign+send. When provided, single-signer
+ * transactions are submitted via the wallet adapter so it can simulate
+ * before signing (required for Phantom Lighthouse).
+ */
+export type SendTransactionFn = (
+  transaction: Transaction | VersionedTransaction,
+  connection: Connection
+) => Promise<string>;
+
 export interface Options {
   confirmOptions?: ConfirmOptions;
   verbose?: boolean;
   environmentOverrides?: Partial<EnvironmentConfig>;
   addPriorityFee?: boolean;
+  sendTransaction?: SendTransactionFn;
 }
 
 /**
